@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clicko</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -106,6 +106,7 @@
             user-select: none;
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
             outline: none;
             transform: translateY(calc(var(--button-height-offset-px) * 1px));
             transition: transform 0.05s ease-out;
@@ -149,6 +150,7 @@
             user-select: none;
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
             transition: transform 0.05s ease-out;
             outline: none;
             display: flex;
@@ -1435,16 +1437,7 @@
         });
         gameButton.addEventListener('touchend', handleGameButtonRelease);
 
-        startButton.addEventListener('mousedown', handleUIButtonPress);
-        startButton.addEventListener('mouseup', handleUIButtonRelease);
-        startButton.addEventListener('mouseleave', handleUIButtonRelease);
-        startButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleUIButtonPress();
-        });
-        startButton.addEventListener('touchend', handleUIButtonRelease);
-
-        startButton.addEventListener('click', () => {
+        function startGame() {
             gameState.isPlaying = true;
             gameState.currentRound = 1;
             gameState.minSpeedMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
@@ -1452,11 +1445,44 @@
             totalClickCount = 0;
             clickCounter.textContent = totalClickCount;
             showRoundText(gameState.currentRound);
+        }
+
+        startButton.addEventListener('mousedown', handleUIButtonPress);
+        startButton.addEventListener('mouseup', handleUIButtonRelease);
+        startButton.addEventListener('mouseleave', handleUIButtonRelease);
+        // touchstart's preventDefault() suppresses the synthetic click a touch would
+        // otherwise fire afterward, so the actual start-game action has to run here
+        // too - a 'click' listener alone would never fire on a real touchscreen.
+        startButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleUIButtonPress();
         });
+        startButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleUIButtonRelease();
+            startGame();
+        });
+
+        startButton.addEventListener('click', startGame);
+
+        // Dev panel is only reachable locally (file:// or localhost) or with ?dev=1 -
+        // real players on a deployed URL never see it or its keyboard shortcut.
+        // Kept in the DOM either way (not removed) since game logic reads its slider
+        // values directly as the source of truth for defaults - only visibility and
+        // the D-key toggle are gated.
+        const isDevAllowed = location.protocol === 'file:' ||
+            location.protocol === 'data:' ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1' ||
+            new URLSearchParams(location.search).get('dev') === '1';
+
+        if (!isDevAllowed) {
+            devPanel.style.setProperty('display', 'none', 'important');
+        }
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'd') {
+            if (e.key.toLowerCase() === 'd' && isDevAllowed) {
                 devPanel.classList.toggle('hidden');
             }
             if (e.key.toLowerCase() === 'r') {
