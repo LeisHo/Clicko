@@ -905,7 +905,7 @@
 
         <!-- Speed Display Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (min ms)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
@@ -934,7 +934,7 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Game Mechanics</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Starting Speed (ms):</span>
+                    <span class="dev-label">Starting Max Time (ms):</span>
                     <input type="range" class="dev-slider" id="sliderStartingSpeed" min="50" max="800" step="10" value="600">
                     <span class="dev-value" id="valueStartingSpeed">600</span>
                 </div>
@@ -1021,8 +1021,7 @@
             isPlaying: false,
             canTap: false,
             isCountingTaps: false,
-            lastTapTime: 0,
-            minSpeedMs: 600,
+            maxTimeMs: 600,
             speedDecrease: 30,
             roundDuration: 1000,
             resultDuration: 1000,
@@ -1174,7 +1173,7 @@
                         cssVars[varName] = value;
                         document.documentElement.style.setProperty(varName, value);
                     } else if (e.target.id === 'sliderStartingSpeed') {
-                        gameState.minSpeedMs = value;
+                        gameState.maxTimeMs = value;
                     } else if (e.target.id === 'sliderSpeedDecrease') {
                         gameState.speedDecrease = value;
                     } else if (e.target.id === 'sliderRoundDuration') {
@@ -1285,7 +1284,7 @@
 
         function showTargetAndSpeed() {
             gameState.targetCount = Math.floor(Math.random() * 29) + 2;
-            gameState.minSpeedMs = Math.max(100, gameState.minSpeedMs - gameState.speedDecrease);
+            gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - gameState.speedDecrease);
             gameState.currentTapCount = 0;
             gameState.isCountingTaps = false;
             if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
@@ -1295,7 +1294,7 @@
             gameText.classList.add('hidden');
             targetCount.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
-            speedDisplay.textContent = gameState.minSpeedMs.toFixed(0) + ' ms';
+            speedDisplay.textContent = gameState.maxTimeMs.toFixed(0) + ' ms';
             speedDisplay.classList.remove('hidden');
 
             // Reset button color
@@ -1314,56 +1313,38 @@
 
             if (!gameState.isPlaying || !gameState.canTap) return;
 
-            const now = Date.now();
+            // There is no minimum-speed floor - tap as fast as you want, every tap
+            // counts immediately. maxTimeMs is a CEILING on the gap between clicks,
+            // not a floor: if too much time passes without a tap, you lose.
+            gameState.isCountingTaps = true;
+            gameState.currentTapCount++;
 
-            if (!gameState.isCountingTaps) {
-                // First tap - start counting. No timer here - taps before reaching
-                // the target aren't timed against each other, only the min gap below.
-                gameState.isCountingTaps = true;
-                gameState.lastTapTime = now;
-                gameState.currentTapCount = 1;
-                if (gameState.currentTapCount === gameState.targetCount) {
-                    scheduleWinCheck();
-                }
-                return;
-            }
-
-            // Once the target is reached, the win countdown is running - ANY further
-            // tap (even one that would normally be too fast to count) means the player
-            // pressed again when they shouldn't have, and loses immediately. The min-gap
-            // floor below only governs taps on the way TO the target, not after it.
-            if (gameState.currentTapCount === gameState.targetCount) {
+            if (gameState.currentTapCount > gameState.targetCount) {
+                // Overshot - lose immediately, no waiting for any timer.
                 if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
                 endGame(false, 'too-many');
                 return;
             }
 
-            // Subsequent taps below the target
-            const timeSinceLastTap = now - gameState.lastTapTime;
-            if (timeSinceLastTap < gameState.minSpeedMs) {
-                // Too fast - ignore this tap entirely (no penalty, doesn't count)
-                return;
-            }
-
-            gameState.lastTapTime = now;
-            gameState.currentTapCount++;
-
-            if (gameState.currentTapCount === gameState.targetCount) {
-                // Just reached the target - start the win countdown.
-                scheduleWinCheck();
-            }
-            // Otherwise still short of the target: no timer, just wait for the next tap.
+            // (Re)schedule the max-time check after every tap, whether or not the
+            // target has been reached yet. If no further tap arrives before maxTimeMs
+            // elapses, whatever the count is right now decides win or lose.
+            scheduleMaxTimeCheck();
         }
 
-        function scheduleWinCheck() {
+        function scheduleMaxTimeCheck() {
             if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
 
-            // If nothing else happens within the minimum tap time, the player wins.
             gameState.checkTimeoutId = setTimeout(() => {
-                if (gameState.isCountingTaps && gameState.currentTapCount === gameState.targetCount) {
+                if (!gameState.isCountingTaps) return;
+                if (gameState.currentTapCount === gameState.targetCount) {
                     endGame(true);
+                } else {
+                    // currentTapCount < targetCount here - overshoot already ends
+                    // the round immediately above, so this is always an undershoot.
+                    endGame(false, 'not-enough');
                 }
-            }, gameState.minSpeedMs);
+            }, gameState.maxTimeMs);
         }
 
         function handleGameButtonRelease() {
@@ -1411,7 +1392,7 @@
                     gameText.classList.add('hidden');
                     gameState.isPlaying = false;
                     gameState.currentRound = 0;
-                    gameState.minSpeedMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
+                    gameState.maxTimeMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
                 }, gameState.resultDuration);
             }
         }
@@ -1432,7 +1413,7 @@
         function startGame() {
             gameState.isPlaying = true;
             gameState.currentRound = 1;
-            gameState.minSpeedMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
+            gameState.maxTimeMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
             startButton.classList.add('hidden');
             totalClickCount = 0;
             clickCounter.textContent = totalClickCount;
