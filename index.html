@@ -66,7 +66,9 @@
             width: 100%;
             height: 100%;
             display: block;
-            filter: hue-rotate(var(--base-hue-rotate, 0deg));
+            /* Base is the outermost visible shape, so it casts the main ground shadow */
+            filter: hue-rotate(var(--base-hue-rotate, 0deg))
+                    drop-shadow(calc(var(--shadow-x-offset) * 1px) calc(var(--shadow-y-offset) * 1px) calc(var(--shadow-blur) * 1px) rgba(0, 0, 0, 0.6));
         }
 
         /* White occluder plate - covers the button's excess bottom past the base.
@@ -87,22 +89,6 @@
         }
         .white-cls-1 {
             fill: var(--bg-color) !important;
-        }
-
-        /* Contact shadow - a soft shadow rendered ON TOP of the white plate's surface,
-           confined to the notch/valley where white is actually visible between the
-           base's flared feet (base is frontmost and would otherwise hide it). */
-        .contact-shadow-layer {
-            position: absolute;
-            left: 51.7%;
-            top: 68%;
-            width: 32%;
-            height: 11%;
-            transform: translate(calc(-50% + var(--shadow-x-offset) * 1px), calc(-50% + var(--shadow-y-offset) * 1px));
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0) 75%);
-            filter: blur(calc(var(--shadow-blur) * 0.3px));
-            z-index: 5;
-            pointer-events: none;
         }
 
         /* Button - backmost layer, tucked under the base; shifts up/down via height
@@ -133,7 +119,10 @@
             width: 100%;
             height: 100%;
             display: block;
-            filter: hue-rotate(var(--button-hue-rotate, 0deg));
+            /* Button is mostly tucked behind base/white; its own shadow only shows
+               around whatever part of it (e.g. the dome tip) pokes through */
+            filter: hue-rotate(var(--button-hue-rotate, 0deg))
+                    drop-shadow(calc(var(--shadow-x-offset) * 1px) calc(var(--shadow-y-offset) * 1px) calc(var(--shadow-blur) * 1px) rgba(0, 0, 0, 0.6));
         }
         .btn-normal-svg { display: block; }
         .btn-pressed-svg { display: none; }
@@ -687,7 +676,6 @@
   </defs>
   <polygon class="white-cls-1" points="270.13 253.28 -2.55 253.28 -2.55 135.32 70.98 135.32 123.57 176.17 183.32 135.32 270.13 135.32 270.13 253.28"/>
 </svg></div>
-            <div class="contact-shadow-layer"></div>
         </div>
         <button class="start-button" id="startButton">START</button>
         <div class="game-text" id="gameText"></div>
@@ -722,22 +710,22 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Diameter (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonDiameter" min="5" max="60" step="0.5" value="35">
-                    <span class="dev-value" id="valueButtonDiameter">35</span>
+                    <input type="range" class="dev-slider" id="sliderButtonDiameter" min="5" max="60" step="0.5" value="54.5">
+                    <span class="dev-value" id="valueButtonDiameter">54.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset px):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-60" max="60" step="1" value="0">
-                    <span class="dev-value" id="valueButtonHeight">0</span>
+                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-60" max="60" step="1" value="1">
+                    <span class="dev-value" id="valueButtonHeight">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Press Intensity (px):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="60" step="1" value="15">
-                    <span class="dev-value" id="valueButtonPressIntensity">15</span>
+                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="60" step="1" value="51">
+                    <span class="dev-value" id="valueButtonPressIntensity">51</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorButton" value="#779e4f">
+                    <input type="color" class="dev-color-picker" id="colorButton" value="#ff3333">
                     <span class="dev-value" style="font-size:9px;color:#888;">(hue-rotate)</span>
                 </div>
                 <div class="dev-row">
@@ -752,8 +740,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonY" min="-30" max="30" step="0.5" value="0">
-                    <span class="dev-value" id="valueButtonY">0</span>
+                    <input type="range" class="dev-slider" id="sliderButtonY" min="-30" max="30" step="0.5" value="15">
+                    <span class="dev-value" id="valueButtonY">15</span>
                 </div>
             </div>
         </div>
@@ -764,18 +752,18 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="300" step="1" value="8">
-                    <span class="dev-value" id="valueShadowX">8</span>
+                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="300" step="1" value="300">
+                    <span class="dev-value" id="valueShadowX">300</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowY" min="-300" max="300" step="1" value="12">
-                    <span class="dev-value" id="valueShadowY">12</span>
+                    <input type="range" class="dev-slider" id="sliderShadowY" min="-300" max="300" step="1" value="-254">
+                    <span class="dev-value" id="valueShadowY">-254</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowBlur" min="0" max="60" step="1" value="20">
-                    <span class="dev-value" id="valueShadowBlur">20</span>
+                    <input type="range" class="dev-slider" id="sliderShadowBlur" min="0" max="60" step="1" value="60">
+                    <span class="dev-value" id="valueShadowBlur">60</span>
                 </div>
             </div>
         </div>
@@ -955,8 +943,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Stop-Tap Grace (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderStopGrace" min="0" max="500" step="10" value="200">
-                    <span class="dev-value" id="valueStopGrace">200</span>
+                    <input type="range" class="dev-slider" id="sliderStopGrace" min="0" max="2000" step="10" value="900">
+                    <span class="dev-value" id="valueStopGrace">900</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Duration (ms):</span>
@@ -986,14 +974,14 @@
     <script>
         // CSS Variables initialization
         const cssVars = {
-            '--button-diameter-vw': 35,
-            '--button-height-offset-px': 0,
-            '--button-press-intensity-px': 15,
+            '--button-diameter-vw': 54.5,
+            '--button-height-offset-px': 1,
+            '--button-press-intensity-px': 51,
             '--button-x-offset-vw': 0,
-            '--button-y-offset-vh': 0,
-            '--shadow-x-offset': 8,
-            '--shadow-y-offset': 12,
-            '--shadow-blur': 20,
+            '--button-y-offset-vh': 15,
+            '--shadow-x-offset': 300,
+            '--shadow-y-offset': -254,
+            '--shadow-blur': 60,
             '--ui-button-width-vw': 12,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 8,
@@ -1038,7 +1026,7 @@
             isCountingTaps: false,
             lastTapTime: 0,
             minSpeedMs: 600,
-            stopGraceMs: 200,
+            stopGraceMs: 900,
             speedDecrease: 30,
             roundDuration: 1000,
             resultDuration: 1000,
@@ -1496,6 +1484,8 @@
         loadSettings();
         updateCSSVariables();
         setupDevSliders();
+        setButtonHue(document.getElementById('colorButton').value);
+        setBaseHue(document.getElementById('colorBase').value);
     </script>
 </body>
 </html>
