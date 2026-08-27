@@ -1036,7 +1036,8 @@
         };
 
         // Messages
-        const loseMessages = ['OOPS!', 'MISSED!', 'TOO SLOW!', 'NOPE!', 'FAILED!', 'WHOA!', 'TRY AGAIN'];
+        const tooManyMessages = ['TOO MANY!', 'OVERSHOT!', 'ONE TOO FAR!', 'TOO FAR!'];
+        const notEnoughMessages = ['TOO SLOW!', 'NOT ENOUGH!', 'RAN OUT OF TIME!', "DIDN'T MAKE IT!"];
         const winMessages = ['PERFECT!', 'NICE!', 'EXCELLENT!', 'YES!', 'FANTASTIC!', 'BOOM!', 'LEGEND!', 'SICK!'];
         const tryAgainMessages = ['try again?', 'again?', 'one more?', 'retry?', 'go again?', 'another round?'];
 
@@ -1344,7 +1345,7 @@
 
             // Check if player overshot (too many taps)
             if (gameState.currentTapCount > gameState.targetCount) {
-                endGame(false);
+                endGame(false, 'too-many');
                 return;
             }
 
@@ -1372,9 +1373,13 @@
             // Check if player got exact count
             if (gameState.currentTapCount === gameState.targetCount) {
                 endGame(true);
+            } else if (gameState.currentTapCount > gameState.targetCount) {
+                // Shouldn't normally reach here (overshoot ends immediately above),
+                // but handle it defensively in case of a race with a stale timeout.
+                endGame(false, 'too-many');
             } else {
-                // Player tapped too few times
-                endGame(false);
+                // Player ran out of time before reaching the target count
+                endGame(false, 'not-enough');
             }
         }
 
@@ -1390,7 +1395,7 @@
             startButton.classList.remove('pressed');
         }
 
-        function endGame(won) {
+        function endGame(won, reason) {
             gameState.isCountingTaps = false;
             gameState.canTap = false;
             if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
@@ -1409,8 +1414,9 @@
                 }, gameState.resultDuration);
             } else {
                 setButtonHue('#dd3333');
-                const loseMsg = loseMessages[Math.floor(Math.random() * loseMessages.length)];
-                gameText.textContent = loseMsg;
+                const pool = reason === 'too-many' ? tooManyMessages : notEnoughMessages;
+                const loseMsg = pool[Math.floor(Math.random() * pool.length)];
+                gameText.textContent = `${loseMsg} (${gameState.currentTapCount}/${gameState.targetCount})`;
                 gameText.classList.remove('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
@@ -1427,15 +1433,18 @@
             }
         }
 
-        // Event listeners
-        gameButton.addEventListener('mousedown', handleGameButtonPress);
-        gameButton.addEventListener('mouseup', handleGameButtonRelease);
-        gameButton.addEventListener('mouseleave', handleGameButtonRelease);
-        gameButton.addEventListener('touchstart', (e) => {
+        // Event listeners - Pointer Events unify mouse/touch/pen into one event
+        // stream, avoiding the classic double-fire risk of attaching both mouse AND
+        // touch listeners (a mobile browser's synthetic mouse event after a real touch
+        // isn't always fully suppressed by preventDefault(), which could double-count
+        // taps on some devices).
+        gameButton.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             handleGameButtonPress();
         });
-        gameButton.addEventListener('touchend', handleGameButtonRelease);
+        gameButton.addEventListener('pointerup', handleGameButtonRelease);
+        gameButton.addEventListener('pointercancel', handleGameButtonRelease);
+        gameButton.addEventListener('pointerleave', handleGameButtonRelease);
 
         function startGame() {
             gameState.isPlaying = true;
@@ -1447,23 +1456,17 @@
             showRoundText(gameState.currentRound);
         }
 
-        startButton.addEventListener('mousedown', handleUIButtonPress);
-        startButton.addEventListener('mouseup', handleUIButtonRelease);
-        startButton.addEventListener('mouseleave', handleUIButtonRelease);
-        // touchstart's preventDefault() suppresses the synthetic click a touch would
-        // otherwise fire afterward, so the actual start-game action has to run here
-        // too - a 'click' listener alone would never fire on a real touchscreen.
-        startButton.addEventListener('touchstart', (e) => {
+        startButton.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             handleUIButtonPress();
         });
-        startButton.addEventListener('touchend', (e) => {
+        startButton.addEventListener('pointerup', (e) => {
             e.preventDefault();
             handleUIButtonRelease();
             startGame();
         });
-
-        startButton.addEventListener('click', startGame);
+        startButton.addEventListener('pointercancel', handleUIButtonRelease);
+        startButton.addEventListener('pointerleave', handleUIButtonRelease);
 
         // Dev panel is only reachable locally (file:// or localhost) or with ?dev=1 -
         // real players on a deployed URL never see it or its keyboard shortcut.
