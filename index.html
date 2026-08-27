@@ -110,6 +110,10 @@
             outline: none;
             transform: translateY(calc(var(--button-height-offset-px) * 1px));
             transition: transform 0.05s ease-out;
+            /* Only the SVG's actual painted pixels are clickable, not this element's
+               full rectangular box - the child svg below opts back into hit-testing
+               and browsers only hit-test an SVG's visible painted area by default. */
+            pointer-events: none;
         }
         .game-button.pressed {
             transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * 1px));
@@ -120,10 +124,15 @@
             width: 100%;
             height: 100%;
             display: block;
-            /* Button is mostly tucked behind base/white; its own shadow only shows
-               around whatever part of it (e.g. the dome tip) pokes through */
-            filter: hue-rotate(var(--button-hue-rotate, 0deg))
-                    drop-shadow(calc(var(--shadow-x-offset) * 1px) calc(var(--shadow-y-offset) * 1px) calc(var(--shadow-blur) * 1px) rgba(0, 0, 0, 0.6));
+            /* The svg root itself stays non-interactive (its own box is the full
+               rectangle) - only its actual painted shapes below opt back in. */
+            pointer-events: none;
+            /* Base casts the one shared shadow for the whole assembly - the button
+               (mostly tucked behind base/white anyway) doesn't cast its own. */
+            filter: hue-rotate(var(--button-hue-rotate, 0deg));
+        }
+        .game-button svg * {
+            pointer-events: auto;
         }
         .btn-normal-svg { display: block; }
         .btn-pressed-svg { display: none; }
@@ -1305,13 +1314,15 @@
         }
 
         function handleGameButtonPress() {
-            // Visual press feedback and the click counter work regardless of game
-            // state, so the button is responsive on the landing page too.
+            // Visual press feedback works regardless of game state, so the button is
+            // responsive on the landing page too - but the click counter only counts
+            // once a round has actually started.
             gameButton.classList.add('pressed');
-            totalClickCount++;
-            clickCounter.textContent = totalClickCount;
 
             if (!gameState.isPlaying || !gameState.canTap) return;
+
+            totalClickCount++;
+            clickCounter.textContent = totalClickCount;
 
             // There is no minimum-speed floor - tap as fast as you want, every tap
             // counts immediately. maxTimeMs is a CEILING on the gap between clicks,
