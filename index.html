@@ -1053,6 +1053,12 @@
         const panelResizer = document.getElementById('panelResizer');
         const clickCounter = document.getElementById('clickCounter');
         let totalClickCount = 0;
+        let lastAcceptedTapTime = 0;
+        // Filters out duplicate pointerdown events for a single physical press -
+        // e.g. mouse/trackpad switch "bounce" sending 2 down-signals for 1 click,
+        // or a browser occasionally double-firing pointerdown. No legitimate
+        // separate tap ever arrives this close together.
+        const TAP_DEBOUNCE_MS = 50;
 
         // Initialize CSS variables
         function updateCSSVariables() {
@@ -1299,6 +1305,7 @@
             if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
             totalClickCount = 0;
             clickCounter.textContent = totalClickCount;
+            lastAcceptedTapTime = 0;
 
             gameText.classList.add('hidden');
             targetCount.textContent = gameState.targetCount;
@@ -1320,6 +1327,12 @@
             gameButton.classList.add('pressed');
 
             if (!gameState.isPlaying || !gameState.canTap) return;
+
+            // Debounce: reject a pointerdown that arrives implausibly soon after the
+            // last accepted one (hardware bounce / duplicate event), not a real tap.
+            const now = Date.now();
+            if (now - lastAcceptedTapTime < TAP_DEBOUNCE_MS) return;
+            lastAcceptedTapTime = now;
 
             totalClickCount++;
             clickCounter.textContent = totalClickCount;
