@@ -944,11 +944,6 @@
                     <span class="dev-value" id="valueSpeedDecrease">30</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Stop-Tap Grace (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderStopGrace" min="0" max="2000" step="10" value="900">
-                    <span class="dev-value" id="valueStopGrace">900</span>
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">Round Text Duration (ms):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDuration" min="200" max="3000" step="50" value="1000">
                     <span class="dev-value" id="valueRoundDuration">1000</span>
@@ -1028,7 +1023,6 @@
             isCountingTaps: false,
             lastTapTime: 0,
             minSpeedMs: 600,
-            stopGraceMs: 900,
             speedDecrease: 30,
             roundDuration: 1000,
             resultDuration: 1000,
@@ -1183,8 +1177,6 @@
                         gameState.minSpeedMs = value;
                     } else if (e.target.id === 'sliderSpeedDecrease') {
                         gameState.speedDecrease = value;
-                    } else if (e.target.id === 'sliderStopGrace') {
-                        gameState.stopGraceMs = value;
                     } else if (e.target.id === 'sliderRoundDuration') {
                         gameState.roundDuration = value;
                     } else if (e.target.id === 'sliderResultDuration') {
@@ -1325,62 +1317,53 @@
             const now = Date.now();
 
             if (!gameState.isCountingTaps) {
-                // First tap - start counting
+                // First tap - start counting. No timer here - taps before reaching
+                // the target aren't timed against each other, only the min gap below.
                 gameState.isCountingTaps = true;
                 gameState.lastTapTime = now;
                 gameState.currentTapCount = 1;
-                scheduleCheck();
+                if (gameState.currentTapCount === gameState.targetCount) {
+                    scheduleWinCheck();
+                }
                 return;
             }
 
-            // Subsequent taps
+            // Once the target is reached, the win countdown is running - ANY further
+            // tap (even one that would normally be too fast to count) means the player
+            // pressed again when they shouldn't have, and loses immediately. The min-gap
+            // floor below only governs taps on the way TO the target, not after it.
+            if (gameState.currentTapCount === gameState.targetCount) {
+                if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+                endGame(false, 'too-many');
+                return;
+            }
+
+            // Subsequent taps below the target
             const timeSinceLastTap = now - gameState.lastTapTime;
             if (timeSinceLastTap < gameState.minSpeedMs) {
-                // Too fast - ignore this tap
+                // Too fast - ignore this tap entirely (no penalty, doesn't count)
                 return;
             }
 
             gameState.lastTapTime = now;
             gameState.currentTapCount++;
 
-            // Check if player overshot (too many taps)
-            if (gameState.currentTapCount > gameState.targetCount) {
-                endGame(false, 'too-many');
-                return;
-            }
-
-            // Reschedule check when player stops
-            scheduleCheck();
-        }
-
-        function scheduleCheck() {
-            // Clear existing timeout
-            if (gameState.checkTimeoutId) {
-                clearTimeout(gameState.checkTimeoutId);
-            }
-
-            // Schedule the "player has stopped" check with a grace buffer beyond the
-            // minimum tap gap - otherwise a tap arriving right at minSpeedMs would always
-            // lose the race against this timer and the round would end after every tap.
-            gameState.checkTimeoutId = setTimeout(() => {
-                checkGameResult();
-            }, gameState.minSpeedMs + gameState.stopGraceMs);
-        }
-
-        function checkGameResult() {
-            if (!gameState.isCountingTaps) return;
-
-            // Check if player got exact count
             if (gameState.currentTapCount === gameState.targetCount) {
-                endGame(true);
-            } else if (gameState.currentTapCount > gameState.targetCount) {
-                // Shouldn't normally reach here (overshoot ends immediately above),
-                // but handle it defensively in case of a race with a stale timeout.
-                endGame(false, 'too-many');
-            } else {
-                // Player ran out of time before reaching the target count
-                endGame(false, 'not-enough');
+                // Just reached the target - start the win countdown.
+                scheduleWinCheck();
             }
+            // Otherwise still short of the target: no timer, just wait for the next tap.
+        }
+
+        function scheduleWinCheck() {
+            if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+
+            // If nothing else happens within the minimum tap time, the player wins.
+            gameState.checkTimeoutId = setTimeout(() => {
+                if (gameState.isCountingTaps && gameState.currentTapCount === gameState.targetCount) {
+                    endGame(true);
+                }
+            }, gameState.minSpeedMs);
         }
 
         function handleGameButtonRelease() {
