@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicko</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+            background-color: var(--bg-color);
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+        }
+
+        /* Button assembly - positions the base/white/button SVGs together as one unit.
+           All SVGs share the same 246.13x245.11 viewBox from the source artwork, so
+           stacking them at inset:0 inside this wrapper preserves their native alignment.
+           Layer order back to front: base, white (occludes the button's excess bottom
+           and carries the ground shadow), button (frontmost, no shadow of its own). */
+        .button-assembly {
+            position: absolute;
+            width: calc(var(--button-diameter-vw) * 1vw);
+            height: calc(var(--button-diameter-vw) * 0.99586 * 1vw);
+            left: calc(50% + var(--button-x-offset-vw) * 1vw);
+            top: calc(50% + var(--button-y-offset-vh) * 1vh);
+            transform: translate(-50%, -50%);
+        }
+
+        /* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
+           sits in front of the button, which is tucked behind/under it. */
+        .base-svg-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+        }
+        .base-svg-layer svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            filter: hue-rotate(var(--base-hue-rotate, 0deg));
+        }
+
+        /* White occluder plate - covers the button's excess bottom past the base.
+           Its fill tracks the page background so it blends in regardless of the
+           chosen background color. Carries no shadow of its own. */
+        .white-svg-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .white-svg-layer svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .white-cls-1 {
+            fill: var(--bg-color) !important;
+        }
+
+        /* Contact shadow - a soft shadow rendered ON TOP of the white plate's surface,
+           confined to the notch/valley where white is actually visible between the
+           base's flared feet (base is frontmost and would otherwise hide it). */
+        .contact-shadow-layer {
+            position: absolute;
+            left: 51.7%;
+            top: 68%;
+            width: 32%;
+            height: 11%;
+            transform: translate(calc(-50% + var(--shadow-x-offset) * 1px), calc(-50% + var(--shadow-y-offset) * 1px));
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0) 75%);
+            filter: blur(calc(var(--shadow-blur) * 0.3px));
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* Button - backmost layer, tucked under the base; shifts up/down via height
+           offset and press intensity */
+        .game-button {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            transform: translateY(calc(var(--button-height-offset-px) * 1px));
+            transition: transform 0.05s ease-out;
+        }
+        .game-button.pressed {
+            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * 1px));
+        }
+        .game-button svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            filter: hue-rotate(var(--button-hue-rotate, 0deg));
+        }
+        .btn-normal-svg { display: block; }
+        .btn-pressed-svg { display: none; }
+        .game-button.pressed .btn-normal-svg { display: none; }
+        .game-button.pressed .btn-pressed-svg { display: block; }
+
+        /* Start Button (UI) */
+        .start-button {
+            position: absolute;
+            width: calc(var(--ui-button-width-vw) * 1vw);
+            height: calc(var(--ui-button-height-vh) * 1vh);
+            left: calc(50% + var(--ui-button-x-offset-vw) * 1vw);
+            top: calc(50% + var(--ui-button-y-offset-vh) * 1vh);
+            transform: translate(-50%, -50%);
+            padding: 0;
+            font-size: calc(var(--ui-button-height-vh) * 0.35vh);
+            font-weight: 600;
+            font-family: var(--ui-font);
+            color: white;
+            background: var(--ui-button-color);
+            border: none;
+            border-radius: calc(var(--ui-button-radius) * 1px);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.05s ease-out;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(255,255,255, 0.3),
+                        inset 0 -3px 6px rgba(0,0,0, 0.3);
+        }
+
+        .start-button.pressed {
+            transform: translate(-50%, calc(-50% + 3px));
+        }
+
+        .start-button.hidden {
+            display: none !important;
+        }
+
+        /* Game Text Displays */
+        .game-text {
+            position: absolute;
+            left: calc(50% + var(--text-x-offset-vw) * 1vw);
+            top: calc(50% + var(--text-y-offset-vh) * 1vh);
+            transform: translate(-50%, -50%);
+            font-size: calc(var(--text-font-size-vw) * 1vw);
+            font-weight: 700;
+            font-family: var(--text-font);
+            color: var(--text-color);
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .game-text.hidden {
+            display: none !important;
+        }
+
+        /* Target Count Display */
+        .target-count {
+            position: absolute;
+            left: calc(50% + var(--target-x-offset-vw) * 1vw);
+            top: calc(50% + var(--target-y-offset-vh) * 1vh);
+            transform: translate(-50%, -50%);
+            font-size: calc(var(--target-font-size-vw) * 1vw);
+            font-weight: 700;
+            font-family: var(--numbers-font);
+            color: var(--target-color);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .target-count.hidden {
+            display: none !important;
+        }
+
+        /* Speed Display */
+        .speed-display {
+            position: absolute;
+            left: calc(50% + var(--speed-x-offset-vw) * 1vw);
+            top: calc(50% + var(--speed-y-offset-vh) * 1vh);
+            transform: translate(-50%, -50%);
+            font-size: calc(var(--speed-font-size-vw) * 1vw);
+            font-weight: 700;
+            font-family: var(--numbers-font);
+            color: var(--speed-color);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .speed-display.hidden {
+            display: none !important;
+        }
+
+        /* Click Counter - debug display next to the button, toggled from dev panel */
+        .click-counter {
+            position: absolute;
+            left: calc(50% + var(--button-x-offset-vw) * 1vw + var(--button-diameter-vw) * 0.75 * 1vw);
+            top: calc(50% + var(--button-y-offset-vh) * 1vh);
+            transform: translate(0, -50%);
+            font-family: monospace;
+            font-size: 1.5vw;
+            font-weight: 700;
+            color: #333;
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid #333;
+            border-radius: 6px;
+            padding: 4px 10px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .click-counter.hidden {
+            display: none !important;
+        }
+
+        /* Dev Panel */
+        .dev-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            padding: 15px;
+            width: var(--dev-panel-width-px);
+            overflow-y: auto;
+            font-size: 11px;
+            z-index: 99999;
+            font-family: monospace;
+            border-left: 2px solid #0f0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dev-panel.hidden {
+            display: none !important;
+        }
+
+        .dev-panel-resizer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            cursor: col-resize;
+            background: #0f0;
+            opacity: 0;
+        }
+
+        .dev-panel-resizer:hover {
+            opacity: 0.5;
+        }
+
+        .dev-header {
+            margin-bottom: 10px;
+            color: #0ff;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            background: rgba(0,0,0,0.95);
+            padding-bottom: 10px;
+        }
+
+        .dev-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .dev-buttons button {
+            flex: 1;
+            padding: 6px;
+            font-size: 10px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .dev-buttons button:hover {
+            background: #0ff;
+        }
+
+        .dev-section {
+            margin-bottom: 15px;
+        }
+
+        .dev-section-title {
+            color: #0ff;
+            font-weight: bold;
+            margin-bottom: 8px;
+            cursor: pointer;
+            user-select: none;
+            padding: 5px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .dev-section-title:hover {
+            background: rgba(0, 255, 255, 0.2);
+        }
+
+        .dev-section-content {
+            display: block;
+            margin-left: 5px;
+        }
+
+        .dev-section-content.collapsed {
+            display: none;
+        }
+
+        .dev-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .dev-label {
+            min-width: 140px;
+            color: #aaa;
+            font-size: 10px;
+        }
+
+        .dev-slider {
+            flex: 1;
+            min-width: 80px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .dev-value {
+            min-width: 45px;
+            color: #0f0;
+            text-align: right;
+            font-size: 10px;
+        }
+
+        .dev-color-picker {
+            width: 50px;
+            height: 30px;
+            border: 1px solid #0f0;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .dev-select {
+            background: #222;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 4px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="button-assembly" id="buttonAssembly">
+            <button class="game-button" id="gameButton" aria-label="Game button">
+                <div class="btn-normal-svg"><svg id="buttonSvgRoot" data-name="Isolation Mode" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 246.13 245.11">
+  <defs>
+    <style>
+      .btn-cls-1 {
+        fill: #436539;
+      }
+
+      .btn-cls-2 {
+        fill: #293723;
+      }
+
+      .btn-cls-3 {
+        fill: none;
+      }
+
+      .btn-cls-4 {
+        clip-path: url(#btn-clippath-1);
+      }
+
+      .btn-cls-5 {
+        fill: #4e703f;
+      }
+
+      .btn-cls-6 {
+        fill: #a0be4f;
+      }
+
+      .btn-cls-7 {
+        fill: #324326;
+      }
+
+      .btn-cls-8 {
+        fill: #93b750;
+      }
+
+      .btn-cls-9 {
+        fill: #779e4f;
+      }
+
+      .btn-cls-10 {
+        fill: #577e46;
+      }
+
+      .btn-cls-11 {
+        fill: #87b050;
+      }
+
+      .btn-cls-12 {
+        clip-path: url(#btn-clippath);
+      }
+
+      .btn-cls-13 {
+        fill: #3c5b36;
+      }
+
+      .btn-cls-14 {
+        fill: #618949;
+      }
+    </style>
+    <clipPath id="btn-clippath">
+      <rect class="btn-cls-2" x="81.45" y="87.94" width="91.15" height="109.85"/>
+    </clipPath>
+    <clipPath id="btn-clippath-1">
+      <ellipse class="btn-cls-3" cx="127.02" cy="87.42" rx="45.57" ry="26.54"/>
+    </clipPath>
+  </defs>
+  <g>
+    <rect class="btn-cls-2" x="81.45" y="87.94" width="91.15" height="109.85"/>
+    <g class="btn-cls-12">
+      <ellipse class="btn-cls-13" cx="127.02" cy="114.52" rx="45.57" ry="26.54"/>
+      <ellipse class="btn-cls-1" cx="127.02" cy="107.84" rx="45.57" ry="26.54"/>
+      <ellipse class="btn-cls-5" cx="127.02" cy="100.67" rx="45.57" ry="26.54"/>
+      <ellipse class="btn-cls-10" cx="127.02" cy="93.99" rx="45.57" ry="26.54"/>
+      <ellipse class="btn-cls-14" cx="127.02" cy="88.08" rx="45.57" ry="26.54"/>
+    </g>
+  </g>
+  <g class="btn-cls-4">
+    <g>
+      <path class="btn-cls-8" d="M144.62,62.24l1.08.17,12.89,4.74,3.98,3.21,2.12,2.02.89.95c1.94,3.05.7,7.8,2.38,10.8-.16.99-1.05,1.9-1.13,2.89-.53-1.02-1.78-1.74-2.09-2.83l-1.07-3.82c-.22-.78-.87-1.45-1.09-2.23-1.84-6.36-8.4-9.64-14.75-10.71-1.95-.33-3.81-1.32-5.8-1.5-.42-1.35-2.36-1.47-3.5-1.51l-6.68-.24c-1.29-.05-10.07-2.92-9.4,1.03-3.49-.08-7.16.06-10.57,1.01-1.6-1.22-3.66.6-5.37,1.12-7.47,2.2-13.67,7.49-15.84,15.1l-1.07,3.74-1.15,1.15-1.71-2.35c.45-9.05,4.45-8.63,7.86-15.61,1.09-.67,1.79-2.4,2.96-2.89,15-6.26,31.21-8.07,47.04-4.25Z"/>
+      <path class="btn-cls-7" d="M145.7,62.41l-1.08-.17c.53-.32,1.18-.78,1.08.17Z"/>
+      <path class="btn-cls-14" d="M94.61,69.38c-3.42,6.98-7.42,6.56-7.86,15.61-10.04,15.92,24.77,26.83,38.87,27.42,6.85.29,13.03-.79,19.32-.21,5.11.48,9.52-2.68,13.7-4.98,8.26-4.54,14.07-14.6,9.33-23.1-1.68-3-.43-7.75-2.38-10.8l1.07-.02,5.17,6.94c-.15.58.17,1.33-.03,1.89-.56,1.53-.51,3.22.87,4.27.3.03.61-.01.91.03l.13,1.87c.99-13.1-6.97,30.57-5.8,21.02l-.1.86c-48.03,27.47-34.06,4.96-60.98,2.18-10.12-1.04-17.46-11.93-25.3-17.07.32-1.06-.16-2.61-.12-3.73.07-2.08-.4-4.17-.81-6.2,2.08-2.24,2.81-5.15,3.94-7.87.49-1.19,2.16-3.16,3.1-4.05,1.94-1.84,4.74-2.72,6.98-4.08Z"/>
+      <path class="btn-cls-14" d="M164.69,72.38l-2.12-2.02,2.12,2.02Z"/>
+      <path class="btn-cls-10" d="M172.7,84.32c.15.67-.12,1.41-.03,2.09-1.38-1.05-1.43-2.74-.87-4.27,1.02.13.76,1.49.91,2.17Z"/>
+      <path class="btn-cls-9" d="M158.64,107.23c2.52-4.32-14.03,3.53-13.7,4.98-6.28-.59-12.46.5-19.32.21-14.1-.6-48.91-11.5-38.87-27.42l1.71,2.35c-.14,3.65,2.57,5.58,4.47,8.06,11.19,14.63,48.57,17.93,67.84,1.71,3.19-2.68,5.68-5.53,6.07-10.09.09-.99.97-1.9,1.13-2.89,4.74,8.5-1.07,18.56-9.33,23.1Z"/>
+      <path class="btn-cls-9" d="M99.58,87.25c1.26-.25,3.98-.29,5.14.26,10.49,5.02,33.34,7.69,45.05-.27,1.19-.81,3.34-.33,4.67-.93.95-.43,2.32.31,3.33,0-1.15.94-2.35,2.6-3.85,3.02-10.53,2.97-20.63,8.27-32.06,5.82l-22.19-4.75c-3.61-.77-6.98-2.17-10.07-4.21l1.07-3.74c1.27,3.4,6.26,5.33,8.91,4.8Z"/>
+      <path class="btn-cls-14" d="M122.45,65.22l.5,2.92c-2.01.33-3.98,1.2-6.02,1.19h-3.23c-1.86-.02-3.55-2.03-3.36,0,.05.5.51,1.56.27,1.99-9.9.76-18.31,5.37-11.02,15.93-2.64.53-7.63-1.4-8.91-4.8,2.17-7.61,8.37-12.9,15.84-15.1,2.05,1.11,3.62-.63,5.37-1.12,3.41-.95,7.08-1.09,10.57-1.01Z"/>
+      <path class="btn-cls-14" d="M138.53,64.42c-1.18,2.66,2.32,1.2,3.5,1.51,1.99.18,3.85,1.17,5.8,1.5,5.13,3.32,10.37,6.4,14.75,10.71.23.78.87,1.45,1.09,2.23l-2.14,3.98-1.58.19c.49-10.72-11.96-14.86-20.43-16.1-1.44-.21-3.5-.24-4.64.67-1.1-.56-2.91-.24-4.04-.78l-.13-3,1.15-1.13,6.68.24Z"/>
+      <path class="btn-cls-11" d="M161.53,84.35l3.22-.16c.31,1.09,1.56,1.81,2.09,2.83-.39,4.56-2.88,7.4-6.07,10.09-2.2-2.69-4.01-5.73-6.85-7.78,1.5-.42,2.69-2.09,3.85-3.02l2.18-1.77,1.58-.19Z"/>
+      <path class="btn-cls-11" d="M99.67,90.4c-.4,3.51-3.32,5.32-6.75,5-1.9-2.48-4.61-4.42-4.47-8.06l1.15-1.15c3.09,2.04,6.45,3.44,10.07,4.21Z"/>
+      <path class="btn-cls-9" d="M162.58,78.14c-4.38-4.3-9.62-7.38-14.75-10.71,6.35,1.06,12.9,4.35,14.75,10.71Z"/>
+      <path class="btn-cls-9" d="M131.85,64.19l-1.15,1.13h-4l-4.25-.1c-.67-3.95,8.11-1.08,9.4-1.03Z"/>
+      <polygon class="btn-cls-9" points="164.74 84.19 161.53 84.35 163.67 80.37 164.74 84.19"/>
+      <path class="btn-cls-9" d="M111.88,66.23c-1.75.49-3.32,2.22-5.37,1.12,1.71-.51,3.77-2.34,5.37-1.12Z"/>
+      <path class="btn-cls-9" d="M142.03,65.94c-1.18-.32-4.68,1.15-3.5-1.51,1.14.04,3.08.16,3.5,1.51Z"/>
+      <path class="btn-cls-5" d="M106.82,112.37c-.33,7.78,4.79,11.23,11.11,14.7l-1.45.43c-1.26-.27-3.39-.23-4.81-.46-2.18-3.6-7.41-4.09-10.44-7.28-6.1-6.42-11.79-12.67-19.57-16.56.04-.78-.51-1.46-.73-2.28-.16-.59-.4-1.76-1.4-1,.34-1.65,1.52-3.04,2-4.62,7.84,5.14,15.18,16.02,25.3,17.07Z"/>
+      <path class="btn-cls-10" d="M173.7,88.32c.22,3.34.28,6.72,1.16,9.97l-1.18,3.12-.04.8c-.63-.23-2.4.05-1.56,1.13.2.28.85.75.83,1.09l-.17,2.93-4.84,1.98c-1.17,9.55,6.79-34.12,5.8-21.02Z"/>
+      <path class="btn-cls-5" d="M172.74,107.36c-.04.67.12,1.42,0,2.08-4.57,4.28-9.28,8.2-13.88,11.98,2.34-4.71,8.98-6.49,9.05-12.08l4.84-1.98Z"/>
+      <path class="btn-cls-8" d="M158.64,107.23c-4.18,2.3-8.59,5.46-13.7,4.98-.33-1.46,16.22-9.3,13.7-4.98Z"/>
+      <path class="btn-cls-8" d="M153.92,89.33c2.84,2.05,4.65,5.09,6.85,7.78-19.27,16.22-56.65,12.92-67.84-1.71,3.43.31,6.34-1.49,6.75-5l22.19,4.75c11.42,2.45,21.53-2.85,32.06-5.82ZM101.64,95.96c15.72,13.66,38.65,13.07,53.75-.5-5.27-4.65-9.45-.01-13.47,3.42-6.7,5.74-19,5.69-26.2.69-4.25-2.96-8.44-7.78-14.08-3.61Z"/>
+      <path class="btn-cls-1" d="M126.4,68.35c.75-.05,1.54-.08,2.3-.03.63.04,1.57-.26,2.13,0,1.13.54,2.95.22,4.04.78l12.71,6.46c4.22,2.14,3.25,7.84,2.19,11.69-11.71,7.97-34.56,5.3-45.05.27-1.41-2.87-4.35-6.7-2.18-10.18,1.52-2.43,6.87-3.83,8.06-6.01.66-.09,1.49.25,2.1,0,1.36-.56,3.9-.04,4.23-1.99,2.04,0,4.01-.86,6.02-1.19,1.1-.18,2.33.27,3.45.21ZM143.79,84.67c3.31-2.45,1.76-6.73-.79-8.61-13.98-10.29-33.92-1.65-34.95,2.3-2.46,9.35,20.15,17.83,35.74,6.3Z"/>
+      <path class="btn-cls-5" d="M139.52,68.43c2.62,4.01,8.74,3.08,12.62,6.51,3.38,3,2.71,7.55,2.3,11.37-1.32.6-3.48.12-4.67.93,1.06-3.85,2.03-9.55-2.19-11.69l-12.71-6.46c1.14-.91,3.2-.88,4.64-.67Z"/>
+      <path class="btn-cls-5" d="M110.6,71.32c-1.19,2.18-6.54,3.58-8.06,6.01-2.17,3.48.77,7.31,2.18,10.18-1.16-.56-3.88-.51-5.14-.26-7.3-10.58,1.15-15.17,11.02-15.93Z"/>
+      <path class="btn-cls-10" d="M159.95,84.53l-2.18,1.77c-1.01.31-2.37-.43-3.33,0,.41-3.81,1.08-8.37-2.3-11.37-3.88-3.43-10-2.5-12.62-6.51,8.47,1.25,20.92,5.38,20.43,16.1Z"/>
+      <path class="btn-cls-10" d="M126.7,65.32l-.3,3.03c-1.12.07-2.35-.39-3.45-.21l-.5-2.92,4.25.1Z"/>
+      <path class="btn-cls-5" d="M116.93,69.33c-.33,1.94-2.87,1.42-4.23,1.99l1-2h3.23Z"/>
+      <path class="btn-cls-10" d="M113.7,69.32l-1,2c-.61.25-1.44-.08-2.1,0,.24-.44-.22-1.49-.27-1.99-.18-2.03,1.5-.02,3.36,0Z"/>
+      <path class="btn-cls-10" d="M130.7,65.32l.13,3c-.56-.27-1.5.04-2.13,0v-3h2Z"/>
+      <path class="btn-cls-5" d="M128.7,65.32v3c-.75-.05-1.54-.01-2.3.03l.3-3.03h2Z"/>
+      <path class="btn-cls-13" d="M111.67,127.04c1.42.23,3.55.19,4.81.46.53.12.73,1.54,1.24,2.11,1.07,1.21,1.67-2.15,2.16-2.14l16.62.02c.58,0,.88,1.3,1.34,1.56.49.28,1.68.55,1.91-.16.2-.63-.18-1.25-.03-1.58,1.57-.09,3.25.21,4.8-.09,3.29-.63,8.18-.3,9.4-3.72.81-.24,2.01.32,2.62-.18,5.45-4.47,10.85-8.88,16.2-13.88-1.29,6.59-6,11.93-12.01,14.86-1.59.78-3.19,1.55-4.29,3.01-6.55.19-12.92,2.29-18.96,4.98-1.51-.08-3.09.06-4.6.15-1.41.09-3.41-.43-4.4.86-3.17.66-6.5-1.15-9.59-.89-8.11-3.29-17.67-3.67-24.29-10.01l-12.84-12.32c-.36-1.2-.29-2.65-.24-3.88,9.24,7.06,16.44,18.63,30.15,20.86Z"/>
+      <path class="btn-cls-1" d="M111.67,127.04c-13.71-2.23-20.91-13.8-30.15-20.86l.14-2.98c7.79,3.89,13.47,10.14,19.57,16.56,3.03,3.19,8.26,3.68,10.44,7.28Z"/>
+      <path class="btn-cls-5" d="M173.64,102.21c-.03.68.31,1.99-.73,2.22.02-.33-.63-.81-.83-1.09-.84-1.07.93-1.36,1.56-1.13Z"/>
+      <path class="btn-cls-6" d="M101.64,95.96c5.64-4.18,9.83.65,14.08,3.61,7.2,5.01,19.5,5.05,26.2-.69,4.01-3.43,8.2-8.07,13.47-3.42-15.09,13.57-38.02,14.16-53.75.5Z"/>
+      <path class="btn-cls-13" d="M143.79,84.67c-15.58,11.53-38.19,3.05-35.74-6.3,1.04-3.95,20.98-12.59,34.95-2.3,2.55,1.88,4.1,6.16.79,8.61ZM137.43,84.71c2.24-1.42,2.55-4.15,2.29-5.52-1.46-7.71-25.88-7.34-25.8.71.07,7.2,15.64,9.82,23.5,4.82Z"/>
+      <path class="btn-cls-7" d="M137.43,84.71c-7.87,5.01-23.43,2.38-23.5-4.82-.08-8.05,24.33-8.41,25.8-.71.26,1.37-.06,4.1-2.29,5.52Z"/>
+    </g>
+  </g>
+</svg></div>
+                <div class="btn-pressed-svg"><svg id="buttonPressedSvgRoot" data-name="Isolation Mode" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 246.13 245.11">
+  <defs>
+    <style>
+      .btnp-cls-1 {
+        fill: #436539;
+      }
+
+      .btnp-cls-2 {
+        fill: #293723;
+      }
+
+      .btnp-cls-3 {
+        fill: none;
+      }
+
+      .btnp-cls-4 {
+        clip-path: url(#btnp-clippath-1);
+      }
+
+      .btnp-cls-5 {
+        fill: #4e703f;
+      }
+
+      .btnp-cls-6 {
+        fill: #a0be4f;
+      }
+
+      .btnp-cls-7 {
+        fill: #324326;
+      }
+
+      .btnp-cls-8 {
+        fill: #93b750;
+      }
+
+      .btnp-cls-9 {
+        fill: #779e4f;
+      }
+
+      .btnp-cls-10 {
+        fill: #577e46;
+      }
+
+      .btnp-cls-11 {
+        fill: #87b050;
+      }
+
+      .btnp-cls-12 {
+        clip-path: url(#btnp-clippath);
+      }
+
+      .btnp-cls-13 {
+        fill: #3c5b36;
+      }
+
+      .btnp-cls-14 {
+        fill: #618949;
+      }
+    </style>
+    <clipPath id="btnp-clippath">
+      <rect class="btnp-cls-2" x="81.45" y="87.94" width="91.15" height="109.85"/>
+    </clipPath>
+    <clipPath id="btnp-clippath-1">
+      <ellipse class="btnp-cls-3" cx="127.02" cy="87.42" rx="45.57" ry="26.54"/>
+    </clipPath>
+  </defs>
+  <g>
+    <rect class="btnp-cls-2" x="81.45" y="87.94" width="91.15" height="109.85"/>
+    <g class="btnp-cls-12">
+      <ellipse class="btnp-cls-13" cx="127.02" cy="114.52" rx="45.57" ry="26.54"/>
+      <ellipse class="btnp-cls-1" cx="127.02" cy="107.84" rx="45.57" ry="26.54"/>
+      <ellipse class="btnp-cls-5" cx="127.02" cy="100.67" rx="45.57" ry="26.54"/>
+      <ellipse class="btnp-cls-10" cx="127.02" cy="93.99" rx="45.57" ry="26.54"/>
+      <ellipse class="btnp-cls-14" cx="127.02" cy="88.08" rx="45.57" ry="26.54"/>
+    </g>
+  </g>
+  <g class="btnp-cls-4">
+    <g>
+      <path class="btnp-cls-8" d="M109.42,112.6l-1.08-.17-12.89-4.74-3.98-3.21-2.12-2.02-.89-.95c-1.94-3.05-.7-7.8-2.38-10.8.16-.99,1.05-1.9,1.13-2.89.53,1.02,1.78,1.74,2.09,2.83l1.07,3.82c.22.78.87,1.45,1.09,2.23,1.84,6.36,8.4,9.64,14.75,10.71,1.95.33,3.81,1.32,5.8,1.5.42,1.35,2.36,1.47,3.5,1.51l6.68.24c1.29.05,10.07,2.92,9.4-1.03,3.49.08,7.16-.06,10.57-1.01,1.6,1.22,3.66-.6,5.37-1.12,7.47-2.2,13.67-7.49,15.84-15.1l1.07-3.74,1.15-1.15,1.71,2.35c-.45,9.05-4.45,8.63-7.86,15.61-1.09.67-1.79,2.4-2.96,2.89-15,6.26-31.21,8.07-47.04,4.25Z"/>
+      <path class="btnp-cls-7" d="M108.34,112.43l1.08.17c-.53.32-1.18.78-1.08-.17Z"/>
+      <path class="btnp-cls-14" d="M159.43,105.46c3.42-6.98,7.42-6.56,7.86-15.61,10.04-15.92-24.77-26.83-38.87-27.42-6.85-.29-13.03.79-19.32.21-5.11-.48-9.52,2.68-13.7,4.98-8.26,4.54-14.07,14.6-9.33,23.1,1.68,3,.43,7.75,2.38,10.8l-1.07.02-5.17-6.94c.15-.58-.17-1.33.03-1.89.56-1.53.51-3.22-.87-4.27-.3-.03-.61.01-.91-.03l-.13-1.87c-.99,13.1,6.97-30.57,5.8-21.02l.1-.86c48.03-27.47,34.06-4.96,60.98-2.18,10.12,1.04,17.46,11.93,25.3,17.07-.32,1.06.16,2.61.12,3.73-.07,2.08.4,4.17.81,6.2-2.08,2.24-2.81,5.15-3.94,7.87-.49,1.19-2.16,3.16-3.1,4.05-1.94,1.84-4.74,2.72-6.98,4.08Z"/>
+      <path class="btnp-cls-14" d="M89.35,102.45l2.12,2.02-2.12-2.02Z"/>
+      <path class="btnp-cls-10" d="M81.34,90.52c-.15-.67.12-1.41.03-2.09,1.38,1.05,1.43,2.74.87,4.27-1.02-.13-.76-1.49-.91-2.17Z"/>
+      <path class="btnp-cls-9" d="M95.41,67.61c-2.52,4.32,14.03-3.53,13.7-4.98,6.28.59,12.46-.5,19.32-.21,14.1.6,48.91,11.5,38.87,27.42l-1.71-2.35c.14-3.65-2.57-5.58-4.47-8.06-11.19-14.63-48.57-17.93-67.84-1.71-3.19,2.68-5.68,5.53-6.07,10.09-.09.99-.97,1.9-1.13,2.89-4.74-8.5,1.07-18.56,9.33-23.1Z"/>
+      <path class="btnp-cls-9" d="M154.46,87.59c-1.26.25-3.98.29-5.14-.26-10.49-5.02-33.34-7.69-45.05.27-1.19.81-3.34.33-4.67.93-.95.43-2.32-.31-3.33,0,1.15-.94,2.35-2.6,3.85-3.02,10.53-2.97,20.63-8.27,32.06-5.82l22.19,4.75c3.61.77,6.98,2.17,10.07,4.21l-1.07,3.74c-1.27-3.4-6.26-5.33-8.91-4.8Z"/>
+      <path class="btnp-cls-14" d="M131.59,109.62l-.5-2.92c2.01-.33,3.98-1.2,6.02-1.19h3.23c1.86.02,3.55,2.03,3.36,0-.05-.5-.51-1.56-.27-1.99,9.9-.76,18.31-5.37,11.02-15.93,2.64-.53,7.63,1.4,8.91,4.8-2.17,7.61-8.37,12.9-15.84,15.1-2.05-1.11-3.62.63-5.37,1.12-3.41.95-7.08,1.09-10.57,1.01Z"/>
+      <path class="btnp-cls-14" d="M115.51,110.41c1.18-2.66-2.32-1.2-3.5-1.51-1.99-.18-3.85-1.17-5.8-1.5-5.13-3.32-10.37-6.4-14.75-10.71-.23-.78-.87-1.45-1.09-2.23l2.14-3.98,1.58-.19c-.49,10.72,11.96,14.86,20.43,16.1,1.44.21,3.5.24,4.64-.67,1.1.56,2.91.24,4.04.78l.13,3-1.15,1.13-6.68-.24Z"/>
+      <path class="btnp-cls-11" d="M92.52,90.49l-3.22.16c-.31-1.09-1.56-1.81-2.09-2.83.39-4.56,2.88-7.4,6.07-10.09,2.2,2.69,4.01,5.73,6.85,7.78-1.5.42-2.69,2.09-3.85,3.02l-2.18,1.77-1.58.19Z"/>
+      <path class="btnp-cls-11" d="M154.37,84.44c.4-3.51,3.32-5.32,6.75-5,1.9,2.48,4.61,4.42,4.47,8.06l-1.15,1.15c-3.09-2.04-6.45-3.44-10.07-4.21Z"/>
+      <path class="btnp-cls-9" d="M91.46,96.69c4.38,4.3,9.62,7.38,14.75,10.71-6.35-1.06-12.9-4.35-14.75-10.71Z"/>
+      <path class="btnp-cls-9" d="M122.19,110.65l1.15-1.13h4l4.25.1c.67,3.95-8.11,1.08-9.4,1.03Z"/>
+      <polygon class="btnp-cls-9" points="89.3 90.65 92.52 90.49 90.37 94.47 89.3 90.65"/>
+      <path class="btnp-cls-9" d="M142.16,108.6c1.75-.49,3.32-2.22,5.37-1.12-1.71.51-3.77,2.34-5.37,1.12Z"/>
+      <path class="btnp-cls-9" d="M112.01,108.9c1.18.32,4.68-1.15,3.5,1.51-1.14-.04-3.08-.16-3.5-1.51Z"/>
+      <path class="btnp-cls-5" d="M147.22,62.46c.33-7.78-4.79-11.23-11.11-14.7l1.45-.43c1.26.27,3.39.23,4.81.46,2.18,3.6,7.41,4.09,10.44,7.28,6.1,6.42,11.79,12.67,19.57,16.56-.04.78.51,1.46.73,2.28.16.59.4,1.76,1.4,1-.34,1.65-1.52,3.04-2,4.62-7.84-5.14-15.18-16.02-25.3-17.07Z"/>
+      <path class="btnp-cls-10" d="M80.34,86.52c-.22-3.34-.28-6.72-1.16-9.97l1.18-3.12.04-.8c.63.23,2.4-.05,1.56-1.13-.2-.28-.85-.75-.83-1.09l.17-2.93,4.84-1.98c1.17-9.55-6.79,34.12-5.8,21.02Z"/>
+      <path class="btnp-cls-5" d="M81.3,67.48c.04-.67-.12-1.42,0-2.08,4.57-4.28,9.28-8.2,13.88-11.98-2.34,4.71-8.98,6.49-9.05,12.08l-4.84,1.98Z"/>
+      <path class="btnp-cls-8" d="M95.41,67.61c4.18-2.3,8.59-5.46,13.7-4.98.33,1.46-16.22,9.3-13.7,4.98Z"/>
+      <path class="btnp-cls-8" d="M100.12,85.51c-2.84-2.05-4.65-5.09-6.85-7.78,19.27-16.22,56.65-12.92,67.84,1.71-3.43-.31-6.34,1.49-6.75,5l-22.19-4.75c-11.42-2.45-21.53,2.85-32.06,5.82ZM152.4,78.87c-15.72-13.66-38.65-13.07-53.75.5,5.27,4.65,9.45.01,13.47-3.42,6.7-5.74,19-5.69,26.2-.69,4.25,2.96,8.44,7.78,14.08,3.61Z"/>
+      <path class="btnp-cls-1" d="M127.64,106.49c-.75.05-1.54.08-2.3.03-.63-.04-1.57.26-2.13,0-1.13-.54-2.95-.22-4.04-.78l-12.71-6.46c-4.22-2.14-3.25-7.84-2.19-11.69,11.71-7.97,34.56-5.3,45.05-.27,1.41,2.87,4.35,6.7,2.18,10.18-1.52,2.43-6.87,3.83-8.06,6.01-.66.09-1.49-.25-2.1,0-1.36.56-3.9.04-4.23,1.99-2.04,0-4.01.86-6.02,1.19-1.1.18-2.33-.27-3.45-.21ZM110.26,90.16c-3.31,2.45-1.76,6.73.79,8.61,13.98,10.29,33.92,1.65,34.95-2.3,2.46-9.35-20.15-17.83-35.74-6.3Z"/>
+      <path class="btnp-cls-5" d="M114.52,106.41c-2.62-4.01-8.74-3.08-12.62-6.51-3.38-3-2.71-7.55-2.3-11.37,1.32-.6,3.48-.12,4.67-.93-1.06,3.85-2.03,9.55,2.19,11.69l12.71,6.46c-1.14.91-3.2.88-4.64.67Z"/>
+      <path class="btnp-cls-5" d="M143.44,103.52c1.19-2.18,6.54-3.58,8.06-6.01,2.17-3.48-.77-7.31-2.18-10.18,1.16.56,3.88.51,5.14.26,7.3,10.58-1.15,15.17-11.02,15.93Z"/>
+      <path class="btnp-cls-10" d="M94.1,90.3l2.18-1.77c1.01-.31,2.37.43,3.33,0-.41,3.81-1.08,8.37,2.3,11.37,3.88,3.43,10,2.5,12.62,6.51-8.47-1.25-20.92-5.38-20.43-16.1Z"/>
+      <path class="btnp-cls-10" d="M127.34,109.52l.3-3.03c1.12-.07,2.35.39,3.45.21l.5,2.92-4.25-.1Z"/>
+      <path class="btnp-cls-5" d="M137.11,105.51c.33-1.94,2.87-1.42,4.23-1.99l-1,2h-3.23Z"/>
+      <path class="btnp-cls-10" d="M140.34,105.52l1-2c.61-.25,1.44.08,2.1,0-.24.44.22,1.49.27,1.99.18,2.03-1.5.02-3.36,0Z"/>
+      <path class="btnp-cls-10" d="M123.34,109.52l-.13-3c.56.27,1.5-.04,2.13,0v3h-2Z"/>
+      <path class="btnp-cls-5" d="M125.34,109.52v-3c.75.05,1.54.01,2.3-.03l-.3,3.03h-2Z"/>
+      <path class="btnp-cls-13" d="M142.37,47.79c-1.42-.23-3.55-.19-4.81-.46-.53-.12-.73-1.54-1.24-2.11-1.07-1.21-1.67,2.15-2.16,2.14l-16.62-.02c-.58,0-.88-1.3-1.34-1.56-.49-.28-1.68-.55-1.91.16-.2.63.18,1.25.03,1.58-1.57.09-3.25-.21-4.8.09-3.29.63-8.18.3-9.4,3.72-.81.24-2.01-.32-2.62.18-5.45,4.47-10.85,8.88-16.2,13.88,1.29-6.59,6-11.93,12.01-14.86,1.59-.78,3.19-1.55,4.29-3.01,6.55-.19,12.92-2.29,18.96-4.98,1.51.08,3.09-.06,4.6-.15,1.41-.09,3.41.43,4.4-.86,3.17-.66,6.5,1.15,9.59.89,8.11,3.29,17.67,3.67,24.29,10.01l12.84,12.32c.36,1.2.29,2.65.24,3.88-9.24-7.06-16.44-18.63-30.15-20.86Z"/>
+      <path class="btnp-cls-1" d="M142.37,47.79c13.71,2.23,20.91,13.8,30.15,20.86l-.14,2.98c-7.79-3.89-13.47-10.14-19.57-16.56-3.03-3.19-8.26-3.68-10.44-7.28Z"/>
+      <path class="btnp-cls-5" d="M80.4,72.63c.03-.68-.31-1.99.73-2.22-.02.33.63.81.83,1.09.84,1.07-.93,1.36-1.56,1.13Z"/>
+      <path class="btnp-cls-6" d="M152.4,78.87c-5.64,4.18-9.83-.65-14.08-3.61-7.2-5.01-19.5-5.05-26.2.69-4.01,3.43-8.2,8.07-13.47,3.42,15.09-13.57,38.02-14.16,53.75-.5Z"/>
+      <path class="btnp-cls-13" d="M110.26,90.16c15.58-11.53,38.19-3.05,35.74,6.3-1.04,3.95-20.98,12.59-34.95,2.3-2.55-1.88-4.1-6.16-.79-8.61ZM116.61,90.13c-2.24,1.42-2.55,4.15-2.29,5.52,1.46,7.71,25.88,7.34,25.8-.71-.07-7.2-15.64-9.82-23.5-4.82Z"/>
+      <path class="btnp-cls-7" d="M116.61,90.13c7.87-5.01,23.43-2.38,23.5,4.82.08,8.05-24.33,8.41-25.8.71-.26-1.37.06-4.1,2.29-5.52Z"/>
+    </g>
+  </g>
+</svg></div>
+            </button>
+            <div class="base-svg-layer"><svg id="baseSvgRoot" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 246.13 245.11">
+  <defs>
+    <style>
+      .base-cls-1 {
+        fill: #a0be4f;
+      }
+
+      .base-cls-2 {
+        fill: #1e2819;
+      }
+
+      .base-cls-3 {
+        fill: #28352b;
+      }
+
+      .base-cls-4 {
+        fill: #779e4f;
+      }
+
+      .base-cls-5 {
+        fill: #87b050;
+      }
+
+      .base-cls-6 {
+        fill: #3c5b36;
+      }
+    </style>
+  </defs>
+  <path class="base-cls-6" d="M190.32,117.95c1.38,16.41-3.05,32.69-18.11,40.15-10.79,5.34-21.63,10.02-33.89,10.06-16.37.04-27.52.67-43.01-12.18-2.86-2.37-7.06-4.83-8.96-7.9-1.17-1.89-4.93-4.5-6.82-5.7-13.19-8.4-14.68-26.24-5.07-38.53-.39-.14-.92.02-1.29-.15-2.26,3.38-4.82,6.55-7.6,9.52l-.36,2.95c-2.45,2.74-3.57,6.27-3.65,9.86,7.17,16.71,16.98,32.35,34.69,40,3.21,1.38,6.19,2.75,8.21,5.07l1.87.19,1,.95c11.59,3.4,43.59,3.12,53.22-4.83,15.67-4.3,28.52-16.43,32.64-32.26-.43-5.92.37-11.9-2.87-17.2Z"/>
+  <path class="base-cls-5" d="M172.21,158.1c-10.79,5.34-21.63,10.03-33.89,10.06-.17-.54.44-4.18-.64-4.03-12.35,1.63-26.64.2-34.48-9,28.25,7.14,74.74,3.88,82.27-30.86,3.6,17.45-9.47,21.1-13.26,33.82Z"/>
+  <path class="base-cls-5" d="M77.46,137.16c-.62-.72-1.5-1.41-2.01-2.21.61-.57,1-.58,1.25.14.22.65.56,1.35.76,2.07Z"/>
+  <path class="base-cls-4" d="M110.32,153.03l1.08.18c-.53.34-1.18.79-1.08-.18Z"/>
+  <path class="base-cls-3" d="M193.19,135.15c-4.12,15.83-16.97,27.96-32.64,32.26-9.63,7.95-41.63,8.23-53.22,4.83l-1-.95-1.87-.19c-.8-.08-1.61-.2-2.42-.34h0c.82.14,1.63.26,2.42.34h0s0,0,0,0c-.68-.78-1.5-1.49-2.51-2.17-1.67-1.12-3.65-2.01-5.7-2.9-8.14-3.52-15.04-8.85-21.07-16.31-2.03-2.5-3.99-5.3-5.83-8.32-2.71-4.43-5.26-9.45-7.79-15.36l-.2,9.04s0,.04.01.06c0-.02-.01-.04-.01-.06-.13,5.87.49,11.63,2.11,17.28,8.07,13.12,20.14,22.14,34.82,26.84,32.18,9.95,80.5,3.86,94.09-31.91-.6-3.71,1.08-8.25.81-12.13Z"/>
+  <path class="base-cls-4" d="M190.31,117.95c-1.82-2.96-2.17-6.9-5.39-9.08-1.21-.82-1.95-2.07-2.42-3.45-.39-1.13-2.2-1.15-2.99-1.97,3.46,6.74,7.35,13.09,5.95,20.82,2.59,12.52-3.42,17.94-8.41,24.7-.09.12-.18.25-.27.37-15.32,11.54-34.73,14.28-38.46,14.71-.01.11-.06.23-.18.38-.1-.22-.25-.34-.46-.32-12.35,1.63-26.64.2-34.48-9-4.3-1.92-8.96-3-12.7-5.9-3.05-4.2-7.12-7.5-11.13-10.77-.57-.46-1.43-.73-1.91-1.29-.62-.72-1.5-1.41-2.01-2.21-.42-.66.13-1.88-.19-2.6-3.6-3.18-2.2-8.04-3.05-12.18-1.24-6.01,3.04-13.16,9.23-14.79v-5.71l-3.96,1.11-3.03,3.06c-9.61,12.29-8.12,30.13,5.07,38.53,1.89,1.2,5.65,3.81,6.82,5.7,1.9,3.07,6.11,5.53,8.96,7.9,15.49,12.85,26.64,12.23,43.01,12.18-.02-.05,1.12.1,1.79.1,1.67,0,3.44-.32,5.17-.57,25.91-3.73,30.98-11.77,30.98-11.77,0,0,.16-.19.42-.51,11.47-8.26,14.88-22.8,13.64-37.46Z"/>
+  <path class="base-cls-1" d="M178.39,101.27l-3.01-1.07-2.78-1.86v1.92c.2,0,.4,0,.6.03-.21,0-.41.04-.6.09v10c.88.65,1.77,1.3,1.89,1.75.45,1.43,1.91,3.33,2.63,4.91-1.3,6.15-.8,12.62-3.78,18.38-2.92,5.19-7.76,8.86-12.94,11.72l-16.26,6.09c-.51-.05-1.14-.07-1.64.05-1.08.26-2.71-.27-3.4.91-9.23,1.62-18.56.96-27.71-.97-.53.34-1.18.79-1.08-.18-12.98-2.17-25.11-9.79-32.23-21.25-3.05-4.91-1.13-12.19-.68-17.43.59-.05,1.15-.5,1.73-.59.32-1.58,1.76-2.96,2.3-4.46v-4.04c-6.61,1.2-10.52,8.64-9.23,14.91.85,4.13-.55,8.99,3.05,12.18.32.72-.23,1.94.19,2.6.61-.57,1-.58,1.25.14.22.65.56,1.35.76,2.07,4.8,3.41,9.49,7.31,13.04,12.07,3.73,2.9,8.4,3.99,12.7,5.9,28.25,7.14,74.74,3.88,82.27-30.86,1.55-8.52-3.42-15.6-7.07-23.01Z"/>
+  <path class="base-cls-2" d="M176.16,115.26c-.54-1.01-1.37-2.03-1.68-3.14l-1.89-2.41v14.46h-.5c-1.19,6.11-6.22,11.21-11.75,13.96-.84,1.68-2.47,2.87-4.29,3.01l-2.51.19c-4.27,6.85-14.01,4.26-21.04,4.93.49,1.24-.27,2.21-1.45,2.07-.87-.1-2.11-1.38-2.95-1.21-3.17.66-6.5-1.15-9.59-.89-13.03,1.14-34.31-7.45-36.59-22.07h-.47v-14.97c-.57.43-1.15.89-1.53,1.19-.59.09-1.91,3.92-2.51,3.97-.44,5.24-2.36,12.52.69,17.43,7.32,11.8,19.91,19.47,33.31,21.43,9.15,1.94,18.48,2.59,27.71.97.69-1.18,2.32-.64,3.4-.91.5-.12,1.13-.1,1.64-.05l16.26-6.09c5.18-2.86,10.02-6.53,12.94-11.72,2.97-5.76,2.48-12.24,3.78-18.38l-.96-1.77Z"/>
+</svg></div>
+            <div class="white-svg-layer"><svg id="whiteSvgRoot" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 246.13 245.11">
+  <defs>
+    <style>
+      .white-cls-1 {
+        fill: #f9f9fa;
+      }
+    </style>
+  </defs>
+  <polygon class="white-cls-1" points="270.13 253.28 -2.55 253.28 -2.55 135.32 70.98 135.32 123.57 176.17 183.32 135.32 270.13 135.32 270.13 253.28"/>
+</svg></div>
+            <div class="contact-shadow-layer"></div>
+        </div>
+        <button class="start-button" id="startButton">START</button>
+        <div class="game-text" id="gameText"></div>
+        <div class="target-count" id="targetCount"></div>
+        <div class="speed-display" id="speedDisplay"></div>
+        <div class="click-counter hidden" id="clickCounter">0</div>
+    </div>
+
+    <!-- Dev Panel -->
+    <div class="dev-panel" id="devPanel">
+        <div class="dev-panel-resizer" id="panelResizer"></div>
+        <div class="dev-header">
+            DEV PANEL<br>
+            <span style="font-size: 9px; color: #888;">Press D to toggle | R to reset</span>
+        </div>
+
+        <div class="dev-buttons">
+            <button onclick="copySettings()">COPY</button>
+            <button onclick="saveSettings()">SAVE</button>
+        </div>
+
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxClickCounter">
+                <span class="dev-label" style="min-width:auto;">Show Click Counter</span>
+            </label>
+        </div>
+
+        <!-- Main Button Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Diameter (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonDiameter" min="5" max="60" step="0.5" value="35">
+                    <span class="dev-value" id="valueButtonDiameter">35</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height (offset px):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-60" max="60" step="1" value="0">
+                    <span class="dev-value" id="valueButtonHeight">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Press Intensity (px):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="60" step="1" value="15">
+                    <span class="dev-value" id="valueButtonPressIntensity">15</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorButton" value="#779e4f">
+                    <span class="dev-value" style="font-size:9px;color:#888;">(hue-rotate)</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Base Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorBase" value="#87b050">
+                    <span class="dev-value" style="font-size:9px;color:#888;">(hue-rotate)</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonX" min="-30" max="30" step="0.5" value="0">
+                    <span class="dev-value" id="valueButtonX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonY" min="-30" max="30" step="0.5" value="0">
+                    <span class="dev-value" id="valueButtonY">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shadow Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Shadow X (px):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="300" step="1" value="8">
+                    <span class="dev-value" id="valueShadowX">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Y (px):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowY" min="-300" max="300" step="1" value="12">
+                    <span class="dev-value" id="valueShadowY">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Blur (px):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowBlur" min="0" max="60" step="1" value="20">
+                    <span class="dev-value" id="valueShadowBlur">20</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI Button Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Width (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonWidth" min="2" max="25" step="0.5" value="12">
+                    <span class="dev-value" id="valueUIButtonWidth">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonHeight" min="2" max="15" step="0.5" value="6">
+                    <span class="dev-value" id="valueUIButtonHeight">6</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorUIButton" value="#3366dd">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="selectUIFont" onchange="updateUIFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter">Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Corner Radius (px):</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonRadius" min="0" max="40" step="1" value="8">
+                    <span class="dev-value" id="valueUIButtonRadius">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-20" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueUIButtonX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-40" max="10" step="0.5" value="-30">
+                    <span class="dev-value" id="valueUIButtonY">-30</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round Text Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text (ROUND X)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.1" value="8">
+                    <span class="dev-value" id="valueTextFontSize">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="selectTextFont" onchange="updateTextFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter" selected>Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorText" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.5" value="0">
+                    <span class="dev-value" id="valueTextX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.5" value="-20">
+                    <span class="dev-value" id="valueTextY">-20</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Count Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Target Count Display</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.1" value="9">
+                    <span class="dev-value" id="valueTargetFontSize">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="selectNumbersFont" onchange="updateNumbersFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter">Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTarget" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.5" value="12">
+                    <span class="dev-value" id="valueTargetX">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.5" value="-22">
+                    <span class="dev-value" id="valueTargetY">-22</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Speed Display Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (min ms)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedFontSize" min="1" max="25" step="0.1" value="5">
+                    <span class="dev-value" id="valueSpeedFontSize">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorSpeed" value="#ff9900">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedX" min="-50" max="50" step="0.5" value="-14">
+                    <span class="dev-value" id="valueSpeedX">-14</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.5" value="-22">
+                    <span class="dev-value" id="valueSpeedY">-22</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Mechanics Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Game Mechanics</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Starting Speed (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderStartingSpeed" min="50" max="800" step="10" value="600">
+                    <span class="dev-value" id="valueStartingSpeed">600</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Speed Decrease (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedDecrease" min="5" max="150" step="5" value="30">
+                    <span class="dev-value" id="valueSpeedDecrease">30</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Stop-Tap Grace (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderStopGrace" min="0" max="500" step="10" value="200">
+                    <span class="dev-value" id="valueStopGrace">200</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDuration" min="200" max="3000" step="50" value="1000">
+                    <span class="dev-value" id="valueRoundDuration">1000</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Result Text Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderResultDuration" min="200" max="3000" step="50" value="1000">
+                    <span class="dev-value" id="valueResultDuration">1000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Background</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorBg" value="#f2f2f2">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CSS Variables initialization
+        const cssVars = {
+            '--button-diameter-vw': 35,
+            '--button-height-offset-px': 0,
+            '--button-press-intensity-px': 15,
+            '--button-x-offset-vw': 0,
+            '--button-y-offset-vh': 0,
+            '--shadow-x-offset': 8,
+            '--shadow-y-offset': 12,
+            '--shadow-blur': 20,
+            '--ui-button-width-vw': 12,
+            '--ui-button-height-vh': 6,
+            '--ui-button-radius': 8,
+            '--ui-button-x-offset-vw': 0,
+            '--ui-button-y-offset-vh': -30,
+            '--text-font-size-vw': 8,
+            '--text-x-offset-vw': 0,
+            '--text-y-offset-vh': -20,
+            '--target-font-size-vw': 9,
+            '--target-x-offset-vw': 12,
+            '--target-y-offset-vh': -22,
+            '--speed-font-size-vw': 5,
+            '--speed-x-offset-vw': -14,
+            '--speed-y-offset-vh': -22,
+            '--dev-panel-width-px': 280,
+        };
+
+        // Color variables
+        const colorVars = {
+            '--button-color': '#ff3333',
+            '--ui-button-color': '#3366dd',
+            '--text-color': '#000000',
+            '--target-color': '#000000',
+            '--speed-color': '#ff9900',
+            '--bg-color': '#f2f2f2',
+        };
+
+        // Font variables
+        const fontVars = {
+            '--numbers-font': '"Montserrat", sans-serif',
+            '--text-font': '"Inter", sans-serif',
+            '--ui-font': '"Montserrat", sans-serif',
+        };
+
+        // Game state
+        const gameState = {
+            currentRound: 0,
+            targetCount: 0,
+            currentTapCount: 0,
+            isPlaying: false,
+            canTap: false,
+            isCountingTaps: false,
+            lastTapTime: 0,
+            minSpeedMs: 600,
+            stopGraceMs: 200,
+            speedDecrease: 30,
+            roundDuration: 1000,
+            resultDuration: 1000,
+            checkTimeoutId: null,
+        };
+
+        // Messages
+        const loseMessages = ['OOPS!', 'MISSED!', 'TOO SLOW!', 'NOPE!', 'FAILED!', 'WHOA!', 'TRY AGAIN'];
+        const winMessages = ['PERFECT!', 'NICE!', 'EXCELLENT!', 'YES!', 'FANTASTIC!', 'BOOM!', 'LEGEND!', 'SICK!'];
+        const tryAgainMessages = ['try again?', 'again?', 'one more?', 'retry?', 'go again?', 'another round?'];
+
+        // DOM Elements
+        const gameButton = document.getElementById('gameButton');
+        const startButton = document.getElementById('startButton');
+        const gameText = document.getElementById('gameText');
+        const targetCount = document.getElementById('targetCount');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const devPanel = document.getElementById('devPanel');
+        const panelResizer = document.getElementById('panelResizer');
+        const clickCounter = document.getElementById('clickCounter');
+        let totalClickCount = 0;
+
+        // Initialize CSS variables
+        function updateCSSVariables() {
+            for (const [key, value] of Object.entries(cssVars)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+            for (const [key, value] of Object.entries(colorVars)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+            for (const [key, value] of Object.entries(fontVars)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+        }
+
+        // Copy settings to clipboard
+        function copySettings() {
+            const settings = { cssVars, colorVars, fontVars };
+            const text = JSON.stringify(settings, null, 2);
+            try {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Settings copied to clipboard!');
+                }).catch(() => {
+                    promptFallbackCopy(text);
+                });
+            } catch (e) {
+                promptFallbackCopy(text);
+            }
+        }
+
+        function promptFallbackCopy(text) {
+            window.prompt('Clipboard access unavailable. Copy manually:', text);
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            const settings = { cssVars, colorVars, fontVars };
+            try {
+                localStorage.setItem('clickoSettings', JSON.stringify(settings));
+                alert('Settings saved!');
+            } catch (e) {
+                alert('Local storage unavailable in this context (e.g. data: URL preview). Use COPY instead.');
+            }
+        }
+
+        // Load settings from localStorage
+        function loadSettings() {
+            let saved = null;
+            try {
+                saved = localStorage.getItem('clickoSettings');
+            } catch (e) {
+                // localStorage is inaccessible (e.g. data: URL sandboxed preview) - skip loading, use defaults
+                return;
+            }
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    Object.assign(cssVars, settings.cssVars);
+                    Object.assign(colorVars, settings.colorVars);
+                    Object.assign(fontVars, settings.fontVars);
+                } catch(e) {
+                    console.error('Failed to parse saved settings');
+                }
+            }
+        }
+
+        // Update font functions
+        function updateNumbersFont() {
+            const font = document.getElementById('selectNumbersFont').value;
+            fontVars['--numbers-font'] = `"${font}", sans-serif`;
+            document.documentElement.style.setProperty('--numbers-font', fontVars['--numbers-font']);
+        }
+
+        function updateTextFont() {
+            const font = document.getElementById('selectTextFont').value;
+            fontVars['--text-font'] = `"${font}", sans-serif`;
+            document.documentElement.style.setProperty('--text-font', fontVars['--text-font']);
+        }
+
+        function updateUIFont() {
+            const font = document.getElementById('selectUIFont').value;
+            fontVars['--ui-font'] = `"${font}", sans-serif`;
+            document.documentElement.style.setProperty('--ui-font', fontVars['--ui-font']);
+        }
+
+        // Toggle section collapse
+        function toggleSection(titleEl) {
+            const content = titleEl.nextElementSibling;
+            content.classList.toggle('collapsed');
+            titleEl.textContent = content.classList.contains('collapsed') ? '▶ ' + titleEl.textContent.slice(2) : '▼ ' + titleEl.textContent.slice(2);
+        }
+
+        // Setup dev sliders
+        function setupDevSliders() {
+            const sliders = document.querySelectorAll('.dev-slider');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+
+                    const sliderMap = {
+                        'sliderButtonDiameter': '--button-diameter-vw',
+                        'sliderButtonHeight': '--button-height-offset-px',
+                        'sliderButtonPressIntensity': '--button-press-intensity-px',
+                        'sliderButtonX': '--button-x-offset-vw',
+                        'sliderButtonY': '--button-y-offset-vh',
+                        'sliderShadowX': '--shadow-x-offset',
+                        'sliderShadowY': '--shadow-y-offset',
+                        'sliderShadowBlur': '--shadow-blur',
+                        'sliderUIButtonWidth': '--ui-button-width-vw',
+                        'sliderUIButtonHeight': '--ui-button-height-vh',
+                        'sliderUIButtonRadius': '--ui-button-radius',
+                        'sliderUIButtonX': '--ui-button-x-offset-vw',
+                        'sliderUIButtonY': '--ui-button-y-offset-vh',
+                        'sliderTextFontSize': '--text-font-size-vw',
+                        'sliderTextX': '--text-x-offset-vw',
+                        'sliderTextY': '--text-y-offset-vh',
+                        'sliderTargetFontSize': '--target-font-size-vw',
+                        'sliderTargetX': '--target-x-offset-vw',
+                        'sliderTargetY': '--target-y-offset-vh',
+                        'sliderSpeedFontSize': '--speed-font-size-vw',
+                        'sliderSpeedX': '--speed-x-offset-vw',
+                        'sliderSpeedY': '--speed-y-offset-vh',
+                    };
+
+                    const varName = sliderMap[e.target.id];
+
+                    if (varName) {
+                        cssVars[varName] = value;
+                        document.documentElement.style.setProperty(varName, value);
+                    } else if (e.target.id === 'sliderStartingSpeed') {
+                        gameState.minSpeedMs = value;
+                    } else if (e.target.id === 'sliderSpeedDecrease') {
+                        gameState.speedDecrease = value;
+                    } else if (e.target.id === 'sliderStopGrace') {
+                        gameState.stopGraceMs = value;
+                    } else if (e.target.id === 'sliderRoundDuration') {
+                        gameState.roundDuration = value;
+                    } else if (e.target.id === 'sliderResultDuration') {
+                        gameState.resultDuration = value;
+                    }
+
+                    const valueId = e.target.id.replace('slider', 'value');
+                    const valueEl = document.getElementById(valueId);
+                    if (valueEl) {
+                        valueEl.textContent = value.toFixed(value < 10 ? 2 : 1);
+                    }
+                });
+            });
+
+            // Setup color pickers
+            const colorPickers = document.querySelectorAll('.dev-color-picker');
+            colorPickers.forEach(picker => {
+                picker.addEventListener('input', (e) => {
+                    if (e.target.id === 'colorButton') {
+                        // The button is real artwork (SVG), not a flat CSS fill - recolor it by
+                        // hue-rotating away from the artwork's own reference green (#779e4f).
+                        setButtonHue(e.target.value);
+                        return;
+                    }
+                    if (e.target.id === 'colorBase') {
+                        setBaseHue(e.target.value);
+                        return;
+                    }
+
+                    const colorMap = {
+                        'colorUIButton': '--ui-button-color',
+                        'colorText': '--text-color',
+                        'colorTarget': '--target-color',
+                        'colorSpeed': '--speed-color',
+                        'colorBg': '--bg-color',
+                    };
+
+                    const varName = colorMap[e.target.id];
+                    if (varName) {
+                        colorVars[varName] = e.target.value;
+                        document.documentElement.style.setProperty(varName, e.target.value);
+                    }
+                });
+            });
+        }
+
+        function hexToHue(hex) {
+            const r = parseInt(hex.slice(1, 3), 16) / 255;
+            const g = parseInt(hex.slice(3, 5), 16) / 255;
+            const b = parseInt(hex.slice(5, 7), 16) / 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const delta = max - min;
+            if (delta === 0) return 0;
+            let h;
+            if (max === r) h = ((g - b) / delta) % 6;
+            else if (max === g) h = (b - r) / delta + 2;
+            else h = (r - g) / delta + 4;
+            h *= 60;
+            return h < 0 ? h + 360 : h;
+        }
+        const BUTTON_REFERENCE_HUE = hexToHue('#779e4f');
+        const BASE_REFERENCE_HUE = hexToHue('#87b050');
+
+        function setButtonHue(hex) {
+            const delta = hexToHue(hex) - BUTTON_REFERENCE_HUE;
+            document.documentElement.style.setProperty('--button-hue-rotate', delta + 'deg');
+        }
+
+        function setBaseHue(hex) {
+            const delta = hexToHue(hex) - BASE_REFERENCE_HUE;
+            document.documentElement.style.setProperty('--base-hue-rotate', delta + 'deg');
+        }
+
+        // Panel resizing
+        let isResizing = false;
+        panelResizer.addEventListener('mousedown', () => {
+            isResizing = true;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const newWidth = window.innerWidth - e.clientX;
+            if (newWidth > 200 && newWidth < 600) {
+                cssVars['--dev-panel-width-px'] = newWidth;
+                document.documentElement.style.setProperty('--dev-panel-width-px', newWidth + 'px');
+                devPanel.style.width = newWidth + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isResizing = false;
+        });
+
+        // Game logic
+        function showRoundText(roundNum) {
+            gameState.canTap = false;
+            gameText.textContent = `ROUND ${roundNum}`;
+            gameText.classList.remove('hidden');
+            targetCount.classList.add('hidden');
+            speedDisplay.classList.add('hidden');
+
+            setTimeout(() => {
+                showTargetAndSpeed();
+            }, gameState.roundDuration);
+        }
+
+        function showTargetAndSpeed() {
+            gameState.targetCount = Math.floor(Math.random() * 29) + 2;
+            gameState.minSpeedMs = Math.max(100, gameState.minSpeedMs - gameState.speedDecrease);
+            gameState.currentTapCount = 0;
+            gameState.isCountingTaps = false;
+            if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+            totalClickCount = 0;
+            clickCounter.textContent = totalClickCount;
+
+            gameText.classList.add('hidden');
+            targetCount.textContent = gameState.targetCount;
+            targetCount.classList.remove('hidden');
+            speedDisplay.textContent = gameState.minSpeedMs.toFixed(0) + ' ms';
+            speedDisplay.classList.remove('hidden');
+
+            // Reset button color
+            setButtonHue(document.getElementById('colorButton').value);
+
+            // Only now is tapping actually meaningful - target/speed are visible
+            gameState.canTap = true;
+        }
+
+        function handleGameButtonPress() {
+            // Visual press feedback and the click counter work regardless of game
+            // state, so the button is responsive on the landing page too.
+            gameButton.classList.add('pressed');
+            totalClickCount++;
+            clickCounter.textContent = totalClickCount;
+
+            if (!gameState.isPlaying || !gameState.canTap) return;
+
+            const now = Date.now();
+
+            if (!gameState.isCountingTaps) {
+                // First tap - start counting
+                gameState.isCountingTaps = true;
+                gameState.lastTapTime = now;
+                gameState.currentTapCount = 1;
+                scheduleCheck();
+                return;
+            }
+
+            // Subsequent taps
+            const timeSinceLastTap = now - gameState.lastTapTime;
+            if (timeSinceLastTap < gameState.minSpeedMs) {
+                // Too fast - ignore this tap
+                return;
+            }
+
+            gameState.lastTapTime = now;
+            gameState.currentTapCount++;
+
+            // Check if player overshot (too many taps)
+            if (gameState.currentTapCount > gameState.targetCount) {
+                endGame(false);
+                return;
+            }
+
+            // Reschedule check when player stops
+            scheduleCheck();
+        }
+
+        function scheduleCheck() {
+            // Clear existing timeout
+            if (gameState.checkTimeoutId) {
+                clearTimeout(gameState.checkTimeoutId);
+            }
+
+            // Schedule the "player has stopped" check with a grace buffer beyond the
+            // minimum tap gap - otherwise a tap arriving right at minSpeedMs would always
+            // lose the race against this timer and the round would end after every tap.
+            gameState.checkTimeoutId = setTimeout(() => {
+                checkGameResult();
+            }, gameState.minSpeedMs + gameState.stopGraceMs);
+        }
+
+        function checkGameResult() {
+            if (!gameState.isCountingTaps) return;
+
+            // Check if player got exact count
+            if (gameState.currentTapCount === gameState.targetCount) {
+                endGame(true);
+            } else {
+                // Player tapped too few times
+                endGame(false);
+            }
+        }
+
+        function handleGameButtonRelease() {
+            gameButton.classList.remove('pressed');
+        }
+
+        function handleUIButtonPress() {
+            startButton.classList.add('pressed');
+        }
+
+        function handleUIButtonRelease() {
+            startButton.classList.remove('pressed');
+        }
+
+        function endGame(won) {
+            gameState.isCountingTaps = false;
+            gameState.canTap = false;
+            if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+
+            if (won) {
+                setButtonHue('#22dd44');
+                const winMsg = winMessages[Math.floor(Math.random() * winMessages.length)];
+                gameText.textContent = winMsg;
+                gameText.classList.remove('hidden');
+                targetCount.classList.add('hidden');
+                speedDisplay.classList.add('hidden');
+
+                setTimeout(() => {
+                    gameState.currentRound++;
+                    showRoundText(gameState.currentRound);
+                }, gameState.resultDuration);
+            } else {
+                setButtonHue('#dd3333');
+                const loseMsg = loseMessages[Math.floor(Math.random() * loseMessages.length)];
+                gameText.textContent = loseMsg;
+                gameText.classList.remove('hidden');
+                targetCount.classList.add('hidden');
+                speedDisplay.classList.add('hidden');
+
+                setTimeout(() => {
+                    const tryAgainMsg = tryAgainMessages[Math.floor(Math.random() * tryAgainMessages.length)];
+                    startButton.textContent = `ROUND ${gameState.currentRound} · ${tryAgainMsg}`;
+                    startButton.classList.remove('hidden');
+                    gameText.classList.add('hidden');
+                    gameState.isPlaying = false;
+                    gameState.currentRound = 0;
+                    gameState.minSpeedMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
+                }, gameState.resultDuration);
+            }
+        }
+
+        // Event listeners
+        gameButton.addEventListener('mousedown', handleGameButtonPress);
+        gameButton.addEventListener('mouseup', handleGameButtonRelease);
+        gameButton.addEventListener('mouseleave', handleGameButtonRelease);
+        gameButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleGameButtonPress();
+        });
+        gameButton.addEventListener('touchend', handleGameButtonRelease);
+
+        startButton.addEventListener('mousedown', handleUIButtonPress);
+        startButton.addEventListener('mouseup', handleUIButtonRelease);
+        startButton.addEventListener('mouseleave', handleUIButtonRelease);
+        startButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleUIButtonPress();
+        });
+        startButton.addEventListener('touchend', handleUIButtonRelease);
+
+        startButton.addEventListener('click', () => {
+            gameState.isPlaying = true;
+            gameState.currentRound = 1;
+            gameState.minSpeedMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
+            startButton.classList.add('hidden');
+            totalClickCount = 0;
+            clickCounter.textContent = totalClickCount;
+            showRoundText(gameState.currentRound);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'd') {
+                devPanel.classList.toggle('hidden');
+            }
+            if (e.key.toLowerCase() === 'r') {
+                gameState.isPlaying = false;
+                gameState.isCountingTaps = false;
+                gameState.currentRound = 0;
+                if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+                startButton.classList.remove('hidden');
+                startButton.textContent = 'START';
+                gameText.classList.add('hidden');
+                targetCount.classList.add('hidden');
+                speedDisplay.classList.add('hidden');
+                setButtonHue(document.getElementById('colorButton').value);
+                totalClickCount = 0;
+                clickCounter.textContent = totalClickCount;
+            }
+        });
+
+        // Click counter checkbox
+        document.getElementById('checkboxClickCounter').addEventListener('change', (e) => {
+            clickCounter.classList.toggle('hidden', !e.target.checked);
+        });
+
+        // Initialize
+        loadSettings();
+        updateCSSVariables();
+        setupDevSliders();
+    </script>
+</body>
+</html>

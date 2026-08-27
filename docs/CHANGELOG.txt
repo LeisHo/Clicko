@@ -1,0 +1,15 @@
+CLICKO — CHANGELOG
+===================
+
+This file logs all significant changes to the project in append-only format.
+Entries are ordered newest first. Never rewrite, reorder, or delete prior entries.
+
+Format: Date | Session | What Changed | Why / Context
+
+---
+
+2026-08-27 | Real SVG button artwork replaces CSS approximation; core game-timing bug fixed | Integrated user-provided BUTTON/BUTTON_PRESSED/base/WHITE SVGs (data/BUTTON/) as the button visuals; fixed a game-breaking bug where the round always ended after tap #1 | Namespaced all SVG class/clipPath IDs to avoid cross-file collisions when inlined together. Layer stack (back to front): button (SVG-swapped normal/pressed on press) -> contact-shadow -> white occluder (blends with --bg-color, hides the button's excess bottom past the base) -> base (frontmost, wraps the button). Root cause found via direct state inspection: the "player stopped tapping" auto-check fired exactly at minSpeedMs after each tap, the same instant a legally-spaced next tap could arrive, so the round almost always ended after 1 tap regardless of play skill - fixed by adding a stopGraceMs buffer (dev-panel slider) on top of minSpeedMs for that check only, not for the tap-speed floor itself. Also fixed: localStorage access threw uncaught on this environment's data: URL preview, silently killing the rest of page init (colors/sliders) - now wrapped in try/catch. Button recoloring now via CSS hue-rotate() (artwork isn't a flat single-tone shape). Height/tap-depth sliders repurposed as Height (vertical offset) and Press Intensity (px shift on press, combined with the SVG swap).
+
+2026-08-27 | Major revision: button redesign + settings system | Two-part button (base + dome), font dropdowns, copy/save settings, game logic fix | Button now has separate base and dome parts with independent shadows; added 10 font options for numbers, round text, and UI button; exact tap count required (no overshoot allowed); color pickers now work for all elements; UI button opaque; Copy/Save settings buttons in dev panel
+
+[Project start — initial structure created]
