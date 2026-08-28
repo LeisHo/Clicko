@@ -367,6 +367,51 @@
             top: 0;
             background: rgba(0,0,0,0.95);
             padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .dev-hide-btn {
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .dev-hide-btn:hover {
+            background: #0ff;
+        }
+
+        /* Persistent reopen toggle - visible whenever the dev panel is allowed at
+           all (gated by isDevAllowed in JS), regardless of the panel's own hidden
+           state, so it can always be brought back without a keyboard on mobile. */
+        .dev-toggle-btn {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            z-index: 100000;
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.85;
+        }
+
+        .dev-toggle-btn:hover {
+            opacity: 1;
         }
 
         .dev-buttons {
@@ -768,12 +813,19 @@
         </div>
     </div>
 
+    <!-- Persistent toggle so the dev panel can be reopened without a keyboard
+         (D-key doesn't exist on mobile) -->
+    <button class="dev-toggle-btn" id="devToggleBtn" onclick="devPanel.classList.toggle('hidden')">DEV</button>
+
     <!-- Dev Panel -->
     <div class="dev-panel" id="devPanel">
         <div class="dev-panel-resizer" id="panelResizer"></div>
         <div class="dev-header">
-            DEV PANEL<br>
-            <span style="font-size: 9px; color: #888;">Press D to toggle | R to reset</span>
+            <div>
+                DEV PANEL<br>
+                <span style="font-size: 9px; color: #888;">Press D to toggle | R to reset</span>
+            </div>
+            <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')" title="Hide dev panel">✕</button>
         </div>
 
         <div class="dev-buttons">
@@ -1404,10 +1456,18 @@
             gameState.canTap = true;
         }
 
-        function logTapDiagnostic(pointerType, gapMs, outcome) {
+        function logTapDiagnostic(pointerType, gapMs, outcome, e) {
             const gapText = gapMs === null ? 'first' : gapMs + 'ms';
             const n = tapDiagnosticLog.length + 1;
-            tapDiagnosticLog.push(`${n}. ${outcome} | type=${pointerType} | gap=${gapText}`);
+            // Position + pointer identity - the piece needed to actually distinguish a
+            // software duplicate (same x/y, same pointerId) from a genuinely separate
+            // contact (different x/y and/or a different pointerId, e.g. a trackpad
+            // picking up a second point) rather than guessing from timing alone.
+            const x = e ? Math.round(e.clientX) : '?';
+            const y = e ? Math.round(e.clientY) : '?';
+            const pid = e ? e.pointerId : '?';
+            const primary = e ? e.isPrimary : '?';
+            tapDiagnosticLog.push(`${n}. ${outcome} | type=${pointerType} | gap=${gapText} | pos=(${x},${y}) | id=${pid} | primary=${primary}`);
             tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
             tapDiagnostic.scrollTop = tapDiagnostic.scrollHeight;
         }
@@ -1451,7 +1511,7 @@
             }
         }
 
-        function handleGameButtonPress(pointerType) {
+        function handleGameButtonPress(pointerType, e) {
             // Visual press feedback, the click counter, and the tap diagnostic all
             // work regardless of game state - responsive on the landing page too.
             // The counter resets at the start of every round (see showTargetAndSpeed);
@@ -1465,7 +1525,7 @@
             // Debounce: reject a pointerdown that arrives implausibly soon after the
             // last accepted one (hardware bounce / duplicate event), not a real tap.
             if (!isFirstTap && gapMs < TAP_DEBOUNCE_MS) {
-                logTapDiagnostic(pointerType, gapMs, 'rejected-bounce');
+                logTapDiagnostic(pointerType, gapMs, 'rejected-bounce', e);
                 return;
             }
 
@@ -1473,13 +1533,13 @@
             // ~300ms after a real touch tap. Catch that specific pattern even though
             // it's outside the debounce window above.
             if (!isFirstTap && pointerType === 'mouse' && lastAcceptedPointerType === 'touch' && gapMs < TOUCH_COMPAT_WINDOW_MS) {
-                logTapDiagnostic(pointerType, gapMs, 'rejected-touch-compat');
+                logTapDiagnostic(pointerType, gapMs, 'rejected-touch-compat', e);
                 return;
             }
 
             lastAcceptedTapTime = now;
             lastAcceptedPointerType = pointerType;
-            logTapDiagnostic(pointerType, gapMs, 'accepted');
+            logTapDiagnostic(pointerType, gapMs, 'accepted', e);
 
             totalClickCount++;
             clickCounter.textContent = totalClickCount;
@@ -1579,7 +1639,7 @@
         // taps on some devices).
         gameButton.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            handleGameButtonPress(e.pointerType);
+            handleGameButtonPress(e.pointerType, e);
         });
         gameButton.addEventListener('pointerup', handleGameButtonRelease);
         gameButton.addEventListener('pointercancel', handleGameButtonRelease);
@@ -1620,6 +1680,7 @@
 
         if (!isDevAllowed) {
             devPanel.style.setProperty('display', 'none', 'important');
+            document.getElementById('devToggleBtn').style.setProperty('display', 'none', 'important');
         }
 
         // Keyboard shortcuts
