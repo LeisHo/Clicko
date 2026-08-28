@@ -236,9 +236,11 @@
         /* Click Counter - debug display next to the button, toggled from dev panel */
         .click-counter {
             position: absolute;
-            left: calc(50% + var(--button-x-offset-vw) * 1vw + var(--button-diameter-vw) * 0.75 * 1vw);
+            /* Positioned to the LEFT of the button (not right) so it stays clear of
+               the dev panel, which is fixed along the right edge of the screen. */
+            left: calc(50% + var(--button-x-offset-vw) * 1vw - var(--button-diameter-vw) * 0.52 * 1vw);
             top: calc(50% + var(--button-y-offset-vh) * 1vh);
-            transform: translate(0, -50%);
+            transform: translate(-100%, -50%);
             font-family: monospace;
             font-size: 1.5vw;
             font-weight: 700;
@@ -255,28 +257,68 @@
             display: none !important;
         }
 
-        /* Tap diagnostic - shows the last few tap events (pointerType/gap/outcome)
+        /* Tap diagnostic - the FULL history of tap events (pointerType/gap/outcome)
            so a "click sometimes logs as 2" report can be diagnosed with real data
            instead of guessed at again. Shares the click counter's visibility toggle. */
-        .tap-diagnostic {
+        .tap-diagnostic-panel {
             position: absolute;
-            left: calc(50% + var(--button-x-offset-vw) * 1vw + var(--button-diameter-vw) * 0.75 * 1vw);
+            /* Positioned to the LEFT of the button, same reasoning as .click-counter. */
+            left: calc(50% + var(--button-x-offset-vw) * 1vw - var(--button-diameter-vw) * 0.52 * 1vw);
             top: calc(50% + var(--button-y-offset-vh) * 1vh + 4vh);
-            font-family: monospace;
-            font-size: 0.9vw;
-            color: #333;
-            background: rgba(255, 255, 255, 0.85);
+            transform: translate(-100%, 0);
+            width: 22vw;
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.92);
             border: 1px solid #333;
             border-radius: 6px;
-            padding: 4px 8px;
-            pointer-events: none;
             z-index: 20;
-            white-space: pre;
-            max-width: 30vw;
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
         }
 
-        .tap-diagnostic.hidden {
+        .tap-diagnostic-panel.hidden {
             display: none !important;
+        }
+
+        .tap-diagnostic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px;
+            border-bottom: 1px solid #333;
+        }
+
+        .tap-diagnostic-header span {
+            font-family: monospace;
+            font-size: 0.85vw;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .tap-diagnostic-copy-btn {
+            font-family: monospace;
+            font-size: 0.75vw;
+            padding: 2px 8px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tap-diagnostic-copy-btn:hover {
+            background: #555;
+        }
+
+        .tap-diagnostic {
+            font-family: monospace;
+            font-size: 0.85vw;
+            color: #333;
+            padding: 4px 8px;
+            white-space: pre;
+            max-height: 20vh;
+            overflow-y: auto;
         }
 
         /* Dev Panel */
@@ -717,7 +759,13 @@
         <div class="target-count" id="targetCount"></div>
         <div class="speed-display" id="speedDisplay"></div>
         <div class="click-counter hidden" id="clickCounter">0</div>
-        <div class="tap-diagnostic hidden" id="tapDiagnostic"></div>
+        <div class="tap-diagnostic-panel hidden" id="tapDiagnosticPanel">
+            <div class="tap-diagnostic-header">
+                <span>TAP LOG</span>
+                <button class="tap-diagnostic-copy-btn" onclick="copyTapDiagnosticLog()">COPY</button>
+            </div>
+            <div class="tap-diagnostic" id="tapDiagnostic"></div>
+        </div>
     </div>
 
     <!-- Dev Panel -->
@@ -1077,6 +1125,7 @@
         const devPanel = document.getElementById('devPanel');
         const panelResizer = document.getElementById('panelResizer');
         const clickCounter = document.getElementById('clickCounter');
+        const tapDiagnosticPanel = document.getElementById('tapDiagnosticPanel');
         const tapDiagnostic = document.getElementById('tapDiagnostic');
         const tapDiagnosticLog = [];
         let totalClickCount = 0;
@@ -1357,18 +1406,57 @@
 
         function logTapDiagnostic(pointerType, gapMs, outcome) {
             const gapText = gapMs === null ? 'first' : gapMs + 'ms';
-            tapDiagnosticLog.push(`${outcome} | type=${pointerType} | gap=${gapText}`);
-            if (tapDiagnosticLog.length > 6) tapDiagnosticLog.shift();
+            const n = tapDiagnosticLog.length + 1;
+            tapDiagnosticLog.push(`${n}. ${outcome} | type=${pointerType} | gap=${gapText}`);
             tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
+            tapDiagnostic.scrollTop = tapDiagnostic.scrollHeight;
+        }
+
+        function copyTapDiagnosticLog() {
+            const text = tapDiagnosticLog.join('\n');
+            const btn = document.querySelector('.tap-diagnostic-copy-btn');
+            const originalText = btn.textContent;
+
+            function showFeedback(msg) {
+                btn.textContent = msg;
+                setTimeout(() => { btn.textContent = originalText; }, 1500);
+            }
+
+            // Fallback that doesn't depend on the Clipboard API or blocking dialogs
+            // (both alert/prompt and navigator.clipboard can be unavailable in some
+            // sandboxed/embedded contexts) - the classic textarea+execCommand trick.
+            function fallbackCopy() {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showFeedback(ok ? 'COPIED!' : 'FAILED');
+                } catch (e) {
+                    showFeedback('FAILED');
+                }
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showFeedback('COPIED!');
+                }).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
         }
 
         function handleGameButtonPress(pointerType) {
-            // Visual press feedback works regardless of game state, so the button is
-            // responsive on the landing page too - but the click counter only counts
-            // once a round has actually started.
+            // Visual press feedback, the click counter, and the tap diagnostic all
+            // work regardless of game state - responsive on the landing page too.
+            // The counter resets at the start of every round (see showTargetAndSpeed);
+            // it isn't gated to "after Round 1 starts" the way actual gameplay is.
             gameButton.classList.add('pressed');
-
-            if (!gameState.isPlaying || !gameState.canTap) return;
 
             const now = Date.now();
             const isFirstTap = lastAcceptedTapTime === 0;
@@ -1395,6 +1483,10 @@
 
             totalClickCount++;
             clickCounter.textContent = totalClickCount;
+
+            // Everything below is real gameplay logic - only meaningful once a round
+            // has actually started and the target/speed are visible.
+            if (!gameState.isPlaying || !gameState.canTap) return;
 
             // There is no minimum-speed floor - tap as fast as you want, every tap
             // counts immediately. maxTimeMs is a CEILING on the gap between clicks,
@@ -1554,7 +1646,7 @@
         // Click counter checkbox (also shows the tap diagnostic log)
         document.getElementById('checkboxClickCounter').addEventListener('change', (e) => {
             clickCounter.classList.toggle('hidden', !e.target.checked);
-            tapDiagnostic.classList.toggle('hidden', !e.target.checked);
+            tapDiagnosticPanel.classList.toggle('hidden', !e.target.checked);
         });
 
         // Initialize
