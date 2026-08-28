@@ -1078,6 +1078,11 @@
                     <span class="dev-value" id="valueSpeedDecrease">30</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Debounce Window (ms, same pos only):</span>
+                    <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="250">
+                    <span class="dev-value" id="valueTapDebounce">250</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Round Text Duration (ms):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDuration" min="200" max="3000" step="50" value="1000">
                     <span class="dev-value" id="valueRoundDuration">1000</span>
@@ -1183,11 +1188,22 @@
         let totalClickCount = 0;
         let lastAcceptedTapTime = 0;
         let lastAcceptedPointerType = null;
+        let lastAcceptedX = null;
+        let lastAcceptedY = null;
         // Filters out duplicate pointerdown events for a single physical press -
-        // e.g. mouse/trackpad switch "bounce" sending 2 down-signals for 1 click,
-        // or a browser occasionally double-firing pointerdown. No legitimate
-        // separate tap ever arrives this close together.
-        const TAP_DEBOUNCE_MS = 50;
+        // confirmed via real user data to be a genuine mouse-hardware "double click"
+        // fault (a worn microswitch reporting one press as two signals): 2 logged
+        // events shared the exact same (x,y)/pointerId/isPrimary, ~142ms apart, while
+        // every genuinely separate tap showed natural pixel jitter (1-8px) from the
+        // mouse moving slightly between real presses. Critically, the SAME user's own
+        // real tap gaps (165-181ms) were barely wider than the 142ms duplicate - too
+        // close to safely separate on timing alone without also rejecting real fast
+        // taps. So rejection requires BOTH a short gap AND near-identical position;
+        // position tolerance is intentionally small since a real duplicate reports the
+        // exact same pixel, while two genuinely separate taps almost always differ by
+        // at least a pixel or two even when the player tries to hold the mouse still.
+        let TAP_DEBOUNCE_MS = 250;
+        const TAP_DEBOUNCE_POS_TOLERANCE_PX = 3;
         // Some mobile browsers fire a SECOND, synthetic "compatibility" mouse
         // pointerdown roughly 300ms after a real touch tap, for elements where the
         // touch's default action wasn't fully suppressed. That gap is way outside
@@ -1327,6 +1343,8 @@
                         gameState.maxTimeMs = value;
                     } else if (e.target.id === 'sliderSpeedDecrease') {
                         gameState.speedDecrease = value;
+                    } else if (e.target.id === 'sliderTapDebounce') {
+                        TAP_DEBOUNCE_MS = value;
                     } else if (e.target.id === 'sliderRoundDuration') {
                         gameState.roundDuration = value;
                     } else if (e.target.id === 'sliderResultDuration') {
@@ -1521,10 +1539,16 @@
             const now = Date.now();
             const isFirstTap = lastAcceptedTapTime === 0;
             const gapMs = isFirstTap ? null : now - lastAcceptedTapTime;
+            const posDist = (isFirstTap || !e) ? null :
+                Math.hypot(e.clientX - lastAcceptedX, e.clientY - lastAcceptedY);
 
-            // Debounce: reject a pointerdown that arrives implausibly soon after the
-            // last accepted one (hardware bounce / duplicate event), not a real tap.
-            if (!isFirstTap && gapMs < TAP_DEBOUNCE_MS) {
+            // Debounce: reject only if BOTH the gap is short AND the position is
+            // near-identical to the last accepted tap - a real hardware duplicate
+            // reports the same pixel; a genuinely separate fast tap almost always
+            // has at least slight jitter even when the player tries to hold still.
+            // (Time alone isn't safe here: this exact player's own real tap gaps run
+            // as low as 165ms, only ~20ms above the observed 142ms duplicate delay.)
+            if (!isFirstTap && gapMs < TAP_DEBOUNCE_MS && posDist !== null && posDist <= TAP_DEBOUNCE_POS_TOLERANCE_PX) {
                 logTapDiagnostic(pointerType, gapMs, 'rejected-bounce', e);
                 return;
             }
@@ -1539,6 +1563,7 @@
 
             lastAcceptedTapTime = now;
             lastAcceptedPointerType = pointerType;
+            if (e) { lastAcceptedX = e.clientX; lastAcceptedY = e.clientY; }
             logTapDiagnostic(pointerType, gapMs, 'accepted', e);
 
             totalClickCount++;
