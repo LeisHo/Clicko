@@ -1079,8 +1079,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
-                    <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="250">
-                    <span class="dev-value" id="valueTapDebounce">250</span>
+                    <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="0">
+                    <span class="dev-value" id="valueTapDebounce">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Duration (ms):</span>
@@ -1190,19 +1190,17 @@
         let lastAcceptedPointerType = null;
         let lastAcceptedX = null;
         let lastAcceptedY = null;
-        // Filters out duplicate pointerdown events for a single physical press -
-        // confirmed via real user data to be a genuine mouse-hardware "double click"
-        // fault (a worn microswitch reporting one press as two signals): 2 logged
-        // events shared the exact same (x,y)/pointerId/isPrimary, ~142ms apart, while
-        // every genuinely separate tap showed natural pixel jitter (1-8px) from the
-        // mouse moving slightly between real presses. Critically, the SAME user's own
-        // real tap gaps (165-181ms) were barely wider than the 142ms duplicate - too
-        // close to safely separate on timing alone without also rejecting real fast
-        // taps. So rejection requires BOTH a short gap AND near-identical position;
-        // position tolerance is intentionally small since a real duplicate reports the
-        // exact same pixel, while two genuinely separate taps almost always differ by
-        // at least a pixel or two even when the player tries to hold the mouse still.
-        let TAP_DEBOUNCE_MS = 250;
+        // Optional filter for a duplicate pointerdown event from a single physical
+        // press (e.g. a worn mouse microswitch reporting one press as two signals).
+        // Off (0ms) by default: testing showed position alone can't safely tell a
+        // hardware duplicate apart from two genuine taps on a static target, since a
+        // practiced player naturally holds the mouse still between presses - a real
+        // tap can land within a couple pixels of the last one just as easily as a
+        // duplicate can. A filter that eats a real tap causes a false loss, which is
+        // worse than occasionally letting a genuine duplicate through, so this stays
+        // off unless a player specifically knows their mouse double-fires and opts in
+        // via the dev-panel slider, accepting the tradeoff themselves.
+        let TAP_DEBOUNCE_MS = 0;
         const TAP_DEBOUNCE_POS_TOLERANCE_PX = 3;
         // Some mobile browsers fire a SECOND, synthetic "compatibility" mouse
         // pointerdown roughly 300ms after a real touch tap, for elements where the
@@ -1542,12 +1540,10 @@
             const posDist = (isFirstTap || !e) ? null :
                 Math.hypot(e.clientX - lastAcceptedX, e.clientY - lastAcceptedY);
 
-            // Debounce: reject only if BOTH the gap is short AND the position is
-            // near-identical to the last accepted tap - a real hardware duplicate
-            // reports the same pixel; a genuinely separate fast tap almost always
-            // has at least slight jitter even when the player tries to hold still.
-            // (Time alone isn't safe here: this exact player's own real tap gaps run
-            // as low as 165ms, only ~20ms above the observed 142ms duplicate delay.)
+            // Debounce: off by default (TAP_DEBOUNCE_MS = 0, see declaration above).
+            // If a player opts in via the dev-panel slider, rejection still requires
+            // BOTH a short gap AND near-identical position, since time alone can't
+            // safely separate a hardware duplicate from a genuinely fast real tap.
             if (!isFirstTap && gapMs < TAP_DEBOUNCE_MS && posDist !== null && posDist <= TAP_DEBOUNCE_POS_TOLERANCE_PX) {
                 logTapDiagnostic(pointerType, gapMs, 'rejected-bounce', e);
                 return;
