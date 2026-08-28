@@ -255,6 +255,30 @@
             display: none !important;
         }
 
+        /* Tap diagnostic - shows the last few tap events (pointerType/gap/outcome)
+           so a "click sometimes logs as 2" report can be diagnosed with real data
+           instead of guessed at again. Shares the click counter's visibility toggle. */
+        .tap-diagnostic {
+            position: absolute;
+            left: calc(50% + var(--button-x-offset-vw) * 1vw + var(--button-diameter-vw) * 0.75 * 1vw);
+            top: calc(50% + var(--button-y-offset-vh) * 1vh + 4vh);
+            font-family: monospace;
+            font-size: 0.9vw;
+            color: #333;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 4px 8px;
+            pointer-events: none;
+            z-index: 20;
+            white-space: pre;
+            max-width: 30vw;
+        }
+
+        .tap-diagnostic.hidden {
+            display: none !important;
+        }
+
         /* Dev Panel */
         .dev-panel {
             position: fixed;
@@ -693,6 +717,7 @@
         <div class="target-count" id="targetCount"></div>
         <div class="speed-display" id="speedDisplay"></div>
         <div class="click-counter hidden" id="clickCounter">0</div>
+        <div class="tap-diagnostic hidden" id="tapDiagnostic"></div>
     </div>
 
     <!-- Dev Panel -->
@@ -1052,13 +1077,23 @@
         const devPanel = document.getElementById('devPanel');
         const panelResizer = document.getElementById('panelResizer');
         const clickCounter = document.getElementById('clickCounter');
+        const tapDiagnostic = document.getElementById('tapDiagnostic');
+        const tapDiagnosticLog = [];
         let totalClickCount = 0;
         let lastAcceptedTapTime = 0;
+        let lastAcceptedPointerType = null;
         // Filters out duplicate pointerdown events for a single physical press -
         // e.g. mouse/trackpad switch "bounce" sending 2 down-signals for 1 click,
         // or a browser occasionally double-firing pointerdown. No legitimate
         // separate tap ever arrives this close together.
         const TAP_DEBOUNCE_MS = 50;
+        // Some mobile browsers fire a SECOND, synthetic "compatibility" mouse
+        // pointerdown roughly 300ms after a real touch tap, for elements where the
+        // touch's default action wasn't fully suppressed. That gap is way outside
+        // TAP_DEBOUNCE_MS, so it needs its own check: a mouse-type tap arriving
+        // shortly after a touch-type one is almost certainly this synthetic event,
+        // not a real second press.
+        const TOUCH_COMPAT_WINDOW_MS = 600;
 
         // Initialize CSS variables
         function updateCSSVariables() {
@@ -1320,7 +1355,14 @@
             gameState.canTap = true;
         }
 
-        function handleGameButtonPress() {
+        function logTapDiagnostic(pointerType, gapMs, outcome) {
+            const gapText = gapMs === null ? 'first' : gapMs + 'ms';
+            tapDiagnosticLog.push(`${outcome} | type=${pointerType} | gap=${gapText}`);
+            if (tapDiagnosticLog.length > 6) tapDiagnosticLog.shift();
+            tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
+        }
+
+        function handleGameButtonPress(pointerType) {
             // Visual press feedback works regardless of game state, so the button is
             // responsive on the landing page too - but the click counter only counts
             // once a round has actually started.
@@ -1328,11 +1370,28 @@
 
             if (!gameState.isPlaying || !gameState.canTap) return;
 
+            const now = Date.now();
+            const isFirstTap = lastAcceptedTapTime === 0;
+            const gapMs = isFirstTap ? null : now - lastAcceptedTapTime;
+
             // Debounce: reject a pointerdown that arrives implausibly soon after the
             // last accepted one (hardware bounce / duplicate event), not a real tap.
-            const now = Date.now();
-            if (now - lastAcceptedTapTime < TAP_DEBOUNCE_MS) return;
+            if (!isFirstTap && gapMs < TAP_DEBOUNCE_MS) {
+                logTapDiagnostic(pointerType, gapMs, 'rejected-bounce');
+                return;
+            }
+
+            // Some mobile browsers fire a synthetic compatibility mouse pointerdown
+            // ~300ms after a real touch tap. Catch that specific pattern even though
+            // it's outside the debounce window above.
+            if (!isFirstTap && pointerType === 'mouse' && lastAcceptedPointerType === 'touch' && gapMs < TOUCH_COMPAT_WINDOW_MS) {
+                logTapDiagnostic(pointerType, gapMs, 'rejected-touch-compat');
+                return;
+            }
+
             lastAcceptedTapTime = now;
+            lastAcceptedPointerType = pointerType;
+            logTapDiagnostic(pointerType, gapMs, 'accepted');
 
             totalClickCount++;
             clickCounter.textContent = totalClickCount;
@@ -1428,7 +1487,7 @@
         // taps on some devices).
         gameButton.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            handleGameButtonPress();
+            handleGameButtonPress(e.pointerType);
         });
         gameButton.addEventListener('pointerup', handleGameButtonRelease);
         gameButton.addEventListener('pointercancel', handleGameButtonRelease);
@@ -1492,9 +1551,10 @@
             }
         });
 
-        // Click counter checkbox
+        // Click counter checkbox (also shows the tap diagnostic log)
         document.getElementById('checkboxClickCounter').addEventListener('change', (e) => {
             clickCounter.classList.toggle('hidden', !e.target.checked);
+            tapDiagnostic.classList.toggle('hidden', !e.target.checked);
         });
 
         // Initialize
