@@ -63,11 +63,16 @@
             left: calc(50% + var(--button-x-offset-vw) * 1vw);
             top: calc(50% + var(--button-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
-            /* Shadow Size scales blur only, not X/Y offset - it grows/shrinks the
-               shadow in place rather than also shifting its position (that's what
-               the separate X/Y sliders are for). CSS drop-shadow has no native
-               spread parameter, so blur is the closest equivalent to a size control. */
-            filter: drop-shadow(calc(var(--shadow-x-offset) * 1px) calc(var(--shadow-y-offset) * 1px) calc(var(--shadow-blur) * var(--shadow-scale) * 1px) rgba(0, 0, 0, 0.5));
+            /* Shadow Size adds extra blur on top of Shadow Blur (not X/Y offset) - it
+               grows/shrinks the shadow in place rather than shifting its position
+               (that's what the X/Y sliders are for). It's ADDITIVE, not a multiplier:
+               a multiplier of a near-zero Shadow Blur value stays near-zero no matter
+               how large the multiplier gets, which is why it looked like the slider
+               "did nothing" once Shadow Blur was tuned down to 1px - additive means
+               Shadow Size always has a real, visible effect on its own. CSS
+               drop-shadow has no native spread parameter, so blur is the closest
+               equivalent to a size control. */
+            filter: drop-shadow(calc(var(--shadow-x-offset) * 1px) calc(var(--shadow-y-offset) * 1px) calc((var(--shadow-blur) + var(--shadow-scale)) * 1px) rgba(0, 0, 0, 0.5));
         }
 
         /* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
@@ -868,9 +873,9 @@
                     <span class="dev-value" id="valueShadowBlur">1</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Size:</span>
-                    <input type="range" class="dev-slider" id="sliderShadowScale" min="0.25" max="3" step="0.05" value="1.8">
-                    <span class="dev-value" id="valueShadowScale">1.80</span>
+                    <span class="dev-label">Shadow Size (extra blur px):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowScale" min="0" max="100" step="1" value="0">
+                    <span class="dev-value" id="valueShadowScale">0</span>
                 </div>
             </div>
         </div>
@@ -1089,7 +1094,7 @@
             '--shadow-x-offset': 159,
             '--shadow-y-offset': -88,
             '--shadow-blur': 1,
-            '--shadow-scale': 1.8,
+            '--shadow-scale': 0,
             '--ui-button-width-vw': 6.5,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 8,
