@@ -103,7 +103,17 @@
         }
 
         /* Button - backmost layer, tucked under the base; shifts up/down via height
-           offset and press intensity */
+           offset and press intensity.
+
+           Both offset values are PERCENT OF THE BUTTON'S OWN DIAMETER, not raw
+           pixels - the button's on-screen size is vw-relative (scales with
+           viewport width), so a fixed-px offset stays the same absolute size
+           while the button itself shrinks on a narrow phone screen, making the
+           gap between button and base look proportionally huge (and pushing them
+           visibly apart) on mobile even when it looked fine on a wide desktop
+           viewport. Expressing the offset as a fraction of --button-diameter-vw
+           keeps the same visual relationship (how far the button sits recessed
+           relative to its own size) at every screen width. */
         .game-button {
             position: absolute;
             inset: 0;
@@ -119,7 +129,7 @@
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             outline: none;
-            transform: translateY(calc(var(--button-height-offset-px) * 1px));
+            transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vw));
             transition: transform 0.05s ease-out;
             /* Only the SVG's actual painted pixels are clickable, not this element's
                full rectangular box - the child svg below opts back into hit-testing
@@ -127,7 +137,7 @@
             pointer-events: none;
         }
         .game-button.pressed {
-            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * 1px));
+            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * var(--button-diameter-vw) / 100 * 1vw));
         }
         .game-button svg {
             position: absolute;
@@ -955,14 +965,14 @@
                     <span class="dev-value" id="valueButtonDiameter">37.5</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Height (offset px):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-60" max="60" step="1" value="-60">
-                    <span class="dev-value" id="valueButtonHeight">-60</span>
+                    <span class="dev-label">Height (offset, % of diameter):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-30" max="30" step="0.5" value="-5">
+                    <span class="dev-value" id="valueButtonHeight">-5</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Press Intensity (px):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="60" step="1" value="40">
-                    <span class="dev-value" id="valueButtonPressIntensity">40</span>
+                    <span class="dev-label">Press Intensity (% of diameter):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="30" step="0.5" value="3">
+                    <span class="dev-value" id="valueButtonPressIntensity">3</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Color:</span>
@@ -1221,8 +1231,8 @@
         // CSS Variables initialization
         const cssVars = {
             '--button-diameter-vw': 37.5,
-            '--button-height-offset-px': -60,
-            '--button-press-intensity-px': 40,
+            '--button-height-offset-px': -5,
+            '--button-press-intensity-px': 3,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
             '--shadow-x-offset': 250,
