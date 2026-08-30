@@ -73,7 +73,12 @@
             pointer-events: none;
             opacity: 0.5;
             filter: brightness(0) blur(calc(var(--shadow-blur) * 1px));
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) scale(var(--shadow-scale));
+            /* Skew + a non-uniform Y scale (Stretch) approximate a shadow cast by a
+               low/moving light source - a raking light both shears the silhouette
+               (skewX) and elongates it along the cast direction (the extra scaleY,
+               applied after the uniform Shadow Size scale) the way a real shadow
+               stretches out as the light source drops toward the horizon. */
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
         }
         .shadow-caster-layer {
             position: absolute;
@@ -406,7 +411,14 @@
             background: rgba(0, 0, 0, 0.95);
             color: #fff;
             padding: 15px;
-            width: var(--dev-panel-width-px);
+            /* Missing unit was invalid CSS (a bare number isn't a valid width) -
+               the browser fell back to sizing the panel by its own content
+               instead, which on a narrow mobile screen meant the panel could
+               stretch to cover the whole viewport width. max-width caps it so
+               even a wide dev-panel-width-px setting can't exceed the actual
+               screen on a narrow device. */
+            width: calc(var(--dev-panel-width-px) * 1px);
+            max-width: 92vw;
             overflow-y: auto;
             font-size: 11px;
             z-index: 99999;
@@ -1003,12 +1015,12 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="300" step="1" value="250">
+                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="700" step="1" value="250">
                     <span class="dev-value" id="valueShadowX">250</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowY" min="-200" max="200" step="1" value="-88">
+                    <input type="range" class="dev-slider" id="sliderShadowY" min="-400" max="200" step="1" value="-88">
                     <span class="dev-value" id="valueShadowY">-88</span>
                 </div>
                 <div class="dev-row">
@@ -1020,6 +1032,16 @@
                     <span class="dev-label">Shadow Size (scale):</span>
                     <input type="range" class="dev-slider" id="sliderShadowScale" min="0.1" max="3" step="0.05" value="1">
                     <span class="dev-value" id="valueShadowScale">1.00</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Skew (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowSkew" min="-60" max="60" step="1" value="0">
+                    <span class="dev-value" id="valueShadowSkew">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Stretch (elongation):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowStretch" min="1" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueShadowStretch">1.0</span>
                 </div>
             </div>
         </div>
@@ -1225,6 +1247,301 @@
                 </div>
             </div>
         </div>
+
+
+        <!-- ============ MOBILE OVERRIDES ============
+             Same controls as above, but only take effect on a mobile-width
+             viewport (auto-detected via matchMedia, live - resizing the
+             browser or rotating a phone switches automatically, no manual
+             toggle). Lets layout/appearance be tuned independently for
+             mobile without disturbing the desktop configuration above. -->
+        <div class="dev-section dev-section-mobile-group">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ 📱 MOBILE OVERRIDES (auto-applies below ~768px width)</div>
+            <div class="dev-section-content">
+        <!-- Main Button Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Diameter (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonDiameter" min="5" max="60" step="0.5" value="37.5">
+                    <span class="dev-value" id="valueMobileButtonDiameter">37.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height (offset, % of diameter):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-5">
+                    <span class="dev-value" id="valueMobileButtonHeight">-5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Press Intensity (% of diameter):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonPressIntensity" min="0" max="30" step="0.5" value="3">
+                    <span class="dev-value" id="valueMobileButtonPressIntensity">3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileButton" value="#eb2027">
+                    <span class="dev-value" style="font-size:9px;color:#888;">(hue-rotate)</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Base Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileBase" value="#eb2027">
+                    <span class="dev-value" style="font-size:9px;color:#888;">(hue-rotate)</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-30" max="30" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileButtonX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-30" max="30" step="0.5" value="15">
+                    <span class="dev-value" id="valueMobileButtonY">15</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shadow Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Shadow X (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-300" max="700" step="1" value="250">
+                    <span class="dev-value" id="valueMobileShadowX">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Y (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-400" max="200" step="1" value="-88">
+                    <span class="dev-value" id="valueMobileShadowY">-88</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Blur (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowBlur" min="0" max="60" step="1" value="1">
+                    <span class="dev-value" id="valueMobileShadowBlur">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Size (scale):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowScale" min="0.1" max="3" step="0.05" value="1">
+                    <span class="dev-value" id="valueMobileShadowScale">1.00</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Skew (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowSkew" min="-60" max="60" step="1" value="0">
+                    <span class="dev-value" id="valueMobileShadowSkew">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Stretch (elongation):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueMobileShadowStretch">1.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI Button Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Width (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonWidth" min="2" max="25" step="0.5" value="6.5">
+                    <span class="dev-value" id="valueMobileUIButtonWidth">6.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonHeight" min="2" max="15" step="0.5" value="6">
+                    <span class="dev-value" id="valueMobileUIButtonHeight">6</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileUIButton" value="#3366dd">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="selectMobileUIFont" onchange="updateMobileUIFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter">Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Corner Radius (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonRadius" min="0" max="40" step="1" value="8">
+                    <span class="dev-value" id="valueMobileUIButtonRadius">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonX" min="-20" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileUIButtonX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonY" min="-40" max="10" step="0.5" value="-38">
+                    <span class="dev-value" id="valueMobileUIButtonY">-38</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round Text Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text (ROUND X)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.1" value="8">
+                    <span class="dev-value" id="valueMobileTextFontSize">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="selectMobileTextFont" onchange="updateMobileTextFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter" selected>Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileText" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileTextX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.5" value="-20">
+                    <span class="dev-value" id="valueMobileTextY">-20</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Count Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Target Count Display</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="1" max="25" step="0.1" value="9">
+                    <span class="dev-value" id="valueMobileTargetFontSize">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="selectMobileNumbersFont" onchange="updateMobileNumbersFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter">Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTarget" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.5" value="12">
+                    <span class="dev-value" id="valueMobileTargetX">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetY" min="-50" max="50" step="0.5" value="-22">
+                    <span class="dev-value" id="valueMobileTargetY">-22</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Speed Display Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (max ms between taps)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="1" max="25" step="0.1" value="5">
+                    <span class="dev-value" id="valueMobileSpeedFontSize">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileSpeed" value="#ff9900">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedX" min="-50" max="50" step="0.5" value="-14">
+                    <span class="dev-value" id="valueMobileSpeedX">-14</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedY" min="-50" max="50" step="0.5" value="-22">
+                    <span class="dev-value" id="valueMobileSpeedY">-22</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Mechanics Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Game Mechanics</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Starting Max Time (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileStartingSpeed" min="50" max="800" step="10" value="600">
+                    <span class="dev-value" id="valueMobileStartingSpeed">600</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Speed Decrease (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedDecrease" min="5" max="150" step="5" value="30">
+                    <span class="dev-value" id="valueMobileSpeedDecrease">30</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Debounce Window (ms, same pos only):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTapDebounce" min="0" max="400" step="10" value="0">
+                    <span class="dev-value" id="valueMobileTapDebounce">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDuration" min="200" max="3000" step="50" value="1000">
+                    <span class="dev-value" id="valueMobileRoundDuration">1000</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Result Text Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultDuration" min="200" max="3000" step="50" value="1000">
+                    <span class="dev-value" id="valueMobileResultDuration">1000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Background</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileBg" value="#f2f2f2">
+                </div>
+            </div>
+        </div>
+
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -1239,6 +1556,8 @@
             '--shadow-y-offset': -88,
             '--shadow-blur': 1,
             '--shadow-scale': 1,
+            '--shadow-skew': 0,
+            '--shadow-stretch': 1,
             '--ui-button-width-vw': 6.5,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 8,
@@ -1272,6 +1591,26 @@
             '--text-font': '"Inter", sans-serif',
             '--ui-font': '"Montserrat", sans-serif',
         };
+
+        // Mobile overrides - same shape as cssVars/colorVars/fontVars, applied
+        // instead of the desktop set whenever the viewport matches
+        // MOBILE_MEDIA_QUERY (see applyActiveVars() below). Cloned from the
+        // desktop defaults at startup so mobile starts out identical to desktop
+        // until tuned separately via the dev panel's Mobile Overrides section.
+        // --dev-panel-width-px is intentionally excluded - it's a dev-tool-only
+        // setting, not part of the actual game's visual output.
+        const mobileCssVars = { ...cssVars };
+        delete mobileCssVars['--dev-panel-width-px'];
+        const mobileColorVars = { ...colorVars };
+        const mobileFontVars = { ...fontVars };
+
+        // Auto-switches live: crossing this breakpoint (resizing the browser,
+        // rotating a phone) re-applies whichever var set is now active, no
+        // manual toggle needed.
+        const MOBILE_MEDIA_QUERY = window.matchMedia('(max-width: 767px)');
+        function isMobileActive() {
+            return MOBILE_MEDIA_QUERY.matches;
+        }
 
         // Game state
         const gameState = {
@@ -1341,21 +1680,53 @@
         const TOUCH_COMPAT_WINDOW_MS = 600;
 
         // Initialize CSS variables
-        function updateCSSVariables() {
-            for (const [key, value] of Object.entries(cssVars)) {
+        // Applies whichever var set (desktop or mobile) matches the current
+        // viewport width. Called after every slider/color/font edit and on
+        // MOBILE_MEDIA_QUERY's change event (live breakpoint crossing) - editing
+        // the inactive mode's control just updates its stored value silently,
+        // since this always re-derives from isMobileActive() rather than from
+        // which control was touched.
+        function applyActiveVars() {
+            const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeColorVars = isMobileActive() ? mobileColorVars : colorVars;
+            const activeFontVars = isMobileActive() ? mobileFontVars : fontVars;
+            for (const [key, value] of Object.entries(activeCssVars)) {
                 document.documentElement.style.setProperty(key, value);
             }
-            for (const [key, value] of Object.entries(colorVars)) {
+            for (const [key, value] of Object.entries(activeColorVars)) {
                 document.documentElement.style.setProperty(key, value);
             }
-            for (const [key, value] of Object.entries(fontVars)) {
+            for (const [key, value] of Object.entries(activeFontVars)) {
                 document.documentElement.style.setProperty(key, value);
             }
+            // Button/base hue-rotate aren't part of cssVars (they're computed
+            // on the fly from whichever color picker is active) - refresh them
+            // here too so a breakpoint crossing repaints them correctly.
+            refreshButtonHue();
+            refreshBaseHue();
+        }
+        MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
+        // Belt-and-suspenders: some viewport-emulation/testing contexts don't
+        // reliably dispatch matchMedia's own 'change' event on a resize even
+        // though a real device rotation or window resize would - a plain
+        // window resize listener re-applies too, redundantly but harmlessly.
+        window.addEventListener('resize', applyActiveVars);
+
+        // Reads the color picker for whichever mode (desktop/mobile) is
+        // currently active and re-applies it - used both for live edits and
+        // for the breakpoint-change listener above.
+        function refreshButtonHue() {
+            const id = isMobileActive() ? 'colorMobileButton' : 'colorButton';
+            setButtonHue(document.getElementById(id).value);
+        }
+        function refreshBaseHue() {
+            const id = isMobileActive() ? 'colorMobileBase' : 'colorBase';
+            setBaseHue(document.getElementById(id).value);
         }
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, fontVars };
+            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -1374,7 +1745,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, fontVars };
+            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -1398,29 +1769,39 @@
                     Object.assign(cssVars, settings.cssVars);
                     Object.assign(colorVars, settings.colorVars);
                     Object.assign(fontVars, settings.fontVars);
+                    Object.assign(mobileCssVars, settings.mobileCssVars);
+                    Object.assign(mobileColorVars, settings.mobileColorVars);
+                    Object.assign(mobileFontVars, settings.mobileFontVars);
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
             }
         }
 
-        // Update font functions
+        // Update font functions - mobile counterparts write into mobileFontVars
+        // instead; applyActiveVars() decides which set is actually visible.
+        function applyFontSelection(selectId, varName, targetFontVars) {
+            const font = document.getElementById(selectId).value;
+            targetFontVars[varName] = `"${font}", sans-serif`;
+            applyActiveVars();
+        }
         function updateNumbersFont() {
-            const font = document.getElementById('selectNumbersFont').value;
-            fontVars['--numbers-font'] = `"${font}", sans-serif`;
-            document.documentElement.style.setProperty('--numbers-font', fontVars['--numbers-font']);
+            applyFontSelection('selectNumbersFont', '--numbers-font', fontVars);
         }
-
         function updateTextFont() {
-            const font = document.getElementById('selectTextFont').value;
-            fontVars['--text-font'] = `"${font}", sans-serif`;
-            document.documentElement.style.setProperty('--text-font', fontVars['--text-font']);
+            applyFontSelection('selectTextFont', '--text-font', fontVars);
         }
-
         function updateUIFont() {
-            const font = document.getElementById('selectUIFont').value;
-            fontVars['--ui-font'] = `"${font}", sans-serif`;
-            document.documentElement.style.setProperty('--ui-font', fontVars['--ui-font']);
+            applyFontSelection('selectUIFont', '--ui-font', fontVars);
+        }
+        function updateMobileNumbersFont() {
+            applyFontSelection('selectMobileNumbersFont', '--numbers-font', mobileFontVars);
+        }
+        function updateMobileTextFont() {
+            applyFontSelection('selectMobileTextFont', '--text-font', mobileFontVars);
+        }
+        function updateMobileUIFont() {
+            applyFontSelection('selectMobileUIFont', '--ui-font', mobileFontVars);
         }
 
         // Toggle section collapse
@@ -1431,53 +1812,75 @@
         }
 
         // Setup dev sliders
+        // Visual/layout controls: desktop slider id -> cssVars key. Each has a
+        // "sliderMobile"-prefixed twin (see the Mobile Overrides dev-panel
+        // section) that writes into mobileCssVars instead - both are always
+        // stored, but only the set matching the current breakpoint is ever
+        // visibly applied (via applyActiveVars()).
+        const CSS_VAR_SLIDER_MAP = {
+            'sliderButtonDiameter': '--button-diameter-vw',
+            'sliderButtonHeight': '--button-height-offset-px',
+            'sliderButtonPressIntensity': '--button-press-intensity-px',
+            'sliderButtonX': '--button-x-offset-vw',
+            'sliderButtonY': '--button-y-offset-vh',
+            'sliderShadowX': '--shadow-x-offset',
+            'sliderShadowY': '--shadow-y-offset',
+            'sliderShadowBlur': '--shadow-blur',
+            'sliderShadowScale': '--shadow-scale',
+            'sliderShadowSkew': '--shadow-skew',
+            'sliderShadowStretch': '--shadow-stretch',
+            'sliderUIButtonWidth': '--ui-button-width-vw',
+            'sliderUIButtonHeight': '--ui-button-height-vh',
+            'sliderUIButtonRadius': '--ui-button-radius',
+            'sliderUIButtonX': '--ui-button-x-offset-vw',
+            'sliderUIButtonY': '--ui-button-y-offset-vh',
+            'sliderTextFontSize': '--text-font-size-vw',
+            'sliderTextX': '--text-x-offset-vw',
+            'sliderTextY': '--text-y-offset-vh',
+            'sliderTargetFontSize': '--target-font-size-vw',
+            'sliderTargetX': '--target-x-offset-vw',
+            'sliderTargetY': '--target-y-offset-vh',
+            'sliderSpeedFontSize': '--speed-font-size-vw',
+            'sliderSpeedX': '--speed-x-offset-vw',
+            'sliderSpeedY': '--speed-y-offset-vh',
+        };
+
+        // Given any slider/color id (desktop OR its "Mobile"-infixed twin),
+        // returns { isMobile, desktopId } - e.g. 'sliderMobileButtonX' ->
+        // { isMobile: true, desktopId: 'sliderButtonX' }.
+        function resolveDevControlId(id) {
+            const m = id.match(/^(slider|color|select)Mobile(.+)$/);
+            if (m) return { isMobile: true, desktopId: m[1] + m[2] };
+            return { isMobile: false, desktopId: id };
+        }
+
+        // Gameplay-mechanics sliders (Starting Max Time, Speed Decrease, etc.)
+        // are NOT a true per-device override the way visual settings are -
+        // there's only one game in progress, not a separate one per device. The
+        // mobile copies are a convenience duplicate that drive the exact same
+        // live gameState/TAP_DEBOUNCE_MS, useful for tuning difficulty while
+        // looking at the mobile section of the panel.
+        function applyGameMechanicsSlider(desktopId, value) {
+            if (desktopId === 'sliderStartingSpeed') gameState.maxTimeMs = value;
+            else if (desktopId === 'sliderSpeedDecrease') gameState.speedDecrease = value;
+            else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
+            else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
+            else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
+        }
+
         function setupDevSliders() {
             const sliders = document.querySelectorAll('.dev-slider');
             sliders.forEach(slider => {
                 slider.addEventListener('input', (e) => {
                     const value = parseFloat(e.target.value);
-
-                    const sliderMap = {
-                        'sliderButtonDiameter': '--button-diameter-vw',
-                        'sliderButtonHeight': '--button-height-offset-px',
-                        'sliderButtonPressIntensity': '--button-press-intensity-px',
-                        'sliderButtonX': '--button-x-offset-vw',
-                        'sliderButtonY': '--button-y-offset-vh',
-                        'sliderShadowX': '--shadow-x-offset',
-                        'sliderShadowY': '--shadow-y-offset',
-                        'sliderShadowBlur': '--shadow-blur',
-                        'sliderShadowScale': '--shadow-scale',
-                        'sliderUIButtonWidth': '--ui-button-width-vw',
-                        'sliderUIButtonHeight': '--ui-button-height-vh',
-                        'sliderUIButtonRadius': '--ui-button-radius',
-                        'sliderUIButtonX': '--ui-button-x-offset-vw',
-                        'sliderUIButtonY': '--ui-button-y-offset-vh',
-                        'sliderTextFontSize': '--text-font-size-vw',
-                        'sliderTextX': '--text-x-offset-vw',
-                        'sliderTextY': '--text-y-offset-vh',
-                        'sliderTargetFontSize': '--target-font-size-vw',
-                        'sliderTargetX': '--target-x-offset-vw',
-                        'sliderTargetY': '--target-y-offset-vh',
-                        'sliderSpeedFontSize': '--speed-font-size-vw',
-                        'sliderSpeedX': '--speed-x-offset-vw',
-                        'sliderSpeedY': '--speed-y-offset-vh',
-                    };
-
-                    const varName = sliderMap[e.target.id];
+                    const { isMobile, desktopId } = resolveDevControlId(e.target.id);
+                    const varName = CSS_VAR_SLIDER_MAP[desktopId];
 
                     if (varName) {
-                        cssVars[varName] = value;
-                        document.documentElement.style.setProperty(varName, value);
-                    } else if (e.target.id === 'sliderStartingSpeed') {
-                        gameState.maxTimeMs = value;
-                    } else if (e.target.id === 'sliderSpeedDecrease') {
-                        gameState.speedDecrease = value;
-                    } else if (e.target.id === 'sliderTapDebounce') {
-                        TAP_DEBOUNCE_MS = value;
-                    } else if (e.target.id === 'sliderRoundDuration') {
-                        gameState.roundDuration = value;
-                    } else if (e.target.id === 'sliderResultDuration') {
-                        gameState.resultDuration = value;
+                        (isMobile ? mobileCssVars : cssVars)[varName] = value;
+                        applyActiveVars();
+                    } else {
+                        applyGameMechanicsSlider(desktopId, value);
                     }
 
                     const valueId = e.target.id.replace('slider', 'value');
@@ -1489,32 +1892,34 @@
             });
 
             // Setup color pickers
+            const COLOR_VAR_MAP = {
+                'colorUIButton': '--ui-button-color',
+                'colorText': '--text-color',
+                'colorTarget': '--target-color',
+                'colorSpeed': '--speed-color',
+                'colorBg': '--bg-color',
+            };
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
                 picker.addEventListener('input', (e) => {
-                    if (e.target.id === 'colorButton') {
+                    const { desktopId } = resolveDevControlId(e.target.id);
+
+                    if (desktopId === 'colorButton') {
                         // The button is real artwork (SVG), not a flat CSS fill - recolor it by
-                        // hue-rotating away from the artwork's own reference green (#779e4f).
-                        setButtonHue(e.target.value);
+                        // hue-rotating away from the artwork's own reference color.
+                        refreshButtonHue();
                         return;
                     }
-                    if (e.target.id === 'colorBase') {
-                        setBaseHue(e.target.value);
+                    if (desktopId === 'colorBase') {
+                        refreshBaseHue();
                         return;
                     }
 
-                    const colorMap = {
-                        'colorUIButton': '--ui-button-color',
-                        'colorText': '--text-color',
-                        'colorTarget': '--target-color',
-                        'colorSpeed': '--speed-color',
-                        'colorBg': '--bg-color',
-                    };
-
-                    const varName = colorMap[e.target.id];
+                    const varName = COLOR_VAR_MAP[desktopId];
                     if (varName) {
-                        colorVars[varName] = e.target.value;
-                        document.documentElement.style.setProperty(varName, e.target.value);
+                        const { isMobile } = resolveDevControlId(e.target.id);
+                        (isMobile ? mobileColorVars : colorVars)[varName] = e.target.value;
+                        applyActiveVars();
                     }
                 });
             });
@@ -1599,7 +2004,7 @@
             speedDisplay.classList.remove('hidden');
 
             // Reset button color
-            setButtonHue(document.getElementById('colorButton').value);
+            refreshButtonHue();
 
             // Only now is tapping actually meaningful - target/speed are visible
             gameState.canTap = true;
@@ -1897,7 +2302,7 @@
                 gameText.classList.add('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
-                setButtonHue(document.getElementById('colorButton').value);
+                refreshButtonHue();
                 totalClickCount = 0;
                 clickCounter.textContent = totalClickCount;
             }
@@ -1911,10 +2316,8 @@
 
         // Initialize
         loadSettings();
-        updateCSSVariables();
         setupDevSliders();
-        setButtonHue(document.getElementById('colorButton').value);
-        setBaseHue(document.getElementById('colorBase').value);
+        applyActiveVars();
     </script>
 </body>
 </html>
