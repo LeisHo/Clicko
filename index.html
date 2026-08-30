@@ -1574,8 +1574,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
-                    <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="0">
-                    <span class="dev-value" id="valueTapDebounce">0</span>
+                    <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="50">
+                    <span class="dev-value" id="valueTapDebounce">50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Duration (ms):</span>
@@ -1894,8 +1894,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTapDebounce" min="0" max="400" step="10" value="0">
-                    <span class="dev-value" id="valueMobileTapDebounce">0</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTapDebounce" min="0" max="400" step="10" value="50">
+                    <span class="dev-value" id="valueMobileTapDebounce">50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Duration (ms):</span>
@@ -2131,17 +2131,26 @@
         let lastAcceptedPointerType = null;
         let lastAcceptedX = null;
         let lastAcceptedY = null;
-        // Optional filter for a duplicate pointerdown event from a single physical
-        // press (e.g. a worn mouse microswitch reporting one press as two signals).
-        // Off (0ms) by default: testing showed position alone can't safely tell a
-        // hardware duplicate apart from two genuine taps on a static target, since a
-        // practiced player naturally holds the mouse still between presses - a real
-        // tap can land within a couple pixels of the last one just as easily as a
-        // duplicate can. A filter that eats a real tap causes a false loss, which is
-        // worse than occasionally letting a genuine duplicate through, so this stays
-        // off unless a player specifically knows their mouse double-fires and opts in
-        // via the dev-panel slider, accepting the tradeoff themselves.
-        let TAP_DEBOUNCE_MS = 0;
+        // Filter for a duplicate pointerdown event from a single physical press
+        // (e.g. a worn mouse microswitch reporting one press as two signals).
+        //
+        // This was previously OFF (0ms) by default: an earlier 250ms threshold was
+        // tested and found to reject genuine rapid taps - a practiced player
+        // naturally holds the mouse still between presses, so a real tap can land
+        // within a couple pixels of the last one just as easily as a duplicate can,
+        // and at 250ms that ambiguity extends into normal human tap-to-tap timing.
+        // A filter that eats a real tap causes a false loss, worse than occasionally
+        // letting a genuine duplicate through - so 0 (off) became the default.
+        //
+        // Re-enabled at a much TIGHTER 50ms, confirmed necessary via a real user
+        // report: a tap-diagnostic log showed a genuine duplicate at gap=21ms,
+        // 1px apart (physically too fast to be an intentional second human press -
+        // this session's own rapid-tap testing has never gone below ~125ms even at
+        // deliberately fast pace). 50ms sits comfortably below any observed genuine
+        // human tap-to-tap gap while still catching that kind of hardware chatter -
+        // a different regime than the old 250ms, not just a smaller version of it.
+        // Still fully adjustable (including back to 0) via the dev-panel slider.
+        let TAP_DEBOUNCE_MS = 50;
         const TAP_DEBOUNCE_POS_TOLERANCE_PX = 3;
         // Some mobile browsers fire a SECOND, synthetic "compatibility" mouse
         // pointerdown roughly 300ms after a real touch tap, for elements where the
@@ -2649,10 +2658,10 @@
             const posDist = (isFirstTap || !e) ? null :
                 Math.hypot(e.clientX - lastAcceptedX, e.clientY - lastAcceptedY);
 
-            // Debounce: off by default (TAP_DEBOUNCE_MS = 0, see declaration above).
-            // If a player opts in via the dev-panel slider, rejection still requires
-            // BOTH a short gap AND near-identical position, since time alone can't
-            // safely separate a hardware duplicate from a genuinely fast real tap.
+            // Debounce: 50ms by default (see TAP_DEBOUNCE_MS's declaration above for
+            // why). Rejection still requires BOTH a short gap AND near-identical
+            // position, since time alone can't safely separate a hardware duplicate
+            // from a genuinely fast real tap.
             if (!isFirstTap && gapMs < TAP_DEBOUNCE_MS && posDist !== null && posDist <= TAP_DEBOUNCE_POS_TOLERANCE_PX) {
                 logTapDiagnostic(pointerType, gapMs, 'rejected-bounce', e);
                 return;
