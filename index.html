@@ -72,7 +72,23 @@
             z-index: 0;
             pointer-events: none;
             opacity: 0.5;
-            filter: brightness(0) blur(calc(var(--shadow-blur) * 1px));
+            /* brightness(0)+blur() used to live HERE, on the parent - meaning
+               EVERY tap (button-shadow's class toggle) forced the browser to
+               reflatten+reblur the ENTIRE group, base-shadow included, even
+               though base-shadow's own content never changes. A CSS filter on
+               a parent operates on the composited result of its whole
+               subtree, so there's no way for the browser to cache
+               base-shadow's part of that separately while it lives here.
+               Moved to each individual .shadow-caster-layer instead (below) -
+               now base-shadow's filtered output only ever needs to be
+               computed once (its inputs are provably static - no transform
+               override, no class ever toggles on it), and only
+               button-shadow's own, independent, smaller filter needs to
+               redo work on tap. Visually equivalent: both layers are already
+               solid black with the same blur radius, so filtering them
+               individually then compositing looks effectively identical to
+               filtering the pre-composited union, aside from a negligible
+               difference exactly at their shared seam. */
         }
         /* Base and button each get their OWN transform (instead of one shared
            transform on the .shadow-caster wrapper) so only the button's shadow
@@ -106,6 +122,7 @@
             position: absolute;
             inset: 0;
             transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
+            filter: brightness(0) blur(calc(var(--shadow-blur) * 1px));
         }
         /* Paint order matters here: in the REAL artwork, .base-svg-layer
            (z-index 4) sits ON TOP of .game-button (z-index 1) - the base's
@@ -1363,17 +1380,17 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Skew (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowSkew" min="-60" max="60" step="1" value="-37">
+                    <input type="range" class="dev-slider" id="sliderShadowSkew" min="-90" max="0" step="1" value="-37">
                     <span class="dev-value" id="valueShadowSkew">-37</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Stretch (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowStretch" min="1" max="5" step="0.1" value="1.6">
+                    <input type="range" class="dev-slider" id="sliderShadowStretch" min="0" max="2" step="0.1" value="1.6">
                     <span class="dev-value" id="valueShadowStretch">1.6</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowRotate" min="-180" max="180" step="1" value="29">
+                    <input type="range" class="dev-slider" id="sliderShadowRotate" min="-90" max="135" step="1" value="29">
                     <span class="dev-value" id="valueShadowRotate">29</span>
                 </div>
             </div>
