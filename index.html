@@ -78,10 +78,27 @@
                (skewX) and elongates it along the cast direction (the extra scaleY,
                applied after the uniform Shadow Size scale) the way a real shadow
                stretches out as the light source drops toward the horizon. Rotate
-               spins the whole already-distorted shadow around its own center, as
-               a final orientation adjustment (e.g. to point the elongation in a
-               different compass direction rather than just straight down/up). */
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) rotate(calc(var(--shadow-rotate) * 1deg));
+               needs to sit BEFORE scale/skewX/scaleY in this list, not after -
+               CSS transforms compose right-to-left (the rightmost function applies
+               first, to the original shape), so listing rotate last would spin the
+               original circular shape and THEN re-apply skew/stretch in a fixed
+               screen-space direction, not what "rotate the skewed+stretched shadow"
+               means. With rotate here, scale/skewX/scaleY build the distorted shape
+               first (innermost), and rotate spins that already-distorted result as
+               a whole (outer), which is the intended behavior.
+
+               --shadow-press-nudge-y/--shadow-press-scale default to 0px/1 (no
+               change) and only get overridden by .shadow-caster.pressed below -
+               toggled in JS (handleGameButtonPress/Release) at the same moments
+               the real button gets its own .pressed class, so the shadow visually
+               follows the button down and tightens slightly, the way a real
+               shadow shrinks as its object moves closer to the surface. */
+            transition: transform 0.05s ease-out;
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px + var(--shadow-press-nudge-y, 0px))) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * var(--shadow-press-scale, 1))) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
+        }
+        .shadow-caster.pressed {
+            --shadow-press-nudge-y: calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw);
+            --shadow-press-scale: 0.92;
         }
         .shadow-caster-layer {
             position: absolute;
@@ -612,20 +629,23 @@
     <style>
       .btn-cls-1 {
         fill: #9f1d21;
-              stroke: #9f1d21;
-        stroke-width: .75px;
+                      stroke: #9f1d21;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btn-cls-2 {
         fill: #eb2027;
-              stroke: #eb2027;
-        stroke-width: .75px;
+                      stroke: #eb2027;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btn-cls-3 {
         fill: #210f11;
-              stroke: #210f11;
-        stroke-width: .75px;
+                      stroke: #210f11;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btn-cls-4 {
@@ -634,20 +654,23 @@
 
       .btn-cls-5 {
         fill: #801518;
-              stroke: #801518;
-        stroke-width: .75px;
+                      stroke: #801518;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btn-cls-6 {
         fill: #d42128;
-              stroke: #d42128;
-        stroke-width: .75px;
+                      stroke: #d42128;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btn-cls-7 {
         fill: #f27378;
-              stroke: #f27378;
-        stroke-width: .75px;
+                      stroke: #f27378;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btn-cls-8 {
@@ -691,20 +714,23 @@
     <style>
       .btnp-cls-1 {
         fill: #9f1d21;
-              stroke: #9f1d21;
-        stroke-width: .75px;
+                      stroke: #9f1d21;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btnp-cls-2 {
         fill: #eb2027;
-              stroke: #eb2027;
-        stroke-width: .75px;
+                      stroke: #eb2027;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btnp-cls-3 {
         fill: #210f11;
-              stroke: #210f11;
-        stroke-width: .75px;
+                      stroke: #210f11;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btnp-cls-4 {
@@ -713,20 +739,23 @@
 
       .btnp-cls-5 {
         fill: #801518;
-              stroke: #801518;
-        stroke-width: .75px;
+                      stroke: #801518;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btnp-cls-6 {
         fill: #d42128;
-              stroke: #d42128;
-        stroke-width: .75px;
+                      stroke: #d42128;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btnp-cls-7 {
         fill: #f27378;
-              stroke: #f27378;
-        stroke-width: .75px;
+                      stroke: #f27378;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .btnp-cls-8 {
@@ -895,56 +924,65 @@
     <style>
       .base-cls-1 {
         fill: #9f1d21;
-              stroke: #9f1d21;
-        stroke-width: .75px;
+                      stroke: #9f1d21;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-2 {
         fill: #eb2027;
-              stroke: #eb2027;
-        stroke-width: .75px;
+                      stroke: #eb2027;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-3 {
         fill: #210f11;
-              stroke: #210f11;
-        stroke-width: .75px;
+                      stroke: #210f11;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-4 {
         fill: #801518;
-              stroke: #801518;
-        stroke-width: .75px;
+                      stroke: #801518;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-5 {
         fill: #d42329;
-              stroke: #d42329;
-        stroke-width: .75px;
+                      stroke: #d42329;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-6 {
         fill: #e9262a;
-              stroke: #e9262a;
-        stroke-width: .75px;
+                      stroke: #e9262a;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-7 {
         fill: #d42128;
-              stroke: #d42128;
-        stroke-width: .75px;
+                      stroke: #d42128;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-8 {
         fill: #f27378;
-              stroke: #f27378;
-        stroke-width: .75px;
+                      stroke: #f27378;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
 
       .base-cls-9 {
         fill: #461215;
-              stroke: #461215;
-        stroke-width: .75px;
+                      stroke: #461215;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;
       }
     </style>
   </defs>
@@ -1742,6 +1780,7 @@
 
         // DOM Elements
         const gameButton = document.getElementById('gameButton');
+        const shadowCaster = document.getElementById('shadowCaster');
         const startButton = document.getElementById('startButton');
         const gameText = document.getElementById('gameText');
         const targetCount = document.getElementById('targetCount');
@@ -2172,6 +2211,7 @@
             // The counter resets at the start of every round (see showTargetAndSpeed);
             // it isn't gated to "after Round 1 starts" the way actual gameplay is.
             gameButton.classList.add('pressed');
+            shadowCaster.classList.add('pressed');
 
             const now = Date.now();
             const isFirstTap = lastAcceptedTapTime === 0;
@@ -2245,6 +2285,7 @@
 
         function handleGameButtonRelease() {
             gameButton.classList.remove('pressed');
+            shadowCaster.classList.remove('pressed');
         }
 
         function handleUIButtonPress() {
