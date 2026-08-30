@@ -1993,6 +1993,18 @@
         const tapDiagnosticPanel = document.getElementById('tapDiagnosticPanel');
         const tapDiagnostic = document.getElementById('tapDiagnostic');
         const tapDiagnosticLog = [];
+        // How many of tapDiagnosticLog's entries are currently reflected in the
+        // DOM - lets logTapDiagnostic append just the ONE new line most of the
+        // time instead of re-joining and re-rendering the whole (deliberately
+        // uncapped, ever-growing) array, per an earlier fix. See
+        // rebuildTapDiagnosticDisplay() below for when a full rebuild is
+        // actually needed (only when the DOM has fallen behind the array).
+        let tapDiagnosticRenderedCount = 0;
+        function rebuildTapDiagnosticDisplay() {
+            tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
+            tapDiagnostic.scrollTop = 1e9; // clamped to max by the browser - avoids an explicit scrollHeight read (a forced synchronous reflow) right after a text rewrite.
+            tapDiagnosticRenderedCount = tapDiagnosticLog.length;
+        }
         let totalClickCount = 0;
         let lastAcceptedTapTime = 0;
         let lastAcceptedPointerType = null;
@@ -2363,14 +2375,30 @@
             const primary = e ? e.isPrimary : '?';
             tapDiagnosticLog.push(`${n}. ${outcome} | type=${pointerType} | gap=${gapText} | pos=(${x},${y}) | id=${pid} | primary=${primary}`);
             // The array itself is deliberately uncapped (full session history,
-            // per an earlier request) - but re-joining and re-rendering the
-            // WHOLE growing array as text on every single tap is real, avoidable
-            // work once a session has accumulated many taps, and was happening
-            // unconditionally even while the panel is hidden (its default
-            // state). Skip the expensive part when nobody can see it.
+            // per an earlier request). A previous fix skipped rendering while
+            // the panel is hidden (its default state) - real, but NOT enough:
+            // the user tests with this panel actually OPEN (visible in every
+            // one of their screen recordings), and re-joining + re-rendering
+            // the WHOLE array as text on every single tap is O(n) work that
+            // grows with total taps this session - directly matching "the
+            // more I click and the faster I click, the more the lag" once a
+            // session has accumulated many dozens of taps across a long
+            // testing conversation. Now appends just the ONE new line (a
+            // single DOM text-node append, O(1)) instead, falling back to a
+            // full rebuild only if the DOM has actually fallen behind the
+            // array (e.g. entries piled up while the panel was hidden) -
+            // rebuildTapDiagnosticDisplay() (called when the panel is toggled
+            // visible, see the checkbox handler below) keeps this the common,
+            // fast path rather than the exception.
             if (!tapDiagnosticPanel.classList.contains('hidden')) {
-                tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
-                tapDiagnostic.scrollTop = tapDiagnostic.scrollHeight;
+                if (tapDiagnosticRenderedCount === tapDiagnosticLog.length - 1) {
+                    const line = tapDiagnosticLog[tapDiagnosticLog.length - 1];
+                    tapDiagnostic.appendChild(document.createTextNode((tapDiagnosticRenderedCount > 0 ? '\n' : '') + line));
+                    tapDiagnostic.scrollTop = 1e9;
+                    tapDiagnosticRenderedCount = tapDiagnosticLog.length;
+                } else {
+                    rebuildTapDiagnosticDisplay();
+                }
             }
         }
 
@@ -2664,6 +2692,11 @@
         document.getElementById('checkboxClickCounter').addEventListener('change', (e) => {
             clickCounter.classList.toggle('hidden', !e.target.checked);
             tapDiagnosticPanel.classList.toggle('hidden', !e.target.checked);
+            // Catch the DOM up in one shot right when the panel opens, so
+            // logTapDiagnostic's incremental per-tap append (see above) can
+            // assume it's already caught up on every subsequent tap instead
+            // of needing to check/rebuild itself.
+            if (e.target.checked) { rebuildTapDiagnosticDisplay(); }
         });
 
         // Initialize
