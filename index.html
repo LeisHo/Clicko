@@ -107,15 +107,21 @@
             height: 100%;
             display: block;
         }
-        /* Only the button-shadow layer moves on press (shifts "down" in the
-           same screen-space sense the real button's own press translateY
-           does - added inside this layer's own translate(), so it isn't
-           itself rotated/skewed by the shadow's own distortion settings) and
+        /* Only the button-shadow layer moves on press (shifts along the
+           shadow's own local "down" direction - the direction the shape
+           itself points after skew/stretch/rotate, not plain screen-space
+           down - achieved by appending translateY(nudge) as the RIGHTMOST/
+           innermost function, applied to the original shape BEFORE
+           scale/skewX/scaleY/rotate act on it. Since those later functions
+           then warp both the shape AND that already-applied nudge together,
+           the nudge's on-screen direction ends up correctly bent by the same
+           skew/stretch/rotation as the shadow itself, instead of just
+           sliding straight down regardless of the shadow's orientation) and
            tightens slightly, the way a real shadow shrinks as its object gets
            closer to the surface. Toggled via JS (handleGameButtonPress/
            Release) alongside the real button's own .pressed class. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px + var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 0.92)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 0.92)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
@@ -1064,8 +1070,8 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Diameter (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonDiameter" min="5" max="60" step="0.5" value="38">
-                    <span class="dev-value" id="valueButtonDiameter">38</span>
+                    <input type="range" class="dev-slider" id="sliderButtonDiameter" min="5" max="60" step="0.5" value="42.5">
+                    <span class="dev-value" id="valueButtonDiameter">42.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
@@ -1089,12 +1095,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonX" min="-30" max="30" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderButtonX" min="-50" max="50" step="0.5" value="0">
                     <span class="dev-value" id="valueButtonX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonY" min="-30" max="30" step="0.5" value="15">
+                    <input type="range" class="dev-slider" id="sliderButtonY" min="-50" max="50" step="0.5" value="15">
                     <span class="dev-value" id="valueButtonY">15</span>
                 </div>
             </div>
@@ -1106,13 +1112,13 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="700" step="1" value="236">
-                    <span class="dev-value" id="valueShadowX">236</span>
+                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="700" step="1" value="231">
+                    <span class="dev-value" id="valueShadowX">231</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowY" min="-400" max="200" step="1" value="26">
-                    <span class="dev-value" id="valueShadowY">26</span>
+                    <input type="range" class="dev-slider" id="sliderShadowY" min="-400" max="200" step="1" value="50">
+                    <span class="dev-value" id="valueShadowY">50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
@@ -1126,18 +1132,18 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Skew (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowSkew" min="-60" max="60" step="1" value="-33">
-                    <span class="dev-value" id="valueShadowSkew">-33</span>
+                    <input type="range" class="dev-slider" id="sliderShadowSkew" min="-60" max="60" step="1" value="-37">
+                    <span class="dev-value" id="valueShadowSkew">-37</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Stretch (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowStretch" min="1" max="5" step="0.1" value="1.7">
-                    <span class="dev-value" id="valueShadowStretch">1.7</span>
+                    <input type="range" class="dev-slider" id="sliderShadowStretch" min="1" max="5" step="0.1" value="1.6">
+                    <span class="dev-value" id="valueShadowStretch">1.6</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowRotate" min="-180" max="180" step="1" value="31">
-                    <span class="dev-value" id="valueShadowRotate">31</span>
+                    <input type="range" class="dev-slider" id="sliderShadowRotate" min="-180" max="180" step="1" value="29">
+                    <span class="dev-value" id="valueShadowRotate">29</span>
                 </div>
             </div>
         </div>
@@ -1148,8 +1154,8 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Width (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonWidth" min="2" max="25" step="0.5" value="25">
-                    <span class="dev-value" id="valueUIButtonWidth">25</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonWidth" min="2" max="25" step="0.5" value="10">
+                    <span class="dev-value" id="valueUIButtonWidth">10</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (vh):</span>
@@ -1182,13 +1188,13 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-20" max="20" step="0.5" value="0.5">
-                    <span class="dev-value" id="valueUIButtonX">0.5</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-50" max="50" step="0.5" value="-20">
+                    <span class="dev-value" id="valueUIButtonX">-20</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-40" max="10" step="0.5" value="-38">
-                    <span class="dev-value" id="valueUIButtonY">-38</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-50" max="50" step="0.5" value="-33.5">
+                    <span class="dev-value" id="valueUIButtonY">-33.5</span>
                 </div>
             </div>
         </div>
@@ -1346,6 +1352,7 @@
 
 
 
+
         <!-- ============ MOBILE OVERRIDES ============
              Same controls as above, but only take effect on a mobile-width
              viewport (auto-detected via matchMedia, live - resizing the
@@ -1361,18 +1368,18 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Diameter (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonDiameter" min="5" max="60" step="0.5" value="37.5">
-                    <span class="dev-value" id="valueMobileButtonDiameter">37.5</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonDiameter" min="5" max="120" step="0.5" value="60">
+                    <span class="dev-value" id="valueMobileButtonDiameter">60</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-5">
-                    <span class="dev-value" id="valueMobileButtonHeight">-5</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-8.5">
+                    <span class="dev-value" id="valueMobileButtonHeight">-8.50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Press Intensity (% of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonPressIntensity" min="0" max="30" step="0.5" value="3">
-                    <span class="dev-value" id="valueMobileButtonPressIntensity">3</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonPressIntensity" min="0" max="30" step="0.5" value="8">
+                    <span class="dev-value" id="valueMobileButtonPressIntensity">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Color:</span>
@@ -1386,12 +1393,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-30" max="30" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-50" max="50" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileButtonX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-30" max="30" step="0.5" value="15">
+                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-50" max="50" step="0.5" value="15">
                     <span class="dev-value" id="valueMobileButtonY">15</span>
                 </div>
             </div>
@@ -1479,12 +1486,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonX" min="-20" max="20" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonX" min="-50" max="50" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileUIButtonX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonY" min="-40" max="10" step="0.5" value="-38">
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonY" min="-50" max="50" step="0.5" value="-38">
                     <span class="dev-value" id="valueMobileUIButtonY">-38</span>
                 </div>
             </div>
@@ -1642,6 +1649,7 @@
         </div>
 
 
+
             </div>
         </div>
 
@@ -1650,23 +1658,23 @@
     <script>
         // CSS Variables initialization
         const cssVars = {
-            '--button-diameter-vw': 38,
+            '--button-diameter-vw': 42.5,
             '--button-height-offset-px': -7,
             '--button-press-intensity-px': 7,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
-            '--shadow-x-offset': 236,
-            '--shadow-y-offset': 26,
+            '--shadow-x-offset': 231,
+            '--shadow-y-offset': 50,
             '--shadow-blur': 1,
             '--shadow-scale': 0.8,
-            '--shadow-skew': -33,
-            '--shadow-stretch': 1.7,
-            '--shadow-rotate': 31,
-            '--ui-button-width-vw': 25,
+            '--shadow-skew': -37,
+            '--shadow-stretch': 1.6,
+            '--shadow-rotate': 29,
+            '--ui-button-width-vw': 10,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 6,
-            '--ui-button-x-offset-vw': 0.5,
-            '--ui-button-y-offset-vh': -38,
+            '--ui-button-x-offset-vw': -20,
+            '--ui-button-y-offset-vh': -33.5,
             '--text-font-size-vw': 8,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -20,
@@ -1676,7 +1684,7 @@
             '--speed-font-size-vw': 5,
             '--speed-x-offset-vw': -14,
             '--speed-y-offset-vh': -22,
-            '--dev-panel-width-px': 280,
+            '--dev-panel-width-px': 201,
         };
 
         // Color variables
@@ -1709,9 +1717,9 @@
         // tuning with whatever the desktop defaults happen to be. Explicit
         // values here instead.
         const mobileCssVars = {
-            '--button-diameter-vw': 37.5,
-            '--button-height-offset-px': -5,
-            '--button-press-intensity-px': 3,
+            '--button-diameter-vw': 60,
+            '--button-height-offset-px': -8.5,
+            '--button-press-intensity-px': 8,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
             '--shadow-x-offset': 250,
