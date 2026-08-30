@@ -112,19 +112,41 @@
             height: 100%;
             display: block;
         }
-        /* Only the button-shadow layer reacts to press, by SCALING its own
-           X/Y offset toward zero (not adding a directional nudge - that
-           needed reasoning about which way "down" points after skew/stretch/
-           rotate, which didn't read right in practice). Shrinking the offset
-           has no directional ambiguity at all: whatever direction the shadow
-           already sits offset in, pulling that same vector closer to zero
-           pulls the shadow toward directly-under the button - which is what a
-           real shadow does as its object drops closer to the surface, along
-           with the existing uniform 0.92x size shrink (a closer object also
-           casts a tighter shadow). Toggled via JS (handleGameButtonPress/
-           Release) alongside the real button's own .pressed class. */
+        /* Only the button-shadow layer reacts to press. The real .game-button
+           element itself never scales on press (see .game-button.pressed
+           below) - it only translates down by --button-press-intensity-px.
+           So the button-shadow's press effect should be the SAME thing: the
+           shadow of an object that moved, not an object that shrank.
+
+           A previous attempt scaled this layer down (* 0.92) on press. That
+           was wrong on two counts: (1) it invented motion the real button
+           doesn't have, and (2) shrinking toward this layer's own center
+           pulls its silhouette's edges inward on every side, including the
+           edge that touches the base-shadow layer at rest - since the base
+           doesn't shrink too, that opened a visible gap between the two
+           shadows exactly where they used to meet seamlessly.
+
+           Fixed by removing the scale delta entirely: translate()/rotate()/
+           scale()/skewX()/scaleY() here are now IDENTICAL, term for term, to
+           the resting .shadow-caster-layer transform above - same position,
+           same rotation, same skew, same stretch, same size. That alone
+           guarantees the rotation pivot stays exactly where the base
+           shadow's does, and rules out any gap from shrinking. The press
+           motion itself is then added as one more translateY(), appended at
+           the very END of the function list (the RIGHTMOST/innermost
+           position - CSS transforms compose right-to-left, so this applies
+           to the original undistorted shape FIRST, before scale/skewX/
+           scaleY/rotate warp it). The nudge amount is exactly
+           --button-press-intensity-px run through the same diameter-relative
+           formula the real button uses for its own press delta - not a
+           guessed number - so the shadow depicts the real button's actual
+           motion, warped by the same skew/stretch/rotation as the rest of
+           the shape (matching the direction-correction already established
+           for Shadow Rotate above). Toggled via JS
+           (handleGameButtonPress/Release) alongside the real button's own
+           .pressed class. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 0.75 * 1px), calc(var(--shadow-y-offset) * 0.75 * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 0.92)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
@@ -172,7 +194,14 @@
             touch-action: manipulation;
             outline: none;
             transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vw));
-            transition: transform 0.05s ease-out;
+            /* No transition here (deliberately) - under rapid tapping, a running
+               transition can still be mid-flight when the next press/release
+               fires, so the visible up/down movement falls behind and stops
+               reflecting each individual click even though the underlying
+               .pressed class (and the game logic) toggles correctly every
+               time. Instant, matching the SVG's own already-instant
+               normal/pressed swap, keeps the movement in sync with clicks no
+               matter how fast they come in. */
             /* Only the SVG's actual painted pixels are clickable, not this element's
                full rectangular box - the child svg below opts back into hit-testing
                and browsers only hit-test an SVG's visible painted area by default. */
@@ -197,10 +226,19 @@
         .game-button svg * {
             pointer-events: auto;
         }
-        .btn-normal-svg { display: block; }
-        .btn-pressed-svg { display: none; }
-        .game-button.pressed .btn-normal-svg { display: none; }
-        .game-button.pressed .btn-pressed-svg { display: block; }
+        /* visibility, not display: toggling `display` removes/re-adds the SVG's
+           box from the render tree, forcing a synchronous layout reflow on
+           every single tap - a real, separate cost from the transform/
+           transition work above. `visibility` skips that (the element keeps
+           its computed geometry, only paint and hit-testing are skipped) and
+           still blocks clicks on the hidden one, since a visibility:hidden
+           parent makes its descendants non-hit-testable regardless of their
+           own pointer-events value, unless a descendant explicitly sets its
+           own visibility:visible (nothing here does). */
+        .btn-normal-svg { visibility: visible; }
+        .btn-pressed-svg { visibility: hidden; }
+        .game-button.pressed .btn-normal-svg { visibility: hidden; }
+        .game-button.pressed .btn-pressed-svg { visibility: visible; }
 
         /* Start Button (UI) */
         .start-button {
@@ -1413,13 +1451,13 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-300" max="700" step="1" value="250">
-                    <span class="dev-value" id="valueMobileShadowX">250</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-300" max="700" step="1" value="231">
+                    <span class="dev-value" id="valueMobileShadowX">231</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-400" max="200" step="1" value="-88">
-                    <span class="dev-value" id="valueMobileShadowY">-88</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-400" max="200" step="1" value="50">
+                    <span class="dev-value" id="valueMobileShadowY">50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
@@ -1428,23 +1466,23 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowScale" min="0.1" max="3" step="0.05" value="1">
-                    <span class="dev-value" id="valueMobileShadowScale">1</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowScale" min="0.1" max="3" step="0.05" value="0.8">
+                    <span class="dev-value" id="valueMobileShadowScale">0.8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Skew (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowSkew" min="-60" max="60" step="1" value="0">
-                    <span class="dev-value" id="valueMobileShadowSkew">0</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowSkew" min="-60" max="60" step="1" value="-37">
+                    <span class="dev-value" id="valueMobileShadowSkew">-37</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Stretch (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1">
-                    <span class="dev-value" id="valueMobileShadowStretch">1</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1.6">
+                    <span class="dev-value" id="valueMobileShadowStretch">1.6</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowRotate" min="-180" max="180" step="1" value="0">
-                    <span class="dev-value" id="valueMobileShadowRotate">0</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowRotate" min="-180" max="180" step="1" value="29">
+                    <span class="dev-value" id="valueMobileShadowRotate">29</span>
                 </div>
             </div>
         </div>
@@ -1725,13 +1763,13 @@
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
-            '--shadow-x-offset': 250,
-            '--shadow-y-offset': -88,
+            '--shadow-x-offset': 231,
+            '--shadow-y-offset': 50,
             '--shadow-blur': 1,
-            '--shadow-scale': 1,
-            '--shadow-skew': 0,
-            '--shadow-stretch': 1,
-            '--shadow-rotate': 0,
+            '--shadow-scale': 0.8,
+            '--shadow-skew': -37,
+            '--shadow-stretch': 1.6,
+            '--shadow-rotate': 29,
             '--ui-button-width-vw': 6.5,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 8,
@@ -2181,8 +2219,16 @@
             const pid = e ? e.pointerId : '?';
             const primary = e ? e.isPrimary : '?';
             tapDiagnosticLog.push(`${n}. ${outcome} | type=${pointerType} | gap=${gapText} | pos=(${x},${y}) | id=${pid} | primary=${primary}`);
-            tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
-            tapDiagnostic.scrollTop = tapDiagnostic.scrollHeight;
+            // The array itself is deliberately uncapped (full session history,
+            // per an earlier request) - but re-joining and re-rendering the
+            // WHOLE growing array as text on every single tap is real, avoidable
+            // work once a session has accumulated many taps, and was happening
+            // unconditionally even while the panel is hidden (its default
+            // state). Skip the expensive part when nobody can see it.
+            if (!tapDiagnosticPanel.classList.contains('hidden')) {
+                tapDiagnostic.textContent = tapDiagnosticLog.join('\n');
+                tapDiagnostic.scrollTop = tapDiagnostic.scrollHeight;
+            }
         }
 
         function copyTapDiagnosticLog() {
