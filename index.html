@@ -129,24 +129,36 @@
            press-triggered notch remained (confirmed via screen recording) -
            the press motion, warped through the shared skew/stretch/rotate
            chain, displaces button-shadow's edge further than base-shadow's
-           unmodified margin covers at that spot. First attempt at closing
-           it used an feMorphology (dilate) SVG filter - genuinely correct
-           geometrically (a uniform pixel margin in every direction) but a
-           real per-tap performance regression: base-shadow shares a
-           filtered ancestor (.shadow-caster's brightness+blur) with
-           button-shadow, which DOES change every tap, and feMorphology is
-           an expensive raster operation that evidently got swept into that
-           per-tap recomputation even though base-shadow's own input never
-           changes. Replaced with a plain transform scale() instead - an
-           extra multiplier on top of the shared skew/stretch/rotate/offset
-           formula, GPU-composited and effectively free (no raster filter
-           cost at all). It grows non-uniformly (more at the shape's
-           extremities, less near its center) rather than by a uniform
-           pixel margin, but the press-notch sits well out toward the
-           shadow's edge anyway, where this kind of growth is strongest. */
+           unmodified margin covers at that spot.
+
+           Two attempts at closing it BOTH targeted base-shadow directly and
+           both had real, confirmed problems: an feMorphology (dilate)
+           filter was geometrically correct but expensive enough to cause a
+           real per-tap lag regression (base-shadow shares a filtered
+           ancestor - .shadow-caster's brightness+blur - with button-shadow,
+           which DOES change every tap, so the whole filter chain got swept
+           into that per-tap recompute). Replacing it with a scale() on
+           base-shadow fixed the lag but grew base-shadow SYMMETRICALLY
+           around its own center in every direction - not just toward the
+           notch, but also upward/outward everywhere else, which visibly
+           shifted the whole shadow (the user correctly caught this: "the
+           base shadow has now shifted downwards"). Base-shadow is static in
+           real life and must never visibly change at all, at rest or
+           pressed - growing IT, in any direction, was never actually the
+           right move once you think about which layer the problem
+           actually belongs to.
+
+           Fixed by reverting base-shadow to byte-identical-with-the-shared-
+           transform (no growth, no override - exactly as it always was)
+           and instead growing the PRESSED button-shadow's own silhouette
+           instead (see .shadow-caster-button-layer.pressed below) - that
+           layer is ALREADY expected to look different only while pressed,
+           so growing it specifically (never touching its resting state,
+           never touching base-shadow at all) closes the same notch from
+           the moving side without perturbing anything that was already
+           correct. */
         .shadow-caster-base-layer {
             z-index: 1;
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
         }
         .shadow-caster-button-layer {
             z-index: 0;
@@ -177,14 +189,21 @@
            the shadow with zero press motion, which is gap-free by
            construction), and reinstated on request because the user wants
            the shadow to visibly animate with the button, accepting the
-           seam-gap trade-off that comes with it. If the gap reads as too
-           distracting once seen in motion, the alternatives are: freeze the
-           shadow again (previous entry's approach - zero gap, zero
-           reactivity), or a non-positional cue instead (blur/brightness
-           pulse - can't open a silhouette gap, but is a different kind of
-           "animation" than motion). */
+           seam-gap trade-off that comes with it.
+
+           The `* 1.06` on scale() closes the resulting notch. This used to
+           live on base-shadow instead, but growing a layer that's supposed
+           to be completely static (visually identical at rest and pressed)
+           visibly shifted its edges in every direction, not just toward the
+           notch - a real, confirmed regression. Moved here because this
+           state is ALREADY only shown while pressed and already expected to
+           look different from rest - growing the moving layer, exactly
+           while it's moving, closes the same gap from the other side
+           without ever touching base-shadow (base-shadow's resting AND
+           z-index:1-on-top rules are both untouched, so it looks exactly as
+           it always has, at rest and during a press). */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
         #shadowButtonSvgRoot { visibility: visible; }
         #shadowButtonPressedSvgRoot { visibility: hidden; }
