@@ -83,6 +83,12 @@
            layers use the exact same viewBox and are drawn to align natively);
            only .shadow-caster-button-layer.pressed adds anything extra.
 
+           No transition here (deliberately - an earlier version had one, but
+           it added a second independently-animating, blur-filtered layer to
+           every tap, compounding with the real button's own transition and
+           making rapid taps feel laggy/dropped). The class swap is instant,
+           matching how the SVG's own normal/pressed swap is instant.
+
            Skew + a non-uniform Y scale (Stretch) approximate a shadow cast by a
            low/moving light source - a raking light both shears the silhouette
            (skewX) and elongates it along the cast direction (the extra scaleY,
@@ -99,7 +105,6 @@
         .shadow-caster-layer {
             position: absolute;
             inset: 0;
-            transition: transform 0.05s ease-out;
             transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
         }
         .shadow-caster-layer svg {
@@ -107,21 +112,19 @@
             height: 100%;
             display: block;
         }
-        /* Only the button-shadow layer moves on press (shifts along the
-           shadow's own local "down" direction - the direction the shape
-           itself points after skew/stretch/rotate, not plain screen-space
-           down - achieved by appending translateY(nudge) as the RIGHTMOST/
-           innermost function, applied to the original shape BEFORE
-           scale/skewX/scaleY/rotate act on it. Since those later functions
-           then warp both the shape AND that already-applied nudge together,
-           the nudge's on-screen direction ends up correctly bent by the same
-           skew/stretch/rotation as the shadow itself, instead of just
-           sliding straight down regardless of the shadow's orientation) and
-           tightens slightly, the way a real shadow shrinks as its object gets
-           closer to the surface. Toggled via JS (handleGameButtonPress/
+        /* Only the button-shadow layer reacts to press, by SCALING its own
+           X/Y offset toward zero (not adding a directional nudge - that
+           needed reasoning about which way "down" points after skew/stretch/
+           rotate, which didn't read right in practice). Shrinking the offset
+           has no directional ambiguity at all: whatever direction the shadow
+           already sits offset in, pulling that same vector closer to zero
+           pulls the shadow toward directly-under the button - which is what a
+           real shadow does as its object drops closer to the surface, along
+           with the existing uniform 0.92x size shrink (a closer object also
+           casts a tighter shadow). Toggled via JS (handleGameButtonPress/
            Release) alongside the real button's own .pressed class. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 0.92)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * 0.75 * 1px), calc(var(--shadow-y-offset) * 0.75 * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 0.92)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
         }
 
         /* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
