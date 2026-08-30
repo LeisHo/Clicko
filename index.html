@@ -179,6 +179,16 @@
         }
         .shadow-caster-button-layer {
             z-index: 0;
+            /* Hints the browser to promote this element to its own GPU
+               compositor layer ahead of time, since it's the one element
+               that genuinely changes (transform + filter recompute) on
+               every single tap. Cheap, standard, zero visual risk - but
+               likely a marginal win at best: it can reduce "first tap after
+               idle" layer-promotion cost, not the recurring per-tap
+               blur-filter pixel cost itself, which scales with the
+               shadow's actual rendered size and is the more likely
+               dominant remaining cost on constrained hardware. */
+            will-change: transform, filter;
         }
         .shadow-caster-layer svg {
             position: absolute;
