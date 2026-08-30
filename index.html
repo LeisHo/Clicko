@@ -2541,15 +2541,26 @@
         function showTargetAndSpeed() {
             gameState.targetCount = Math.floor(Math.random() * 29) + 2;
             gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - gameState.speedDecrease);
+            // currentTapCount and friends are correctly PER-ROUND state - reset
+            // here every time a new round begins, same as always.
             gameState.currentTapCount = 0;
             gameState.isCountingTaps = false;
             if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
             currentRoundTaps = [];
             roundStartTime = Date.now();
-            totalClickCount = 0;
-            clickCounter.textContent = totalClickCount;
-            lastAcceptedTapTime = 0;
-
+            // totalClickCount and lastAcceptedTapTime are NOT per-round state -
+            // they're the session-wide click counter/debounce-history, and used
+            // to reset here too (this function runs at the start of EVERY round,
+            // not just the first). That silently wiped whatever the counter
+            // showed mid-session on every round transition, while the tap-
+            // diagnostic log (which never resets) kept every entry regardless -
+            // a real, confirmed source of "the log shows more taps than the
+            // counter/than I counted" reports, since the two could silently
+            // diverge at any round boundary. Removed - both are now genuinely
+            // session-wide, only ever reset by startGame() (a fresh game) or
+            // the dev 'r' reset shortcut, matching the tap log's own lifetime
+            // and guaranteeing the visible counter and the log can never
+            // disagree again.
             gameText.classList.add('hidden');
             resultText.classList.add('hidden');
             targetCount.textContent = gameState.targetCount;
