@@ -44,7 +44,18 @@
            Layer order back to front: base (frontmost, its artwork already bakes in its
            own ground-contact shading), button (backmost, tucked under it). No separate
            white occluder layer is needed - base's own artwork fully covers the button's
-           excess geometry now. */
+           excess geometry now.
+
+           The shared drop-shadow lives here, on the wrapper, rather than on either
+           individual SVG layer. A filter on just .base-svg-layer only sees the base's
+           own alpha, so the shadow was shaped like the base ring alone (no shadow
+           around the button dome) and, since a CSS filter paints within its own
+           element's stacking position, it rendered on top of the button layer
+           (z-index 1) instead of behind the whole assembly. Applying it to this
+           wrapper instead makes the filter see the COMBINED rendered alpha of both
+           child layers, so the shadow's shape follows the whole object (base + button
+           together), and it paints behind everything inside this wrapper - i.e.
+           behind both layers, not on top of either. */
         .button-assembly {
             position: absolute;
             width: calc(var(--button-diameter-vw) * 1vw);
@@ -52,6 +63,11 @@
             left: calc(50% + var(--button-x-offset-vw) * 1vw);
             top: calc(50% + var(--button-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
+            /* Shadow Size scales offset and blur together, since CSS drop-shadow has
+               no native spread parameter - this is the practical way to make the
+               whole shadow read as bigger/smaller (further + softer) rather than
+               just softer. */
+            filter: drop-shadow(calc(var(--shadow-x-offset) * var(--shadow-scale) * 1px) calc(var(--shadow-y-offset) * var(--shadow-scale) * 1px) calc(var(--shadow-blur) * var(--shadow-scale) * 1px) rgba(0, 0, 0, 0.5));
         }
 
         /* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
@@ -68,17 +84,7 @@
             width: 100%;
             height: 100%;
             display: block;
-            /* Base is the outermost visible shape, so it casts the one shared ground
-               shadow, falling onto the page background around/behind the assembly.
-               The artwork's own baked-in dark contour is a separate, much subtler
-               thing (crisp edge definition on the object itself, not a cast shadow) -
-               it doesn't visually compete with this soft blurred one as long as this
-               offset/blur stays proportional to the button's current on-screen size
-               (unlike the old 300px/-254px values, which were tuned for a much larger
-               button and read as a second, disconnected shadow once the artwork and
-               button size changed - see ETA History for that regression). */
-            filter: hue-rotate(var(--base-hue-rotate, 0deg))
-                    drop-shadow(calc(var(--shadow-x-offset) * 1px) calc(var(--shadow-y-offset) * 1px) calc(var(--shadow-blur) * 1px) rgba(0, 0, 0, 0.5));
+            filter: hue-rotate(var(--base-hue-rotate, 0deg));
         }
 
         /* Button - backmost layer, tucked under the base; shifts up/down via height
@@ -117,8 +123,8 @@
             /* The svg root itself stays non-interactive (its own box is the full
                rectangle) - only its actual painted shapes below opt back in. */
             pointer-events: none;
-            /* Base carries the one shared ground shading for the whole assembly - the
-               button (mostly tucked behind it anyway) doesn't add its own. */
+            /* The shared drop-shadow lives on .button-assembly (see its own comment) -
+               this filter only handles this layer's own recolor. */
             filter: hue-rotate(var(--button-hue-rotate, 0deg));
         }
         .game-button svg * {
@@ -841,18 +847,23 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowX" min="-100" max="100" step="1" value="0">
-                    <span class="dev-value" id="valueShadowX">0</span>
+                    <input type="range" class="dev-slider" id="sliderShadowX" min="-200" max="200" step="1" value="150">
+                    <span class="dev-value" id="valueShadowX">150</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowY" min="-100" max="100" step="1" value="15">
-                    <span class="dev-value" id="valueShadowY">15</span>
+                    <input type="range" class="dev-slider" id="sliderShadowY" min="-200" max="200" step="1" value="-150">
+                    <span class="dev-value" id="valueShadowY">-150</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
                     <input type="range" class="dev-slider" id="sliderShadowBlur" min="0" max="60" step="1" value="20">
                     <span class="dev-value" id="valueShadowBlur">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Size:</span>
+                    <input type="range" class="dev-slider" id="sliderShadowScale" min="0.25" max="3" step="0.05" value="1">
+                    <span class="dev-value" id="valueShadowScale">1.00</span>
                 </div>
             </div>
         </div>
@@ -1068,9 +1079,10 @@
             '--button-press-intensity-px': 40,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
-            '--shadow-x-offset': 0,
-            '--shadow-y-offset': 15,
+            '--shadow-x-offset': 150,
+            '--shadow-y-offset': -150,
             '--shadow-blur': 20,
+            '--shadow-scale': 1,
             '--ui-button-width-vw': 6.5,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 8,
@@ -1278,6 +1290,7 @@
                         'sliderShadowX': '--shadow-x-offset',
                         'sliderShadowY': '--shadow-y-offset',
                         'sliderShadowBlur': '--shadow-blur',
+                        'sliderShadowScale': '--shadow-scale',
                         'sliderUIButtonWidth': '--ui-button-width-vw',
                         'sliderUIButtonHeight': '--ui-button-height-vh',
                         'sliderUIButtonRadius': '--ui-button-radius',
