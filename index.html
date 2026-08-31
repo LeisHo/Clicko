@@ -627,6 +627,32 @@
             display: none !important;
         }
 
+        /* The word "Round" (#gameTextLabel) must never shift position
+           during the round-change blink sequence (see
+           runRoundBlinkSequence()), even though the number's own visible
+           width changes as it blinks/changes digit count. .game-text's own
+           centering (left/transform above) is based on its CONTENT width,
+           which would otherwise include the number and re-center the whole
+           assembly every time the number's width changes - a real,
+           reported bug ("the word Round shouldn't move"). Fixed by taking
+           the number out of that flow entirely: #gameTextNumber is
+           absolutely positioned relative to #gameTextLabel, so it never
+           contributes to .game-text's own content width - "Round"'s
+           position is therefore determined solely by its own (constant)
+           text, never by the number next to it. */
+        #gameTextLabel {
+            position: relative;
+            display: inline-block;
+        }
+
+        #gameTextNumber {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 0.25em;
+            white-space: nowrap;
+        }
+
         /* Win/Lose message text - split out from .game-text (which now only
            ever shows "ROUND X") so the two can be sized/positioned
            independently. Font/depth are shared with the rest of the 8-bit
@@ -1664,7 +1690,7 @@
         <div class="click-burst-shadow-container" id="clickBurstShadowContainerLeft"></div>
         <div class="click-burst-container" id="clickBurstContainer"></div>
         <button class="start-button" id="startButton">START</button>
-        <div class="game-text" id="gameText"></div>
+        <div class="game-text" id="gameText"><span id="gameTextLabel"></span><span id="gameTextNumber"></span></div>
         <div class="result-text hidden" id="resultText"></div>
         <div class="target-count" id="targetCount"></div>
         <div class="speed-display" id="speedDisplay"></div>
@@ -2042,10 +2068,38 @@
                         <option value="ease-in-out" selected>Ease In Out</option>
                     </select>
                 </div>
+                <!-- Round-change blink sequence: the number blinks 3 times
+                     (hides, shows the OLD number, hides, shows the OLD
+                     number, hides) before the NEW number appears - each
+                     hide/show phase has its own duration, per explicit
+                     request for 3 disappearance sliders + 2 reappearance
+                     sliders. Replaces the earlier single Flash Duration
+                     slider (one hide->new-number swap) entirely - see
+                     runRoundBlinkSequence(). -->
                 <div class="dev-row">
-                    <span class="dev-label">Flash Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundFlashDuration" min="0" max="1000" step="10" value="150">
-                    <span class="dev-value" id="valueRoundFlashDuration">150</span>
+                    <span class="dev-label">Blink 1 - Disappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink1Hide" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink1Hide">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Blink 1 - Reappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink1Show" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink1Show">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Blink 2 - Disappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink2Hide" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink2Hide">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Blink 2 - Reappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink2Show" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink2Show">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Blink 3 - Disappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink3Hide" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink3Hide">250</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Small State - Extrusion Depth (px):</span>
@@ -2745,7 +2799,11 @@
             '--round-anim-duration-ms': 70,
             '--round-shrink-duration-ms': 400,
             '--round-anim-easing': 'ease-in-out',
-            '--round-flash-duration-ms': 1000,
+            '--round-blink1-hide-ms': 250,
+            '--round-blink1-show-ms': 250,
+            '--round-blink2-hide-ms': 250,
+            '--round-blink2-show-ms': 250,
+            '--round-blink3-hide-ms': 250,
             '--target-font-size-vw': 7.1,
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -35.5,
@@ -3118,6 +3176,8 @@
         }
         const startButton = document.getElementById('startButton');
         const gameText = document.getElementById('gameText');
+        const gameTextLabel = document.getElementById('gameTextLabel');
+        const gameTextNumber = document.getElementById('gameTextNumber');
         const resultText = document.getElementById('resultText');
         const targetCount = document.getElementById('targetCount');
         const speedDisplay = document.getElementById('speedDisplay');
@@ -3546,7 +3606,11 @@
             // loop above since it's spatial, not timing.
             document.documentElement.style.setProperty('--round-anim-duration-ms', cssVars['--round-anim-duration-ms']);
             document.documentElement.style.setProperty('--round-anim-easing', cssVars['--round-anim-easing']);
-            document.documentElement.style.setProperty('--round-flash-duration-ms', cssVars['--round-flash-duration-ms']);
+            document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
+            document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
+            document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
+            document.documentElement.style.setProperty('--round-blink2-show-ms', cssVars['--round-blink2-show-ms']);
+            document.documentElement.style.setProperty('--round-blink3-hide-ms', cssVars['--round-blink3-hide-ms']);
             // The 8-bit extrusion system (color/depth/border) is mobile-
             // split too (see mobileExtrusionVars) - re-apply it here so a
             // breakpoint crossing repaints it correctly, same as everything
@@ -3719,7 +3783,11 @@
             'sliderRoundDockY': '--round-dock-y-offset-vh',
             'sliderRoundAnimDuration': '--round-anim-duration-ms',
             'sliderRoundShrinkDuration': '--round-shrink-duration-ms',
-            'sliderRoundFlashDuration': '--round-flash-duration-ms',
+            'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
+            'sliderRoundBlink1Show': '--round-blink1-show-ms',
+            'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
+            'sliderRoundBlink2Show': '--round-blink2-show-ms',
+            'sliderRoundBlink3Hide': '--round-blink3-hide-ms',
             'sliderTargetFontSize': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
@@ -4312,11 +4380,10 @@
 
         function showRoundText(roundNum) {
             gameState.canTap = false;
-            const newText = `ROUND ${roundNum}`;
-            // Whatever's already showing (the OLD round's docked text, or
+            // Whatever's already showing (the OLD round's docked number, or
             // nothing on a fresh game) - captured BEFORE any change below,
             // since undockRoundText() only touches position/size, not text.
-            const hadPreviousRound = !!gameText.textContent && gameText.textContent !== newText;
+            const hadPreviousRound = !!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum);
 
             undockRoundText();
             gameText.classList.remove('hidden');
@@ -4333,11 +4400,18 @@
             targetCount.classList.add('hidden');
             speedDisplay.classList.add('hidden');
 
+            // "Round" is always this - it's a separate element from the
+            // number specifically so it never has to move or re-render
+            // when the number blinks/changes (see #gameTextLabel's own CSS
+            // comment).
+            gameTextLabel.textContent = 'ROUND';
+
             if (!hadPreviousRound) {
-                // Nothing to grow/flash away from (very first round of a
+                // Nothing to grow/blink away from (very first round of a
                 // game, or already showing this exact round) - just show it
                 // large immediately, hold, then dock into gameplay.
-                gameText.textContent = newText;
+                gameTextNumber.textContent = roundNum;
+                gameTextNumber.style.visibility = 'visible';
                 setTimeout(() => {
                     dockRoundText();
                     showTargetAndSpeed();
@@ -4346,24 +4420,42 @@
             }
 
             // The OLD number stays on screen and grows/moves to the big
-            // state WITH the word "Round" (textContent is left untouched
-            // here - undockRoundText() above only animates position/size),
-            // per explicit request ("the old round number should scale and
-            // move with the word Round"). Holds at big size for
+            // state WITH the word "Round" (undockRoundText() above only
+            // animates position/size). Holds at big size for
             // gameState.roundDuration (the existing "Round Text Duration"
-            // slider, reused rather than adding a duplicate), THEN flashes
-            // (briefly clears just the number - "the 1 disappears briefly")
-            // and becomes the new number, THEN docks into gameplay - per
-            // explicit request for that exact hold -> flash -> new-number
-            // sequence, replacing the old flash-first-then-grow order.
-            setTimeout(() => {
-                gameText.textContent = 'ROUND';
-                setTimeout(() => {
-                    gameText.textContent = newText;
+            // slider, reused rather than adding a duplicate), THEN runs the
+            // blink sequence, THEN docks into gameplay.
+            setTimeout(() => runRoundBlinkSequence(roundNum), gameState.roundDuration);
+        }
+
+        // Blinks the round number 3 times (hide/show/hide/show/hide) before
+        // revealing the new value, per explicit request: 3 disappearance
+        // durations and 2 reappearance durations, each its own slider. The
+        // word "Round" is untouched throughout - only #gameTextNumber's
+        // visibility toggles (not its removal from layout - see its own
+        // CSS comment for why that specifically avoids shifting "Round").
+        function runRoundBlinkSequence(roundNum) {
+            const phases = [
+                { visible: false, ms: cssVars['--round-blink1-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink1-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink2-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink2-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink3-hide-ms'] },
+            ];
+            let i = 0;
+            function step() {
+                if (i >= phases.length) {
+                    gameTextNumber.textContent = roundNum;
+                    gameTextNumber.style.visibility = 'visible';
                     dockRoundText();
                     showTargetAndSpeed();
-                }, cssVars['--round-flash-duration-ms']);
-            }, gameState.roundDuration);
+                    return;
+                }
+                const phase = phases[i++];
+                gameTextNumber.style.visibility = phase.visible ? 'visible' : 'hidden';
+                setTimeout(step, phase.ms);
+            }
+            step();
         }
 
         function showTargetAndSpeed() {
