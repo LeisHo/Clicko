@@ -235,7 +235,20 @@
            along that seam. The `* 1.06` on scale() below closes the
            resulting notch (moved here rather than onto base-shadow, since
            base-shadow must stay visually identical at rest and pressed -
-           see the z-index rule above for why growing it was reverted). */
+           see the z-index rule above for why growing it was reverted).
+
+           Deliberately NOT given a --button-release-ms-driven transition of
+           its own, even though the real button now optionally has one
+           (see .game-button) - this layer already has its own brightness+
+           blur filter (see .shadow-caster-layer), and a transitioning
+           filtered element re-filters on every intermediate animation
+           frame, not just once at the end. That's exactly the mechanism
+           the "No transition here" note on .shadow-caster-layer above
+           already documents as a real, confirmed regression from an
+           earlier version. Instant stays the safer default regardless of
+           what the button's own release speed is set to; a slightly
+           out-of-sync shadow during an eased release is a minor cosmetic
+           cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
             transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
@@ -285,14 +298,22 @@
             touch-action: manipulation;
             outline: none;
             transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vw));
-            /* No transition here (deliberately) - under rapid tapping, a running
-               transition can still be mid-flight when the next press/release
-               fires, so the visible up/down movement falls behind and stops
-               reflecting each individual click even though the underlying
-               .pressed class (and the game logic) toggles correctly every
-               time. Instant, matching the SVG's own already-instant
-               normal/pressed swap, keeps the movement in sync with clicks no
-               matter how fast they come in. */
+            /* Instant (0ms) by default, deliberately - under rapid tapping, a
+               running transition can still be mid-flight when the next
+               press/release fires, so the visible up/down movement falls
+               behind and stops reflecting each individual click even though
+               the underlying .pressed class (and the game logic) toggles
+               correctly every time. --button-release-ms (a dev-panel slider,
+               default 0) exists for deliberately choosing a non-zero value
+               anyway - a real tradeoff: above 0, rapid taps CAN interrupt a
+               still-easing release, reintroducing the exact lag this was
+               originally kept at 0 to avoid. Only the release (going back to
+               resting position) eases via this - the press itself has no
+               separate control and shares the same duration going down, since
+               a one-directional transition (release only) isn't expressible
+               without either JS-toggled inline styles or two duplicate
+               classes; simplest to keep both directions symmetric. */
+            transition: transform calc(var(--button-release-ms) * 1ms) ease-out;
             /* Only the SVG's actual painted pixels are clickable, not this element's
                full rectangular box - the child svg below opts back into hit-testing
                and browsers only hit-test an SVG's visible painted area by default. */
@@ -563,12 +584,41 @@
             display: flex;
             flex-direction: column;
             font-family: monospace;
-            /* Native resize handle (bottom-right corner) - `resize` needs a
-               non-visible `overflow` to take effect. Actual width/height
-               changes made this way are read back and persisted via a
-               ResizeObserver (see JS). */
-            resize: both;
+            /* Native CSS `resize` is NOT touch-draggable on most mobile
+               browsers - its handle is either invisible or entirely
+               unresponsive to touch, which is exactly the platform this
+               panel is shown to real players on after a loss. Replaced with
+               a custom pointer-events-driven handle (.round-breakdown-
+               resize-handle, see below + JS) that works identically for
+               mouse and touch. `overflow:auto` stays for internal
+               scrolling; `resize` itself is off since the custom handle
+               fully replaces it. Width/height changes made via the handle
+               are read back and persisted via the existing ResizeObserver
+               (see JS) exactly as before - only the drag mechanism changed. */
+            resize: none;
             overflow: auto;
+        }
+
+        .round-breakdown-resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 32px;
+            height: 32px;
+            cursor: nwse-resize;
+            touch-action: none;
+            z-index: 1;
+        }
+
+        .round-breakdown-resize-handle::after {
+            content: '';
+            position: absolute;
+            right: 6px;
+            bottom: 6px;
+            width: 14px;
+            height: 14px;
+            background-image: repeating-linear-gradient(135deg, #333 0 2px, transparent 2px 6px);
+            opacity: 0.55;
         }
 
         .round-breakdown-panel.hidden {
@@ -649,13 +699,38 @@
             border-left: 2px solid #0f0;
             display: flex;
             flex-direction: column;
-            /* Native resize handle (bottom-right corner), same pattern as the
-               round-breakdown panel - `resize` needs a non-visible `overflow`.
-               Actual width/height changes are read back and persisted via a
-               ResizeObserver (see JS), replacing the old width-only drag
-               resizer entirely. */
-            resize: both;
+            /* Native CSS `resize` is NOT touch-draggable on most mobile
+               browsers - its handle is either invisible or unresponsive to
+               touch, exactly where a developer would most want to resize
+               this panel while testing on a real phone. Replaced with a
+               custom pointer-events-driven handle (.dev-panel-resize-handle,
+               see below + JS), same fix as the round-breakdown panel's.
+               Width/height changes via the handle are still read back and
+               persisted via the existing ResizeObserver (see JS). */
+            resize: none;
             overflow: auto;
+        }
+
+        .dev-panel-resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 32px;
+            height: 32px;
+            cursor: nwse-resize;
+            touch-action: none;
+            z-index: 1;
+        }
+
+        .dev-panel-resize-handle::after {
+            content: '';
+            position: absolute;
+            right: 6px;
+            bottom: 6px;
+            width: 14px;
+            height: 14px;
+            background-image: repeating-linear-gradient(135deg, #0f0 0 2px, transparent 2px 6px);
+            opacity: 0.7;
         }
 
         .dev-panel.hidden {
@@ -1272,6 +1347,7 @@
         <div class="round-breakdown-panel hidden" id="roundBreakdownPanel">
             <div class="round-breakdown-title">ROUND BREAKDOWN</div>
             <div class="round-breakdown-table" id="roundBreakdownTable"></div>
+            <div class="round-breakdown-resize-handle" id="roundBreakdownResizeHandle"></div>
         </div>
     </div>
 
@@ -1319,6 +1395,11 @@
                     <span class="dev-label">Press Intensity (% of diameter):</span>
                     <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="30" step="0.5" value="7">
                     <span class="dev-value" id="valueButtonPressIntensity">7</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Release Speed (ms, 0=instant):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonReleaseMs" min="0" max="200" step="5" value="0">
+                    <span class="dev-value" id="valueButtonReleaseMs">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Color:</span>
@@ -1644,6 +1725,11 @@
                     <span class="dev-value" id="valueMobileButtonPressIntensity">8</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Release Speed (ms, 0=instant):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonReleaseMs" min="0" max="200" step="5" value="0">
+                    <span class="dev-value" id="valueMobileButtonReleaseMs">0</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileButton" value="#eb2027">
                     <span class="dev-value" style="font-size:9px;color:#888;">(hue-rotate)</span>
@@ -1947,6 +2033,7 @@
             '--button-press-intensity-px': 7,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 6,
+            '--button-release-ms': 0,
             '--shadow-x-offset': 201,
             '--shadow-y-offset': 62,
             '--shadow-blur': 1,
@@ -2019,6 +2106,7 @@
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
+            '--button-release-ms': 0,
             '--shadow-x-offset': 201,
             '--shadow-y-offset': 62,
             '--shadow-blur': 1,
@@ -2333,6 +2421,7 @@
             'sliderButtonPressIntensity': '--button-press-intensity-px',
             'sliderButtonX': '--button-x-offset-vw',
             'sliderButtonY': '--button-y-offset-vh',
+            'sliderButtonReleaseMs': '--button-release-ms',
             'sliderShadowX': '--shadow-x-offset',
             'sliderShadowY': '--shadow-y-offset',
             'sliderShadowBlur': '--shadow-blur',
