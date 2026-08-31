@@ -2913,6 +2913,16 @@
                 } else if (xEdge === 'left') {
                     newWidth = Math.max(minW, Math.min(maxW, start.width - dx));
                     newLeft = start.left + (start.width - newWidth);
+                    // Don't let the left edge push the panel off the left of
+                    // the viewport - matches the existing title-bar drag's
+                    // own clamp. Re-derives width from the clamped left so
+                    // the RIGHT edge (the one NOT being dragged) still stays
+                    // exactly fixed even when this clamp kicks in.
+                    const clampedLeft = Math.max(0, newLeft);
+                    if (clampedLeft !== newLeft) {
+                        newWidth = newWidth - (clampedLeft - newLeft);
+                        newLeft = clampedLeft;
+                    }
                 }
 
                 let newHeight = start.height, newTop = start.top;
@@ -2921,6 +2931,12 @@
                 } else if (yEdge === 'top') {
                     newHeight = Math.max(minH, Math.min(maxH, start.height - dy));
                     newTop = start.top + (start.height - newHeight);
+                    // Same viewport-edge clamp, top side.
+                    const clampedTop = Math.max(0, newTop);
+                    if (clampedTop !== newTop) {
+                        newHeight = newHeight - (clampedTop - newTop);
+                        newTop = clampedTop;
+                    }
                 }
 
                 panel.style.width = newWidth + 'px';
