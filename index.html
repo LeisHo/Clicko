@@ -828,10 +828,25 @@
             overflow: auto;
         }
 
-        /* 4 edge strips (top/bottom/left/right) - thin, inset from the
-           corners so they don't overlap the corner handles below. Resizing
-           from top/left moves the panel's position too (the OPPOSITE edge
-           stays fixed) - see setupPanelResizeHandle() in the script. */
+        /* 4 edge strips (top/bottom/left/right) - inset from the corners so
+           they don't overlap the corner handles below. Resizing from
+           top/left moves the panel's position too (the OPPOSITE edge stays
+           fixed) - see setupPanelResizeHandle() in the script.
+
+           Straddles the panel's own border (-6px to +6px), not flush inside
+           it (0 to 8px) - confirmed via live testing that flush-inside
+           handles fall short of the panel's actual visual edge on the RIGHT
+           side specifically: this panel's content overflows, so a ~17px
+           native scrollbar renders at the true right edge, and a click
+           anywhere on that scrollbar (which is exactly where a user's eye
+           says "the edge" is) never reaches the DOM at all - scrollbars
+           aren't part of the normal hit-testing/element tree, they simply
+           intercept the click first. Extending the hit zone outward past
+           the panel's border sidesteps this entirely: that outer half is
+           never covered by the scrollbar (or by anything else), so it's
+           always reachable regardless of whether this specific panel
+           happens to be scrolling. Also widened 8px->12px for an easier
+           real-mouse target in general. */
         .dev-panel-resize-edge {
             position: absolute;
             z-index: 2;
@@ -840,33 +855,34 @@
         .dev-panel-resize-edge.edge-top, .dev-panel-resize-edge.edge-bottom {
             left: 16px;
             right: 16px;
-            height: 8px;
+            height: 12px;
             cursor: ns-resize;
         }
-        .dev-panel-resize-edge.edge-top { top: 0; }
-        .dev-panel-resize-edge.edge-bottom { bottom: 0; }
+        .dev-panel-resize-edge.edge-top { top: -6px; }
+        .dev-panel-resize-edge.edge-bottom { bottom: -6px; }
         .dev-panel-resize-edge.edge-left, .dev-panel-resize-edge.edge-right {
             top: 16px;
             bottom: 16px;
-            width: 8px;
+            width: 12px;
             cursor: ew-resize;
         }
-        .dev-panel-resize-edge.edge-left { left: 0; }
-        .dev-panel-resize-edge.edge-right { right: 0; }
+        .dev-panel-resize-edge.edge-left { left: -6px; }
+        .dev-panel-resize-edge.edge-right { right: -6px; }
 
         /* 4 corner squares, sitting above the edge strips (z-index) so a
-           corner drag always wins over an adjacent edge's hit zone. */
+           corner drag always wins over an adjacent edge's hit zone. Same
+           straddle-the-border treatment as the edges. */
         .dev-panel-resize-corner {
             position: absolute;
             z-index: 3;
-            width: 16px;
-            height: 16px;
+            width: 20px;
+            height: 20px;
             touch-action: none;
         }
-        .dev-panel-resize-corner.corner-tl { top: 0; left: 0; cursor: nwse-resize; }
-        .dev-panel-resize-corner.corner-tr { top: 0; right: 0; cursor: nesw-resize; }
-        .dev-panel-resize-corner.corner-bl { bottom: 0; left: 0; cursor: nesw-resize; }
-        .dev-panel-resize-corner.corner-br { bottom: 0; right: 0; cursor: nwse-resize; }
+        .dev-panel-resize-corner.corner-tl { top: -6px; left: -6px; cursor: nwse-resize; }
+        .dev-panel-resize-corner.corner-tr { top: -6px; right: -6px; cursor: nesw-resize; }
+        .dev-panel-resize-corner.corner-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .dev-panel-resize-corner.corner-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
 
         /* Only the bottom-right corner gets a visible grip icon, matching
            the common OS/app convention of one primary resize affordance -
@@ -1029,6 +1045,27 @@
             color: #0f0;
             text-align: right;
             font-size: 10px;
+        }
+        /* Applied at init (see makeDevValuesEditable() in the script) only to
+           .dev-value spans that actually correspond to a range slider - the
+           decorative "(hue-rotate)" labels next to color pickers share the
+           same base class but have no id/matching slider, so they're left
+           alone rather than looking clickable with nothing to click into. */
+        .dev-value-editable {
+            cursor: text;
+        }
+        .dev-value-editable:hover {
+            outline: 1px solid #0f0;
+        }
+        .dev-value-edit-input {
+            width: 52px;
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            text-align: right;
+            padding: 0;
         }
 
         .dev-color-picker {
@@ -1875,23 +1912,23 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Diameter (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonDiameter" min="5" max="120" step="0.5" value="60">
-                    <span class="dev-value" id="valueMobileButtonDiameter">60</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonDiameter" min="5" max="120" step="0.5" value="86">
+                    <span class="dev-value" id="valueMobileButtonDiameter">86</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Min Diameter (px, floor on narrow windows):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonMinDiameter" min="0" max="500" step="5" value="200">
-                    <span class="dev-value" id="valueMobileButtonMinDiameter">200</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonMinDiameter" min="0" max="500" step="5" value="165">
+                    <span class="dev-value" id="valueMobileButtonMinDiameter">165</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-4.5">
-                    <span class="dev-value" id="valueMobileButtonHeight">-4.50</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-3.5">
+                    <span class="dev-value" id="valueMobileButtonHeight">-3.50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Press Intensity (% of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonPressIntensity" min="0" max="30" step="0.5" value="8">
-                    <span class="dev-value" id="valueMobileButtonPressIntensity">8</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonPressIntensity" min="0" max="30" step="0.5" value="8.5">
+                    <span class="dev-value" id="valueMobileButtonPressIntensity">8.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Release Speed (ms, 0=instant):</span>
@@ -1915,8 +1952,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-50" max="50" step="0.5" value="15">
-                    <span class="dev-value" id="valueMobileButtonY">15</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-50" max="50" step="0.5" value="16">
+                    <span class="dev-value" id="valueMobileButtonY">16</span>
                 </div>
             </div>
         </div>
@@ -1927,38 +1964,38 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-300" max="700" step="1" value="201">
-                    <span class="dev-value" id="valueMobileShadowX">201</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-300" max="700" step="1" value="107">
+                    <span class="dev-value" id="valueMobileShadowX">107</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-400" max="200" step="1" value="62">
-                    <span class="dev-value" id="valueMobileShadowY">62</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-400" max="200" step="1" value="27">
+                    <span class="dev-value" id="valueMobileShadowY">27</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowBlur" min="0" max="60" step="1" value="1">
-                    <span class="dev-value" id="valueMobileShadowBlur">1</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowBlur" min="0" max="60" step="1" value="0">
+                    <span class="dev-value" id="valueMobileShadowBlur">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowScale" min="0.1" max="3" step="0.05" value="0.75">
-                    <span class="dev-value" id="valueMobileShadowScale">0.75</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowScale" min="0.1" max="3" step="0.05" value="0.6">
+                    <span class="dev-value" id="valueMobileShadowScale">0.6</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Skew (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowSkew" min="-60" max="60" step="1" value="-31">
-                    <span class="dev-value" id="valueMobileShadowSkew">-31</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowSkew" min="-60" max="60" step="1" value="-18">
+                    <span class="dev-value" id="valueMobileShadowSkew">-18</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Stretch (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1.8">
-                    <span class="dev-value" id="valueMobileShadowStretch">1.8</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1.5">
+                    <span class="dev-value" id="valueMobileShadowStretch">1.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowRotate" min="-180" max="180" step="1" value="41">
-                    <span class="dev-value" id="valueMobileShadowRotate">41</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowRotate" min="-180" max="180" step="1" value="36">
+                    <span class="dev-value" id="valueMobileShadowRotate">36</span>
                 </div>
             </div>
         </div>
@@ -2328,24 +2365,24 @@
         // tuning with whatever the desktop defaults happen to be. Explicit
         // values here instead.
         const mobileCssVars = {
-            '--button-diameter-vw': 60,
-            '--button-min-diameter-px': 200,
-            '--button-height-offset-px': -4.5,
-            '--button-press-intensity-px': 8,
+            '--button-diameter-vw': 86,
+            '--button-min-diameter-px': 165,
+            '--button-height-offset-px': -3.5,
+            '--button-press-intensity-px': 8.5,
             '--button-x-offset-vw': 0,
-            '--button-y-offset-vh': 15,
+            '--button-y-offset-vh': 16,
             '--button-release-ms': 0,
             '--click-burst-speed-ms': 250,
             '--click-burst-scale': 1,
             '--click-burst-distance-px': 100,
             '--click-burst-height-px': 60,
-            '--shadow-x-offset': 201,
-            '--shadow-y-offset': 62,
-            '--shadow-blur': 1,
-            '--shadow-scale': 0.75,
-            '--shadow-skew': -31,
-            '--shadow-stretch': 1.8,
-            '--shadow-rotate': 41,
+            '--shadow-x-offset': 107,
+            '--shadow-y-offset': 27,
+            '--shadow-blur': 0,
+            '--shadow-scale': 0.6,
+            '--shadow-skew': -18,
+            '--shadow-stretch': 1.5,
+            '--shadow-rotate': 36,
             '--ui-button-width-vw': 6.5,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 8,
@@ -2943,6 +2980,75 @@
                         applyActiveVars();
                     }
                 });
+            });
+        }
+
+        // Lets you click any slider's displayed number and type an exact
+        // value instead of only dragging. Generic, not 50+ per-slider
+        // handlers: reuses the same id convention setupDevSliders() already
+        // relies on (sliderXyz <-> valueXyz) to find each span's matching
+        // slider, then drives the slider through its own real 'input' event
+        // so every existing listener (CSS_VAR_SLIDER_MAP, game-mechanics
+        // special cases, the span's own text update) fires exactly as if the
+        // user had dragged it - no parallel value-setting logic to keep in
+        // sync. Only spans with an id AND a matching range slider become
+        // editable (.dev-value-editable) - the decorative color-picker
+        // labels share the base .dev-value class but have neither.
+        function makeDevValuesEditable() {
+            document.querySelectorAll('.dev-value[id]').forEach(valueEl => {
+                const sliderId = valueEl.id.replace(/^value/, 'slider');
+                const slider = document.getElementById(sliderId);
+                if (!slider || slider.type !== 'range') return;
+                valueEl.classList.add('dev-value-editable');
+            });
+
+            document.addEventListener('click', (e) => {
+                const valueEl = e.target.closest('.dev-value-editable');
+                if (!valueEl || valueEl.querySelector('input')) return;
+                const slider = document.getElementById(valueEl.id.replace(/^value/, 'slider'));
+                if (!slider) return;
+
+                const originalText = valueEl.textContent;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'dev-value-edit-input';
+                input.value = slider.value;
+                input.min = slider.min;
+                input.max = slider.max;
+                input.step = slider.step;
+                valueEl.textContent = '';
+                valueEl.appendChild(input);
+                input.focus();
+                input.select();
+
+                let settled = false;
+                function commit() {
+                    if (settled) return;
+                    settled = true;
+                    let val = parseFloat(input.value);
+                    if (isNaN(val)) val = parseFloat(slider.value);
+                    val = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), val));
+                    slider.value = val;
+                    // The slider's own 'input' listener re-renders valueEl's
+                    // text (and applies the value) - no need to do either
+                    // here, and it overwrites this temporary input as a
+                    // side effect of setting textContent.
+                    slider.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                function cancel() {
+                    if (settled) return;
+                    settled = true;
+                    valueEl.textContent = originalText;
+                }
+                input.addEventListener('blur', commit);
+                input.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') input.blur();
+                    else if (ev.key === 'Escape') cancel();
+                });
+                // The click that opened this input would otherwise also
+                // bubble to the document-level listener above and could
+                // re-trigger this same handler on the same element.
+                input.addEventListener('click', (ev) => ev.stopPropagation());
             });
         }
 
@@ -3671,6 +3777,7 @@
             cssVars['--dev-panel-height-px'] = window.innerHeight;
         }
         setupDevSliders();
+        makeDevValuesEditable();
         applyActiveVars();
         // Apply a restored --flip-button-svg even though the checkbox
         // itself won't visually reflect it (loadSettings() doesn't sync any
