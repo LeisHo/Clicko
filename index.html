@@ -1511,8 +1511,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Min Diameter (px, floor on narrow windows):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonMinDiameter" min="0" max="500" step="5" value="200">
-                    <span class="dev-value" id="valueButtonMinDiameter">200</span>
+                    <input type="range" class="dev-slider" id="sliderButtonMinDiameter" min="0" max="500" step="5" value="380">
+                    <span class="dev-value" id="valueButtonMinDiameter">380</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
@@ -2234,7 +2234,15 @@
         // CSS Variables initialization
         const cssVars = {
             '--button-diameter-vw': 42.5,
-            '--button-min-diameter-px': 200,
+            // 380, not some smaller "safe-looking" number - at this
+            // diameter, a floor only actually engages below floor/0.425 px
+            // of viewport width; anything under ~326px never fires at all
+            // before the 767px mobile breakpoint takes over first, making it
+            // silently inert for the exact "narrowed desktop window"
+            // scenario this control exists for. 380 engages below ~894px -
+            // a real, noticeable floor across genuinely narrow-but-desktop
+            // widths, invisible above that.
+            '--button-min-diameter-px': 380,
             '--button-height-offset-px': -4.5,
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': -1,
