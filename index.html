@@ -945,6 +945,20 @@
                still scrolls the actual content. */
             resize: none;
         }
+        /* Extra breathing room on a genuinely narrow (mobile) viewport - the
+           92vw/92vh clamp above already guarantees the panel can never
+           overflow the screen, but at 92% of a ~375-428px-wide phone
+           screen it still reads as covering nearly the entire display.
+           Tighter on mobile specifically, per explicit report ("it's also
+           very big... size the default Dev panel size to be small"). Only
+           caps the rendered SIZE - the position clamp (clampDevPanelPosition(),
+           JS) is what actually fixes a panel positioned off-screen. */
+        @media (max-width: 767px) {
+            .dev-panel {
+                max-width: 85vw;
+                max-height: 80vh;
+            }
+        }
         .dev-panel-scroll-content {
             flex: 1;
             min-height: 0;
@@ -1043,9 +1057,16 @@
 
         .dev-panel-title {
             /* Drag handle for moving the panel - see JS. Only this inner
-               text block (not the hide button beside it) triggers a drag. */
+               text block (not the hide button beside it) triggers a drag.
+               touch-action:none (missing until reported as "dev panel
+               moving isn't working in mobile") - without it, a touch-drag
+               here gets interpreted as the browser's own page-scroll/pan
+               gesture instead of delivering continuous pointermove events
+               to the drag handler, same reason the resize handles already
+               needed it. */
             cursor: grab;
             user-select: none;
+            touch-action: none;
         }
 
         .dev-panel-title.dragging {
@@ -3331,6 +3352,37 @@
         // not a real second press.
         const TOUCH_COMPAT_WINDOW_MS = 600;
 
+        // Keeps the dev panel fully on-screen regardless of viewport size -
+        // its position (--dev-panel-left-px/-top-px) is a single shared
+        // value, not mobile-split (deliberately - it's a dev-tool setting,
+        // not part of the game's own visual output), so a position tuned
+        // comfortably on a wide desktop screen can end up entirely
+        // off-screen on a narrower one. Traced directly to this: "the Dev
+        // panel moving isn't working in mobile" / "it's very big... not
+        // fully within the browser" - a desktop-tuned left position (e.g.
+        // 975px) is simply beyond a ~375-428px mobile viewport's own width,
+        // pushing the whole panel off-screen to the right where it can't be
+        // seen OR grabbed to drag back. Called from applyActiveVars(),
+        // which already fires on resize/breakpoint crossing - uses the
+        // panel's own actual rendered size, so it respects the existing
+        // max-width/max-height clamp too.
+        function clampDevPanelPosition() {
+            const rect = devPanel.getBoundingClientRect();
+            if (rect.width === 0 && rect.height === 0) return; // hidden (display:none) - nothing to clamp yet
+            const maxLeft = Math.max(0, window.innerWidth - rect.width);
+            const maxTop = Math.max(0, window.innerHeight - rect.height);
+            const clampedLeft = Math.min(Math.max(0, cssVars['--dev-panel-left-px']), maxLeft);
+            const clampedTop = Math.min(Math.max(0, cssVars['--dev-panel-top-px']), maxTop);
+            if (clampedLeft !== cssVars['--dev-panel-left-px']) {
+                cssVars['--dev-panel-left-px'] = clampedLeft;
+                document.documentElement.style.setProperty('--dev-panel-left-px', clampedLeft);
+            }
+            if (clampedTop !== cssVars['--dev-panel-top-px']) {
+                cssVars['--dev-panel-top-px'] = clampedTop;
+                document.documentElement.style.setProperty('--dev-panel-top-px', clampedTop);
+            }
+        }
+
         // Initialize CSS variables
         // Applies whichever var set (desktop or mobile) matches the current
         // viewport width. Called after every slider/color/font edit and on
@@ -3369,6 +3421,7 @@
             // here too so a breakpoint crossing repaints them correctly.
             refreshButtonHue();
             refreshBaseHue();
+            clampDevPanelPosition();
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
