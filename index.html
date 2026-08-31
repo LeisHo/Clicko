@@ -520,7 +520,7 @@
             top: calc(50% + var(--ui-button-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
             padding: 0;
-            font-size: calc(var(--ui-button-height-vh) * 0.35vh);
+            font-size: calc(var(--ui-button-font-size-vh) * 1vh);
             font-weight: 600;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
@@ -560,7 +560,7 @@
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
-            text-shadow: var(--extrusion-shadow);
+            text-shadow: var(--round-extrusion-shadow);
             text-align: center;
             white-space: nowrap;
             pointer-events: none;
@@ -1666,12 +1666,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonX" min="-50" max="50" step="0.5" value="-1">
+                    <input type="range" class="dev-slider" id="sliderButtonX" min="-50" max="50" step="0.01" value="-1">
                     <span class="dev-value" id="valueButtonX">-1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonY" min="-50" max="50" step="0.5" value="5">
+                    <input type="range" class="dev-slider" id="sliderButtonY" min="-50" max="50" step="0.01" value="5">
                     <span class="dev-value" id="valueButtonY">5</span>
                 </div>
             </div>
@@ -1820,6 +1820,11 @@
                     <span class="dev-value" id="valueUIButtonHeight">6</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Font Size (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonFontSize" min="0.5" max="8" step="0.01" value="2.1">
+                    <span class="dev-value" id="valueUIButtonFontSize">2.10</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Color (button plate):</span>
                     <input type="color" class="dev-color-picker" id="colorUIButton" value="#e82121">
                 </div>
@@ -1830,12 +1835,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-50" max="50" step="0.5" value="-42.5">
+                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-50" max="50" step="0.01" value="-42.5">
                     <span class="dev-value" id="valueUIButtonX">-42.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-50" max="50" step="0.5" value="-41">
+                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-50" max="50" step="0.01" value="-41">
                     <span class="dev-value" id="valueUIButtonY">-41</span>
                 </div>
             </div>
@@ -1847,18 +1852,32 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.1" value="8">
+                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="8">
                     <span class="dev-value" id="valueTextFontSize">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueTextX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.5" value="-20">
+                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-20">
                     <span class="dev-value" id="valueTextY">-20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueRoundExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <span class="dev-value" id="valueRoundOverallBorderThickness">2</span>
                 </div>
             </div>
         </div>
@@ -1874,17 +1893,17 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderResultFontSize" min="1" max="20" step="0.1" value="8">
+                    <input type="range" class="dev-slider" id="sliderResultFontSize" min="1" max="20" step="0.01" value="8">
                     <span class="dev-value" id="valueResultFontSize">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderResultX" min="-40" max="40" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderResultX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueResultX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderResultY" min="-50" max="50" step="0.5" value="-20">
+                    <input type="range" class="dev-slider" id="sliderResultY" min="-50" max="50" step="0.01" value="-20">
                     <span class="dev-value" id="valueResultY">-20</span>
                 </div>
                 <div class="dev-row">
@@ -1912,7 +1931,7 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.1" value="8.5">
+                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.01" value="8.5">
                     <span class="dev-value" id="valueTargetFontSize">8.5</span>
                 </div>
                 <div class="dev-row">
@@ -1937,18 +1956,22 @@
                     <span class="dev-value" id="valueTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTargetExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="10" step="1" value="2">
                     <span class="dev-value" id="valueTargetOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.5" value="39">
+                    <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.01" value="39">
                     <span class="dev-value" id="valueTargetX">39</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.5" value="-36">
+                    <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.01" value="-36">
                     <span class="dev-value" id="valueTargetY">-36</span>
                 </div>
             </div>
@@ -1960,7 +1983,7 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedFontSize" min="1" max="25" step="0.1" value="3.7">
+                    <input type="range" class="dev-slider" id="sliderSpeedFontSize" min="1" max="25" step="0.01" value="3.7">
                     <span class="dev-value" id="valueSpeedFontSize">3.7</span>
                 </div>
                 <div class="dev-row">
@@ -1969,18 +1992,22 @@
                     <span class="dev-value" id="valueSpeedExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorSpeedExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="10" step="1" value="2">
                     <span class="dev-value" id="valueSpeedOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedX" min="-50" max="50" step="0.5" value="37.5">
+                    <input type="range" class="dev-slider" id="sliderSpeedX" min="-50" max="50" step="0.01" value="37.5">
                     <span class="dev-value" id="valueSpeedX">37.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.5" value="-16">
+                    <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.01" value="-16">
                     <span class="dev-value" id="valueSpeedY">-16</span>
                 </div>
             </div>
@@ -2082,12 +2109,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-50" max="50" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-50" max="50" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileButtonX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-50" max="50" step="0.5" value="16">
+                    <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-50" max="50" step="0.01" value="16">
                     <span class="dev-value" id="valueMobileButtonY">16</span>
                 </div>
             </div>
@@ -2178,6 +2205,11 @@
                     <span class="dev-value" id="valueMobileUIButtonHeight">6</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Font Size (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonFontSize" min="0.5" max="8" step="0.01" value="2.1">
+                    <span class="dev-value" id="valueMobileUIButtonFontSize">2.10</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Color (button plate):</span>
                     <input type="color" class="dev-color-picker" id="colorMobileUIButton" value="#3366dd">
                 </div>
@@ -2188,12 +2220,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonX" min="-50" max="50" step="0.5" value="2.5">
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonX" min="-50" max="50" step="0.01" value="2.5">
                     <span class="dev-value" id="valueMobileUIButtonX">2.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonY" min="-50" max="50" step="0.5" value="-38">
+                    <input type="range" class="dev-slider" id="sliderMobileUIButtonY" min="-50" max="50" step="0.01" value="-38">
                     <span class="dev-value" id="valueMobileUIButtonY">-38</span>
                 </div>
             </div>
@@ -2205,17 +2237,17 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.1" value="8">
+                    <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.01" value="8">
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTextX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.5" value="-16.5">
+                    <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
                     <span class="dev-value" id="valueMobileTextY">-16.5</span>
                 </div>
             </div>
@@ -2227,17 +2259,17 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultFontSize" min="1" max="20" step="0.1" value="11.4">
+                    <input type="range" class="dev-slider" id="sliderMobileResultFontSize" min="1" max="20" step="0.01" value="11.4">
                     <span class="dev-value" id="valueMobileResultFontSize">11.4</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultX" min="-40" max="40" step="0.5" value="0">
+                    <input type="range" class="dev-slider" id="sliderMobileResultX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileResultX">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultY" min="-50" max="50" step="0.5" value="-20">
+                    <input type="range" class="dev-slider" id="sliderMobileResultY" min="-50" max="50" step="0.01" value="-20">
                     <span class="dev-value" id="valueMobileResultY">-20</span>
                 </div>
             </div>
@@ -2249,7 +2281,7 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="1" max="25" step="0.1" value="25">
+                    <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="1" max="25" step="0.01" value="25">
                     <span class="dev-value" id="valueMobileTargetFontSize">25</span>
                 </div>
                 <div class="dev-row">
@@ -2270,12 +2302,12 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.5" value="20">
+                    <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.01" value="20">
                     <span class="dev-value" id="valueMobileTargetX">20</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetY" min="-50" max="50" step="0.5" value="-23.5">
+                    <input type="range" class="dev-slider" id="sliderMobileTargetY" min="-50" max="50" step="0.01" value="-23.5">
                     <span class="dev-value" id="valueMobileTargetY">-23.5</span>
                 </div>
             </div>
@@ -2287,17 +2319,17 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="1" max="25" step="0.1" value="9">
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="1" max="25" step="0.01" value="9">
                     <span class="dev-value" id="valueMobileSpeedFontSize">9</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedX" min="-50" max="50" step="0.5" value="-23">
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedX" min="-50" max="50" step="0.01" value="-23">
                     <span class="dev-value" id="valueMobileSpeedX">-23</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedY" min="-50" max="50" step="0.5" value="-19.5">
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedY" min="-50" max="50" step="0.01" value="-19.5">
                     <span class="dev-value" id="valueMobileSpeedY">-19.5</span>
                 </div>
             </div>
@@ -2366,6 +2398,7 @@
             '--shadow-rotate': 41,
             '--ui-button-width-vw': 10,
             '--ui-button-height-vh': 6,
+            '--ui-button-font-size-vh': 2.1,
             '--ui-button-radius': 6,
             '--ui-button-x-offset-vw': -42.5,
             '--ui-button-y-offset-vh': -41,
@@ -2423,8 +2456,22 @@
             depth: 5,
             fillColor: '#ffffff',
             borderColor: '#000000',
+            // Round Text used to share the group's depth/border-thickness/
+            // border-color; now fully decoupled with its own copies of all
+            // 3, same as Target/Speed already had for depth - per explicit
+            // request. Font, fill color, and size/position stay shared/own
+            // as before (unaffected).
+            roundDepth: 4,
+            roundBorderColor: '#000000',
+            roundOverallBorderThickness: 2,
             targetDepth: 18,
+            // Target/Speed now also get their OWN border/extrusion color,
+            // decoupled from the shared borderColor above (fill color stays
+            // shared) - per explicit request ("border colors for each of
+            // the texts that have their own extrusion").
+            targetBorderColor: '#000000',
             speedDepth: 11,
+            speedBorderColor: '#000000',
             winFillColor: '#ffffff',
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
@@ -2511,8 +2558,9 @@
             root.setProperty('--extrusion-font', extrusionVars.font);
             root.setProperty('--extrusion-fill-color', extrusionVars.fillColor);
             root.setProperty('--extrusion-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.borderColor, extrusionVars.overallBorderThickness));
-            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.borderColor, extrusionVars.targetOverallBorderThickness));
-            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.borderColor, extrusionVars.speedOverallBorderThickness));
+            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDepth, extrusionVars.roundBorderColor, extrusionVars.roundOverallBorderThickness));
+            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.targetBorderColor, extrusionVars.targetOverallBorderThickness));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.speedBorderColor, extrusionVars.speedOverallBorderThickness));
             root.setProperty('--result-win-fill-color', extrusionVars.winFillColor);
             root.setProperty('--result-win-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.winBorderColor, extrusionVars.overallBorderThickness));
             root.setProperty('--result-lose-fill-color', extrusionVars.loseFillColor);
@@ -2552,6 +2600,7 @@
             '--shadow-rotate': 11,
             '--ui-button-width-vw': 15.5,
             '--ui-button-height-vh': 6,
+            '--ui-button-font-size-vh': 2.1,
             '--ui-button-radius': 10,
             '--ui-button-x-offset-vw': 2.5,
             '--ui-button-y-offset-vh': -38,
@@ -3124,6 +3173,7 @@
             'sliderShadowRotate': '--shadow-rotate',
             'sliderUIButtonWidth': '--ui-button-width-vw',
             'sliderUIButtonHeight': '--ui-button-height-vh',
+            'sliderUIButtonFontSize': '--ui-button-font-size-vh',
             'sliderUIButtonRadius': '--ui-button-radius',
             'sliderUIButtonX': '--ui-button-x-offset-vw',
             'sliderUIButtonY': '--ui-button-y-offset-vh',
@@ -3198,6 +3248,12 @@
             } else if (desktopId === 'sliderSpeedOverallBorderThickness') {
                 extrusionVars.speedOverallBorderThickness = value;
                 applyExtrusionStyles();
+            } else if (desktopId === 'sliderRoundExtrusionDepth') {
+                extrusionVars.roundDepth = value;
+                applyExtrusionStyles();
+            } else if (desktopId === 'sliderRoundOverallBorderThickness') {
+                extrusionVars.roundOverallBorderThickness = value;
+                applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
             }
@@ -3233,6 +3289,9 @@
                 'colorResultLoseFill': 'loseFillColor',
                 'colorResultLoseBorder': 'loseBorderColor',
                 'colorOverallBorder': 'overallBorderColor',
+                'colorRoundExtrusionBorder': 'roundBorderColor',
+                'colorTargetExtrusionBorder': 'targetBorderColor',
+                'colorSpeedExtrusionBorder': 'speedBorderColor',
             };
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
@@ -3941,8 +4000,12 @@
                 speedDisplay.classList.add('hidden');
 
                 setTimeout(() => {
-                    const tryAgainMsg = tryAgainMessages[Math.floor(Math.random() * tryAgainMessages.length)];
-                    startButton.textContent = `ROUND ${gameState.currentRound} · ${tryAgainMsg}`;
+                    // Fixed literal text, not the randomized tryAgainMessages
+                    // pool (left declared but unused, same as winMessages/
+                    // tooManyMessages/notEnoughMessages) and no "ROUND X ·"
+                    // prefix - per explicit request, this button says only
+                    // "Try again?" and nothing else.
+                    startButton.textContent = 'Try again?';
                     startButton.classList.remove('hidden');
                     resultText.classList.add('hidden');
                     gameState.isPlaying = false;
