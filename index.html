@@ -746,31 +746,66 @@
             /* Native CSS `resize` is NOT touch-draggable on most mobile
                browsers - its handle is either invisible or unresponsive to
                touch, exactly where a developer would most want to resize
-               this panel while testing on a real phone. Replaced with a
-               custom pointer-events-driven handle (.dev-panel-resize-handle,
-               see below + JS), same fix as the round-breakdown panel's.
-               Width/height changes via the handle are still read back and
-               persisted via the existing ResizeObserver (see JS). */
+               this panel while testing on a real phone. Replaced with 8
+               custom pointer-events-driven handles (4 edges + 4 corners, see
+               below + JS), same fix as the round-breakdown panel's single
+               corner handle, extended to all sides per explicit request.
+               Width/height changes are still read back and persisted via
+               the existing ResizeObserver (see JS) regardless of which
+               handle produced them. */
             resize: none;
             overflow: auto;
         }
 
-        .dev-panel-resize-handle {
+        /* 4 edge strips (top/bottom/left/right) - thin, inset from the
+           corners so they don't overlap the corner handles below. Resizing
+           from top/left moves the panel's position too (the OPPOSITE edge
+           stays fixed) - see setupPanelResizeHandle() in the script. */
+        .dev-panel-resize-edge {
             position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 32px;
-            height: 32px;
-            cursor: nwse-resize;
+            z-index: 2;
             touch-action: none;
-            z-index: 1;
         }
+        .dev-panel-resize-edge.edge-top, .dev-panel-resize-edge.edge-bottom {
+            left: 16px;
+            right: 16px;
+            height: 8px;
+            cursor: ns-resize;
+        }
+        .dev-panel-resize-edge.edge-top { top: 0; }
+        .dev-panel-resize-edge.edge-bottom { bottom: 0; }
+        .dev-panel-resize-edge.edge-left, .dev-panel-resize-edge.edge-right {
+            top: 16px;
+            bottom: 16px;
+            width: 8px;
+            cursor: ew-resize;
+        }
+        .dev-panel-resize-edge.edge-left { left: 0; }
+        .dev-panel-resize-edge.edge-right { right: 0; }
 
-        .dev-panel-resize-handle::after {
+        /* 4 corner squares, sitting above the edge strips (z-index) so a
+           corner drag always wins over an adjacent edge's hit zone. */
+        .dev-panel-resize-corner {
+            position: absolute;
+            z-index: 3;
+            width: 16px;
+            height: 16px;
+            touch-action: none;
+        }
+        .dev-panel-resize-corner.corner-tl { top: 0; left: 0; cursor: nwse-resize; }
+        .dev-panel-resize-corner.corner-tr { top: 0; right: 0; cursor: nesw-resize; }
+        .dev-panel-resize-corner.corner-bl { bottom: 0; left: 0; cursor: nesw-resize; }
+        .dev-panel-resize-corner.corner-br { bottom: 0; right: 0; cursor: nwse-resize; }
+
+        /* Only the bottom-right corner gets a visible grip icon, matching
+           the common OS/app convention of one primary resize affordance -
+           the other 7 are real, working hit zones, just not visually
+           marked, to avoid cluttering the panel's edges. */
+        .dev-panel-resize-corner.corner-br::after {
             content: '';
             position: absolute;
-            right: 6px;
-            bottom: 6px;
+            right: 2px;
+            bottom: 2px;
             width: 14px;
             height: 14px;
             background-image: repeating-linear-gradient(135deg, #0f0 0 2px, transparent 2px 6px);
@@ -2132,7 +2167,14 @@
             </div>
         </div>
 
-        <div class="dev-panel-resize-handle" id="devPanelResizeHandle"></div>
+        <div class="dev-panel-resize-edge edge-top" id="devPanelResizeTop"></div>
+        <div class="dev-panel-resize-edge edge-bottom" id="devPanelResizeBottom"></div>
+        <div class="dev-panel-resize-edge edge-left" id="devPanelResizeLeft"></div>
+        <div class="dev-panel-resize-edge edge-right" id="devPanelResizeRight"></div>
+        <div class="dev-panel-resize-corner corner-tl" id="devPanelResizeTL"></div>
+        <div class="dev-panel-resize-corner corner-tr" id="devPanelResizeTR"></div>
+        <div class="dev-panel-resize-corner corner-bl" id="devPanelResizeBL"></div>
+        <div class="dev-panel-resize-corner corner-br" id="devPanelResizeBR"></div>
     </div>
 
     <script>
@@ -2832,46 +2874,88 @@
         document.addEventListener('pointerup', endDevPanelDrag);
         document.addEventListener('pointercancel', endDevPanelDrag);
 
-        // Custom resize handle (native CSS `resize` isn't touch-draggable on
-        // most mobile browsers - see the handle's own CSS comment). Same
-        // pointer-event approach as the title-bar drag above: writes
+        // Custom resize handles (native CSS `resize` isn't touch-draggable on
+        // most mobile browsers - see the handles' own CSS comment). Generic
+        // factory, not 8 near-duplicate handlers: xEdge/yEdge say which
+        // side(s) this particular handle moves. 'right'/'bottom' just grow
+        // from the fixed opposite side (like the original corner handle
+        // did); 'left'/'top' also have to shift the panel's own left/top by
+        // however much the size actually changed (post-clamp), so the
+        // OPPOSITE edge - not the dragged one - is what stays visually
+        // fixed, matching how every OS window resize behaves. Writes
         // width/height directly onto the element (mirroring how the old
-        // width-only resizer worked), clamped to the panel's own declared
-        // min/max so it can't be dragged smaller/larger than its CSS allows.
-        // The ResizeObserver below catches whatever size results (from this
-        // handle, exactly the same as it would from native resize) and
-        // persists it - no separate persistence code needed here.
-        const devPanelResizeHandle = document.getElementById('devPanelResizeHandle');
-        let isResizingDevPanel = false;
-        let devPanelResizeStart = { pointerX: 0, pointerY: 0, width: 0, height: 0 };
+        // width-only resizer worked); the existing ResizeObserver below
+        // catches whatever size results and persists it, same as before -
+        // only left/top need explicit persistence here, since those aren't
+        // covered by that observer.
+        function setupPanelResizeHandle(panel, handle, xEdge, yEdge) {
+            let dragging = false;
+            let start = { pointerX: 0, pointerY: 0, left: 0, top: 0, width: 0, height: 0 };
 
-        devPanelResizeHandle.addEventListener('pointerdown', (e) => {
-            const rect = devPanel.getBoundingClientRect();
-            devPanelResizeStart = { pointerX: e.clientX, pointerY: e.clientY, width: rect.width, height: rect.height };
-            isResizingDevPanel = true;
-            try { devPanelResizeHandle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
-        });
+            handle.addEventListener('pointerdown', (e) => {
+                const rect = panel.getBoundingClientRect();
+                start = { pointerX: e.clientX, pointerY: e.clientY, left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+                dragging = true;
+                try { handle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
+            });
 
-        document.addEventListener('pointermove', (e) => {
-            if (!isResizingDevPanel) return;
-            const cs = getComputedStyle(devPanel);
-            const minW = parseFloat(cs.minWidth) || 0, maxW = parseFloat(cs.maxWidth) || Infinity;
-            const minH = parseFloat(cs.minHeight) || 0, maxH = parseFloat(cs.maxHeight) || Infinity;
-            const newWidth = Math.max(minW, Math.min(maxW, devPanelResizeStart.width + (e.clientX - devPanelResizeStart.pointerX)));
-            const newHeight = Math.max(minH, Math.min(maxH, devPanelResizeStart.height + (e.clientY - devPanelResizeStart.pointerY)));
-            devPanel.style.width = newWidth + 'px';
-            devPanel.style.height = newHeight + 'px';
-        });
+            document.addEventListener('pointermove', (e) => {
+                if (!dragging) return;
+                const cs = getComputedStyle(panel);
+                const minW = parseFloat(cs.minWidth) || 0, maxW = parseFloat(cs.maxWidth) || Infinity;
+                const minH = parseFloat(cs.minHeight) || 0, maxH = parseFloat(cs.maxHeight) || Infinity;
+                const dx = e.clientX - start.pointerX;
+                const dy = e.clientY - start.pointerY;
 
-        function endDevPanelResize(e) {
-            if (!isResizingDevPanel) return;
-            isResizingDevPanel = false;
-            if (e && e.pointerId !== undefined && devPanelResizeHandle.hasPointerCapture(e.pointerId)) {
-                devPanelResizeHandle.releasePointerCapture(e.pointerId);
+                let newWidth = start.width, newLeft = start.left;
+                if (xEdge === 'right') {
+                    newWidth = Math.max(minW, Math.min(maxW, start.width + dx));
+                } else if (xEdge === 'left') {
+                    newWidth = Math.max(minW, Math.min(maxW, start.width - dx));
+                    newLeft = start.left + (start.width - newWidth);
+                }
+
+                let newHeight = start.height, newTop = start.top;
+                if (yEdge === 'bottom') {
+                    newHeight = Math.max(minH, Math.min(maxH, start.height + dy));
+                } else if (yEdge === 'top') {
+                    newHeight = Math.max(minH, Math.min(maxH, start.height - dy));
+                    newTop = start.top + (start.height - newHeight);
+                }
+
+                panel.style.width = newWidth + 'px';
+                panel.style.height = newHeight + 'px';
+                if (xEdge === 'left') {
+                    cssVars['--dev-panel-left-px'] = Math.round(newLeft);
+                    document.documentElement.style.setProperty('--dev-panel-left-px', Math.round(newLeft));
+                    panel.style.left = newLeft + 'px';
+                }
+                if (yEdge === 'top') {
+                    cssVars['--dev-panel-top-px'] = Math.round(newTop);
+                    document.documentElement.style.setProperty('--dev-panel-top-px', Math.round(newTop));
+                    panel.style.top = newTop + 'px';
+                }
+            });
+
+            function end(e) {
+                if (!dragging) return;
+                dragging = false;
+                if (e && e.pointerId !== undefined && handle.hasPointerCapture(e.pointerId)) {
+                    handle.releasePointerCapture(e.pointerId);
+                }
             }
+            document.addEventListener('pointerup', end);
+            document.addEventListener('pointercancel', end);
         }
-        document.addEventListener('pointerup', endDevPanelResize);
-        document.addEventListener('pointercancel', endDevPanelResize);
+
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeTop'), null, 'top');
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeBottom'), null, 'bottom');
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeLeft'), 'left', null);
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeRight'), 'right', null);
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeTL'), 'left', 'top');
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeTR'), 'right', 'top');
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeBL'), 'left', 'bottom');
+        setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeBR'), 'right', 'bottom');
 
         // Native `resize` sets width/height directly on the element - catch
         // the result here and persist it, same as the round-breakdown panel.
