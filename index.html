@@ -2335,6 +2335,17 @@
                     <input type="range" class="dev-slider" id="sliderSpeedDecrease" min="5" max="150" step="5" value="30">
                     <span class="dev-value" id="valueSpeedDecrease">30</span>
                 </div>
+                <!-- Multiplier on Speed Decrease, compounded per round -
+                     100% = no decay (every round drops the same flat
+                     amount, the previous behavior); 50% means each round's
+                     drop is half of the round before it (not half of the
+                     base Speed Decrease value) - per explicit request/
+                     clarification. -->
+                <div class="dev-row">
+                    <span class="dev-label">Speed Decrease Decay (%):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecay" min="0" max="100" step="1" value="100">
+                    <span class="dev-value" id="valueSpeedDecreaseDecay">100</span>
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
                     <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="50">
@@ -3219,6 +3230,14 @@
             isCountingTaps: false,
             maxTimeMs: 600,
             speedDecrease: 30,
+            // Multiplier applied to speedDecrease, compounded per round
+            // (effectiveDecrease = speedDecrease * decayMultiplier^(round-1))
+            // - per explicit request that the speed-limit increase gets
+            // SMALLER at higher rounds. 1 = no decay (every round drops
+            // maxTimeMs by the same flat speedDecrease, the previous
+            // behavior), less than 1 makes each round's drop shrink
+            // relative to the one before it.
+            speedDecreaseDecay: 1,
             roundDuration: 1000,
             resultDuration: 1000,
             // Minimum possible target count on Round 1, and how much that
@@ -4040,6 +4059,7 @@
         function applyGameMechanicsSlider(desktopId, value) {
             if (desktopId === 'sliderStartingSpeed') gameState.maxTimeMs = value;
             else if (desktopId === 'sliderSpeedDecrease') gameState.speedDecrease = value;
+            else if (desktopId === 'sliderSpeedDecreaseDecay') gameState.speedDecreaseDecay = value / 100;
             else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
             else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
@@ -4686,7 +4706,15 @@
         function showTargetAndSpeed() {
             const targetFloor = gameState.targetFloorBase + (gameState.currentRound - 1) * gameState.targetFloorIncreasePerRound;
             gameState.targetCount = Math.floor(Math.random() * 29) + targetFloor;
-            gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - gameState.speedDecrease);
+            // effectiveDecrease shrinks each round when speedDecreaseDecay
+            // < 1 (exponential decay, compounded per round - see its own
+            // gameState comment) - per explicit request that the speed-
+            // limit increase gets smaller at higher rounds. Floored at 1ms
+            // rather than continuing to decay toward 0 - per explicit
+            // follow-up ("once it hits 1ms per round, it just stays at 1
+            // from there on").
+            const effectiveSpeedDecrease = Math.max(1, gameState.speedDecrease * Math.pow(gameState.speedDecreaseDecay, gameState.currentRound - 1));
+            gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - effectiveSpeedDecrease);
             // currentTapCount and friends are correctly PER-ROUND state - reset
             // here every time a new round begins, same as always.
             gameState.currentTapCount = 0;
