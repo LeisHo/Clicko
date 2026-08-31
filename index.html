@@ -2131,6 +2131,11 @@
                     <span class="dev-value" id="valueRoundBlink3Hide">250</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Blink 3 - Reappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink3Show" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink3Show">250</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">New Number Hold (ms):</span>
                     <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="400">
                     <span class="dev-value" id="valueRoundPostBlinkHold">400</span>
@@ -2844,6 +2849,7 @@
             '--round-blink2-hide-ms': 250,
             '--round-blink2-show-ms': 250,
             '--round-blink3-hide-ms': 250,
+            '--round-blink3-show-ms': 250,
             // How long the NEW number holds on screen (still at big/held
             // scale) after the blink sequence finishes, before docking
             // into gameplay - per explicit request for a dedicated slider
@@ -3681,6 +3687,7 @@
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
             document.documentElement.style.setProperty('--round-blink2-show-ms', cssVars['--round-blink2-show-ms']);
             document.documentElement.style.setProperty('--round-blink3-hide-ms', cssVars['--round-blink3-hide-ms']);
+            document.documentElement.style.setProperty('--round-blink3-show-ms', cssVars['--round-blink3-show-ms']);
             document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
             // The 8-bit extrusion system (color/depth/border) is mobile-
             // split too (see mobileExtrusionVars) - re-apply it here so a
@@ -3860,6 +3867,7 @@
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
             'sliderRoundBlink2Show': '--round-blink2-show-ms',
             'sliderRoundBlink3Hide': '--round-blink3-hide-ms',
+            'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
             'sliderTargetFontSize': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
@@ -4512,12 +4520,13 @@
             setTimeout(() => runRoundBlinkSequence(roundNum), gameState.roundDuration);
         }
 
-        // Blinks the round number 3 times (hide/show/hide/show/hide) before
-        // revealing the new value, per explicit request: 3 disappearance
-        // durations and 2 reappearance durations, each its own slider. The
-        // word "Round" is untouched throughout - only #gameTextNumber's
-        // visibility toggles (not its removal from layout - see its own
-        // CSS comment for why that specifically avoids shifting "Round").
+        // Flashes the OLD round number 3 complete times (hide/show x3),
+        // THEN reveals the new value - per explicit request ("make it 3
+        // flashes, then the new number"). Each flash's hide/show duration
+        // is its own slider (6 total). The word "Round" is untouched
+        // throughout - only #gameTextNumber's visibility toggles (not its
+        // removal from layout - see its own CSS comment for why that
+        // specifically avoids shifting "Round").
         function runRoundBlinkSequence(roundNum) {
             const phases = [
                 { visible: false, ms: cssVars['--round-blink1-hide-ms'] },
@@ -4525,6 +4534,7 @@
                 { visible: false, ms: cssVars['--round-blink2-hide-ms'] },
                 { visible: true, ms: cssVars['--round-blink2-show-ms'] },
                 { visible: false, ms: cssVars['--round-blink3-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink3-show-ms'] },
             ];
             let i = 0;
             function step() {
