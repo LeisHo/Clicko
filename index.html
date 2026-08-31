@@ -2379,8 +2379,6 @@
         const CLICK_BURST_MAX_CONCURRENT = 24;
 
         function spawnClickBurst() {
-            if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
-
             const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
             const urls = CLICK_FRAME_URLS[frameSet];
             if (!urls) return;
@@ -2395,6 +2393,12 @@
 
             const count = 2 + Math.floor(Math.random() * 2); // 2-3, per the reference's "groups of 2-3"
             for (let i = 0; i < count; i++) {
+                // Checked per-particle, not once before the loop - otherwise
+                // a burst starting 1-2 below the cap could still add its full
+                // 2-3 particles and overshoot it (confirmed happening: a
+                // documented 24-particle cap actually reached 26 before this
+                // was moved inside the loop).
+                if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
                 const angle = Math.random() * Math.PI * 2;
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
