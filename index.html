@@ -1859,20 +1859,20 @@
                     <span class="dev-label">Frame Set:</span>
                     <select class="dev-select" id="selectClickFrameSet" onchange="updateClickFrameSet()">
                         <option value="CLICK1">Click 1</option>
-                        <option value="CLICK2">Click 2</option>
+                        <option value="CLICK2" selected>Click 2</option>
                         <option value="CLICK3">Click 3</option>
                         <option value="CLICK4">Click 4</option>
                     </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Animation Speed (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstSpeed" min="80" max="1000" step="10" value="1000">
-                    <span class="dev-value" id="valueClickBurstSpeed">1000</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstSpeed" min="80" max="1000" step="10" value="260">
+                    <span class="dev-value" id="valueClickBurstSpeed">260</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Frame Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstScale" min="0" max="1" step="0.01" value="0.42">
-                    <span class="dev-value" id="valueClickBurstScale">0.42</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstScale" min="0" max="1" step="0.01" value="0.38">
+                    <span class="dev-value" id="valueClickBurstScale">0.38</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Distance Out (px):</span>
@@ -1881,28 +1881,28 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height / Lift (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="20">
-                    <span class="dev-value" id="valueClickBurstHeight">20</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="0">
+                    <span class="dev-value" id="valueClickBurstHeight">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Curve Offset (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCurveOffset" min="0" max="150" step="5" value="75">
-                    <span class="dev-value" id="valueClickBurstCurveOffset">75</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCurveOffset" min="0" max="150" step="5" value="70">
+                    <span class="dev-value" id="valueClickBurstCurveOffset">70</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Flight Path Curviness (x):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCurveAmount" min="0" max="3" step="0.05" value="0.5">
-                    <span class="dev-value" id="valueClickBurstCurveAmount">0.50</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCurveAmount" min="0" max="3" step="0.05" value="0.2">
+                    <span class="dev-value" id="valueClickBurstCurveAmount">0.20</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Count Per Side - Floor:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="4">
-                    <span class="dev-value" id="valueClickBurstCountMin">4</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="3">
+                    <span class="dev-value" id="valueClickBurstCountMin">3</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Count Per Side - Ceiling:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="6">
-                    <span class="dev-value" id="valueClickBurstCountMax">6</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="5">
+                    <span class="dev-value" id="valueClickBurstCountMax">5</span>
                 </div>
                 <!-- Replaces the earlier "No Shadow on Top 2 Left Frames"
                      checkbox with 2 typed frame-position CUTOFFS, applied
@@ -1924,17 +1924,22 @@
                     <span class="dev-label">Hide Shadow - Frame Index B:</span>
                     <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexB" step="1" value="0">
                 </div>
-                <!-- Flight-direction zone floor/ceiling, per side - 4 typed
-                     angles (not sliders, per explicit request), single/
-                     shared like the Hide Shadow inputs above (not mobile-
-                     split). Own angle convention, DIFFERENT from the rest
-                     of this codebase: 0 = straight up, increasing
-                     CLOCKWISE - see clickBurstUserAngleToTrigRad() in
-                     spawnClickBurstSide() for the conversion into this
-                     file's usual trig-angle convention. Defaults (30/150
-                     right, 210/330 left) exactly reproduce the fixed
-                     120deg zones this replaces, so nothing changes on a
-                     fresh load until these are actually edited. -->
+                <!-- Guide-curve angle filter, per side - 4 typed angles
+                     (not sliders, per explicit request), single/shared like
+                     the Hide Shadow inputs above (not mobile-split). Per
+                     explicit clarification: these define which STRETCH of
+                     that side's guide curve qualifies as a spawn origin,
+                     measured as the angle from the button's own center to
+                     each point on the curve - a point outside [floor,
+                     ceiling] is never used as an origin, and flight
+                     direction then comes from each qualifying point's own
+                     radial position (not a separately-assigned zone angle).
+                     Own angle convention, DIFFERENT from the rest of this
+                     codebase: 0 = straight up, increasing CLOCKWISE - see
+                     isUserDegInAngleRange()/sampleClickRoutePiecesInAngleRange()
+                     in spawnClickBurstSide(). Defaults (30/150 right, 210/
+                     330 left) cover the same overall span the earlier fixed
+                     120deg direction zones did. -->
                 <div class="dev-row">
                     <span class="dev-label">Right Floor Angle (deg):</span>
                     <input type="number" class="dev-text-input" id="inputClickBurstRightFloorDeg" step="1" value="30">
@@ -2830,20 +2835,20 @@
             '--button-x-offset-vw': -1,
             '--button-y-offset-vh': 6.76,
             '--button-release-ms': 10,
-            '--click-burst-speed-ms': 1000,
-            '--click-burst-scale': 0.42,
+            '--click-burst-speed-ms': 260,
+            '--click-burst-scale': 0.38,
             '--click-burst-distance-px': 180,
-            '--click-burst-height-px': 20,
-            '--click-burst-curve-offset-px': 75,
-            '--click-burst-count-min': 4,
-            '--click-burst-count-max': 6,
-            '--click-burst-curve-amount': 0.5,
+            '--click-burst-height-px': 0,
+            '--click-burst-curve-offset-px': 70,
+            '--click-burst-count-min': 3,
+            '--click-burst-count-max': 5,
+            '--click-burst-curve-amount': 0.2,
             // Not truly a CSS var (nothing reads it via var()) - piggybacking
             // on this object purely so the frame-set choice is included in
             // copySettings()/saveSettings() for free, matching every other
             // dev-panel setting's persistence. Shared, not mobile-split (see
             // updateClickFrameSet()) - only ever read from here directly.
-            '--click-frame-set': 'CLICK1',
+            '--click-frame-set': 'CLICK2',
             // Also not a true CSS var, same reasoning - piggybacks on this
             // object purely for free persistence via copySettings().
             '--flip-button-svg': 1,
@@ -3353,24 +3358,89 @@
         clickRouteSvg.appendChild(clickRouteRightPath);
         document.body.appendChild(clickRouteSvg);
 
-        // Samples a guide curve at `count` equal-arc-length piece-midpoints,
-        // returning each as {x, y} in the curve's own viewBox space - used
-        // for spawn ORIGIN only. Flight DIRECTION deliberately does NOT use
-        // the curve's own local tangent: this particular authored curve
-        // curls back on itself near its tip (confirmed by hand-tracing its
-        // path segments), so a tangent-following particle sampled from that
+        // Converts this codebase's own trig angle (0=rightward/3-o'clock,
+        // increasing clockwise since screen Y is down) back into the "user"
+        // angle convention (0=up, increasing clockwise) the 4 Floor/Ceiling
+        // inputs use - the exact inverse of clickBurstUserAngleToTrigRad()
+        // below, kept next to it.
+        function clickBurstTrigRadToUserDeg(rad) {
+            let deg = rad * 180 / Math.PI + 90;
+            return ((deg % 360) + 360) % 360;
+        }
+
+        // Whether a "user" angle (0=up, clockwise) falls within [floorDeg,
+        // ceilingDeg] - wrap-aware, so a range that crosses 360/0 (e.g.
+        // floor=350, ceiling=10) still works: normalizes both endpoints
+        // into [0,360) first, then tests the direct (non-wrapping) case
+        // floor<=ceiling normally, or the wrapping case (>=floor OR
+        // <=ceiling) when floor>ceiling after normalization.
+        function isUserDegInAngleRange(deg, floorDeg, ceilingDeg) {
+            const d = ((deg % 360) + 360) % 360;
+            const f = ((floorDeg % 360) + 360) % 360;
+            const c = ((ceilingDeg % 360) + 360) % 360;
+            return f <= c ? (d >= f && d <= c) : (d >= f || d <= c);
+        }
+
+        // Small fixed per-click angle jitter (not tied to any "zone slot"
+        // anymore - see below) so repeated clicks don't fly the identical
+        // path every time, per explicit request that flight paths
+        // "randomize somewhat per click."
+        const CLICK_BURST_ANGLE_JITTER_RAD = 8 * Math.PI / 180;
+
+        // Samples `count` origins from whichever STRETCH of the guide curve
+        // falls within [floorDeg, ceilingDeg], measured as the angle from
+        // the button's own center (viewBox center, since the guide SVG
+        // shares the button/base artwork's exact viewBox - angles are
+        // preserved under the uniform positive scale that maps viewBox
+        // space onto the button's rendered screen space, so filtering here
+        // is equivalent to filtering in screen space) to each point along
+        // the curve - per explicit clarification that the Floor/Ceiling
+        // inputs govern which PART of the curve qualifies as a spawn
+        // origin, not flight direction. A point outside that curve falls
+        // outside the range and is never used; points nowhere along the
+        // curve fall in range means this side generates 0 particles that
+        // click (not an error - a genuinely empty result).
+        //
+        // Each returned piece also carries {dirX, dirY} - the point's OWN
+        // outward radial direction from the button's center - used
+        // directly as flight direction in spawnClickBurstSide() instead of
+        // a separately-assigned zone-slot angle (the earlier design, which
+        // conflated "which part of the curve is eligible" with "which way
+        // does it fly" - this replaces both with the point's own natural
+        // geometry). Flight direction deliberately does NOT use the
+        // curve's own local TANGENT: this particular authored curve curls
+        // back on itself near its tip (confirmed by hand-tracing its path
+        // segments), so a tangent-following particle sampled from that
         // stretch flies the wrong way (a real report: a stray particle
         // launching toward ~1-2 o'clock instead of following the rest of
-        // its side leftward/rightward) - see the fixed left/right zone fan
-        // used for direction in spawnClickBurstSide() instead. `count` is
-        // no longer fixed at 4 - each click now rolls its own count per
-        // side (see the Floor/Ceiling sliders read in spawnClickBurstSide()).
-        function sampleClickRoutePieces(pathEl, count) {
+        // its side) - the point's radial-from-center direction doesn't
+        // have this problem since it's derived from position, not the
+        // curve's local shape.
+        //
+        // Qualifying points are found by walking the curve at a fixed fine
+        // resolution (not a hand-derived bezier-angle formula) and testing
+        // each sample's angle - simple and robust for these short (~260-
+        // 266 unit) curves, and avoids assuming the curve's angle-from-
+        // center is monotonic along its length.
+        const CLICK_ROUTE_ANGLE_SCAN_RESOLUTION = 200;
+        function sampleClickRoutePiecesInAngleRange(pathEl, count, floorDeg, ceilingDeg) {
             const total = pathEl.getTotalLength();
+            const centerX = CLICK_ROUTE_VIEWBOX_WIDTH / 2, centerY = CLICK_ROUTE_VIEWBOX_HEIGHT / 2;
+            const qualifying = [];
+            for (let i = 0; i <= CLICK_ROUTE_ANGLE_SCAN_RESOLUTION; i++) {
+                const p = pathEl.getPointAtLength(total * i / CLICK_ROUTE_ANGLE_SCAN_RESOLUTION);
+                const dx = p.x - centerX, dy = p.y - centerY;
+                const deg = clickBurstTrigRadToUserDeg(Math.atan2(dy, dx));
+                if (isUserDegInAngleRange(deg, floorDeg, ceilingDeg)) {
+                    const len = Math.hypot(dx, dy) || 1;
+                    qualifying.push({ x: p.x, y: p.y, dirX: dx / len, dirY: dy / len });
+                }
+            }
+            if (qualifying.length === 0) return [];
             const points = [];
             for (let i = 0; i < count; i++) {
-                const p = pathEl.getPointAtLength(total * (i + 0.5) / count);
-                points.push({ x: p.x, y: p.y });
+                const idx = Math.min(qualifying.length - 1, Math.floor((i + 0.5) / count * qualifying.length));
+                points.push(qualifying[idx]);
             }
             return points;
         }
@@ -3395,23 +3465,6 @@
                 for (let k = 0; k < n; k++) indices.add(sorted[sorted.length - 1 - k]);
             }
             return indices;
-        }
-
-        // Flight-direction zones (origin still comes from the guide curve
-        // above) - now user-configurable via 4 typed angle inputs (Right/
-        // Left Floor/Ceiling), per explicit request, rather than the fixed
-        // 120deg zones this used to be. The 4 inputs use a DIFFERENT angle
-        // convention than the rest of this codebase - 0 = straight up,
-        // increasing CLOCKWISE (a compass-bearing-style convention, per
-        // explicit spec) - while this codebase's own trig angle convention
-        // is 0 = rightward/3-o'clock, increasing clockwise (screen Y is
-        // down). Converts one to the other: userDeg=90 (compass east/
-        // right) must land on trigRad=0 (this codebase's "right"), so
-        // trigRad = (userDeg - 90) * PI/180 - verified against both axes
-        // (userDeg=0/up -> trigRad=-90deg -> (cos,sin)=(0,-1)=up; userDeg=
-        // 180/down -> trigRad=90deg -> (0,1)=down).
-        function clickBurstUserAngleToTrigRad(deg) {
-            return (deg - 90) * Math.PI / 180;
         }
 
         function spawnClickBurstSide(routePathEl, mirror, containerRect, buttonRect) {
@@ -3444,14 +3497,16 @@
             const countMax = Math.max(countMin, Math.round(activeVars['--click-burst-count-max']));
             const count = countMin + Math.floor(Math.random() * (countMax - countMin + 1));
 
-            const pieces = sampleClickRoutePieces(routePathEl, count);
-            const zoneFloorId = mirror ? 'inputClickBurstRightFloorDeg' : 'inputClickBurstLeftFloorDeg';
-            const zoneCeilingId = mirror ? 'inputClickBurstRightCeilingDeg' : 'inputClickBurstLeftCeilingDeg';
-            const zone = [
-                clickBurstUserAngleToTrigRad(parseFloat(document.getElementById(zoneFloorId).value)),
-                clickBurstUserAngleToTrigRad(parseFloat(document.getElementById(zoneCeilingId).value)),
-            ];
-            const zoneSliceWidth = (zone[1] - zone[0]) / pieces.length;
+            // Floor/Ceiling angle inputs now filter WHICH PART of the guide
+            // curve qualifies as a spawn origin (measured from the
+            // button's own center), per explicit clarification - not
+            // flight direction, which now comes from each qualifying
+            // point's own radial position (see sampleClickRoutePiecesInAngleRange()).
+            const floorId = mirror ? 'inputClickBurstRightFloorDeg' : 'inputClickBurstLeftFloorDeg';
+            const ceilingId = mirror ? 'inputClickBurstRightCeilingDeg' : 'inputClickBurstLeftCeilingDeg';
+            const floorDeg = parseFloat(document.getElementById(floorId).value);
+            const ceilingDeg = parseFloat(document.getElementById(ceilingId).value);
+            const pieces = sampleClickRoutePiecesInAngleRange(routePathEl, count, floorDeg, ceilingDeg);
 
             // Hide Shadow - Frame Index A/B: 2 typed cutoffs (see
             // resolveHideShadowRange()), applied to BOTH sides identically -
@@ -3501,16 +3556,17 @@
                     originY += (toOriginY / toOriginLen) * curveOffset;
                 }
 
-                // Deterministic angle slot within this side's zone (not the
-                // curve's own tangent - see sampleClickRoutePieces()), with
-                // a bounded per-click random jitter (kept well inside the
-                // slot's own width so adjacent particles still can't
-                // collide) so repeated clicks don't fly the identical path
-                // every time - per explicit request that flight paths
-                // "randomize somewhat per click."
+                // Flight direction is this point's OWN radial direction
+                // from the button's center (q.dirX/dirY, computed in
+                // sampleClickRoutePiecesInAngleRange() - viewBox-space, but
+                // valid directly in screen space too since that mapping is
+                // a uniform positive scale and angles survive it), with a
+                // small fixed per-click jitter so repeated clicks don't fly
+                // the identical path every time - per explicit request
+                // that flight paths "randomize somewhat per click."
                 const slotFraction = pieces.length > 1 ? i / (pieces.length - 1) : 0.5; // 0..1 across this side's own pieces, for the distance-stagger below
-                const angleJitter = (Math.random() - 0.5) * zoneSliceWidth * 0.6;
-                const angle = zone[0] + zoneSliceWidth * (i + 0.5) + angleJitter;
+                const baseAngle = Math.atan2(q.dirY, q.dirX);
+                const angle = baseAngle + (Math.random() - 0.5) * CLICK_BURST_ANGLE_JITTER_RAD;
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
 
