@@ -617,11 +617,17 @@
         }
 
         /* Dev Panel */
+        /* position/size are set via cssVars (left/top/width/height, all px),
+           same pattern as the round-breakdown panel - draggable by its title
+           bar (see JS) and natively resizable, persisted through cssVars with
+           no extra copySettings()/saveSettings() code needed. A single
+           shared setting, not mobile/desktop-split (see --dev-panel-width-px's
+           own existing note below) - it's a dev-tool-only setting, not part
+           of the actual game's visual output. */
         .dev-panel {
             position: fixed;
-            right: 0;
-            top: 0;
-            bottom: 0;
+            left: calc(var(--dev-panel-left-px) * 1px);
+            top: calc(var(--dev-panel-top-px) * 1px);
             background: rgba(0, 0, 0, 0.95);
             color: #fff;
             padding: 15px;
@@ -632,33 +638,28 @@
                even a wide dev-panel-width-px setting can't exceed the actual
                screen on a narrow device. */
             width: calc(var(--dev-panel-width-px) * 1px);
+            height: calc(var(--dev-panel-height-px) * 1px);
+            min-width: 160px;
+            min-height: 120px;
             max-width: 92vw;
-            overflow-y: auto;
+            max-height: 92vh;
             font-size: 11px;
             z-index: 99999;
             font-family: monospace;
             border-left: 2px solid #0f0;
             display: flex;
             flex-direction: column;
+            /* Native resize handle (bottom-right corner), same pattern as the
+               round-breakdown panel - `resize` needs a non-visible `overflow`.
+               Actual width/height changes are read back and persisted via a
+               ResizeObserver (see JS), replacing the old width-only drag
+               resizer entirely. */
+            resize: both;
+            overflow: auto;
         }
 
         .dev-panel.hidden {
             display: none !important;
-        }
-
-        .dev-panel-resizer {
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            cursor: col-resize;
-            background: #0f0;
-            opacity: 0;
-        }
-
-        .dev-panel-resizer:hover {
-            opacity: 0.5;
         }
 
         .dev-header {
@@ -672,6 +673,17 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+        }
+
+        .dev-panel-title {
+            /* Drag handle for moving the panel - see JS. Only this inner
+               text block (not the hide button beside it) triggers a drag. */
+            cursor: grab;
+            user-select: none;
+        }
+
+        .dev-panel-title.dragging {
+            cursor: grabbing;
         }
 
         .dev-hide-btn {
@@ -1269,9 +1281,8 @@
 
     <!-- Dev Panel -->
     <div class="dev-panel" id="devPanel">
-        <div class="dev-panel-resizer" id="panelResizer"></div>
         <div class="dev-header">
-            <div>
+            <div class="dev-panel-title">
                 DEV PANEL<br>
                 <span style="font-size: 9px; color: #888;">Press D to toggle | R to reset</span>
             </div>
@@ -1961,6 +1972,12 @@
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -20,
             '--dev-panel-width-px': 201,
+            // Sentinels (never a real dragged/resized value in practice,
+            // since the drag/resize logic always clamps to >=0) - overridden
+            // with real viewport-computed values at load time, see below.
+            '--dev-panel-left-px': -1,
+            '--dev-panel-top-px': -1,
+            '--dev-panel-height-px': -1,
             '--round-breakdown-width-px': 320,
             '--round-breakdown-height-px': 450,
             '--round-breakdown-left-px': 1000,
@@ -2096,6 +2113,19 @@
         const shadowButtonNormalDs = shadowButtonPaths.map(p => p.getAttribute('d'));
         const shadowButtonPressedDs = shadowButtonPaths.map(p => p.getAttribute('data-pressed-d'));
         function setShadowButtonPressed(pressed) {
+            // Rewriting 19 `d` attributes inside a filtered (brightness+blur)
+            // element forces the browser to re-rasterize and re-filter the
+            // whole shadow layer - this session's own desktop investigation
+            // already identified that blur-filter recompute as the dominant
+            // per-tap rendering cost, and mobile GPUs are meaningfully slower
+            // at exactly this operation than desktop ones. Skip the shape
+            // swap on mobile entirely - the shadow still moves/scales via the
+            // (cheap, compositor-only) transform on .shadow-caster-button-
+            // layer.pressed, it just keeps its resting silhouette instead of
+            // also reshaping. Trades a small shape-fidelity detail for
+            // removing the dominant per-tap cost on the platform where it
+            // lands hardest.
+            if (isMobileActive()) return;
             const ds = pressed ? shadowButtonPressedDs : shadowButtonNormalDs;
             for (let i = 0; i < shadowButtonPaths.length; i++) {
                 shadowButtonPaths[i].setAttribute('d', ds[i]);
@@ -2109,7 +2139,6 @@
         const roundBreakdownPanel = document.getElementById('roundBreakdownPanel');
         const roundBreakdownTable = document.getElementById('roundBreakdownTable');
         const devPanel = document.getElementById('devPanel');
-        const panelResizer = document.getElementById('panelResizer');
         const clickCounter = document.getElementById('clickCounter');
         const tapDiagnosticPanel = document.getElementById('tapDiagnosticPanel');
         const tapDiagnostic = document.getElementById('tapDiagnostic');
@@ -2437,25 +2466,58 @@
             document.documentElement.style.setProperty('--base-hue-rotate', delta + 'deg');
         }
 
-        // Panel resizing
-        let isResizing = false;
-        panelResizer.addEventListener('mousedown', () => {
-            isResizing = true;
+        // Dev panel drag - same pattern as the round-breakdown panel's own
+        // title-bar drag (see there for the setPointerCapture-ordering note).
+        // A single shared position/size (cssVars only, not mobile-split),
+        // matching --dev-panel-width-px's existing convention.
+        const devPanelTitle = document.querySelector('.dev-panel-title');
+        let isDraggingDevPanel = false;
+        let devPanelDragStart = { pointerX: 0, pointerY: 0, panelLeft: 0, panelTop: 0 };
+
+        devPanelTitle.addEventListener('pointerdown', (e) => {
+            const rect = devPanel.getBoundingClientRect();
+            devPanelDragStart = { pointerX: e.clientX, pointerY: e.clientY, panelLeft: rect.left, panelTop: rect.top };
+            isDraggingDevPanel = true;
+            devPanelTitle.classList.add('dragging');
+            try { devPanelTitle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
         });
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            const newWidth = window.innerWidth - e.clientX;
-            if (newWidth > 200 && newWidth < 600) {
-                cssVars['--dev-panel-width-px'] = newWidth;
-                document.documentElement.style.setProperty('--dev-panel-width-px', newWidth + 'px');
-                devPanel.style.width = newWidth + 'px';
+        document.addEventListener('pointermove', (e) => {
+            if (!isDraggingDevPanel) return;
+            const dx = e.clientX - devPanelDragStart.pointerX;
+            const dy = e.clientY - devPanelDragStart.pointerY;
+            const panelRect = devPanel.getBoundingClientRect();
+            const newLeft = Math.max(0, Math.min(window.innerWidth - panelRect.width, devPanelDragStart.panelLeft + dx));
+            const newTop = Math.max(0, Math.min(window.innerHeight - panelRect.height, devPanelDragStart.panelTop + dy));
+            cssVars['--dev-panel-left-px'] = Math.round(newLeft);
+            cssVars['--dev-panel-top-px'] = Math.round(newTop);
+            document.documentElement.style.setProperty('--dev-panel-left-px', newLeft + 'px');
+            document.documentElement.style.setProperty('--dev-panel-top-px', newTop + 'px');
+        });
+
+        function endDevPanelDrag(e) {
+            if (!isDraggingDevPanel) return;
+            isDraggingDevPanel = false;
+            devPanelTitle.classList.remove('dragging');
+            if (e && e.pointerId !== undefined && devPanelTitle.hasPointerCapture(e.pointerId)) {
+                devPanelTitle.releasePointerCapture(e.pointerId);
             }
-        });
+        }
+        document.addEventListener('pointerup', endDevPanelDrag);
+        document.addEventListener('pointercancel', endDevPanelDrag);
 
-        document.addEventListener('mouseup', () => {
-            isResizing = false;
-        });
+        // Native `resize` sets width/height directly on the element - catch
+        // the result here and persist it, same as the round-breakdown panel.
+        new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const w = Math.round(entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width);
+                const h = Math.round(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
+                if (w > 0 && h > 0) {
+                    cssVars['--dev-panel-width-px'] = w;
+                    cssVars['--dev-panel-height-px'] = h;
+                }
+            }
+        }).observe(devPanel);
 
         // Round breakdown panel - draggable (by its title bar) and natively
         // resizable (CSS `resize: both` on the panel itself, see its own
@@ -2934,6 +2996,15 @@
                 vars['--round-breakdown-top-px'] = Math.max(16, (window.innerHeight - vars['--round-breakdown-height-px']) / 2);
             }
         });
+        // Dev panel: same sentinel-default pattern, reproducing its old
+        // fixed right:0/top:0/bottom:0 CSS anchor as real numbers on first
+        // load, but only when untouched - a saved drag/resize (already
+        // restored by loadSettings() above) is never overwritten.
+        if (cssVars['--dev-panel-left-px'] === -1 && cssVars['--dev-panel-top-px'] === -1 && cssVars['--dev-panel-height-px'] === -1) {
+            cssVars['--dev-panel-left-px'] = Math.max(0, window.innerWidth - cssVars['--dev-panel-width-px']);
+            cssVars['--dev-panel-top-px'] = 0;
+            cssVars['--dev-panel-height-px'] = window.innerHeight;
+        }
         setupDevSliders();
         applyActiveVars();
     </script>
