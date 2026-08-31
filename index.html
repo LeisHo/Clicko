@@ -81,7 +81,17 @@
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.5;
+            /* No opacity here anymore - see .shadow-caster-layer's filter
+               for why. A group opacity here means every overlap between
+               THIS shadow and any OTHER independently-opacity'd shadow
+               layer (e.g. a click-burst shadow) compounds into a visibly
+               darker patch instead of reading as one flat shade - reported
+               directly ("the intersecting areas are darker than the
+               shadows, all shadows should be the same gray without any
+               transparencies"). Fully opaque + a filter that already
+               PRODUCES gray pixels (not black-then-faded-via-opacity) means
+               any two shadows overlapping just occlude each other at the
+               same color, never blend/darken. */
             /* brightness(0)+blur() used to live HERE, on the parent - meaning
                EVERY tap (button-shadow's class toggle) forced the browser to
                reflatten+reblur the ENTIRE group, base-shadow included, even
@@ -132,7 +142,17 @@
             position: absolute;
             inset: 0;
             transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
-            filter: brightness(0) blur(calc(var(--shadow-blur) * 1px));
+            /* brightness(0) flattens the artwork to solid black (alpha
+               unchanged - the silhouette shape stays fully opaque wherever
+               the source art itself was opaque); invert(0.5) then partially
+               inverts that black toward white, landing at solid mid-gray -
+               filter functions apply left-to-right, so this order matters.
+               This produces the shadow's gray color directly, with no
+               opacity/transparency anywhere, so it can never compound-
+               darken when it overlaps another equally-opaque gray shadow
+               (a click-burst shadow, for instance) - see .shadow-caster's
+               own comment for the reasoning this replaces. */
+            filter: brightness(0) invert(0.5) blur(calc(var(--shadow-blur) * 1px));
         }
         /* Paint order matters here: in the REAL artwork, .base-svg-layer
            (z-index 4) sits ON TOP of .game-button (z-index 1) - the base's
@@ -434,7 +454,12 @@
             pointer-events: none;
             z-index: -1;
             overflow: visible;
-            opacity: 0.5;
+            /* No group opacity here anymore - see .click-burst-particle-
+               shadow's filter and .shadow-caster's own comment. A semi-
+               transparent group here would compound-darken wherever this
+               overlaps the SEPARATE main button/base shadow (a different
+               element with its own opacity), which is exactly what was
+               reported. */
         }
         .click-burst-particle {
             position: absolute;
@@ -492,20 +517,21 @@
            shadow has one fixed "cast shadow" look, not a rotation that
            varies with anything. */
         .click-burst-particle-shadow {
-            filter: brightness(0);
+            /* Same brightness(0) + invert(0.5) as .shadow-caster-layer's
+               filter (see there for the full reasoning) - produces solid
+               mid-gray directly, fully opaque, so it reads as the exact
+               same shade as the main button/base shadow and never
+               compound-darkens where the two overlap. */
+            filter: brightness(0) invert(0.5);
             animation-name: click-burst-fly-shadow;
             offset-rotate: 0deg;
         }
         @keyframes click-burst-fly-shadow {
-            /* Fully opaque (not 0.5) while visible - the 0.5 "shadow shade"
-               now comes ONCE from .click-burst-shadow-container's own group
-               opacity (see there), not from each individual particle. If
-               every particle were independently semi-transparent, 2+
-               overlapping shadows would compound into a visibly darker
-               patch instead of reading as one flat shadow - the group-
-               opacity technique composites all the (opaque) shadows
-               together first, then applies one opacity to the flattened
-               result, so overlap never darkens. */
+            /* Fully opaque (not semi-transparent) while visible, for the
+               same never-compound-darkens reason as the filter above - the
+               0% -> 100% opacity 1 -> 0 here is purely the particle's own
+               end-of-life FADE OUT (matching the real particle's own
+               fade), not a "shadow shade" mechanism. */
             0% { offset-distance: 0%; opacity: 1; }
             70% { opacity: 1; }
             100% { offset-distance: 100%; opacity: 0; }
@@ -2968,6 +2994,18 @@
             const zoneWidth = zone[1] - zone[0];
             const sliceWidth = zoneWidth / count;
 
+            // The button/base shadow's own skew/stretch/rotate all pivot
+            // around the BUTTON'S OWN CENTER (.shadow-caster-layer sits at
+            // inset:0 over .button-assembly, so its default transform-origin
+            // is button-assembly's own center) - per explicit request to
+            // use "the same skew, stretch, rotate base point as the button
+            // and base", burst shadows need the SAME pivot, not each
+            // particle's own scattered spawn point (the previous approach,
+            // which gave every particle a visually different, inconsistent
+            // warp depending on where along the seam it happened to spawn).
+            const buttonCenterX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
+            const buttonCenterY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
+
             for (let i = 0; i < count; i++) {
                 // Checked per-particle, not once before the loop - a burst
                 // starting 1-2 below the cap could otherwise still add its
@@ -3047,38 +3085,49 @@
                 img.style.offsetPath = offsetPath;
                 if (mirror) img.style.transform = 'scaleX(-1)';
 
-                // Paired shadow: same frame, flattened to black, in its own
+                // Paired shadow: same frame, flattened to gray, in its own
                 // lower-z-index container (behind the button/base - see
                 // .click-burst-shadow-container). Its FLIGHT PATH is the
                 // real particle's own path pre-warped through the exact
                 // same skew/stretch/rotate transform the main button/base
-                // shadow's CSS applies (transformShadowPoint(), above) - not
-                // just the same path shifted by a constant offset. That's
-                // what makes the shadow trace a correspondingly
-                // skewed/stretched/rotated arc instead of a parallel copy of
-                // the real particle's own arc, i.e. "the same shadow
-                // transformations... to find the actual shadow location",
-                // per explicit request. The sprite's OWN rendering then gets
-                // the identical skew/stretch/rotate applied a second time
-                // via its CSS transform below (the "form" half of the same
-                // request) - both halves use the same numbers, they're just
-                // two different technical channels (motion-path coordinates
-                // for location, CSS transform for the sprite's own pixels)
-                // for what is conceptually one single transform. The
-                // existing shadowXOffset/shadowYOffset (left/top below) is
-                // the transform's translate component - kept as a separate
-                // additive step, same as .shadow-caster-layer's own
-                // translate is listed outermost/last in its transform chain.
-                const [shadowCtrlX, shadowCtrlY] = transformShadowPoint(ctrlX, ctrlY, shadowSkewForSide, shadowStretch, shadowRotateDeg);
-                const [shadowEndX, shadowEndY] = transformShadowPoint(endX, endY, shadowSkewForSide, shadowStretch, shadowRotateDeg);
-                const shadowOffsetPath = `path('M0,0 Q${shadowCtrlX.toFixed(1)},${shadowCtrlY.toFixed(1)} ${shadowEndX.toFixed(1)},${shadowEndY.toFixed(1)}')`;
+                // shadow's CSS applies, PIVOTED AROUND THE BUTTON'S OWN
+                // CENTER (buttonCenterX/Y, computed once above) exactly
+                // like .shadow-caster-layer's own transform does - not
+                // around each particle's own spawn point, and not just the
+                // same path shifted by a constant offset. That's what makes
+                // every burst shadow, regardless of where along the seam it
+                // spawns, warp consistently around the SAME base point the
+                // real button/base shadow does, per explicit request ("use
+                // the same skew, stretch, rotate base point as the button
+                // and base"). shadowToAbsolute() converts a point to
+                // button-center-relative coordinates, applies the linear
+                // (no-translate) part of the transform, adds the button
+                // center back, then adds shadowXOffset/shadowYOffset as the
+                // transform's translate component - same order
+                // .shadow-caster-layer's own transform chain uses
+                // (translate outermost/last). The sprite's OWN rendering
+                // then gets the identical skew/stretch/rotate applied a
+                // second time via its CSS transform below (the "form" half
+                // of the same request) - both halves use the same numbers,
+                // they're just two different technical channels
+                // (motion-path coordinates for location, CSS transform for
+                // the sprite's own pixels) for what is conceptually one
+                // single transform.
+                const shadowToAbsolute = (px, py) => {
+                    const [tx, ty] = transformShadowPoint(px - buttonCenterX, py - buttonCenterY, shadowSkewForSide, shadowStretch, shadowRotateDeg);
+                    return [buttonCenterX + tx + shadowXOffset, buttonCenterY + ty + shadowYOffset];
+                };
+                const [shadowOriginAbsX, shadowOriginAbsY] = shadowToAbsolute(originX, originY);
+                const [shadowCtrlAbsX, shadowCtrlAbsY] = shadowToAbsolute(originX + ctrlX, originY + ctrlY);
+                const [shadowEndAbsX, shadowEndAbsY] = shadowToAbsolute(originX + endX, originY + endY);
+                const shadowOffsetPath = `path('M0,0 Q${(shadowCtrlAbsX - shadowOriginAbsX).toFixed(1)},${(shadowCtrlAbsY - shadowOriginAbsY).toFixed(1)} ${(shadowEndAbsX - shadowOriginAbsX).toFixed(1)},${(shadowEndAbsY - shadowOriginAbsY).toFixed(1)}')`;
 
                 const shadow = document.createElement('img');
                 shadow.src = frameUrl;
                 shadow.className = 'click-burst-particle click-burst-particle-shadow';
                 shadow.alt = '';
-                shadow.style.left = (originX + shadowXOffset) + 'px';
-                shadow.style.top = (originY + shadowYOffset) + 'px';
+                shadow.style.left = shadowOriginAbsX + 'px';
+                shadow.style.top = shadowOriginAbsY + 'px';
                 shadow.style.offsetPath = shadowOffsetPath;
                 shadow.style.transform = `rotate(${shadowRotateDeg}deg) skewX(${shadowSkewForSide}deg) scaleY(${shadowStretch})${mirrorTransform}`;
                 shadow.addEventListener('animationend', () => shadow.remove());
