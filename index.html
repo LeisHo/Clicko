@@ -1822,7 +1822,7 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <input type="range" class="dev-slider" id="sliderOverallBorderThickness" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueOverallBorderThickness">2</span>
                 </div>
             </div>
@@ -1899,7 +1899,7 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueRoundOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
@@ -1917,9 +1917,14 @@
                     <span class="dev-value" id="valueRoundDockY">40</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Anim. Duration (ms):</span>
+                    <span class="dev-label">Grow Speed, Small→Big (ms):</span>
                     <input type="range" class="dev-slider" id="sliderRoundAnimDuration" min="0" max="2000" step="10" value="400">
                     <span class="dev-value" id="valueRoundAnimDuration">400</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shrink Speed, Big→Small (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundShrinkDuration" min="0" max="2000" step="10" value="400">
+                    <span class="dev-value" id="valueRoundShrinkDuration">400</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Anim. Tweening:</span>
@@ -1935,6 +1940,24 @@
                     <span class="dev-label">Flash Duration (ms):</span>
                     <input type="range" class="dev-slider" id="sliderRoundFlashDuration" min="0" max="1000" step="10" value="150">
                     <span class="dev-value" id="valueRoundFlashDuration">150</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorRoundDockOverallBorder" value="#000000">
                 </div>
             </div>
         </div>
@@ -2022,7 +2045,7 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueTargetOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
@@ -2062,7 +2085,7 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueSpeedOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
@@ -2500,7 +2523,12 @@
             // not spatial ones. Applied unconditionally regardless of
             // breakpoint, same pattern as --bg-color - see the
             // unconditional lines in applyActiveVars().
+            // --round-anim-duration-ms is used for the GROW (small->big)
+            // transition; --round-shrink-duration-ms is its own separate
+            // speed for the SHRINK (big->small) transition - per explicit
+            // request that big/small each have their own move speed.
             '--round-anim-duration-ms': 400,
+            '--round-shrink-duration-ms': 400,
             '--round-anim-easing': 'ease-in-out',
             '--round-flash-duration-ms': 150,
             '--target-font-size-vw': 7.1,
@@ -2568,6 +2596,19 @@
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
             roundOverallBorderColor: '#000000',
+            // Round Text's DOCKED (small) state gets its own complete,
+            // independent copy of every extrusion setting above - depth,
+            // border/extrusion color, overall-border thickness, AND
+            // overall-border color - fully separate from the "big"
+            // (roundDepth/roundBorderColor/roundOverallBorderThickness/
+            // roundOverallBorderColor) values above, per explicit request.
+            // Position (--round-dock-x/y-offset-vw/vh, in cssVars) and font-
+            // size (always matches --speed-font-size-vw) already have their
+            // own dock-state handling - see dockRoundText().
+            roundDockDepth: 2,
+            roundDockBorderColor: '#000000',
+            roundDockOverallBorderThickness: 1,
+            roundDockOverallBorderColor: '#000000',
             targetDepth: 20,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
@@ -2667,6 +2708,10 @@
             root.setProperty('--extrusion-fill-color', extrusionVars.fillColor);
             root.setProperty('--extrusion-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.borderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDepth, extrusionVars.roundBorderColor, extrusionVars.roundOverallBorderThickness, extrusionVars.roundOverallBorderColor));
+            // Round Text's docked/small-state extrusion look - read by
+            // dockRoundText() as an inline override, same mechanism as its
+            // position/font-size overrides.
+            root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDockDepth, extrusionVars.roundDockBorderColor, extrusionVars.roundDockOverallBorderThickness, extrusionVars.roundDockOverallBorderColor));
             root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.targetBorderColor, extrusionVars.targetOverallBorderThickness, extrusionVars.targetOverallBorderColor));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.speedBorderColor, extrusionVars.speedOverallBorderThickness, extrusionVars.speedOverallBorderColor));
             root.setProperty('--result-win-fill-color', extrusionVars.winFillColor);
@@ -3308,6 +3353,7 @@
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
             'sliderRoundAnimDuration': '--round-anim-duration-ms',
+            'sliderRoundShrinkDuration': '--round-shrink-duration-ms',
             'sliderRoundFlashDuration': '--round-flash-duration-ms',
             'sliderTargetFontSize': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
@@ -3383,6 +3429,12 @@
             } else if (desktopId === 'sliderRoundOverallBorderThickness') {
                 extrusionVars.roundOverallBorderThickness = value;
                 applyExtrusionStyles();
+            } else if (desktopId === 'sliderRoundDockExtrusionDepth') {
+                extrusionVars.roundDockDepth = value;
+                applyExtrusionStyles();
+            } else if (desktopId === 'sliderRoundDockOverallBorderThickness') {
+                extrusionVars.roundDockOverallBorderThickness = value;
+                applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
             }
@@ -3422,6 +3474,8 @@
                 'colorTargetExtrusionBorder': 'targetBorderColor',
                 'colorSpeedExtrusionBorder': 'speedBorderColor',
                 'colorRoundOverallBorder': 'roundOverallBorderColor',
+                'colorRoundDockExtrusionBorder': 'roundDockBorderColor',
+                'colorRoundDockOverallBorder': 'roundDockOverallBorderColor',
                 'colorTargetOverallBorder': 'targetOverallBorderColor',
                 'colorSpeedOverallBorder': 'speedOverallBorderColor',
             };
@@ -3864,20 +3918,31 @@
         // text", per explicit request, even if that slider is later tuned.
         function dockRoundText() {
             const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            // Shrink-specific duration, set alongside (not after) the
+            // position/size/shadow overrides below so the browser picks up
+            // both together for THIS transition - the same trick
+            // .game-text's transition-duration already relies on reading a
+            // var(), just toggled per-direction here.
+            gameText.style.setProperty('--round-anim-duration-ms', cssVars['--round-shrink-duration-ms']);
             gameText.style.setProperty('--text-x-offset-vw', activeVars['--round-dock-x-offset-vw']);
             gameText.style.setProperty('--text-y-offset-vh', activeVars['--round-dock-y-offset-vh']);
             gameText.style.setProperty('--text-font-size-vw', activeVars['--speed-font-size-vw']);
+            gameText.style.setProperty('--round-extrusion-shadow', 'var(--round-dock-extrusion-shadow)');
         }
 
-        // Returns Round Text to its normal large/centered position/size by
-        // removing the inline override dockRoundText() set - .game-text's
-        // CSS then falls back to reading the root-level (dev-panel-driven)
-        // --text-x-offset-vw/--text-y-offset-vh/--text-font-size-vw again,
-        // the same transition animating it back.
+        // Returns Round Text to its normal large/centered position/size/
+        // extrusion by removing every inline override dockRoundText() set -
+        // .game-text's CSS then falls back to reading the root-level (dev-
+        // panel-driven) values again, the same transition animating it back
+        // (now at the GROW duration, since --round-anim-duration-ms's own
+        // override is removed too, falling back to the root/"big state"
+        // value).
         function undockRoundText() {
+            gameText.style.removeProperty('--round-anim-duration-ms');
             gameText.style.removeProperty('--text-x-offset-vw');
             gameText.style.removeProperty('--text-y-offset-vh');
             gameText.style.removeProperty('--text-font-size-vw');
+            gameText.style.removeProperty('--round-extrusion-shadow');
         }
 
         function showRoundText(roundNum) {
