@@ -1924,6 +1924,33 @@
                     <span class="dev-label">Hide Shadow - Frame Index B:</span>
                     <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexB" step="1" value="0">
                 </div>
+                <!-- Flight-direction zone floor/ceiling, per side - 4 typed
+                     angles (not sliders, per explicit request), single/
+                     shared like the Hide Shadow inputs above (not mobile-
+                     split). Own angle convention, DIFFERENT from the rest
+                     of this codebase: 0 = straight up, increasing
+                     CLOCKWISE - see clickBurstUserAngleToTrigRad() in
+                     spawnClickBurstSide() for the conversion into this
+                     file's usual trig-angle convention. Defaults (30/150
+                     right, 210/330 left) exactly reproduce the fixed
+                     120deg zones this replaces, so nothing changes on a
+                     fresh load until these are actually edited. -->
+                <div class="dev-row">
+                    <span class="dev-label">Right Floor Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputClickBurstRightFloorDeg" step="1" value="30">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Right Ceiling Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputClickBurstRightCeilingDeg" step="1" value="150">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Left Floor Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputClickBurstLeftFloorDeg" step="1" value="210">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Left Ceiling Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputClickBurstLeftCeilingDeg" step="1" value="330">
+                </div>
             </div>
         </div>
 
@@ -3353,15 +3380,21 @@
         }
 
         // Flight-direction zones (origin still comes from the guide curve
-        // above) - per explicit request, left-side particles must fly with
-        // a curved path to the left, right-side to the right, mirror
-        // images of each other. Clock-position notation converted to this
-        // codebase's own angle convention (0=rightward/3-o'clock,
-        // increasing clockwise since screen Y increases downward -
-        // trigAngle = (clockHour-3)*30deg). Both 120deg wide, centered on
-        // the horizontal, deliberately excluding straight-up/straight-down.
-        const CLICK_BURST_RIGHT_ZONE = [(1 - 3) * Math.PI / 6, (5 - 3) * Math.PI / 6]; // [-60deg, 60deg]
-        const CLICK_BURST_LEFT_ZONE = [(7 - 3) * Math.PI / 6, (11 - 3) * Math.PI / 6]; // [120deg, 240deg]
+        // above) - now user-configurable via 4 typed angle inputs (Right/
+        // Left Floor/Ceiling), per explicit request, rather than the fixed
+        // 120deg zones this used to be. The 4 inputs use a DIFFERENT angle
+        // convention than the rest of this codebase - 0 = straight up,
+        // increasing CLOCKWISE (a compass-bearing-style convention, per
+        // explicit spec) - while this codebase's own trig angle convention
+        // is 0 = rightward/3-o'clock, increasing clockwise (screen Y is
+        // down). Converts one to the other: userDeg=90 (compass east/
+        // right) must land on trigRad=0 (this codebase's "right"), so
+        // trigRad = (userDeg - 90) * PI/180 - verified against both axes
+        // (userDeg=0/up -> trigRad=-90deg -> (cos,sin)=(0,-1)=up; userDeg=
+        // 180/down -> trigRad=90deg -> (0,1)=down).
+        function clickBurstUserAngleToTrigRad(deg) {
+            return (deg - 90) * Math.PI / 180;
+        }
 
         function spawnClickBurstSide(routePathEl, mirror, containerRect, buttonRect) {
             // Click frame set stays single/shared (see updateClickFrameSet()),
@@ -3394,7 +3427,12 @@
             const count = countMin + Math.floor(Math.random() * (countMax - countMin + 1));
 
             const pieces = sampleClickRoutePieces(routePathEl, count);
-            const zone = mirror ? CLICK_BURST_RIGHT_ZONE : CLICK_BURST_LEFT_ZONE;
+            const zoneFloorId = mirror ? 'inputClickBurstRightFloorDeg' : 'inputClickBurstLeftFloorDeg';
+            const zoneCeilingId = mirror ? 'inputClickBurstRightCeilingDeg' : 'inputClickBurstLeftCeilingDeg';
+            const zone = [
+                clickBurstUserAngleToTrigRad(parseFloat(document.getElementById(zoneFloorId).value)),
+                clickBurstUserAngleToTrigRad(parseFloat(document.getElementById(zoneCeilingId).value)),
+            ];
             const zoneSliceWidth = (zone[1] - zone[0]) / pieces.length;
 
             // Hide Shadow - Frame Index A/B: 2 typed cutoffs (see
