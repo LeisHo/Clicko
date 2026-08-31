@@ -4173,6 +4173,12 @@
 
         function showRoundText(roundNum) {
             gameState.canTap = false;
+            const newText = `ROUND ${roundNum}`;
+            // Whatever's already showing (the OLD round's docked text, or
+            // nothing on a fresh game) - captured BEFORE any change below,
+            // since undockRoundText() only touches position/size, not text.
+            const hadPreviousRound = !!gameText.textContent && gameText.textContent !== newText;
+
             undockRoundText();
             gameText.classList.remove('hidden');
             // Hidden here explicitly (not left for showTargetAndSpeed() to
@@ -4188,35 +4194,36 @@
             targetCount.classList.add('hidden');
             speedDisplay.classList.add('hidden');
 
-            const newText = `ROUND ${roundNum}`;
-            // Flash: briefly clear just the number before showing the new
-            // one ("Round 1, the 1 disappears briefly, then a 2 takes its
-            // place"), per explicit request - only on a genuine change from
-            // an already-shown round, not the very first round of a game
-            // (nothing to flash away from yet).
-            if (gameText.textContent && gameText.textContent !== newText) {
+            if (!hadPreviousRound) {
+                // Nothing to grow/flash away from (very first round of a
+                // game, or already showing this exact round) - just show it
+                // large immediately, hold, then dock into gameplay.
+                gameText.textContent = newText;
+                setTimeout(() => {
+                    dockRoundText();
+                    showTargetAndSpeed();
+                }, gameState.roundDuration);
+                return;
+            }
+
+            // The OLD number stays on screen and grows/moves to the big
+            // state WITH the word "Round" (textContent is left untouched
+            // here - undockRoundText() above only animates position/size),
+            // per explicit request ("the old round number should scale and
+            // move with the word Round"). Holds at big size for
+            // gameState.roundDuration (the existing "Round Text Duration"
+            // slider, reused rather than adding a duplicate), THEN flashes
+            // (briefly clears just the number - "the 1 disappears briefly")
+            // and becomes the new number, THEN docks into gameplay - per
+            // explicit request for that exact hold -> flash -> new-number
+            // sequence, replacing the old flash-first-then-grow order.
+            setTimeout(() => {
                 gameText.textContent = 'ROUND';
                 setTimeout(() => {
                     gameText.textContent = newText;
+                    dockRoundText();
+                    showTargetAndSpeed();
                 }, cssVars['--round-flash-duration-ms']);
-            } else {
-                gameText.textContent = newText;
-            }
-
-            // Round Text stays large for gameState.roundDuration (the
-            // existing "Round Text Duration" slider - reused here rather
-            // than adding a duplicate, since it already means exactly
-            // "how long Round text stays large on screen"), then docks to
-            // the corner as target/speed become visible. Docking and
-            // revealing target/speed happen together, not staggered - the
-            // large-Round-text phase and the target/speed-visible
-            // (gameplay) phase are mutually exclusive by construction, and
-            // win/lose text only ever shows AFTER gameplay ends (see
-            // endGame()), so the large Round text and the Win/Lose text
-            // can never be on screen at the same time.
-            setTimeout(() => {
-                dockRoundText();
-                showTargetAndSpeed();
             }, gameState.roundDuration);
         }
 
