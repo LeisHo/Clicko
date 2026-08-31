@@ -549,7 +549,11 @@
             position: absolute;
             left: calc(50% + var(--result-x-offset-vw) * 1vw);
             top: calc(50% + var(--result-y-offset-vh) * 1vh);
-            transform: translate(-50%, -50%);
+            /* Rotated 90deg on top of the usual centering translate - the
+               ":)"/":(" glyphs in the pixel font used here render in a way
+               that only reads as a correct smiley face once turned on its
+               side, per direct visual confirmation. */
+            transform: translate(-50%, -50%) rotate(90deg);
             font-size: calc(var(--result-font-size-vw) * 1vw);
             font-weight: 700;
             font-family: var(--text-font);
@@ -2250,48 +2254,12 @@
             </div>
         </div>
 
-        <!-- Game Mechanics Section -->
-        <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Game Mechanics</div>
-            <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Starting Max Time (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileStartingSpeed" min="50" max="800" step="10" value="600">
-                    <span class="dev-value" id="valueMobileStartingSpeed">600</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Speed Decrease (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedDecrease" min="5" max="150" step="5" value="30">
-                    <span class="dev-value" id="valueMobileSpeedDecrease">30</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Debounce Window (ms, same pos only):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTapDebounce" min="0" max="400" step="10" value="50">
-                    <span class="dev-value" id="valueMobileTapDebounce">50</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundDuration" min="200" max="3000" step="50" value="1000">
-                    <span class="dev-value" id="valueMobileRoundDuration">1000</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Result Text Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultDuration" min="200" max="3000" step="50" value="1000">
-                    <span class="dev-value" id="valueMobileResultDuration">1000</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Background Section -->
-        <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Background</div>
-            <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileBg" value="#f2f2f2">
-                </div>
-            </div>
-        </div>
+        <!-- Game Mechanics and Background Color are NOT per-device settings -
+             there's only one game in progress and one page background, not a
+             separate one per breakpoint - so unlike every visual section
+             above, they don't get a Mobile Overrides duplicate. See
+             applyGameMechanicsSlider() and the unconditional --bg-color line
+             in applyActiveVars(). -->
 
 
 
@@ -2453,7 +2421,8 @@
             '--text-color': '#000000',
             '--target-color': '#000000',
             '--speed-color': '#000000',
-            '--bg-color': '#f2f2f2',
+            // No --bg-color here - the background color is a single shared
+            // value (colorVars['--bg-color'] only), see applyActiveVars().
         };
         const mobileFontVars = {
             '--numbers-font': '"Press Start 2P", monospace',
@@ -2800,6 +2769,10 @@
             for (const [key, value] of Object.entries(activeFontVars)) {
                 document.documentElement.style.setProperty(key, value);
             }
+            // Background color is not device-split like everything else
+            // above - always the single shared colorVars value, regardless
+            // of which breakpoint is active.
+            document.documentElement.style.setProperty('--bg-color', colorVars['--bg-color']);
             // Button/base hue-rotate aren't part of cssVars (they're computed
             // on the fly from whichever color picker is active) - refresh them
             // here too so a breakpoint crossing repaints them correctly.
@@ -3703,8 +3676,11 @@
 
             if (won) {
                 setButtonHue('#22dd44');
-                const winMsg = winMessages[Math.floor(Math.random() * winMessages.length)];
-                resultText.textContent = winMsg;
+                // Replaced the randomized winMessages pool with a plain ":)"
+                // per explicit request - winMessages itself is left in place
+                // (harmless unused data) rather than deleted, in case this is
+                // revisited.
+                resultText.textContent = ':)';
                 resultText.classList.remove('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
@@ -3715,9 +3691,11 @@
                 }, gameState.resultDuration);
             } else {
                 setButtonHue('#dd3333');
-                const pool = reason === 'too-many' ? tooManyMessages : notEnoughMessages;
-                const loseMsg = pool[Math.floor(Math.random() * pool.length)];
-                resultText.textContent = `${loseMsg} (${gameState.currentTapCount}/${gameState.targetCount})`;
+                // Same replacement as the win case above - plain ":(" instead
+                // of the randomized tooManyMessages/notEnoughMessages pools
+                // (and the trailing "(count/target)" suffix, which was part
+                // of the same "randomized text" being replaced).
+                resultText.textContent = ':(';
                 resultText.classList.remove('hidden');
                 targetCount.classList.add('hidden');
                 renderRoundBreakdown();
