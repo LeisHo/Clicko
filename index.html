@@ -565,6 +565,19 @@
             white-space: nowrap;
             pointer-events: none;
             z-index: 10;
+            /* Shrink-and-dock animation: dockRoundText()/undockRoundText()
+               (see JS) toggle --text-x-offset-vw/--text-y-offset-vh/
+               --text-font-size-vw as an INLINE override directly on this
+               element (higher specificity than the root-level value), so
+               these same 3 properties this rule already reads drive both
+               the "large, centered" state (root/default value, dev-panel
+               sliders) and the "small, docked" state (inline override) -
+               no separate .docked CSS rule or duplicate position vars
+               needed. This transition is what makes that property swap
+               animate instead of jumping instantly. */
+            transition-property: left, top, font-size;
+            transition-duration: calc(var(--round-anim-duration-ms) * 1ms);
+            transition-timing-function: var(--round-anim-easing);
         }
 
         .game-text.hidden {
@@ -1893,6 +1906,36 @@
                     <span class="dev-label">Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#000000">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Dock X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-40">
+                    <span class="dev-value" id="valueRoundDockX">-40</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Dock Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="40">
+                    <span class="dev-value" id="valueRoundDockY">40</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Anim. Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundAnimDuration" min="0" max="2000" step="10" value="400">
+                    <span class="dev-value" id="valueRoundAnimDuration">400</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Anim. Tweening:</span>
+                    <select class="dev-select" id="selectRoundAnimEasing" onchange="updateRoundAnimEasing()">
+                        <option value="linear">Linear</option>
+                        <option value="ease">Ease</option>
+                        <option value="ease-in">Ease In</option>
+                        <option value="ease-out">Ease Out</option>
+                        <option value="ease-in-out" selected>Ease In Out</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Flash Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundFlashDuration" min="0" max="1000" step="10" value="150">
+                    <span class="dev-value" id="valueRoundFlashDuration">150</span>
+                </div>
             </div>
         </div>
 
@@ -2276,6 +2319,16 @@
                     <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
                     <span class="dev-value" id="valueMobileTextY">-16.5</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Dock X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
+                    <span class="dev-value" id="valueMobileRoundDockX">-30</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Dock Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
+                    <span class="dev-value" id="valueMobileRoundDockY">35</span>
+                </div>
             </div>
         </div>
 
@@ -2435,6 +2488,21 @@
             '--text-font-size-vw': 13.4,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -8.5,
+            // Round Text's "docked" (small, corner) position once gameplay
+            // starts - see dockRoundText()/undockRoundText(). Font-size
+            // isn't listed here since it intentionally always MATCHES
+            // whatever --speed-font-size-vw currently is ("shrinks to the
+            // same size as the speed text"), not an independent value.
+            '--round-dock-x-offset-vw': -40,
+            '--round-dock-y-offset-vh': 40,
+            // Shared/single, not mobile-split - timing values like the
+            // existing Game Mechanics sliders (Round/Result Duration),
+            // not spatial ones. Applied unconditionally regardless of
+            // breakpoint, same pattern as --bg-color - see the
+            // unconditional lines in applyActiveVars().
+            '--round-anim-duration-ms': 400,
+            '--round-anim-easing': 'ease-in-out',
+            '--round-flash-duration-ms': 150,
             '--target-font-size-vw': 7.1,
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -35.5,
@@ -2647,6 +2715,8 @@
             '--text-font-size-vw': 18.5,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -16.5,
+            '--round-dock-x-offset-vw': -30,
+            '--round-dock-y-offset-vh': 35,
             '--target-font-size-vw': 25,
             '--target-x-offset-vw': 20,
             '--target-y-offset-vh': -23.5,
@@ -3056,6 +3126,14 @@
             // above - always the single shared colorVars value, regardless
             // of which breakpoint is active.
             document.documentElement.style.setProperty('--bg-color', colorVars['--bg-color']);
+            // Round Text's shrink/dock animation timing (duration/easing/
+            // flash) - also not device-split, same reasoning as the
+            // existing Game Mechanics timing sliders. Dock POSITION
+            // (--round-dock-x/y-offset) stays in the normal mobile-split
+            // loop above since it's spatial, not timing.
+            document.documentElement.style.setProperty('--round-anim-duration-ms', cssVars['--round-anim-duration-ms']);
+            document.documentElement.style.setProperty('--round-anim-easing', cssVars['--round-anim-easing']);
+            document.documentElement.style.setProperty('--round-flash-duration-ms', cssVars['--round-flash-duration-ms']);
             // Button/base hue-rotate aren't part of cssVars (they're computed
             // on the fly from whichever color picker is active) - refresh them
             // here too so a breakpoint crossing repaints them correctly.
@@ -3159,6 +3237,13 @@
             applyExtrusionStyles();
         }
 
+        // Round Text shrink/dock animation easing - single/shared like its
+        // duration/flash siblings, not mobile-split.
+        function updateRoundAnimEasing() {
+            cssVars['--round-anim-easing'] = document.getElementById('selectRoundAnimEasing').value;
+            applyActiveVars();
+        }
+
         // Which set of pre-drawn click-burst frames to use - a single shared
         // choice, not mobile/desktop-split like the visual cssVars above
         // (there's one game running, and which artwork style to use isn't a
@@ -3220,6 +3305,10 @@
             'sliderTextFontSize': '--text-font-size-vw',
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
+            'sliderRoundDockX': '--round-dock-x-offset-vw',
+            'sliderRoundDockY': '--round-dock-y-offset-vh',
+            'sliderRoundAnimDuration': '--round-anim-duration-ms',
+            'sliderRoundFlashDuration': '--round-flash-duration-ms',
             'sliderTargetFontSize': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
@@ -3765,14 +3854,77 @@
         }).observe(roundBreakdownPanel);
 
         // Game logic
+        // Moves Round Text to its small "docked" corner position/size -
+        // sets --text-x-offset-vw/--text-y-offset-vh/--text-font-size-vw
+        // directly on the element itself (overriding the root-level value
+        // .game-text's CSS otherwise reads), so the existing transition on
+        // those same 3 properties animates the change. Font-size is read
+        // from --speed-font-size-vw at the moment of docking (not a fixed
+        // dock font-size) so it always matches "the same size as the speed
+        // text", per explicit request, even if that slider is later tuned.
+        function dockRoundText() {
+            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            gameText.style.setProperty('--text-x-offset-vw', activeVars['--round-dock-x-offset-vw']);
+            gameText.style.setProperty('--text-y-offset-vh', activeVars['--round-dock-y-offset-vh']);
+            gameText.style.setProperty('--text-font-size-vw', activeVars['--speed-font-size-vw']);
+        }
+
+        // Returns Round Text to its normal large/centered position/size by
+        // removing the inline override dockRoundText() set - .game-text's
+        // CSS then falls back to reading the root-level (dev-panel-driven)
+        // --text-x-offset-vw/--text-y-offset-vh/--text-font-size-vw again,
+        // the same transition animating it back.
+        function undockRoundText() {
+            gameText.style.removeProperty('--text-x-offset-vw');
+            gameText.style.removeProperty('--text-y-offset-vh');
+            gameText.style.removeProperty('--text-font-size-vw');
+        }
+
         function showRoundText(roundNum) {
             gameState.canTap = false;
-            gameText.textContent = `ROUND ${roundNum}`;
+            undockRoundText();
             gameText.classList.remove('hidden');
+            // Hidden here explicitly (not left for showTargetAndSpeed() to
+            // hide later) - a REAL pre-existing overlap, found while
+            // building this: the win path's resultText (":)"), never
+            // explicitly hidden until showTargetAndSpeed() ran at the END
+            // of the large-Round-text phase, was staying on screen for the
+            // entire large-announcement window, directly on top of it. Per
+            // explicit request the large Round text must never overlap the
+            // Win/Lose text, so it's hidden right here instead, before the
+            // large announcement even starts.
+            resultText.classList.add('hidden');
             targetCount.classList.add('hidden');
             speedDisplay.classList.add('hidden');
 
+            const newText = `ROUND ${roundNum}`;
+            // Flash: briefly clear just the number before showing the new
+            // one ("Round 1, the 1 disappears briefly, then a 2 takes its
+            // place"), per explicit request - only on a genuine change from
+            // an already-shown round, not the very first round of a game
+            // (nothing to flash away from yet).
+            if (gameText.textContent && gameText.textContent !== newText) {
+                gameText.textContent = 'ROUND';
+                setTimeout(() => {
+                    gameText.textContent = newText;
+                }, cssVars['--round-flash-duration-ms']);
+            } else {
+                gameText.textContent = newText;
+            }
+
+            // Round Text stays large for gameState.roundDuration (the
+            // existing "Round Text Duration" slider - reused here rather
+            // than adding a duplicate, since it already means exactly
+            // "how long Round text stays large on screen"), then docks to
+            // the corner as target/speed become visible. Docking and
+            // revealing target/speed happen together, not staggered - the
+            // large-Round-text phase and the target/speed-visible
+            // (gameplay) phase are mutually exclusive by construction, and
+            // win/lose text only ever shows AFTER gameplay ends (see
+            // endGame()), so the large Round text and the Win/Lose text
+            // can never be on screen at the same time.
             setTimeout(() => {
+                dockRoundText();
                 showTargetAndSpeed();
             }, gameState.roundDuration);
         }
@@ -3800,7 +3952,11 @@
             // the dev 'r' reset shortcut, matching the tap log's own lifetime
             // and guaranteeing the visible counter and the log can never
             // disagree again.
-            gameText.classList.add('hidden');
+            //
+            // gameText (Round Text) is deliberately NOT hidden here anymore -
+            // it's already been docked to its small corner position by
+            // showRoundText()'s own setTimeout (see there) and stays visible
+            // throughout gameplay instead of disappearing.
             resultText.classList.add('hidden');
             targetCount.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
@@ -4147,6 +4303,7 @@
                 startButton.classList.remove('hidden');
                 startButton.textContent = 'START';
                 gameText.classList.add('hidden');
+                undockRoundText();
                 resultText.classList.add('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
