@@ -1866,55 +1866,56 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Animation Speed (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstSpeed" min="80" max="1000" step="10" value="300">
-                    <span class="dev-value" id="valueClickBurstSpeed">300</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstSpeed" min="80" max="1000" step="10" value="1000">
+                    <span class="dev-value" id="valueClickBurstSpeed">1000</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Frame Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstScale" min="0" max="1" step="0.01" value="0.4">
-                    <span class="dev-value" id="valueClickBurstScale">0.40</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstScale" min="0" max="1" step="0.01" value="0.42">
+                    <span class="dev-value" id="valueClickBurstScale">0.42</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Distance Out (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstDistance" min="10" max="300" step="5" value="135">
-                    <span class="dev-value" id="valueClickBurstDistance">135</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstDistance" min="10" max="300" step="5" value="180">
+                    <span class="dev-value" id="valueClickBurstDistance">180</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height / Lift (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="55">
-                    <span class="dev-value" id="valueClickBurstHeight">55</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="20">
+                    <span class="dev-value" id="valueClickBurstHeight">20</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Curve Offset (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCurveOffset" min="0" max="150" step="5" value="0">
-                    <span class="dev-value" id="valueClickBurstCurveOffset">0</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCurveOffset" min="0" max="150" step="5" value="75">
+                    <span class="dev-value" id="valueClickBurstCurveOffset">75</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Flight Path Curviness (x):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCurveAmount" min="0" max="3" step="0.05" value="1">
-                    <span class="dev-value" id="valueClickBurstCurveAmount">1.00</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCurveAmount" min="0" max="3" step="0.05" value="0.5">
+                    <span class="dev-value" id="valueClickBurstCurveAmount">0.50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Count Per Side - Floor:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="3">
-                    <span class="dev-value" id="valueClickBurstCountMin">3</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="4">
+                    <span class="dev-value" id="valueClickBurstCountMin">4</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Count Per Side - Ceiling:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="5">
-                    <span class="dev-value" id="valueClickBurstCountMax">5</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="6">
+                    <span class="dev-value" id="valueClickBurstCountMax">6</span>
                 </div>
                 <!-- Replaces the earlier "No Shadow on Top 2 Left Frames"
-                     checkbox with 2 typed frame-index selectors, applied to
-                     BOTH sides identically (not left-only anymore) - per
+                     checkbox with 2 typed frame-position CUTOFFS, applied
+                     to BOTH sides identically (not left-only anymore) - per
                      explicit request. Single/shared, not mobile-split - an
                      artistic choice, not a spatial value that would differ
-                     between device breakpoints. 1 = topmost frame, 2 = 2nd
-                     from top, -1 = bottommost, -2 = 2nd from bottom, etc.
-                     0/empty = no effect. If a side's actual particle count
-                     that click is smaller than the requested index, that
-                     index simply has nothing to hide that burst (see
-                     resolveHideShadowIndex() in spawnClickBurstSide()). -->
+                     between device breakpoints. A value of N hides the
+                     RANGE from that side's edge up to and including N, not
+                     just position N: 2 hides the top 2 (1 and 2), -1 hides
+                     the bottom 1, -3 hides the bottom 3, etc. 0/empty =
+                     no effect. Silently clamps to a burst's own actual
+                     particle count when the cutoff exceeds it (see
+                     resolveHideShadowRange() in spawnClickBurstSide()). -->
                 <div class="dev-row">
                     <span class="dev-label">Hide Shadow - Frame Index A:</span>
                     <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexA" step="1" value="0">
@@ -2137,8 +2138,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">New Number Hold (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="400">
-                    <span class="dev-value" id="valueRoundPostBlinkHold">400</span>
+                    <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="1300">
+                    <span class="dev-value" id="valueRoundPostBlinkHold">1300</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Small State - Extrusion Depth (px):</span>
@@ -2792,14 +2793,14 @@
             '--button-x-offset-vw': -1,
             '--button-y-offset-vh': 6.76,
             '--button-release-ms': 10,
-            '--click-burst-speed-ms': 300,
-            '--click-burst-scale': 0.4,
-            '--click-burst-distance-px': 135,
-            '--click-burst-height-px': 55,
-            '--click-burst-curve-offset-px': 0,
-            '--click-burst-count-min': 3,
-            '--click-burst-count-max': 5,
-            '--click-burst-curve-amount': 1,
+            '--click-burst-speed-ms': 1000,
+            '--click-burst-scale': 0.42,
+            '--click-burst-distance-px': 180,
+            '--click-burst-height-px': 20,
+            '--click-burst-curve-offset-px': 75,
+            '--click-burst-count-min': 4,
+            '--click-burst-count-max': 6,
+            '--click-burst-curve-amount': 0.5,
             // Not truly a CSS var (nothing reads it via var()) - piggybacking
             // on this object purely so the frame-set choice is included in
             // copySettings()/saveSettings() for free, matching every other
@@ -2855,7 +2856,7 @@
             // into gameplay - per explicit request for a dedicated slider
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
-            '--round-post-blink-hold-ms': 400,
+            '--round-post-blink-hold-ms': 1300,
             '--target-font-size-vw': 11.74,
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -32.71,
@@ -3329,20 +3330,26 @@
             return points;
         }
 
-        // Resolves a 1-indexed, sign-aware frame-position selector (the
-        // "Hide Shadow - Frame Index A/B" dev-panel inputs) against this
-        // burst's own pieces, sorted top-to-bottom by viewBox Y: 1 =
-        // topmost, 2 = 2nd from top, -1 = bottommost, -2 = 2nd from bottom,
-        // etc. Returns -1 (no match) for 0/empty, or an index outside this
-        // burst's own actual piece count (e.g. index 4 rolled on a 3-piece
-        // burst) - deliberately a silent no-op for that burst rather than
-        // an error, since count is randomized per click.
-        function resolveHideShadowIndex(pieces, signedIndex) {
-            if (!signedIndex) return -1;
+        // Resolves a 1-indexed, sign-aware CUTOFF (the "Hide Shadow - Frame
+        // Index A/B" dev-panel inputs) into the full set of piece indices
+        // it hides, against this burst's own pieces sorted top-to-bottom by
+        // viewBox Y - a positive N hides the top N (1 through N inclusive),
+        // a negative N hides the bottom |N| (-1 through N inclusive). E.g.
+        // 2 hides the top 2 (positions 1 and 2); -1 hides just the bottom 1.
+        // 0/empty hides nothing. Silently clamps to this burst's own actual
+        // piece count (e.g. a cutoff of 4 on a 3-piece burst just hides all
+        // 3) rather than erroring, since count is randomized per click.
+        function resolveHideShadowRange(pieces, signedCutoff) {
+            const indices = new Set();
+            if (!signedCutoff) return indices;
             const sorted = pieces.map((p, idx) => idx).sort((a, b) => pieces[a].y - pieces[b].y);
-            const pos = signedIndex > 0 ? signedIndex - 1 : sorted.length + signedIndex;
-            if (pos < 0 || pos >= sorted.length) return -1;
-            return sorted[pos];
+            if (signedCutoff > 0) {
+                for (let k = 0; k < Math.min(signedCutoff, sorted.length); k++) indices.add(sorted[k]);
+            } else {
+                const n = Math.min(-signedCutoff, sorted.length);
+                for (let k = 0; k < n; k++) indices.add(sorted[sorted.length - 1 - k]);
+            }
+            return indices;
         }
 
         // Flight-direction zones (origin still comes from the guide curve
@@ -3390,16 +3397,19 @@
             const zone = mirror ? CLICK_BURST_RIGHT_ZONE : CLICK_BURST_LEFT_ZONE;
             const zoneSliceWidth = (zone[1] - zone[0]) / pieces.length;
 
-            // Hide Shadow - Frame Index A/B: 2 typed selectors (see
-            // resolveHideShadowIndex()), applied to BOTH sides identically -
-            // each side resolves its own top-to-bottom order independently,
-            // per explicit request replacing the earlier checkbox.
+            // Hide Shadow - Frame Index A/B: 2 typed cutoffs (see
+            // resolveHideShadowRange()), applied to BOTH sides identically -
+            // each side resolves its own top-to-bottom order independently.
+            // Per explicit clarification: a value of N doesn't select just
+            // the Nth piece, it hides the whole range from that side's edge
+            // up to and including N (e.g. 2 hides the top 2, -1 hides the
+            // bottom 1).
             const hideIndexA = parseInt(document.getElementById('inputClickBurstHideShadowIndexA')?.value, 10) || 0;
             const hideIndexB = parseInt(document.getElementById('inputClickBurstHideShadowIndexB')?.value, 10) || 0;
-            const noShadowIndices = new Set(
-                [resolveHideShadowIndex(pieces, hideIndexA), resolveHideShadowIndex(pieces, hideIndexB)]
-                    .filter(idx => idx !== -1)
-            );
+            const noShadowIndices = new Set([
+                ...resolveHideShadowRange(pieces, hideIndexA),
+                ...resolveHideShadowRange(pieces, hideIndexB),
+            ]);
 
             for (let i = 0; i < pieces.length; i++) {
                 // Checked per-particle, not once before the loop - a burst
