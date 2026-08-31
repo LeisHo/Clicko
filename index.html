@@ -456,10 +456,25 @@
            click-burst-fly animation already animates opacity itself, and an
            actively-animated property always wins over a plain declared
            value on the same element, so a static opacity:0.5 here would be
-           silently overridden to 1 for most of the flight. */
+           silently overridden to 1 for most of the flight.
+
+           offset-rotate:0deg, NOT the base class's auto 90deg - confirmed via
+           a user-provided screen recording that letting the shadow ALSO
+           auto-rotate to follow its own flight path, on top of the explicit
+           skew/stretch/rotate transform below, compounds the two rotations
+           into a barely-recognizable thin sliver instead of a shadow that
+           still reads as the same shape (zoomed frame comparison showed the
+           "shadow" as a completely different silhouette, not just a
+           darkened copy - this is very likely what read as "a second frame
+           set" being used). Only the shadow's POSITION should track the
+           curved path; its own rotation stays fixed, driven solely by the
+           skew/stretch/rotate transform - the same way the main button/base
+           shadow has one fixed "cast shadow" look, not a rotation that
+           varies with anything. */
         .click-burst-particle-shadow {
             filter: brightness(0);
             animation-name: click-burst-fly-shadow;
+            offset-rotate: 0deg;
         }
         @keyframes click-burst-fly-shadow {
             0% { offset-distance: 0%; opacity: 0.5; }
