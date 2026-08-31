@@ -537,9 +537,11 @@
                its own comment on offset-rotate/the +90deg) means the
                shadow now always faces the direction it's actually moving,
                same as its real counterpart - the "cast shadow" look comes
-               entirely from the WARPED PATH itself (transformShadowPoint()
-               in spawnClickBurstSide()) plus the gray filter, not from an
-               extra fixed sprite rotation. */
+               entirely from the shadow CONTAINER's own transform (see
+               spawnClickBurst() - a byte-for-byte copy of .shadow-caster-
+               layer's own transform, applied via real CSS, not a JS
+               reimplementation of the same math) plus the gray filter, not
+               from an extra fixed sprite rotation. */
         }
         @keyframes click-burst-fly-shadow {
             /* Fully opaque (not semi-transparent) while visible, for the
@@ -1644,7 +1646,22 @@
   <path class="base-cls-5" d="M518.79,249.87c-.59-1.32-.72-2.73-1.97-3.14-.08-.02-.16-.05-.24-.07-.06,7.11-.12,14.09-.14,19.95.21,1.08.4,2.07.55,2.92.66,3.79,1.13,7.55,1.38,11.3h0c.04.65.08,1.31.11,1.96,0,.15.01.3.02.46.03.64.05,1.28.06,1.92,0,.16,0,.31,0,.47.03,1.93,0,3.85-.11,5.77-.02.29-.03.57-.05.86-.03.52-.07,1.04-.12,1.57-.03.35-.06.69-.1,1.04-.05.49-.09.98-.15,1.47-.09.75-.18,1.5-.29,2.25-.06.39-.13.79-.19,1.18-.08.48-.16.97-.25,1.45-.07.39-.15.77-.22,1.15-.1.52-.22,1.05-.33,1.57-.07.33-.14.66-.22.99-.2.84-.41,1.67-.63,2.5-.04.15-.09.29-.13.43-.21.73-.42,1.47-.65,2.2-.08.25-.16.5-.24.75-.22.67-.45,1.35-.69,2.02-.07.21-.15.41-.22.62-.33.88-.67,1.76-1.03,2.64-12.75,30.87-39.95,53.91-68.91,69.53-44.06,23.75-94.69,33.59-144.66,33.28-45.03-.28-91.35-9.33-131.82-29.25-5.59-2.75-11.01-5.72-16.26-8.93-10.99-6.71-21.24-14.45-30.7-23.4-8.74-8.28-15.96-17.36-22.04-27.64-.18-.3-.35-.61-.52-.92-.39-.67-.77-1.34-1.14-2.02-.25-.46-.48-.93-.73-1.4-.28-.53-.56-1.07-.82-1.61-.25-.52-.49-1.04-.73-1.56-.23-.49-.46-.98-.68-1.47-.25-.56-.48-1.12-.72-1.68-.19-.46-.38-.91-.56-1.37-.24-.6-.46-1.2-.68-1.8-.16-.42-.31-.84-.46-1.26-.22-.64-.44-1.28-.65-1.93-.12-.38-.24-.75-.36-1.13-.21-.69-.42-1.38-.61-2.08-.09-.32-.17-.63-.25-.95-.2-.76-.4-1.52-.57-2.28-.05-.23-.1-.45-.15-.68-.19-.85-.38-1.71-.54-2.57-.01-.07-.02-.13-.03-.2-1.33-7.16-1.68-14.51-.98-21.95.08-.9.18-1.81.29-2.71,0-.12,0-.24,0-.36.1-1.71.16-8.09.2-16.47-.48.18-1.18.77-1.47.95-.41.25-.54.74-.75,1.37-1.9,5.65-3.36,11.36-4.12,17.19h-.01c-.16,1.2-.27,2.4-.37,3.61,0,.03,0,.05,0,.08-.18,2.35-.26,4.73-.19,7.13.45,14.69,4.54,28.33,11.78,41.2,16.89,30.01,46.77,51.67,77.44,66.4,23.43,11.25,48.15,18.67,73.85,23.14,45.39,7.9,91.99,6.53,136.81-4.07,24.48-5.79,47.7-14.67,69.62-26.79,31.47-17.41,61.95-44.83,72.66-80.09.99-3.24,1.82-6.55,2.45-9.92.02-.09.03-.18.04-.27.16-.88.31-1.76.44-2.64.07-.44.12-.87.18-1.31.07-.52.14-1.04.19-1.57.06-.54.12-1.07.17-1.61.03-.36.06-.73.09-1.09,1.18-14.8-1.75-29.55-7.88-43.15Z"/>
 </svg></div>
         </div>
-        <div class="click-burst-shadow-container" id="clickBurstShadowContainer"></div>
+        <!-- Two separate shadow containers, one per side - each carries a
+             CSS transform (translate/rotate/scale/skewX/scaleY) that's a
+             byte-for-byte copy of .shadow-caster-layer's own transform (see
+             its CSS and spawnClickBurst(), which sets these dynamically),
+             pivoted at the button's own center via transform-origin - the
+             literal "same physical transformation applied to base and
+             button, applied as-is to the click frames" per explicit
+             request, letting the browser's own transform math do the work
+             instead of a hand-derived JS reimplementation of it (which
+             turned out not to be equivalent - a modest ~40px input offset
+             was coming out amplified to ~127px). Two containers, not one,
+             because the two sides need MIRRORED skew (same reasoning as
+             the sprite-level mirror fix earlier) - a single shared
+             transform can't differ per child. -->
+        <div class="click-burst-shadow-container" id="clickBurstShadowContainerRight"></div>
+        <div class="click-burst-shadow-container" id="clickBurstShadowContainerLeft"></div>
         <div class="click-burst-container" id="clickBurstContainer"></div>
         <button class="start-button" id="startButton">START</button>
         <div class="game-text" id="gameText"></div>
@@ -3065,7 +3082,8 @@
         const clickCounter = document.getElementById('clickCounter');
         const buttonAssembly = document.getElementById('buttonAssembly');
         const clickBurstContainer = document.getElementById('clickBurstContainer');
-        const clickBurstShadowContainer = document.getElementById('clickBurstShadowContainer');
+        const clickBurstShadowContainerRight = document.getElementById('clickBurstShadowContainerRight');
+        const clickBurstShadowContainerLeft = document.getElementById('clickBurstShadowContainerLeft');
 
         // Click burst - comic-style "impact line" shapes flung out from the
         // button/base seam on every accepted tap. See the .click-burst-*
@@ -3110,23 +3128,6 @@
         // down from its top edge.
         const SEAM_Y_FRACTION = 0.58;
 
-        // Applies the SAME 2D affine warp the main button/base shadow's own
-        // CSS transform uses (scaleY -> skewX -> rotate, composed in that
-        // order - matching .shadow-caster-layer's documented right-to-left
-        // reasoning) to a single LOCAL point. Used to pre-warp a burst
-        // shadow's own flight-path coordinates (control point + end point),
-        // not just its sprite - see the call site below for why "location"
-        // needs this too, not only "form".
-        function transformShadowPoint(x, y, skewDeg, stretch, rotateDeg) {
-            const sy = y * stretch;
-            const skewRad = skewDeg * Math.PI / 180;
-            const sx = x + sy * Math.tan(skewRad);
-            const rotRad = rotateDeg * Math.PI / 180;
-            const rx = sx * Math.cos(rotRad) - sy * Math.sin(rotRad);
-            const ry = sx * Math.sin(rotRad) + sy * Math.cos(rotRad);
-            return [rx, ry];
-        }
-
         function spawnClickBurstSide(zone, mirror, containerRect, buttonRect) {
             const count = 2 + Math.floor(Math.random() * 3); // 2-4, per explicit request
             // Click frame set stays single/shared (see updateClickFrameSet()),
@@ -3143,15 +3144,9 @@
 
             const distance = activeVars['--click-burst-distance-px'];
             const height = activeVars['--click-burst-height-px'];
-            const shadowSkewDeg = activeVars['--shadow-skew'];
-            const shadowStretch = activeVars['--shadow-stretch'];
-            const shadowRotateDeg = activeVars['--shadow-rotate'];
-            // Same fixed pixel offset the main button/base shadow is cast
-            // by, reused here so burst shadows read as "projected onto the
-            // background" rather than flying in the same spot as their real
-            // particle.
-            const shadowXOffset = activeVars['--shadow-x-offset'];
-            const shadowYOffset = activeVars['--shadow-y-offset'];
+            // Which per-side shadow container this burst's shadows belong
+            // in - see spawnClickBurst(), which sets each one's transform.
+            const shadowContainer = mirror ? clickBurstShadowContainerRight : clickBurstShadowContainerLeft;
 
             // Deterministic angle slots, not random-within-a-margin - per
             // explicit request that click frames must never overlap, in
@@ -3165,27 +3160,15 @@
             const zoneWidth = zone[1] - zone[0];
             const sliceWidth = zoneWidth / count;
 
-            // The button/base shadow's own skew/stretch/rotate all pivot
-            // around the BUTTON'S OWN CENTER (.shadow-caster-layer sits at
-            // inset:0 over .button-assembly, so its default transform-origin
-            // is button-assembly's own center) - per explicit request to
-            // use "the same skew, stretch, rotate base point as the button
-            // and base", burst shadows need the SAME pivot, not each
-            // particle's own scattered spawn point (the previous approach,
-            // which gave every particle a visually different, inconsistent
-            // warp depending on where along the seam it happened to spawn).
-            const buttonCenterX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
-            const buttonCenterY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
-
             for (let i = 0; i < count; i++) {
                 // Checked per-particle, not once before the loop - a burst
                 // starting 1-2 below the cap could otherwise still add its
                 // full batch and overshoot it (see the dev-panel resize
                 // handles' own identical fix earlier this session).
-                // Shadows now live in their own container (see
-                // .click-burst-shadow-container) - sum both so the cap still
-                // bounds total DOM nodes, not just real particles.
-                if (clickBurstContainer.children.length + clickBurstShadowContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
+                // Shadows now live in their own containers (2, one per side
+                // - see .click-burst-shadow-container) - sum all 3 so the
+                // cap still bounds total DOM nodes, not just real particles.
+                if (clickBurstContainer.children.length + clickBurstShadowContainerRight.children.length + clickBurstShadowContainerLeft.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
 
                 const angle = zone[0] + sliceWidth * (i + 0.5);
                 const dirX = Math.cos(angle);
@@ -3242,9 +3225,10 @@
                 // shadows looked mirrored relative to the right side) and
                 // verified by matrix composition: flip-then-skew(th) equals
                 // skew(-th)-then-flip. Negating the skew angle specifically
-                // when mirrored cancels that out, so both sides read as the
-                // same "cast shadow" direction rather than opposite ones.
-                const shadowSkewForSide = mirror ? -shadowSkewDeg : shadowSkewDeg;
+                // when mirrored cancels that out (see spawnClickBurst(),
+                // which builds each container's OWN transform using this
+                // same sign rule) - both sides read as the same "cast
+                // shadow" direction rather than opposite ones.
 
                 const img = document.createElement('img');
                 img.src = frameUrl;
@@ -3256,61 +3240,29 @@
                 if (mirror) img.style.transform = 'scaleX(-1)';
 
                 // Paired shadow: same frame, flattened to gray, in its own
-                // lower-z-index container (behind the button/base - see
-                // .click-burst-shadow-container). Its FLIGHT PATH is the
-                // real particle's own path pre-warped through the exact
-                // same skew/stretch/rotate transform the main button/base
-                // shadow's CSS applies, PIVOTED AROUND THE BUTTON'S OWN
-                // CENTER (buttonCenterX/Y, computed once above) exactly
-                // like .shadow-caster-layer's own transform does - not
-                // around each particle's own spawn point, and not just the
-                // same path shifted by a constant offset. That's what makes
-                // every burst shadow, regardless of where along the seam it
-                // spawns, warp consistently around the SAME base point the
-                // real button/base shadow does, per explicit request ("use
-                // the same skew, stretch, rotate base point as the button
-                // and base"). shadowToAbsolute() converts a point to
-                // button-center-relative coordinates, applies the linear
-                // (no-translate) part of the transform, adds the button
-                // center back, then adds shadowXOffset/shadowYOffset as the
-                // transform's translate component - same order
-                // .shadow-caster-layer's own transform chain uses
-                // (translate outermost/last). The sprite's OWN rendering
-                // then gets the identical skew/stretch/rotate applied a
-                // second time via its CSS transform below (the "form" half
-                // of the same request) - both halves use the same numbers,
-                // they're just two different technical channels
-                // (motion-path coordinates for location, CSS transform for
-                // the sprite's own pixels) for what is conceptually one
-                // single transform.
-                const shadowToAbsolute = (px, py) => {
-                    const [tx, ty] = transformShadowPoint(px - buttonCenterX, py - buttonCenterY, shadowSkewForSide, shadowStretch, shadowRotateDeg);
-                    return [buttonCenterX + tx + shadowXOffset, buttonCenterY + ty + shadowYOffset];
-                };
-                const [shadowOriginAbsX, shadowOriginAbsY] = shadowToAbsolute(originX, originY);
-                const [shadowCtrlAbsX, shadowCtrlAbsY] = shadowToAbsolute(originX + ctrlX, originY + ctrlY);
-                const [shadowEndAbsX, shadowEndAbsY] = shadowToAbsolute(originX + endX, originY + endY);
-                const shadowOffsetPath = `path('M0,0 Q${(shadowCtrlAbsX - shadowOriginAbsX).toFixed(1)},${(shadowCtrlAbsY - shadowOriginAbsY).toFixed(1)} ${(shadowEndAbsX - shadowOriginAbsX).toFixed(1)},${(shadowEndAbsY - shadowOriginAbsY).toFixed(1)}')`;
-
+                // lower-z-index, per-side container (behind the button/base
+                // - see .click-burst-shadow-container). Uses the EXACT SAME
+                // left/top/offsetPath as the real particle above, completely
+                // UNWARPED - the container itself (see spawnClickBurst())
+                // already carries the real skew/stretch/rotate/translate
+                // transform, pivoted at the button's own center, so the
+                // browser's own transform math does the warping, identical
+                // to how .shadow-caster-layer warps the real button/base
+                // shadow. No JS re-derivation of that math needed or
+                // wanted - a from-scratch reimplementation of it turned out
+                // NOT to be equivalent (a modest ~40px input offset was
+                // coming out amplified to ~127px), per explicit request to
+                // just reuse the same transform as-is instead.
                 const shadow = document.createElement('img');
                 shadow.src = frameUrl;
                 shadow.className = 'click-burst-particle click-burst-particle-shadow';
                 shadow.alt = '';
-                shadow.style.left = shadowOriginAbsX + 'px';
-                shadow.style.top = shadowOriginAbsY + 'px';
-                shadow.style.offsetPath = shadowOffsetPath;
-                // Mirror only - matching the real particle's own transform
-                // exactly (see .click-burst-particle-shadow's CSS comment
-                // for why the fixed rotate/skewX/scaleY that used to be
-                // here is gone). offset-rotate:auto 90deg (inherited from
-                // .click-burst-particle) already orients the sprite to
-                // face wherever the WARPED shadow path is actually heading
-                // at each point, using the real, per-particle flight angle
-                // instead of one fixed angle that could only ever match a
-                // single direction.
+                shadow.style.left = originX + 'px';
+                shadow.style.top = originY + 'px';
+                shadow.style.offsetPath = offsetPath;
                 if (mirror) shadow.style.transform = 'scaleX(-1)';
                 shadow.addEventListener('animationend', () => shadow.remove());
-                clickBurstShadowContainer.appendChild(shadow);
+                shadowContainer.appendChild(shadow);
 
                 img.addEventListener('animationend', () => img.remove());
                 clickBurstContainer.appendChild(img);
@@ -3320,6 +3272,27 @@
         function spawnClickBurst() {
             const containerRect = clickBurstContainer.getBoundingClientRect();
             const buttonRect = buttonAssembly.getBoundingClientRect();
+
+            // Set each shadow container's transform to a byte-for-byte copy
+            // of .shadow-caster-layer's own CSS transform (same functions,
+            // same order: translate outermost/last, then rotate, then
+            // scale, then skewX, then scaleY innermost/first - see that
+            // rule's own comment for why this exact order matters),
+            // pivoted at the button's own center via transform-origin. Two
+            // containers because the two sides need mirrored skew (see the
+            // HTML comment on these elements) - right keeps the skew as-is,
+            // left negates it, the same sign logic already proven correct
+            // for the sprite-level mirror fix earlier this session.
+            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            const buttonCenterX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
+            const buttonCenterY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
+            const originStr = `${buttonCenterX}px ${buttonCenterY}px`;
+            const buildTransform = (skewDeg) => `translate(${activeVars['--shadow-x-offset']}px, ${activeVars['--shadow-y-offset']}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']})`;
+            clickBurstShadowContainerRight.style.transformOrigin = originStr;
+            clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
+            clickBurstShadowContainerLeft.style.transformOrigin = originStr;
+            clickBurstShadowContainerLeft.style.transform = buildTransform(-activeVars['--shadow-skew']);
+
             // Every click triggers 2-4 frames on BOTH sides (independently
             // randomized counts), not one randomly-side-picked burst.
             spawnClickBurstSide(RIGHT_ZONE, true, containerRect, buttonRect);
