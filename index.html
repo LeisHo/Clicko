@@ -47,8 +47,18 @@
            own artwork fully covers the button's excess geometry now. */
         .button-assembly {
             position: absolute;
-            width: calc(var(--button-diameter-vw) * 1vw);
-            height: calc(var(--button-diameter-vw) * 1.02598 * 1vw);
+            /* max(), not just the vw calc - the button is purely vw-sized, so
+               on a narrow browser window (still well above the mobile
+               breakpoint, so mobileCssVars doesn't kick in) it shrinks along
+               with the window and can end up looking too small. max() picks
+               whichever is larger: the normal vw-proportional size, or a
+               fixed-px floor - the button now never renders smaller than
+               that floor, while still scaling up normally on wider windows.
+               --button-min-diameter-px defaults low enough (below the
+               desktop button's normal rendered size at any typical width)
+               that it has no effect until the window actually gets narrow. */
+            width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vw));
+            height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vw));
             left: calc(50% + var(--button-x-offset-vw) * 1vw);
             top: calc(50% + var(--button-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
@@ -1500,6 +1510,11 @@
                     <span class="dev-value" id="valueButtonDiameter">42.5</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Min Diameter (px, floor on narrow windows):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonMinDiameter" min="0" max="500" step="5" value="200">
+                    <span class="dev-value" id="valueButtonMinDiameter">200</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
                     <input type="range" class="dev-slider" id="sliderButtonHeight" min="-30" max="30" step="0.5" value="-4.5">
                     <span class="dev-value" id="valueButtonHeight">-4.5</span>
@@ -1864,6 +1879,11 @@
                     <span class="dev-value" id="valueMobileButtonDiameter">60</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Min Diameter (px, floor on narrow windows):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonMinDiameter" min="0" max="500" step="5" value="200">
+                    <span class="dev-value" id="valueMobileButtonMinDiameter">200</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
                     <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-4.5">
                     <span class="dev-value" id="valueMobileButtonHeight">-4.50</span>
@@ -2214,6 +2234,7 @@
         // CSS Variables initialization
         const cssVars = {
             '--button-diameter-vw': 42.5,
+            '--button-min-diameter-px': 200,
             '--button-height-offset-px': -4.5,
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': -1,
@@ -2300,6 +2321,7 @@
         // values here instead.
         const mobileCssVars = {
             '--button-diameter-vw': 60,
+            '--button-min-diameter-px': 200,
             '--button-height-offset-px': -4.5,
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': 0,
@@ -2490,13 +2512,20 @@
 
             // Stratified angle sampling, not fully independent random angles -
             // divide this side's zone into `count` equal slices and pick one
-            // random angle per slice, so 2 particles on the same side can
-            // never land within one slice-width of each other. Fully
-            // independent random angles could (and did) land close enough to
-            // visually overlap in flight; this guarantees a minimum angular
-            // separation instead.
+            // random angle per slice, WITH a reserved margin at each slice
+            // boundary the angle can never land in. Slicing alone (angle
+            // uniform across the FULL slice) only stops large-scale
+            // clustering - it does NOT guarantee a minimum gap, since
+            // particle i could still land at the very end of its slice and
+            // particle i+1 at the very start of its, landing them almost
+            // touching (confirmed happening: live-dispatched bursts measured
+            // gaps under 6deg despite a 30deg slice width). Reserving a 20%
+            // margin on each side of every slice and only picking within the
+            // remaining middle 60% guarantees a real minimum gap of
+            // 0.4 * sliceWidth between any two same-side particles.
             const zoneWidth = zone[1] - zone[0];
             const sliceWidth = zoneWidth / count;
+            const sliceMargin = sliceWidth * 0.2;
 
             for (let i = 0; i < count; i++) {
                 // Checked per-particle, not once before the loop - a burst
@@ -2506,7 +2535,7 @@
                 if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
 
                 const sliceStart = zone[0] + i * sliceWidth;
-                const angle = sliceStart + Math.random() * sliceWidth;
+                const angle = sliceStart + sliceMargin + Math.random() * (sliceWidth - 2 * sliceMargin);
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
 
@@ -2793,6 +2822,7 @@
         // visibly applied (via applyActiveVars()).
         const CSS_VAR_SLIDER_MAP = {
             'sliderButtonDiameter': '--button-diameter-vw',
+            'sliderButtonMinDiameter': '--button-min-diameter-px',
             'sliderButtonHeight': '--button-height-offset-px',
             'sliderButtonPressIntensity': '--button-press-intensity-px',
             'sliderButtonX': '--button-x-offset-vw',
