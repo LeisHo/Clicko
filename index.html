@@ -2480,7 +2480,7 @@
             '--button-height-offset-px': -4.5,
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': -1,
-            '--button-y-offset-vh': 5,
+            '--button-y-offset-vh': 6.76,
             '--button-release-ms': 10,
             '--click-burst-speed-ms': 300,
             '--click-burst-scale': 0.65,
@@ -2516,8 +2516,8 @@
             // isn't listed here since it intentionally always MATCHES
             // whatever --speed-font-size-vw currently is ("shrinks to the
             // same size as the speed text"), not an independent value.
-            '--round-dock-x-offset-vw': -40,
-            '--round-dock-y-offset-vh': 40,
+            '--round-dock-x-offset-vw': -44,
+            '--round-dock-y-offset-vh': 42.87,
             // Shared/single, not mobile-split - timing values like the
             // existing Game Mechanics sliders (Round/Result Duration),
             // not spatial ones. Applied unconditionally regardless of
@@ -2527,20 +2527,20 @@
             // transition; --round-shrink-duration-ms is its own separate
             // speed for the SHRINK (big->small) transition - per explicit
             // request that big/small each have their own move speed.
-            '--round-anim-duration-ms': 400,
+            '--round-anim-duration-ms': 70,
             '--round-shrink-duration-ms': 400,
             '--round-anim-easing': 'ease-in-out',
-            '--round-flash-duration-ms': 150,
+            '--round-flash-duration-ms': 1000,
             '--target-font-size-vw': 7.1,
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -35.5,
-            '--speed-font-size-vw': 2.3,
+            '--speed-font-size-vw': 2.12,
             '--speed-x-offset-vw': 39.5,
             '--speed-y-offset-vh': -20.5,
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
-            '--dev-panel-width-px': 441,
+            '--dev-panel-width-px': 683,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
             // with real viewport-computed values at load time, see below.
@@ -2556,7 +2556,7 @@
         // Color variables
         const colorVars = {
             '--button-color': '#ff3333',
-            '--ui-button-color': '#e82121',
+            '--ui-button-color': '#7b1214',
             '--bg-color': '#f2f2f2',
         };
 
@@ -2587,15 +2587,15 @@
             // 3, same as Target/Speed already had for depth - per explicit
             // request. Font, fill color, and size/position stay shared/own
             // as before (unaffected).
-            roundDepth: 4,
+            roundDepth: 9,
             roundBorderColor: '#000000',
-            roundOverallBorderThickness: 2,
+            roundOverallBorderThickness: 5,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
-            roundOverallBorderColor: '#000000',
+            roundOverallBorderColor: '#991a1c',
             // Round Text's DOCKED (small) state gets its own complete,
             // independent copy of every extrusion setting above - depth,
             // border/extrusion color, overall-border thickness, AND
@@ -2614,11 +2614,11 @@
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
-            targetBorderColor: '#000000',
-            targetOverallBorderColor: '#000000',
-            speedDepth: 15,
-            speedBorderColor: '#000000',
-            speedOverallBorderColor: '#000000',
+            targetBorderColor: '#ff0000',
+            targetOverallBorderColor: '#cc1b20',
+            speedDepth: 9,
+            speedBorderColor: '#ff0000',
+            speedOverallBorderColor: '#cc1b20',
             winFillColor: '#ffffff',
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
@@ -2634,7 +2634,7 @@
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
             targetOverallBorderThickness: 10,
-            speedOverallBorderThickness: 7,
+            speedOverallBorderThickness: 9,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
