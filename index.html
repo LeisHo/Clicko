@@ -352,6 +352,50 @@
         .game-button.pressed .btn-normal-svg { visibility: hidden; }
         .game-button.pressed .btn-pressed-svg { visibility: visible; }
 
+        /* Click burst - comic-style "impact line" shapes that fly out from the
+           button/base seam on every accepted tap (see spawnClickBurst() in the
+           script below). Deliberately plain img elements animated via CSS
+           motion-path, not a canvas/WebGL particle system - this project's
+           whole tap-response path is latency-sensitive (see this session's own
+           extensive per-tap rendering work elsewhere in this file), and a
+           persistent per-frame simulation loop would compete with exactly that.
+           transform/opacity/offset-distance are all compositor-only properties,
+           the same cheap category the button's own press-motion already uses -
+           no filter, no blur, no layout-triggering properties anywhere here. */
+        .click-burst-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            overflow: visible;
+        }
+        .click-burst-particle {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: calc(var(--click-burst-scale, 1) * 40px);
+            /* offset-distance animates via @keyframes below; offset-rotate:auto
+               orients the element to match the path's tangent direction as it
+               travels - exactly "the arrow follows the flight path curve
+               direction". The +90deg compensates for the source artwork's own
+               rest orientation (pointing straight up = "forward" in image
+               space), since offset-rotate:auto's 0deg baseline assumes an
+               element whose forward direction is +X (rightward), not +Y (up). */
+            offset-rotate: auto 90deg;
+            offset-distance: 0%;
+            opacity: 1;
+            will-change: offset-distance, opacity;
+            animation-name: click-burst-fly;
+            animation-duration: calc(var(--click-burst-speed-ms) * 1ms);
+            animation-timing-function: ease-out;
+            animation-fill-mode: forwards;
+        }
+        @keyframes click-burst-fly {
+            0% { offset-distance: 0%; opacity: 1; }
+            70% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; }
+        }
+
         /* Start Button (UI) */
         .start-button {
             position: absolute;
@@ -1331,6 +1375,7 @@
   <path class="base-cls-5" d="M525.61,301.24c.16-.88.31-1.76.44-2.64.07-.44.12-.87.18-1.31.07-.52.14-1.04.19-1.57.06-.54.12-1.07.17-1.61.03-.36.06-.73.09-1.09,1.18-14.8-1.75-29.55-7.88-43.15-.59-1.32-.72-2.73-1.97-3.14.31,7.39-1.15,15.2.18,22.8.66,3.79,1.13,7.55,1.38,11.3h0c.04.65.08,1.31.11,1.96,0,.15.01.3.02.46.03.64.05,1.28.06,1.92,0,.16,0,.31,0,.47.03,1.93,0,3.85-.11,5.77-.02.29-.03.57-.05.86-.03.52-.07,1.04-.12,1.57-.03.35-.06.69-.1,1.04-.05.49-.09.98-.15,1.47-.09.75-.18,1.5-.29,2.25-.06.39-.13.79-.19,1.18-.08.48-.16.97-.25,1.45-.07.39-.15.77-.22,1.15-.1.52-.22,1.05-.33,1.57-.07.33-.14.66-.22.99-.2.84-.41,1.67-.63,2.5-.04.15-.09.29-.13.43-.21.73-.42,1.47-.65,2.2-.08.25-.16.5-.24.75-.22.67-.45,1.35-.69,2.02-.07.21-.15.41-.22.62-.33.88-.67,1.76-1.03,2.64-12.75,30.87-39.95,53.91-68.91,69.53-44.06,23.75-94.69,33.59-144.66,33.28-45.03-.28-91.35-9.33-131.82-29.25-5.59-2.75-11.01-5.72-16.26-8.93-10.99-6.71-21.24-14.45-30.7-23.4-8.74-8.28-15.96-17.36-22.04-27.64-.18-.3-.35-.61-.52-.92-.39-.67-.77-1.34-1.14-2.02-.25-.46-.48-.93-.73-1.4-.28-.53-.56-1.07-.82-1.61-.25-.52-.49-1.04-.73-1.56-.23-.49-.46-.98-.68-1.47-.25-.56-.48-1.12-.72-1.68-.19-.46-.38-.91-.56-1.37-.24-.6-.46-1.2-.68-1.8-.16-.42-.31-.84-.46-1.26-.22-.64-.44-1.28-.65-1.93-.12-.38-.24-.75-.36-1.13-.21-.69-.42-1.38-.61-2.08-.09-.32-.17-.63-.25-.95-.2-.76-.4-1.52-.57-2.28-.05-.23-.1-.45-.15-.68-.19-.85-.38-1.71-.54-2.57-.01-.07-.02-.13-.03-.2-1.33-7.16-1.68-14.51-.98-21.95.15-1.63.34-3.26.59-4.9.72-4.7-.54-9.38-.29-13.74-.41-.09-.9-.18-1.27.05-.41.25-.54.74-.75,1.37-1.9,5.65-3.36,11.36-4.12,17.19h-.01c-.16,1.2-.27,2.4-.37,3.61,0,.03,0,.05,0,.08-.18,2.35-.26,4.73-.19,7.13.45,14.69,4.54,28.33,11.78,41.2,16.89,30.01,46.77,51.67,77.44,66.4,23.43,11.25,48.15,18.67,73.85,23.14,45.39,7.9,91.99,6.53,136.81-4.07,24.48-5.79,47.7-14.67,69.62-26.79,31.47-17.41,61.95-44.83,72.66-80.09.99-3.24,1.82-6.55,2.45-9.92.02-.09.03-.18.04-.27Z"/>
 </svg></div>
         </div>
+        <div class="click-burst-container" id="clickBurstContainer"></div>
         <button class="start-button" id="startButton">START</button>
         <div class="game-text" id="gameText"></div>
         <div class="result-text hidden" id="resultText"></div>
@@ -1462,6 +1507,42 @@
                     <span class="dev-label">Shadow Rotate (deg):</span>
                     <input type="range" class="dev-slider" id="sliderShadowRotate" min="-90" max="135" step="1" value="41">
                     <span class="dev-value" id="valueShadowRotate">41</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Click Burst Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Click Burst</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Frame Set:</span>
+                    <select class="dev-select" id="selectClickFrameSet" onchange="updateClickFrameSet()">
+                        <option value="CLICK1">Click 1</option>
+                        <option value="CLICK2">Click 2</option>
+                        <option value="CLICK3">Click 3</option>
+                        <option value="CLICK4">Click 4</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Animation Speed (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstSpeed" min="80" max="600" step="10" value="250">
+                    <span class="dev-value" id="valueClickBurstSpeed">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Frame Size (scale):</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstScale" min="0.2" max="2.5" step="0.05" value="1">
+                    <span class="dev-value" id="valueClickBurstScale">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Distance Out (px):</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstDistance" min="10" max="300" step="5" value="100">
+                    <span class="dev-value" id="valueClickBurstDistance">100</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height / Lift (px):</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="60">
+                    <span class="dev-value" id="valueClickBurstHeight">60</span>
                 </div>
             </div>
         </div>
@@ -1794,6 +1875,34 @@
             </div>
         </div>
 
+        <!-- Click Burst Section (frame set itself is shared, not per-device -
+             see updateClickFrameSet()'s own note) -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Click Burst</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Animation Speed (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstSpeed" min="80" max="600" step="10" value="250">
+                    <span class="dev-value" id="valueMobileClickBurstSpeed">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Frame Size (scale):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstScale" min="0.2" max="2.5" step="0.05" value="1">
+                    <span class="dev-value" id="valueMobileClickBurstScale">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Distance Out (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstDistance" min="10" max="300" step="5" value="100">
+                    <span class="dev-value" id="valueMobileClickBurstDistance">100</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height / Lift (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstHeight" min="0" max="200" step="5" value="60">
+                    <span class="dev-value" id="valueMobileClickBurstHeight">60</span>
+                </div>
+            </div>
+        </div>
+
         <!-- UI Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
@@ -2035,6 +2144,16 @@
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 6,
             '--button-release-ms': 0,
+            '--click-burst-speed-ms': 250,
+            '--click-burst-scale': 1,
+            '--click-burst-distance-px': 100,
+            '--click-burst-height-px': 60,
+            // Not truly a CSS var (nothing reads it via var()) - piggybacking
+            // on this object purely so the frame-set choice is included in
+            // copySettings()/saveSettings() for free, matching every other
+            // dev-panel setting's persistence. Shared, not mobile-split (see
+            // updateClickFrameSet()) - only ever read from here directly.
+            '--click-frame-set': 'CLICK1',
             '--shadow-x-offset': 201,
             '--shadow-y-offset': 62,
             '--shadow-blur': 1,
@@ -2108,6 +2227,10 @@
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
             '--button-release-ms': 0,
+            '--click-burst-speed-ms': 250,
+            '--click-burst-scale': 1,
+            '--click-burst-distance-px': 100,
+            '--click-burst-height-px': 60,
             '--shadow-x-offset': 201,
             '--shadow-y-offset': 62,
             '--shadow-blur': 1,
@@ -2229,6 +2352,90 @@
         const roundBreakdownTable = document.getElementById('roundBreakdownTable');
         const devPanel = document.getElementById('devPanel');
         const clickCounter = document.getElementById('clickCounter');
+        const buttonAssembly = document.getElementById('buttonAssembly');
+        const clickBurstContainer = document.getElementById('clickBurstContainer');
+
+        // Click burst - comic-style "impact line" shapes flung out from the
+        // button/base seam on every accepted tap. See the .click-burst-*
+        // CSS (above) for why this is plain img+CSS-motion-path, not a
+        // canvas/particle engine. 4 pre-extracted frame sets, 10 frames each
+        // (see data/BUTTON/CLICK/frames/) - only the currently-selected set's
+        // frames are ever spawned. Frame artwork is drawn pointing straight
+        // up, oriented for the LEFT side of the button; spawns on the right
+        // half get mirrored (see spawnClickBurst()).
+        const CLICK_FRAME_SETS = ['CLICK1', 'CLICK2', 'CLICK3', 'CLICK4'];
+        const CLICK_FRAME_URLS = {};
+        for (const set of CLICK_FRAME_SETS) {
+            CLICK_FRAME_URLS[set] = Array.from({ length: 10 }, (_, i) =>
+                `data/BUTTON/CLICK/frames/${set}/frame_${String(i + 1).padStart(2, '0')}.png`);
+        }
+
+        // Rapid tapping shouldn't be able to pile up an unbounded number of
+        // animating/pending-cleanup DOM nodes - cap concurrent particles and
+        // simply skip spawning a new burst once at the ceiling (the existing
+        // ones finish and self-remove within a few hundred ms regardless, so
+        // this only ever skips during a genuinely fast streak, never causes a
+        // permanent backlog).
+        const CLICK_BURST_MAX_CONCURRENT = 24;
+
+        function spawnClickBurst() {
+            if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
+
+            const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
+            const urls = CLICK_FRAME_URLS[frameSet];
+            if (!urls) return;
+
+            const containerRect = clickBurstContainer.getBoundingClientRect();
+            const buttonRect = buttonAssembly.getBoundingClientRect();
+            const centerX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
+            const centerY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
+            // Origin sits near the button/base seam, not dead center or past
+            // the visible edge - a fraction of the button's own radius.
+            const seamRadius = Math.min(buttonRect.width, buttonRect.height) / 2 * 0.85;
+
+            const count = 2 + Math.floor(Math.random() * 2); // 2-3, per the reference's "groups of 2-3"
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dirX = Math.cos(angle);
+                const dirY = Math.sin(angle);
+                const originX = centerX + dirX * seamRadius;
+                const originY = centerY + dirY * seamRadius;
+
+                const distance = cssVars['--click-burst-distance-px'];
+                const height = cssVars['--click-burst-height-px'];
+                // Continue outward along the same radial direction, then lift
+                // upward by `height` independent of that direction - "how far
+                // out" and "how high" stay two orthogonal, independently
+                // tunable controls rather than coupled into one.
+                const endX = dirX * distance;
+                const endY = dirY * distance - height;
+                // Quadratic bezier control point: path midpoint nudged
+                // perpendicular to the origin->end line by a random amount,
+                // for a natural swoosh that's genuinely different every time
+                // (not a separate slider - this randomization is the "why
+                // it's different every click" the reference asked for).
+                const perpX = -endY, perpY = endX;
+                const perpLen = Math.hypot(perpX, perpY) || 1;
+                const curveAmount = (Math.random() - 0.5) * 0.7 * distance;
+                const ctrlX = endX / 2 + (perpX / perpLen) * curveAmount;
+                const ctrlY = endY / 2 + (perpY / perpLen) * curveAmount;
+
+                const frameUrl = urls[Math.floor(Math.random() * urls.length)];
+                const mirror = dirX > 0; // right half of the button -> mirror the left-oriented artwork
+
+                const img = document.createElement('img');
+                img.src = frameUrl;
+                img.className = 'click-burst-particle';
+                img.alt = '';
+                img.style.left = originX + 'px';
+                img.style.top = originY + 'px';
+                img.style.offsetPath = `path('M0,0 Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}')`;
+                if (mirror) img.style.transform = 'scaleX(-1)';
+                img.addEventListener('animationend', () => img.remove());
+                clickBurstContainer.appendChild(img);
+            }
+        }
+
         const tapDiagnosticPanel = document.getElementById('tapDiagnosticPanel');
         const tapDiagnostic = document.getElementById('tapDiagnostic');
         const tapDiagnosticLog = [];
@@ -2403,6 +2610,16 @@
             applyFontSelection('selectMobileUIFont', '--ui-font', mobileFontVars);
         }
 
+        // Which set of pre-drawn click-burst frames to use - a single shared
+        // choice, not mobile/desktop-split like the visual cssVars above
+        // (there's one game running, and which artwork style to use isn't a
+        // screen-size-driven decision the way spatial layout is). Stored in
+        // cssVars purely so it rides along with copySettings()/saveSettings()
+        // for free - see its own declaration there.
+        function updateClickFrameSet() {
+            cssVars['--click-frame-set'] = document.getElementById('selectClickFrameSet').value;
+        }
+
         // Toggle section collapse
         function toggleSection(titleEl) {
             const content = titleEl.nextElementSibling;
@@ -2423,6 +2640,10 @@
             'sliderButtonX': '--button-x-offset-vw',
             'sliderButtonY': '--button-y-offset-vh',
             'sliderButtonReleaseMs': '--button-release-ms',
+            'sliderClickBurstSpeed': '--click-burst-speed-ms',
+            'sliderClickBurstScale': '--click-burst-scale',
+            'sliderClickBurstDistance': '--click-burst-distance-px',
+            'sliderClickBurstHeight': '--click-burst-height-px',
             'sliderShadowX': '--shadow-x-offset',
             'sliderShadowY': '--shadow-y-offset',
             'sliderShadowBlur': '--shadow-blur',
@@ -2941,6 +3162,7 @@
             lastAcceptedPointerType = pointerType;
             if (e) { lastAcceptedX = e.clientX; lastAcceptedY = e.clientY; }
             logTapDiagnostic(pointerType, gapMs, 'accepted', e);
+            spawnClickBurst();
 
             totalClickCount++;
             clickCounter.textContent = totalClickCount;
