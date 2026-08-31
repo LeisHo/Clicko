@@ -2427,7 +2427,7 @@
             '--shadow-stretch': 1.8,
             '--shadow-rotate': 41,
             '--ui-button-width-vw': 10,
-            '--ui-button-height-vh': 7,
+            '--ui-button-height-vh': 6,
             '--ui-button-font-size-vh': 2.1,
             '--ui-button-radius': 6,
             '--ui-button-x-offset-vw': -42.5,
@@ -2469,7 +2469,7 @@
         // Again/Round Text/Win-Lose share ONE font control instead of 3
         // separate ones. --numbers-font (Target/Speed) is unaffected.
         const fontVars = {
-            '--numbers-font': '"Press Start 2P", monospace',
+            '--numbers-font': '"Press Start 2P", sans-serif',
         };
 
         // 8-bit extruded text style: a single shared set (not mobile-split,
@@ -2500,14 +2500,14 @@
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
             roundOverallBorderColor: '#000000',
-            targetDepth: 18,
+            targetDepth: 20,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
             targetBorderColor: '#000000',
             targetOverallBorderColor: '#000000',
-            speedDepth: 11,
+            speedDepth: 15,
             speedBorderColor: '#000000',
             speedOverallBorderColor: '#000000',
             winFillColor: '#ffffff',
@@ -2644,18 +2644,18 @@
             '--ui-button-radius': 10,
             '--ui-button-x-offset-vw': 2.5,
             '--ui-button-y-offset-vh': -38,
-            '--text-font-size-vw': 18.1,
+            '--text-font-size-vw': 18.5,
             '--text-x-offset-vw': 0,
-            '--text-y-offset-vh': -20,
-            '--target-font-size-vw': 13.8,
-            '--target-x-offset-vw': 26.5,
-            '--target-y-offset-vh': -37.5,
-            '--speed-font-size-vw': 4.9,
-            '--speed-x-offset-vw': 26.5,
-            '--speed-y-offset-vh': -25.5,
-            '--result-font-size-vw': 25,
-            '--result-x-offset-vw': 3,
-            '--result-y-offset-vh': 4,
+            '--text-y-offset-vh': -16.5,
+            '--target-font-size-vw': 25,
+            '--target-x-offset-vw': 20,
+            '--target-y-offset-vh': -23.5,
+            '--speed-font-size-vw': 9,
+            '--speed-x-offset-vw': -23,
+            '--speed-y-offset-vh': -19.5,
+            '--result-font-size-vw': 11.4,
+            '--result-x-offset-vw': 0,
+            '--result-y-offset-vh': -20,
             '--round-breakdown-width-px': 280,
             '--round-breakdown-height-px': 350,
             '--round-breakdown-left-px': 20,
