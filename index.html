@@ -1501,18 +1501,18 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-30" max="30" step="0.5" value="-7">
-                    <span class="dev-value" id="valueButtonHeight">-7</span>
+                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-30" max="30" step="0.5" value="-4.5">
+                    <span class="dev-value" id="valueButtonHeight">-4.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Press Intensity (% of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="30" step="0.5" value="7">
-                    <span class="dev-value" id="valueButtonPressIntensity">7</span>
+                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="30" step="0.5" value="8">
+                    <span class="dev-value" id="valueButtonPressIntensity">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Release Speed (ms, 0=instant):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonReleaseMs" min="0" max="200" step="5" value="15">
-                    <span class="dev-value" id="valueButtonReleaseMs">15</span>
+                    <input type="range" class="dev-slider" id="sliderButtonReleaseMs" min="0" max="200" step="5" value="10">
+                    <span class="dev-value" id="valueButtonReleaseMs">10</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Color:</span>
@@ -1526,8 +1526,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonX" min="-50" max="50" step="0.5" value="0">
-                    <span class="dev-value" id="valueButtonX">0</span>
+                    <input type="range" class="dev-slider" id="sliderButtonX" min="-50" max="50" step="0.5" value="-1">
+                    <span class="dev-value" id="valueButtonX">-1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
@@ -1865,8 +1865,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height (offset, % of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-8.5">
-                    <span class="dev-value" id="valueMobileButtonHeight">-8.50</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonHeight" min="-30" max="30" step="0.5" value="-4.5">
+                    <span class="dev-value" id="valueMobileButtonHeight">-4.50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Press Intensity (% of diameter):</span>
@@ -2214,11 +2214,11 @@
         // CSS Variables initialization
         const cssVars = {
             '--button-diameter-vw': 42.5,
-            '--button-height-offset-px': -7,
-            '--button-press-intensity-px': 7,
-            '--button-x-offset-vw': 0,
+            '--button-height-offset-px': -4.5,
+            '--button-press-intensity-px': 8,
+            '--button-x-offset-vw': -1,
             '--button-y-offset-vh': 5,
-            '--button-release-ms': 15,
+            '--button-release-ms': 10,
             '--click-burst-speed-ms': 300,
             '--click-burst-scale': 0.65,
             '--click-burst-distance-px': 135,
@@ -2300,7 +2300,7 @@
         // values here instead.
         const mobileCssVars = {
             '--button-diameter-vw': 60,
-            '--button-height-offset-px': -8.5,
+            '--button-height-offset-px': -4.5,
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': 0,
             '--button-y-offset-vh': 15,
@@ -2462,12 +2462,12 @@
         // Spawn angle zones, clock-position notation converted to this
         // codebase's own angle convention (0=rightward/3-o'clock, increasing
         // clockwise since screen Y increases downward - trigAngle = (clockHour-3)*30deg).
-        // RIGHT: 2 o'clock to 5 o'clock. LEFT: 10 o'clock to 7 o'clock (i.e.
-        // sweeping the "short way", 10->9->8->7) - the mirror image of RIGHT
-        // across the vertical axis. Both deliberately exclude straight-up
-        // (11-1 o'clock) and straight-down (~6 o'clock).
-        const RIGHT_ZONE = [(2 - 3) * Math.PI / 6, (5 - 3) * Math.PI / 6]; // [-30deg, 60deg]
-        const LEFT_ZONE = [(7 - 3) * Math.PI / 6, (10 - 3) * Math.PI / 6]; // [120deg, 210deg]
+        // RIGHT: 1 o'clock to 5 o'clock. LEFT: 7 o'clock to 11 o'clock - the
+        // mirror image of RIGHT across the vertical axis (both 120deg wide,
+        // centered on the horizontal). Both deliberately exclude straight-up
+        // and straight-down.
+        const RIGHT_ZONE = [(1 - 3) * Math.PI / 6, (5 - 3) * Math.PI / 6]; // [-60deg, 60deg]
+        const LEFT_ZONE = [(7 - 3) * Math.PI / 6, (11 - 3) * Math.PI / 6]; // [120deg, 240deg]
 
         // The seam is the black curve where the base's flared bezel meets
         // the button's dome - measured from the rendered artwork (the base
@@ -2488,6 +2488,16 @@
             const shadowStretch = cssVars['--shadow-stretch'];
             const shadowRotateDeg = cssVars['--shadow-rotate'];
 
+            // Stratified angle sampling, not fully independent random angles -
+            // divide this side's zone into `count` equal slices and pick one
+            // random angle per slice, so 2 particles on the same side can
+            // never land within one slice-width of each other. Fully
+            // independent random angles could (and did) land close enough to
+            // visually overlap in flight; this guarantees a minimum angular
+            // separation instead.
+            const zoneWidth = zone[1] - zone[0];
+            const sliceWidth = zoneWidth / count;
+
             for (let i = 0; i < count; i++) {
                 // Checked per-particle, not once before the loop - a burst
                 // starting 1-2 below the cap could otherwise still add its
@@ -2495,7 +2505,8 @@
                 // handles' own identical fix earlier this session).
                 if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
 
-                const angle = zone[0] + Math.random() * (zone[1] - zone[0]);
+                const sliceStart = zone[0] + i * sliceWidth;
+                const angle = sliceStart + Math.random() * sliceWidth;
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
 
