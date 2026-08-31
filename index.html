@@ -2345,6 +2345,16 @@
                     <input type="range" class="dev-slider" id="sliderResultDuration" min="200" max="3000" step="50" value="1000">
                     <span class="dev-value" id="valueResultDuration">1000</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Target Floor - Round 1:</span>
+                    <input type="range" class="dev-slider" id="sliderTargetFloorBase" min="0" max="30" step="1" value="2">
+                    <span class="dev-value" id="valueTargetFloorBase">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Target Floor - Increase Per Round:</span>
+                    <input type="range" class="dev-slider" id="sliderTargetFloorIncrease" min="0" max="10" step="1" value="0">
+                    <span class="dev-value" id="valueTargetFloorIncrease">0</span>
+                </div>
             </div>
         </div>
 
@@ -3206,6 +3216,14 @@
             speedDecrease: 30,
             roundDuration: 1000,
             resultDuration: 1000,
+            // Minimum possible target count on Round 1, and how much that
+            // minimum rises per round (targetFloor = targetFloorBase +
+            // (currentRound-1) * targetFloorIncreasePerRound) - per
+            // explicit request for a round-scaling floor. Increase
+            // defaults to 0 (no scaling), reproducing the previous flat
+            // "always +2" behavior exactly until tuned.
+            targetFloorBase: 2,
+            targetFloorIncreasePerRound: 0,
             checkTimeoutId: null,
         };
 
@@ -3969,6 +3987,8 @@
             else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
             else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
+            else if (desktopId === 'sliderTargetFloorBase') gameState.targetFloorBase = value;
+            else if (desktopId === 'sliderTargetFloorIncrease') gameState.targetFloorIncreasePerRound = value;
         }
 
         // Applies a value to whatever a slider controls (a cssVar or a
@@ -4608,7 +4628,8 @@
         }
 
         function showTargetAndSpeed() {
-            gameState.targetCount = Math.floor(Math.random() * 29) + 2;
+            const targetFloor = gameState.targetFloorBase + (gameState.currentRound - 1) * gameState.targetFloorIncreasePerRound;
+            gameState.targetCount = Math.floor(Math.random() * 29) + targetFloor;
             gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - gameState.speedDecrease);
             // currentTapCount and friends are correctly PER-ROUND state - reset
             // here every time a new round begins, same as always.
