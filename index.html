@@ -2369,19 +2369,19 @@
             '--ui-button-radius': 6,
             '--ui-button-x-offset-vw': -42.5,
             '--ui-button-y-offset-vh': -41,
-            '--text-font-size-vw': 8,
+            '--text-font-size-vw': 13.4,
             '--text-x-offset-vw': 0,
-            '--text-y-offset-vh': -20,
-            '--target-font-size-vw': 8.5,
-            '--target-x-offset-vw': 39,
-            '--target-y-offset-vh': -36,
-            '--speed-font-size-vw': 3.7,
-            '--speed-x-offset-vw': 37.5,
-            '--speed-y-offset-vh': -16,
-            '--result-font-size-vw': 8,
+            '--text-y-offset-vh': -8.5,
+            '--target-font-size-vw': 7.1,
+            '--target-x-offset-vw': 39.5,
+            '--target-y-offset-vh': -35.5,
+            '--speed-font-size-vw': 2.3,
+            '--speed-x-offset-vw': 39.5,
+            '--speed-y-offset-vh': -20.5,
+            '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
-            '--result-y-offset-vh': -20,
-            '--dev-panel-width-px': 201,
+            '--result-y-offset-vh': -13,
+            '--dev-panel-width-px': 441,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
             // with real viewport-computed values at load time, see below.
@@ -2419,12 +2419,12 @@
         // request - everything else about the win/lose result text (font,
         // depth) still comes from the shared values above.
         const extrusionVars = {
-            font: '"Press Start 2P", monospace',
-            depth: 4,
+            font: '"Pixelify Sans", monospace',
+            depth: 5,
             fillColor: '#ffffff',
             borderColor: '#000000',
-            targetDepth: 4,
-            speedDepth: 4,
+            targetDepth: 18,
+            speedDepth: 11,
             winFillColor: '#ffffff',
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
@@ -2434,11 +2434,11 @@
             // one shared color, but thickness mirrors the depth split above
             // (shared for Start/TryAgain/Round/Win-Lose, own for Target, own
             // for Speed) since thickness is a spatial dimension like depth.
-            overallBorderEnabled: false,
+            overallBorderEnabled: true,
             overallBorderColor: '#000000',
-            overallBorderThickness: 2,
-            targetOverallBorderThickness: 2,
-            speedOverallBorderThickness: 2,
+            overallBorderThickness: 3,
+            targetOverallBorderThickness: 10,
+            speedOverallBorderThickness: 7,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
