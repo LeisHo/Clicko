@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clicko</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -493,8 +493,9 @@
             padding: 0;
             font-size: calc(var(--ui-button-height-vh) * 0.35vh);
             font-weight: 600;
-            font-family: var(--ui-font);
-            color: white;
+            font-family: var(--extrusion-font);
+            color: var(--extrusion-fill-color);
+            text-shadow: var(--extrusion-shadow);
             background: var(--ui-button-color);
             border: none;
             border-radius: calc(var(--ui-button-radius) * 1px);
@@ -528,8 +529,9 @@
             transform: translate(-50%, -50%);
             font-size: calc(var(--text-font-size-vw) * 1vw);
             font-weight: 700;
-            font-family: var(--text-font);
-            color: var(--text-color);
+            font-family: var(--extrusion-font);
+            color: var(--extrusion-fill-color);
+            text-shadow: var(--extrusion-shadow);
             text-align: center;
             white-space: nowrap;
             pointer-events: none;
@@ -542,9 +544,12 @@
 
         /* Win/Lose message text - split out from .game-text (which now only
            ever shows "ROUND X") so the two can be sized/positioned
-           independently. Shares --text-color/--text-font with the round
-           text rather than getting its own, since only size+position were
-           requested. */
+           independently. Font/depth are shared with the rest of the 8-bit
+           extruded style (--extrusion-font/--extrusion-shadow uses the same
+           shared depth), but fill/border color are its OWN pair per side
+           (.result-win/.result-lose below) rather than the shared 2-panel
+           colors every other extruded text uses - explicit request so a
+           win can read differently from a loss. */
         .result-text {
             position: absolute;
             left: calc(50% + var(--result-x-offset-vw) * 1vw);
@@ -556,19 +561,31 @@
             transform: translate(-50%, -50%) rotate(90deg);
             font-size: calc(var(--result-font-size-vw) * 1vw);
             font-weight: 700;
-            font-family: var(--text-font);
-            color: var(--text-color);
+            font-family: var(--extrusion-font);
             text-align: center;
             white-space: nowrap;
             pointer-events: none;
             z-index: 10;
         }
 
+        .result-text.result-win {
+            color: var(--result-win-fill-color);
+            text-shadow: var(--result-win-shadow);
+        }
+
+        .result-text.result-lose {
+            color: var(--result-lose-fill-color);
+            text-shadow: var(--result-lose-shadow);
+        }
+
         .result-text.hidden {
             display: none !important;
         }
 
-        /* Target Count Display */
+        /* Target Count Display - font stays on the existing Numbers Font
+           dropdown (excluded from the shared 8-bit style's font control),
+           but fill color is the shared extrusion fill (2-panel system) with
+           its OWN extrusion depth/shadow. */
         .target-count {
             position: absolute;
             left: calc(50% + var(--target-x-offset-vw) * 1vw);
@@ -577,7 +594,8 @@
             font-size: calc(var(--target-font-size-vw) * 1vw);
             font-weight: 700;
             font-family: var(--numbers-font);
-            color: var(--target-color);
+            color: var(--extrusion-fill-color);
+            text-shadow: var(--target-extrusion-shadow);
             pointer-events: none;
             z-index: 10;
             white-space: nowrap;
@@ -587,7 +605,7 @@
             display: none !important;
         }
 
-        /* Speed Display */
+        /* Speed Display - same pattern as Target Count above. */
         .speed-display {
             position: absolute;
             left: calc(50% + var(--speed-x-offset-vw) * 1vw);
@@ -596,7 +614,8 @@
             font-size: calc(var(--speed-font-size-vw) * 1vw);
             font-weight: 700;
             font-family: var(--numbers-font);
-            color: var(--speed-color);
+            color: var(--extrusion-fill-color);
+            text-shadow: var(--speed-extrusion-shadow);
             pointer-events: none;
             z-index: 10;
             white-space: nowrap;
@@ -1706,6 +1725,43 @@
             </div>
         </div>
 
+        <!-- 8-Bit Text Style Section - shared by Start, Try Again, Round Text,
+             and the Win/Lose emoticons: one font dropdown, one shared
+             extrusion depth, and 2 shared colors (fill + border/extrusion).
+             Target/Speed use the same 2 shared colors but get their OWN
+             extrusion depth (see their own sections below); Win/Lose use
+             the shared depth but their OWN colors (see Win/Lose Text
+             section below). Not mobile-split - a single shared stylistic
+             choice, like --click-frame-set. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ 8-Bit Text Style (Start/Try Again/Round/Win-Lose)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font:</span>
+                    <select class="dev-select" id="select8BitFont" onchange="update8BitFont()">
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
+                        <option value="VT323">VT323</option>
+                        <option value="Silkscreen">Silkscreen</option>
+                        <option value="Pixelify Sans">Pixelify Sans</option>
+                        <option value="Jersey 15">Jersey 15</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Fill Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorExtrusionFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorExtrusionBorder" value="#000000">
+                </div>
+            </div>
+        </div>
+
         <!-- UI Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
@@ -1721,24 +1777,8 @@
                     <span class="dev-value" id="valueUIButtonHeight">6</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Color:</span>
+                    <span class="dev-label">Color (button plate):</span>
                     <input type="color" class="dev-color-picker" id="colorUIButton" value="#e82121">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font:</span>
-                    <select class="dev-select" id="selectUIFont" onchange="updateUIFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Press Start 2P" selected>Press Start 2P</option>
-                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Corner Radius (px):</span>
@@ -1768,26 +1808,6 @@
                     <span class="dev-value" id="valueTextFontSize">8</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Font:</span>
-                    <select class="dev-select" id="selectTextFont" onchange="updateTextFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Press Start 2P" selected>Press Start 2P</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorText" value="#000000">
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.5" value="0">
                     <span class="dev-value" id="valueTextX">0</span>
@@ -1800,10 +1820,12 @@
             </div>
         </div>
 
-        <!-- Win/Lose Text Section - shares --text-color/--text-font with Round
-             Text (only size/position were requested as independently
-             controllable) but has its own size/position so it can read
-             differently from the round announcement. -->
+        <!-- Win/Lose Text Section - font and extrusion depth are shared with
+             the rest of the 8-bit style (see that section above), and
+             size/position are its own like before, but fill/border color
+             are its OWN pair per side (win vs lose) rather than the shared
+             2-panel colors every other extruded text uses - explicit
+             request so a win can read differently from a loss. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Win/Lose Text</div>
             <div class="dev-section-content">
@@ -1821,6 +1843,22 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderResultY" min="-50" max="50" step="0.5" value="-20">
                     <span class="dev-value" id="valueResultY">-20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Fill Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorResultWinFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorResultWinBorder" value="#22dd44">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Fill Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorResultLoseFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#dd3333">
                 </div>
             </div>
         </div>
@@ -1851,8 +1889,9 @@
                     </select>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTarget" value="#000000">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -1877,8 +1916,9 @@
                     <span class="dev-value" id="valueSpeedFontSize">3.7</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorSpeed" value="#000000">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueSpeedExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -2085,24 +2125,8 @@
                     <span class="dev-value" id="valueMobileUIButtonHeight">6</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Color:</span>
+                    <span class="dev-label">Color (button plate):</span>
                     <input type="color" class="dev-color-picker" id="colorMobileUIButton" value="#3366dd">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font:</span>
-                    <select class="dev-select" id="selectMobileUIFont" onchange="updateMobileUIFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Press Start 2P" selected>Press Start 2P</option>
-                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Corner Radius (px):</span>
@@ -2130,26 +2154,6 @@
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.1" value="8">
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font:</span>
-                    <select class="dev-select" id="selectMobileTextFont" onchange="updateMobileTextFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Press Start 2P" selected>Press Start 2P</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileText" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -2212,10 +2216,6 @@
                     </select>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileTarget" value="#000000">
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.5" value="20">
                     <span class="dev-value" id="valueMobileTargetX">20</span>
@@ -2236,10 +2236,6 @@
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="1" max="25" step="0.1" value="9">
                     <span class="dev-value" id="valueMobileSpeedFontSize">9</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileSpeed" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -2349,18 +2345,71 @@
         const colorVars = {
             '--button-color': '#ff3333',
             '--ui-button-color': '#e82121',
-            '--text-color': '#000000',
-            '--target-color': '#000000',
-            '--speed-color': '#000000',
             '--bg-color': '#f2f2f2',
         };
 
-        // Font variables
+        // Font variables - --ui-font/--text-font used to live here but are
+        // now driven by extrusionVars.font (see below) since Start/Try
+        // Again/Round Text/Win-Lose share ONE font control instead of 3
+        // separate ones. --numbers-font (Target/Speed) is unaffected.
         const fontVars = {
             '--numbers-font': '"Press Start 2P", monospace',
-            '--text-font': '"Press Start 2P", monospace',
-            '--ui-font': '"Press Start 2P", monospace',
         };
+
+        // 8-bit extruded text style: a single shared set (not mobile-split,
+        // like --click-frame-set) covering Start/Try Again/Round Text/Target/
+        // Speed/Win-Lose. font/depth/fillColor/borderColor are the shared
+        // controls used by Start+TryAgain+Round+WinLose (font+depth) and by
+        // Start+TryAgain+Round+Target+Speed (the 2 colors); targetDepth and
+        // speedDepth are each element's own extrusion depth; win*/lose* are
+        // the Win/Lose result text's own separate color pair, per explicit
+        // request - everything else about the win/lose result text (font,
+        // depth) still comes from the shared values above.
+        const extrusionVars = {
+            font: '"Press Start 2P", monospace',
+            depth: 4,
+            fillColor: '#ffffff',
+            borderColor: '#000000',
+            targetDepth: 4,
+            speedDepth: 4,
+            winFillColor: '#ffffff',
+            winBorderColor: '#22dd44',
+            loseFillColor: '#ffffff',
+            loseBorderColor: '#dd3333',
+        };
+
+        // Builds a stepped diagonal text-shadow stack (1 layer per px of
+        // depth) - the CSS-native way to fake a solid pixel-block 3D
+        // extrusion, since text-shadow has no built-in "depth" parameter and
+        // CSS custom properties can't loop. Recomputed into a plain string
+        // and stored in a --*-shadow custom property whenever depth/color
+        // changes (see applyExtrusionStyles()).
+        function buildExtrusionShadow(depthPx, borderColor) {
+            const steps = Math.round(depthPx);
+            if (steps <= 0) return 'none';
+            const layers = [];
+            for (let i = 1; i <= steps; i++) {
+                layers.push(`${i}px ${i}px 0 ${borderColor}`);
+            }
+            return layers.join(', ');
+        }
+
+        // Pushes extrusionVars onto the DOM as CSS custom properties - the
+        // shared font/fill color are used directly; the shadow stacks are
+        // precomputed per element since each needs its own depth and/or
+        // border color (see the comment on extrusionVars above).
+        function applyExtrusionStyles() {
+            const root = document.documentElement.style;
+            root.setProperty('--extrusion-font', extrusionVars.font);
+            root.setProperty('--extrusion-fill-color', extrusionVars.fillColor);
+            root.setProperty('--extrusion-shadow', buildExtrusionShadow(extrusionVars.depth, extrusionVars.borderColor));
+            root.setProperty('--target-extrusion-shadow', buildExtrusionShadow(extrusionVars.targetDepth, extrusionVars.borderColor));
+            root.setProperty('--speed-extrusion-shadow', buildExtrusionShadow(extrusionVars.speedDepth, extrusionVars.borderColor));
+            root.setProperty('--result-win-fill-color', extrusionVars.winFillColor);
+            root.setProperty('--result-win-shadow', buildExtrusionShadow(extrusionVars.depth, extrusionVars.winBorderColor));
+            root.setProperty('--result-lose-fill-color', extrusionVars.loseFillColor);
+            root.setProperty('--result-lose-shadow', buildExtrusionShadow(extrusionVars.depth, extrusionVars.loseBorderColor));
+        }
 
         // Mobile overrides - same shape as cssVars/colorVars/fontVars, applied
         // instead of the desktop set whenever the viewport matches
@@ -2418,16 +2467,13 @@
         const mobileColorVars = {
             '--button-color': '#ff3333',
             '--ui-button-color': '#3366dd',
-            '--text-color': '#000000',
-            '--target-color': '#000000',
-            '--speed-color': '#000000',
             // No --bg-color here - the background color is a single shared
             // value (colorVars['--bg-color'] only), see applyActiveVars().
         };
         const mobileFontVars = {
             '--numbers-font': '"Press Start 2P", monospace',
-            '--text-font': '"Press Start 2P", monospace',
-            '--ui-font': '"Press Start 2P", monospace',
+            // --ui-font/--text-font used to live here too - see the comment
+            // on the desktop fontVars declaration above (now extrusionVars.font).
         };
 
         // Auto-switches live: crossing this breakpoint (resizing the browser,
@@ -2800,7 +2846,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars };
+            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars, extrusionVars };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -2819,7 +2865,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars };
+            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars, extrusionVars };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -2846,6 +2892,7 @@
                     Object.assign(mobileCssVars, settings.mobileCssVars);
                     Object.assign(mobileColorVars, settings.mobileColorVars);
                     Object.assign(mobileFontVars, settings.mobileFontVars);
+                    Object.assign(extrusionVars, settings.extrusionVars);
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -2862,20 +2909,17 @@
         function updateNumbersFont() {
             applyFontSelection('selectNumbersFont', '--numbers-font', fontVars);
         }
-        function updateTextFont() {
-            applyFontSelection('selectTextFont', '--text-font', fontVars);
-        }
-        function updateUIFont() {
-            applyFontSelection('selectUIFont', '--ui-font', fontVars);
-        }
         function updateMobileNumbersFont() {
             applyFontSelection('selectMobileNumbersFont', '--numbers-font', mobileFontVars);
         }
-        function updateMobileTextFont() {
-            applyFontSelection('selectMobileTextFont', '--text-font', mobileFontVars);
-        }
-        function updateMobileUIFont() {
-            applyFontSelection('selectMobileUIFont', '--ui-font', mobileFontVars);
+
+        // The shared 8-bit style font (Start/Try Again/Round/Win-Lose) -
+        // not mobile-split, so unlike applyFontSelection() above this writes
+        // straight into extrusionVars.font and re-applies via
+        // applyExtrusionStyles() instead of applyActiveVars().
+        function update8BitFont() {
+            extrusionVars.font = `"${document.getElementById('select8BitFont').value}", monospace`;
+            applyExtrusionStyles();
         }
 
         // Which set of pre-drawn click-burst frames to use - a single shared
@@ -2988,6 +3032,15 @@
             if (varName) {
                 (isMobile ? mobileCssVars : cssVars)[varName] = value;
                 applyActiveVars();
+            } else if (desktopId === 'sliderExtrusionDepth') {
+                extrusionVars.depth = value;
+                applyExtrusionStyles();
+            } else if (desktopId === 'sliderTargetExtrusionDepth') {
+                extrusionVars.targetDepth = value;
+                applyExtrusionStyles();
+            } else if (desktopId === 'sliderSpeedExtrusionDepth') {
+                extrusionVars.speedDepth = value;
+                applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
             }
@@ -3010,10 +3063,18 @@
             // Setup color pickers
             const COLOR_VAR_MAP = {
                 'colorUIButton': '--ui-button-color',
-                'colorText': '--text-color',
-                'colorTarget': '--target-color',
-                'colorSpeed': '--speed-color',
                 'colorBg': '--bg-color',
+            };
+            // The 8-bit extrusion style's colors aren't mobile-split and
+            // don't live in colorVars - they write straight into
+            // extrusionVars (see applyExtrusionStyles()).
+            const EXTRUSION_COLOR_MAP = {
+                'colorExtrusionFill': 'fillColor',
+                'colorExtrusionBorder': 'borderColor',
+                'colorResultWinFill': 'winFillColor',
+                'colorResultWinBorder': 'winBorderColor',
+                'colorResultLoseFill': 'loseFillColor',
+                'colorResultLoseBorder': 'loseBorderColor',
             };
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
@@ -3028,6 +3089,13 @@
                     }
                     if (desktopId === 'colorBase') {
                         refreshBaseHue();
+                        return;
+                    }
+
+                    const extrusionKey = EXTRUSION_COLOR_MAP[desktopId];
+                    if (extrusionKey) {
+                        extrusionVars[extrusionKey] = e.target.value;
+                        applyExtrusionStyles();
                         return;
                     }
 
@@ -3681,6 +3749,8 @@
                 // (harmless unused data) rather than deleted, in case this is
                 // revisited.
                 resultText.textContent = ':)';
+                resultText.classList.remove('result-lose');
+                resultText.classList.add('result-win');
                 resultText.classList.remove('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
@@ -3696,6 +3766,8 @@
                 // (and the trailing "(count/target)" suffix, which was part
                 // of the same "randomized text" being replaced).
                 resultText.textContent = ':(';
+                resultText.classList.remove('result-win');
+                resultText.classList.add('result-lose');
                 resultText.classList.remove('hidden');
                 targetCount.classList.add('hidden');
                 renderRoundBreakdown();
@@ -3854,6 +3926,7 @@
         setupDevSliders();
         makeDevValuesEditable();
         applyActiveVars();
+        applyExtrusionStyles();
         // Apply a restored --flip-button-svg even though the checkbox
         // itself won't visually reflect it (loadSettings() doesn't sync any
         // control's displayed value from a restored setting - a pre-existing
