@@ -661,7 +661,7 @@
             transform: translate(-50%, -50%);
             font-size: calc(var(--target-font-size-vw) * 1vw);
             font-weight: 700;
-            font-family: var(--numbers-font);
+            font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--target-extrusion-shadow);
             pointer-events: none;
@@ -681,7 +681,7 @@
             transform: translate(-50%, -50%);
             font-size: calc(var(--speed-font-size-vw) * 1vw);
             font-weight: 700;
-            font-family: var(--numbers-font);
+            font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--speed-extrusion-shadow);
             pointer-events: none;
@@ -1794,14 +1794,17 @@
             </div>
         </div>
 
-        <!-- 8-Bit Text Style Section - shared by Start, Try Again, Round Text,
-             and the Win/Lose emoticons: one font dropdown, one shared
-             extrusion depth, and 2 shared colors (fill + border/extrusion).
-             Target/Speed use the same 2 shared colors but get their OWN
-             extrusion depth (see their own sections below); Win/Lose use
-             the shared depth but their OWN colors (see Win/Lose Text
-             section below). Not mobile-split - a single shared stylistic
-             choice, like --click-frame-set. -->
+        <!-- 8-Bit Text Style Section - shared by Start, Try Again, and the
+             Win/Lose emoticons (Round/Target/Speed each now have their own
+             depth+colors, see their own sections): one font dropdown (also
+             shared by Target/Speed - every 8-bit-capable text uses the
+             same font, not mobile-split, like --click-frame-set), one
+             shared extrusion depth, and 2 shared colors (fill + border/
+             extrusion) - these 2 colors, the depth, and the Overall Border
+             settings below ARE mobile-split (see the Mobile Overrides
+             section's own "8-Bit Text Style" block and mobileExtrusionVars)
+             since font is the only piece that's genuinely a single,
+             page-wide stylistic choice. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ 8-Bit Text Style (Start/Try Again/Round/Win-Lose)</div>
             <div class="dev-section-content">
@@ -1840,7 +1843,7 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border:</span>
-                    <input type="checkbox" id="checkboxOverallBorder">
+                    <input type="checkbox" class="dev-overall-border-checkbox" id="checkboxOverallBorder">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -2040,26 +2043,10 @@
                     <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.01" value="8.5">
                     <span class="dev-value" id="valueTargetFontSize">8.5</span>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font:</span>
-                    <select class="dev-select" id="selectNumbersFont" onchange="updateNumbersFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Press Start 2P" selected>Press Start 2P</option>
-                        <option value="VT323">VT323</option>
-                        <option value="Silkscreen">Silkscreen</option>
-                        <option value="Pixelify Sans">Pixelify Sans</option>
-                        <option value="Jersey 15">Jersey 15</option>
-                    </select>
-                </div>
+                <!-- Font dropdown removed - Target now shares the ONE
+                     8-Bit Text Style font (select8BitFont), per explicit
+                     request that every 8-bit-capable text share a single
+                     font control rather than each having its own. -->
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderTargetExtrusionDepth" min="0" max="20" step="1" value="4">
@@ -2308,6 +2295,42 @@
             </div>
         </div>
 
+        <!-- 8-Bit Text Style Section - mobile counterpart. Font stays on
+             the single shared select8BitFont above (not duplicated here -
+             see the desktop section's own comment) - only depth/colors/
+             overall-border are mobile-split. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueMobileExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Fill Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileExtrusionFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border:</span>
+                    <input type="checkbox" class="dev-overall-border-checkbox" id="checkboxMobileOverallBorder">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileOverallBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileOverallBorderThickness" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueMobileOverallBorderThickness">2</span>
+                </div>
+            </div>
+        </div>
+
         <!-- UI Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
@@ -2378,6 +2401,42 @@
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
                     <span class="dev-value" id="valueMobileRoundDockY">35</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileRoundExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundOverallBorderThickness" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueMobileRoundOverallBorderThickness">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileRoundOverallBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueMobileRoundDockExtrusionDepth">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileRoundDockExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileRoundDockOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Small State - Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileRoundDockOverallBorder" value="#000000">
+                </div>
             </div>
         </div>
 
@@ -2400,6 +2459,22 @@
                     <input type="range" class="dev-slider" id="sliderMobileResultY" min="-50" max="50" step="0.01" value="-20">
                     <span class="dev-value" id="valueMobileResultY">-20</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Fill Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileResultWinFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileResultWinBorder" value="#22dd44">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Fill Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileResultLoseFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileResultLoseBorder" value="#dd3333">
+                </div>
             </div>
         </div>
 
@@ -2412,26 +2487,9 @@
                     <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="1" max="25" step="0.01" value="25">
                     <span class="dev-value" id="valueMobileTargetFontSize">25</span>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font:</span>
-                    <select class="dev-select" id="selectMobileNumbersFont" onchange="updateMobileNumbersFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Press Start 2P" selected>Press Start 2P</option>
-                        <option value="VT323">VT323</option>
-                        <option value="Silkscreen">Silkscreen</option>
-                        <option value="Pixelify Sans">Pixelify Sans</option>
-                        <option value="Jersey 15">Jersey 15</option>
-                    </select>
-                </div>
+                <!-- Font dropdown removed - shares the ONE 8-Bit Text
+                     Style font (select8BitFont, not mobile-split), per
+                     explicit request. -->
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.01" value="20">
@@ -2441,6 +2499,24 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetY" min="-50" max="50" step="0.01" value="-23.5">
                     <span class="dev-value" id="valueMobileTargetY">-23.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueMobileTargetExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTargetExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetOverallBorderThickness" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueMobileTargetOverallBorderThickness">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTargetOverallBorder" value="#000000">
                 </div>
             </div>
         </div>
@@ -2463,6 +2539,24 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedY" min="-50" max="50" step="0.01" value="-19.5">
                     <span class="dev-value" id="valueMobileSpeedY">-19.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileSpeedExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedOverallBorderThickness" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueMobileSpeedOverallBorderThickness">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileSpeedOverallBorder" value="#000000">
                 </div>
             </div>
         </div>
@@ -2586,23 +2680,27 @@
             '--bg-color': '#f2f2f2',
         };
 
-        // Font variables - --ui-font/--text-font used to live here but are
-        // now driven by extrusionVars.font (see below) since Start/Try
-        // Again/Round Text/Win-Lose share ONE font control instead of 3
-        // separate ones. --numbers-font (Target/Speed) is unaffected.
-        const fontVars = {
-            '--numbers-font': '"Press Start 2P", sans-serif',
-        };
+        // fontVars/mobileFontVars used to live here (--ui-font/--text-font,
+        // then just --numbers-font once those merged into extrusionVars.font)
+        // - removed entirely now that Target/Speed also read
+        // extrusionVars.font via --extrusion-font, per explicit request that
+        // every 8-bit-capable text share ONE font control. No cssVar/object
+        // left behind for it - nothing reads --numbers-font anymore.
 
-        // 8-bit extruded text style: a single shared set (not mobile-split,
-        // like --click-frame-set) covering Start/Try Again/Round Text/Target/
-        // Speed/Win-Lose. font/depth/fillColor/borderColor are the shared
-        // controls used by Start+TryAgain+Round+WinLose (font+depth) and by
-        // Start+TryAgain+Round+Target+Speed (the 2 colors); targetDepth and
-        // speedDepth are each element's own extrusion depth; win*/lose* are
-        // the Win/Lose result text's own separate color pair, per explicit
-        // request - everything else about the win/lose result text (font,
-        // depth) still comes from the shared values above.
+        // 8-bit extruded text style - covers Start/Try Again/Round Text/
+        // Target/Speed/Win-Lose. `font` is the ONE shared font control for
+        // ALL of them (a single dropdown, per explicit request) and is NOT
+        // mobile-split, like --click-frame-set - a page-wide stylistic
+        // choice, not a per-device one. Everything else here (depth,
+        // colors, overall-border settings) IS mobile-split - see
+        // mobileExtrusionVars below and the isMobileActive() picks in
+        // buildCombinedShadow()/applyExtrusionStyles() - per explicit
+        // request that color/extrusion/border settings be independently
+        // tunable per device like the rest of the visual system. depth/
+        // fillColor/borderColor are the shared controls for Start+TryAgain+
+        // WinLose (depth) and Start+TryAgain+WinLose+Target+Speed (the 2
+        // colors); Round/Target/Speed each have their own depth and colors;
+        // win*/lose* are Win/Lose's own separate color pair.
         const extrusionVars = {
             font: '"Pixelify Sans", monospace',
             depth: 5,
@@ -2614,14 +2712,14 @@
             // request. Font, fill color, and size/position stay shared/own
             // as before (unaffected).
             roundDepth: 9,
-            roundBorderColor: '#000000',
+            roundBorderColor: '#c41516',
             roundOverallBorderThickness: 5,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
-            roundOverallBorderColor: '#991a1c',
+            roundOverallBorderColor: '#c41516',
             // Round Text's DOCKED (small) state gets its own complete,
             // independent copy of every extrusion setting above - depth,
             // border/extrusion color, overall-border thickness, AND
@@ -2631,10 +2729,10 @@
             // Position (--round-dock-x/y-offset-vw/vh, in cssVars) and font-
             // size (always matches --speed-font-size-vw) already have their
             // own dock-state handling - see dockRoundText().
-            roundDockDepth: 2,
-            roundDockBorderColor: '#000000',
-            roundDockOverallBorderThickness: 1,
-            roundDockOverallBorderColor: '#000000',
+            roundDockDepth: 9,
+            roundDockBorderColor: '#c41516',
+            roundDockOverallBorderThickness: 5,
+            roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
@@ -2656,6 +2754,42 @@
             // thickness), own for Target/Speed/Round (which each have
             // their own thickness slider - see roundOverallBorderColor/
             // targetOverallBorderColor/speedOverallBorderColor above).
+            overallBorderEnabled: true,
+            overallBorderColor: '#000000',
+            overallBorderThickness: 3,
+            targetOverallBorderThickness: 10,
+            speedOverallBorderThickness: 9,
+        };
+
+        // Mobile counterpart to extrusionVars above - same shape, minus
+        // `font` (that stays single/shared only in extrusionVars, see the
+        // comment there). Cloned from the desktop defaults at declaration
+        // time so mobile starts out identical - including colors matching
+        // desktop, per explicit request - until tuned separately via the
+        // dev panel's Mobile Overrides section, same convention
+        // mobileCssVars/mobileColorVars already follow.
+        const mobileExtrusionVars = {
+            depth: 5,
+            fillColor: '#ffffff',
+            borderColor: '#000000',
+            roundDepth: 9,
+            roundBorderColor: '#c41516',
+            roundOverallBorderThickness: 5,
+            roundOverallBorderColor: '#c41516',
+            roundDockDepth: 9,
+            roundDockBorderColor: '#c41516',
+            roundDockOverallBorderThickness: 5,
+            roundDockOverallBorderColor: '#c41516',
+            targetDepth: 20,
+            targetBorderColor: '#ff0000',
+            targetOverallBorderColor: '#cc1b20',
+            speedDepth: 9,
+            speedBorderColor: '#ff0000',
+            speedOverallBorderColor: '#cc1b20',
+            winFillColor: '#ffffff',
+            winBorderColor: '#22dd44',
+            loseFillColor: '#ffffff',
+            loseBorderColor: '#dd3333',
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
@@ -2713,9 +2847,9 @@
         // outer edge - the visible "outline" effect) with the existing
         // extrusion stack, per element (each has its own depth and/or
         // thickness/color - see the comment on extrusionVars above).
-        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx, ringColor) {
+        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx, ringColor, enabled) {
             const parts = [];
-            if (extrusionVars.overallBorderEnabled) {
+            if (enabled) {
                 const ring = buildBorderRingShadow(depthPx, thicknessPx, ringColor);
                 if (ring) parts.push(ring);
             }
@@ -2724,29 +2858,33 @@
             return parts.length ? parts.join(', ') : 'none';
         }
 
-        // Pushes extrusionVars onto the DOM as CSS custom properties - the
-        // shared font/fill color are used directly; the shadow stacks are
-        // precomputed per element since each needs its own depth and/or
+        // Pushes the ACTIVE (desktop or mobile) extrusion vars onto the DOM
+        // as CSS custom properties - font is always read from the desktop
+        // extrusionVars object specifically (it's the one single/shared
+        // field, see the comment on extrusionVars above), everything else
+        // from whichever set isMobileActive() selects. The shadow stacks
+        // are precomputed per element since each needs its own depth and/or
         // border color (see the comment on extrusionVars above).
         function applyExtrusionStyles() {
             const root = document.documentElement.style;
+            const ext = isMobileActive() ? mobileExtrusionVars : extrusionVars;
             root.setProperty('--extrusion-font', extrusionVars.font);
-            root.setProperty('--extrusion-fill-color', extrusionVars.fillColor);
-            root.setProperty('--extrusion-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.borderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
-            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDepth, extrusionVars.roundBorderColor, extrusionVars.roundOverallBorderThickness, extrusionVars.roundOverallBorderColor));
+            root.setProperty('--extrusion-fill-color', ext.fillColor);
+            root.setProperty('--extrusion-shadow', buildCombinedShadow(ext.depth, ext.borderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
             // Round Text's docked/small-state extrusion look - read by
             // dockRoundText() as an inline override, same mechanism as its
             // position/font-size overrides.
-            root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDockDepth, extrusionVars.roundDockBorderColor, extrusionVars.roundDockOverallBorderThickness, extrusionVars.roundDockOverallBorderColor));
-            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.targetBorderColor, extrusionVars.targetOverallBorderThickness, extrusionVars.targetOverallBorderColor));
-            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.speedBorderColor, extrusionVars.speedOverallBorderThickness, extrusionVars.speedOverallBorderColor));
-            root.setProperty('--result-win-fill-color', extrusionVars.winFillColor);
-            root.setProperty('--result-win-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.winBorderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
-            root.setProperty('--result-lose-fill-color', extrusionVars.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.loseBorderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
+            root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(ext.targetDepth, ext.targetBorderColor, ext.targetOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--result-win-fill-color', ext.winFillColor);
+            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.depth, ext.winBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--result-lose-fill-color', ext.loseFillColor);
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.depth, ext.loseBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
         }
 
-        // Mobile overrides - same shape as cssVars/colorVars/fontVars, applied
+        // Mobile overrides - same shape as cssVars/colorVars, applied
         // instead of the desktop set whenever the viewport matches
         // MOBILE_MEDIA_QUERY (see applyActiveVars() below). Cloned from the
         // desktop defaults at startup so mobile starts out identical to desktop
@@ -2808,11 +2946,8 @@
             // No --bg-color here - the background color is a single shared
             // value (colorVars['--bg-color'] only), see applyActiveVars().
         };
-        const mobileFontVars = {
-            '--numbers-font': '"Press Start 2P", monospace',
-            // --ui-font/--text-font used to live here too - see the comment
-            // on the desktop fontVars declaration above (now extrusionVars.font).
-        };
+        // mobileFontVars used to live here - removed along with fontVars,
+        // see the comment near the desktop declaration above.
 
         // Auto-switches live: crossing this breakpoint (resizing the browser,
         // rotating a phone) re-applies whichever var set is now active, no
@@ -3206,14 +3341,10 @@
         function applyActiveVars() {
             const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
             const activeColorVars = isMobileActive() ? mobileColorVars : colorVars;
-            const activeFontVars = isMobileActive() ? mobileFontVars : fontVars;
             for (const [key, value] of Object.entries(activeCssVars)) {
                 document.documentElement.style.setProperty(key, value);
             }
             for (const [key, value] of Object.entries(activeColorVars)) {
-                document.documentElement.style.setProperty(key, value);
-            }
-            for (const [key, value] of Object.entries(activeFontVars)) {
                 document.documentElement.style.setProperty(key, value);
             }
             // Background color is not device-split like everything else
@@ -3228,6 +3359,11 @@
             document.documentElement.style.setProperty('--round-anim-duration-ms', cssVars['--round-anim-duration-ms']);
             document.documentElement.style.setProperty('--round-anim-easing', cssVars['--round-anim-easing']);
             document.documentElement.style.setProperty('--round-flash-duration-ms', cssVars['--round-flash-duration-ms']);
+            // The 8-bit extrusion system (color/depth/border) is mobile-
+            // split too (see mobileExtrusionVars) - re-apply it here so a
+            // breakpoint crossing repaints it correctly, same as everything
+            // else in this function.
+            applyExtrusionStyles();
             // Button/base hue-rotate aren't part of cssVars (they're computed
             // on the fly from whichever color picker is active) - refresh them
             // here too so a breakpoint crossing repaints them correctly.
@@ -3255,7 +3391,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars, extrusionVars };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -3274,7 +3410,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, fontVars, mobileCssVars, mobileColorVars, mobileFontVars, extrusionVars };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -3297,11 +3433,10 @@
                     const settings = JSON.parse(saved);
                     Object.assign(cssVars, settings.cssVars);
                     Object.assign(colorVars, settings.colorVars);
-                    Object.assign(fontVars, settings.fontVars);
                     Object.assign(mobileCssVars, settings.mobileCssVars);
                     Object.assign(mobileColorVars, settings.mobileColorVars);
-                    Object.assign(mobileFontVars, settings.mobileFontVars);
                     Object.assign(extrusionVars, settings.extrusionVars);
+                    Object.assign(mobileExtrusionVars, settings.mobileExtrusionVars);
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -3310,19 +3445,8 @@
 
         // Update font functions - mobile counterparts write into mobileFontVars
         // instead; applyActiveVars() decides which set is actually visible.
-        function applyFontSelection(selectId, varName, targetFontVars) {
-            const font = document.getElementById(selectId).value;
-            targetFontVars[varName] = `"${font}", sans-serif`;
-            applyActiveVars();
-        }
-        function updateNumbersFont() {
-            applyFontSelection('selectNumbersFont', '--numbers-font', fontVars);
-        }
-        function updateMobileNumbersFont() {
-            applyFontSelection('selectMobileNumbersFont', '--numbers-font', mobileFontVars);
-        }
-
-        // The shared 8-bit style font (Start/Try Again/Round/Win-Lose) -
+        // The shared 8-bit style font (Start/Try Again/Round/Target/Speed/
+        // Win-Lose - all of them, per explicit request for one dropdown) -
         // not mobile-split, so unlike applyFontSelection() above this writes
         // straight into extrusionVars.font and re-applies via
         // applyExtrusionStyles() instead of applyActiveVars().
@@ -3415,11 +3539,31 @@
             'sliderResultY': '--result-y-offset-vh',
         };
 
+        // Desktop slider id -> extrusionVars/mobileExtrusionVars key -
+        // generic handling for every extrusion depth/border-thickness
+        // slider, mobile-split via resolveDevControlId's isMobile flag
+        // (same convention as CSS_VAR_SLIDER_MAP above).
+        const EXTRUSION_SLIDER_MAP = {
+            'sliderExtrusionDepth': 'depth',
+            'sliderTargetExtrusionDepth': 'targetDepth',
+            'sliderSpeedExtrusionDepth': 'speedDepth',
+            'sliderOverallBorderThickness': 'overallBorderThickness',
+            'sliderTargetOverallBorderThickness': 'targetOverallBorderThickness',
+            'sliderSpeedOverallBorderThickness': 'speedOverallBorderThickness',
+            'sliderRoundExtrusionDepth': 'roundDepth',
+            'sliderRoundOverallBorderThickness': 'roundOverallBorderThickness',
+            'sliderRoundDockExtrusionDepth': 'roundDockDepth',
+            'sliderRoundDockOverallBorderThickness': 'roundDockOverallBorderThickness',
+        };
+
         // Given any slider/color id (desktop OR its "Mobile"-infixed twin),
         // returns { isMobile, desktopId } - e.g. 'sliderMobileButtonX' ->
         // { isMobile: true, desktopId: 'sliderButtonX' }.
         function resolveDevControlId(id) {
-            const m = id.match(/^(slider|color|select)Mobile(.+)$/);
+            // "checkbox" added alongside slider/color/select - the Overall
+            // Border on/off toggle is the first checkbox-type control to
+            // need mobile-split resolution (checkboxMobileOverallBorder).
+            const m = id.match(/^(slider|color|select|checkbox)Mobile(.+)$/);
             if (m) return { isMobile: true, desktopId: m[1] + m[2] };
             return { isMobile: false, desktopId: id };
         }
@@ -3451,38 +3595,13 @@
             const { isMobile, desktopId } = resolveDevControlId(slider.id);
             const varName = CSS_VAR_SLIDER_MAP[desktopId];
 
+            const extrusionKey = EXTRUSION_SLIDER_MAP[desktopId];
+
             if (varName) {
                 (isMobile ? mobileCssVars : cssVars)[varName] = value;
                 applyActiveVars();
-            } else if (desktopId === 'sliderExtrusionDepth') {
-                extrusionVars.depth = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderTargetExtrusionDepth') {
-                extrusionVars.targetDepth = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderSpeedExtrusionDepth') {
-                extrusionVars.speedDepth = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderOverallBorderThickness') {
-                extrusionVars.overallBorderThickness = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderTargetOverallBorderThickness') {
-                extrusionVars.targetOverallBorderThickness = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderSpeedOverallBorderThickness') {
-                extrusionVars.speedOverallBorderThickness = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderRoundExtrusionDepth') {
-                extrusionVars.roundDepth = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderRoundOverallBorderThickness') {
-                extrusionVars.roundOverallBorderThickness = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderRoundDockExtrusionDepth') {
-                extrusionVars.roundDockDepth = value;
-                applyExtrusionStyles();
-            } else if (desktopId === 'sliderRoundDockOverallBorderThickness') {
-                extrusionVars.roundDockOverallBorderThickness = value;
+            } else if (extrusionKey) {
+                (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey] = value;
                 applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
@@ -3508,9 +3627,10 @@
                 'colorUIButton': '--ui-button-color',
                 'colorBg': '--bg-color',
             };
-            // The 8-bit extrusion style's colors aren't mobile-split and
-            // don't live in colorVars - they write straight into
-            // extrusionVars (see applyExtrusionStyles()).
+            // The 8-bit extrusion style's colors are mobile-split (see
+            // mobileExtrusionVars) but don't live in colorVars - they write
+            // straight into extrusionVars/mobileExtrusionVars (see
+            // applyExtrusionStyles()).
             const EXTRUSION_COLOR_MAP = {
                 'colorExtrusionFill': 'fillColor',
                 'colorExtrusionBorder': 'borderColor',
@@ -3531,7 +3651,7 @@
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
                 picker.addEventListener('input', (e) => {
-                    const { desktopId } = resolveDevControlId(e.target.id);
+                    const { isMobile, desktopId } = resolveDevControlId(e.target.id);
 
                     if (desktopId === 'colorButton') {
                         // The button is real artwork (SVG), not a flat CSS fill - recolor it by
@@ -3546,28 +3666,32 @@
 
                     const extrusionKey = EXTRUSION_COLOR_MAP[desktopId];
                     if (extrusionKey) {
-                        extrusionVars[extrusionKey] = e.target.value;
+                        (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey] = e.target.value;
                         applyExtrusionStyles();
                         return;
                     }
 
                     const varName = COLOR_VAR_MAP[desktopId];
                     if (varName) {
-                        const { isMobile } = resolveDevControlId(e.target.id);
                         (isMobile ? mobileColorVars : colorVars)[varName] = e.target.value;
                         applyActiveVars();
                     }
                 });
             });
 
-            // Overall Border on/off toggle for the 8-bit extrusion style.
-            const overallBorderCheckbox = document.getElementById('checkboxOverallBorder');
-            if (overallBorderCheckbox) {
-                overallBorderCheckbox.addEventListener('change', (e) => {
-                    extrusionVars.overallBorderEnabled = e.target.checked;
+            // Overall Border on/off toggle(s) for the 8-bit extrusion style -
+            // desktop and its Mobile Overrides twin (checkboxMobileOverallBorder),
+            // same generic isMobile-split pattern as every other dev-panel
+            // control, matched via the shared .dev-overall-border-checkbox
+            // class since checkboxes aren't covered by .dev-slider/.dev-
+            // color-picker's own generic loops above.
+            document.querySelectorAll('.dev-overall-border-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const { isMobile } = resolveDevControlId(e.target.id);
+                    (isMobile ? mobileExtrusionVars : extrusionVars).overallBorderEnabled = e.target.checked;
                     applyExtrusionStyles();
                 });
-            }
+            });
         }
 
         // Lets you click any slider's displayed number and type an exact
