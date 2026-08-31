@@ -823,9 +823,26 @@
                corner handle, extended to all sides per explicit request.
                Width/height changes are still read back and persisted via
                the existing ResizeObserver (see JS) regardless of which
-               handle produced them. */
+               handle produced them.
+               Deliberately NOT overflow:auto here (moved to .dev-panel-
+               scroll-content, wrapping everything except the 8 resize
+               handles) - overflow other than visible clips ALL descendants
+               to this box, including the handles' own negative-offset
+               straddle-the-border portion (confirmed live: a handle set to
+               right:-6px still measured short of the panel's true edge,
+               because that outer 6px was being silently clipped away, not
+               just visually hidden - clipping removes it from hit-testing
+               too). Keeping this element overflow:visible lets the handles
+               genuinely extend past the border while the inner wrapper
+               still scrolls the actual content. */
             resize: none;
+        }
+        .dev-panel-scroll-content {
+            flex: 1;
+            min-height: 0;
             overflow: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         /* 4 edge strips (top/bottom/left/right) - inset from the corners so
@@ -1510,6 +1527,7 @@
 
     <!-- Dev Panel -->
     <div class="dev-panel" id="devPanel">
+        <div class="dev-panel-scroll-content">
         <div class="dev-header">
             <div class="dev-panel-title">
                 DEV PANEL<br>
@@ -2255,6 +2273,7 @@
 
 
             </div>
+        </div>
         </div>
 
         <div class="dev-panel-resize-edge edge-top" id="devPanelResizeTop"></div>
