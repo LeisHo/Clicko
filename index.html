@@ -2023,6 +2023,7 @@
             </div>
         </div>
 
+        <div class="dev-panel-resize-handle" id="devPanelResizeHandle"></div>
     </div>
 
     <script>
@@ -2606,6 +2607,47 @@
         document.addEventListener('pointerup', endDevPanelDrag);
         document.addEventListener('pointercancel', endDevPanelDrag);
 
+        // Custom resize handle (native CSS `resize` isn't touch-draggable on
+        // most mobile browsers - see the handle's own CSS comment). Same
+        // pointer-event approach as the title-bar drag above: writes
+        // width/height directly onto the element (mirroring how the old
+        // width-only resizer worked), clamped to the panel's own declared
+        // min/max so it can't be dragged smaller/larger than its CSS allows.
+        // The ResizeObserver below catches whatever size results (from this
+        // handle, exactly the same as it would from native resize) and
+        // persists it - no separate persistence code needed here.
+        const devPanelResizeHandle = document.getElementById('devPanelResizeHandle');
+        let isResizingDevPanel = false;
+        let devPanelResizeStart = { pointerX: 0, pointerY: 0, width: 0, height: 0 };
+
+        devPanelResizeHandle.addEventListener('pointerdown', (e) => {
+            const rect = devPanel.getBoundingClientRect();
+            devPanelResizeStart = { pointerX: e.clientX, pointerY: e.clientY, width: rect.width, height: rect.height };
+            isResizingDevPanel = true;
+            try { devPanelResizeHandle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            if (!isResizingDevPanel) return;
+            const cs = getComputedStyle(devPanel);
+            const minW = parseFloat(cs.minWidth) || 0, maxW = parseFloat(cs.maxWidth) || Infinity;
+            const minH = parseFloat(cs.minHeight) || 0, maxH = parseFloat(cs.maxHeight) || Infinity;
+            const newWidth = Math.max(minW, Math.min(maxW, devPanelResizeStart.width + (e.clientX - devPanelResizeStart.pointerX)));
+            const newHeight = Math.max(minH, Math.min(maxH, devPanelResizeStart.height + (e.clientY - devPanelResizeStart.pointerY)));
+            devPanel.style.width = newWidth + 'px';
+            devPanel.style.height = newHeight + 'px';
+        });
+
+        function endDevPanelResize(e) {
+            if (!isResizingDevPanel) return;
+            isResizingDevPanel = false;
+            if (e && e.pointerId !== undefined && devPanelResizeHandle.hasPointerCapture(e.pointerId)) {
+                devPanelResizeHandle.releasePointerCapture(e.pointerId);
+            }
+        }
+        document.addEventListener('pointerup', endDevPanelResize);
+        document.addEventListener('pointercancel', endDevPanelResize);
+
         // Native `resize` sets width/height directly on the element - catch
         // the result here and persist it, same as the round-breakdown panel.
         new ResizeObserver((entries) => {
@@ -2682,6 +2724,43 @@
         }
         document.addEventListener('pointerup', endBreakdownDrag);
         document.addEventListener('pointercancel', endBreakdownDrag);
+
+        // Custom resize handle - same reasoning and pattern as the dev
+        // panel's own (native CSS `resize` isn't touch-draggable on most
+        // mobile browsers, and this panel is shown to real players on
+        // mobile after a loss, making that gap more important here, not
+        // less).
+        const roundBreakdownResizeHandle = document.getElementById('roundBreakdownResizeHandle');
+        let isResizingBreakdown = false;
+        let breakdownResizeStart = { pointerX: 0, pointerY: 0, width: 0, height: 0 };
+
+        roundBreakdownResizeHandle.addEventListener('pointerdown', (e) => {
+            const rect = roundBreakdownPanel.getBoundingClientRect();
+            breakdownResizeStart = { pointerX: e.clientX, pointerY: e.clientY, width: rect.width, height: rect.height };
+            isResizingBreakdown = true;
+            try { roundBreakdownResizeHandle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            if (!isResizingBreakdown) return;
+            const cs = getComputedStyle(roundBreakdownPanel);
+            const minW = parseFloat(cs.minWidth) || 0, maxW = parseFloat(cs.maxWidth) || Infinity;
+            const minH = parseFloat(cs.minHeight) || 0, maxH = parseFloat(cs.maxHeight) || Infinity;
+            const newWidth = Math.max(minW, Math.min(maxW, breakdownResizeStart.width + (e.clientX - breakdownResizeStart.pointerX)));
+            const newHeight = Math.max(minH, Math.min(maxH, breakdownResizeStart.height + (e.clientY - breakdownResizeStart.pointerY)));
+            roundBreakdownPanel.style.width = newWidth + 'px';
+            roundBreakdownPanel.style.height = newHeight + 'px';
+        });
+
+        function endBreakdownResize(e) {
+            if (!isResizingBreakdown) return;
+            isResizingBreakdown = false;
+            if (e && e.pointerId !== undefined && roundBreakdownResizeHandle.hasPointerCapture(e.pointerId)) {
+                roundBreakdownResizeHandle.releasePointerCapture(e.pointerId);
+            }
+        }
+        document.addEventListener('pointerup', endBreakdownResize);
+        document.addEventListener('pointercancel', endBreakdownResize);
 
         // Native `resize` (the panel's own CSS) sets width/height directly on
         // the element - catch the result here and persist it the same way.
