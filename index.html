@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clicko</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -576,6 +576,7 @@
             color: var(--target-color);
             pointer-events: none;
             z-index: 10;
+            white-space: nowrap;
         }
 
         .target-count.hidden {
@@ -594,6 +595,7 @@
             color: var(--speed-color);
             pointer-events: none;
             z-index: 10;
+            white-space: nowrap;
         }
 
         .speed-display.hidden {
@@ -1721,7 +1723,7 @@
                 <div class="dev-row">
                     <span class="dev-label">Font:</span>
                     <select class="dev-select" id="selectUIFont" onchange="updateUIFont()">
-                        <option value="Roboto" selected>Roboto</option>
+                        <option value="Roboto">Roboto</option>
                         <option value="Courier Prime">Courier Prime</option>
                         <option value="Playfair Display">Playfair Display</option>
                         <option value="Montserrat">Montserrat</option>
@@ -1731,6 +1733,7 @@
                         <option value="Source Code Pro">Source Code Pro</option>
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -1740,13 +1743,13 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-50" max="50" step="0.5" value="-20">
-                    <span class="dev-value" id="valueUIButtonX">-20</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-50" max="50" step="0.5" value="-42.5">
+                    <span class="dev-value" id="valueUIButtonX">-42.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-50" max="50" step="0.5" value="-33.5">
-                    <span class="dev-value" id="valueUIButtonY">-33.5</span>
+                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-50" max="50" step="0.5" value="-41">
+                    <span class="dev-value" id="valueUIButtonY">-41</span>
                 </div>
             </div>
         </div>
@@ -1768,11 +1771,12 @@
                         <option value="Playfair Display">Playfair Display</option>
                         <option value="Montserrat">Montserrat</option>
                         <option value="Poppins">Poppins</option>
-                        <option value="Inter" selected>Inter</option>
+                        <option value="Inter">Inter</option>
                         <option value="JetBrains Mono">JetBrains Mono</option>
                         <option value="Source Code Pro">Source Code Pro</option>
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -1823,8 +1827,8 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.1" value="9">
-                    <span class="dev-value" id="valueTargetFontSize">9</span>
+                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.1" value="8.5">
+                    <span class="dev-value" id="valueTargetFontSize">8.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Font:</span>
@@ -1832,13 +1836,14 @@
                         <option value="Roboto">Roboto</option>
                         <option value="Courier Prime">Courier Prime</option>
                         <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Montserrat">Montserrat</option>
                         <option value="Poppins">Poppins</option>
                         <option value="Inter">Inter</option>
                         <option value="JetBrains Mono">JetBrains Mono</option>
                         <option value="Source Code Pro">Source Code Pro</option>
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -1847,13 +1852,13 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.5" value="-26">
-                    <span class="dev-value" id="valueTargetX">-26</span>
+                    <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.5" value="39">
+                    <span class="dev-value" id="valueTargetX">39</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.5" value="-30">
-                    <span class="dev-value" id="valueTargetY">-30</span>
+                    <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.5" value="-36">
+                    <span class="dev-value" id="valueTargetY">-36</span>
                 </div>
             </div>
         </div>
@@ -1873,13 +1878,13 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedX" min="-50" max="50" step="0.5" value="-40">
-                    <span class="dev-value" id="valueSpeedX">-40</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedX" min="-50" max="50" step="0.5" value="37.5">
+                    <span class="dev-value" id="valueSpeedX">37.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.5" value="-26">
-                    <span class="dev-value" id="valueSpeedY">-26</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.5" value="-16">
+                    <span class="dev-value" id="valueSpeedY">-16</span>
                 </div>
             </div>
         </div>
@@ -2085,13 +2090,14 @@
                         <option value="Roboto">Roboto</option>
                         <option value="Courier Prime">Courier Prime</option>
                         <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Montserrat">Montserrat</option>
                         <option value="Poppins">Poppins</option>
                         <option value="Inter">Inter</option>
                         <option value="JetBrains Mono">JetBrains Mono</option>
                         <option value="Source Code Pro">Source Code Pro</option>
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -2129,11 +2135,12 @@
                         <option value="Playfair Display">Playfair Display</option>
                         <option value="Montserrat">Montserrat</option>
                         <option value="Poppins">Poppins</option>
-                        <option value="Inter" selected>Inter</option>
+                        <option value="Inter">Inter</option>
                         <option value="JetBrains Mono">JetBrains Mono</option>
                         <option value="Source Code Pro">Source Code Pro</option>
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -2190,13 +2197,14 @@
                         <option value="Roboto">Roboto</option>
                         <option value="Courier Prime">Courier Prime</option>
                         <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat" selected>Montserrat</option>
+                        <option value="Montserrat">Montserrat</option>
                         <option value="Poppins">Poppins</option>
                         <option value="Inter">Inter</option>
                         <option value="JetBrains Mono">JetBrains Mono</option>
                         <option value="Source Code Pro">Source Code Pro</option>
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
+                        <option value="Press Start 2P" selected>Press Start 2P</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -2342,17 +2350,17 @@
             '--ui-button-width-vw': 10,
             '--ui-button-height-vh': 6,
             '--ui-button-radius': 6,
-            '--ui-button-x-offset-vw': -20,
-            '--ui-button-y-offset-vh': -33.5,
+            '--ui-button-x-offset-vw': -42.5,
+            '--ui-button-y-offset-vh': -41,
             '--text-font-size-vw': 8,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -20,
-            '--target-font-size-vw': 9,
-            '--target-x-offset-vw': -26,
-            '--target-y-offset-vh': -30,
+            '--target-font-size-vw': 8.5,
+            '--target-x-offset-vw': 39,
+            '--target-y-offset-vh': -36,
             '--speed-font-size-vw': 3.7,
-            '--speed-x-offset-vw': -40,
-            '--speed-y-offset-vh': -26,
+            '--speed-x-offset-vw': 37.5,
+            '--speed-y-offset-vh': -16,
             '--result-font-size-vw': 8,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -20,
@@ -2381,9 +2389,9 @@
 
         // Font variables
         const fontVars = {
-            '--numbers-font': '"Montserrat", sans-serif',
-            '--text-font': '"Inter", sans-serif',
-            '--ui-font': '"Roboto", sans-serif',
+            '--numbers-font': '"Press Start 2P", monospace',
+            '--text-font': '"Press Start 2P", monospace',
+            '--ui-font': '"Press Start 2P", monospace',
         };
 
         // Mobile overrides - same shape as cssVars/colorVars/fontVars, applied
@@ -2448,9 +2456,9 @@
             '--bg-color': '#f2f2f2',
         };
         const mobileFontVars = {
-            '--numbers-font': '"Montserrat", sans-serif',
-            '--text-font': '"Inter", sans-serif',
-            '--ui-font': '"Montserrat", sans-serif',
+            '--numbers-font': '"Press Start 2P", monospace',
+            '--text-font': '"Press Start 2P", monospace',
+            '--ui-font': '"Press Start 2P", monospace',
         };
 
         // Auto-switches live: crossing this breakpoint (resizing the browser,
@@ -2579,15 +2587,29 @@
 
         function spawnClickBurstSide(zone, mirror, containerRect, buttonRect) {
             const count = 2 + Math.floor(Math.random() * 3); // 2-4, per explicit request
+            // Click frame set stays single/shared (see updateClickFrameSet()),
+            // but distance/height/shadow-look were ALWAYS reading the desktop
+            // cssVars object directly regardless of actual breakpoint - a
+            // real, separate bug found while adding the shadow offset below
+            // (which would have inherited the same mistake). Fixed by reading
+            // through whichever set is actually active, matching every other
+            // mobile-split cssVar in this file.
+            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
             const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
             const urls = CLICK_FRAME_URLS[frameSet];
             if (!urls) return;
 
-            const distance = cssVars['--click-burst-distance-px'];
-            const height = cssVars['--click-burst-height-px'];
-            const shadowSkewDeg = cssVars['--shadow-skew'];
-            const shadowStretch = cssVars['--shadow-stretch'];
-            const shadowRotateDeg = cssVars['--shadow-rotate'];
+            const distance = activeVars['--click-burst-distance-px'];
+            const height = activeVars['--click-burst-height-px'];
+            const shadowSkewDeg = activeVars['--shadow-skew'];
+            const shadowStretch = activeVars['--shadow-stretch'];
+            const shadowRotateDeg = activeVars['--shadow-rotate'];
+            // Same fixed pixel offset the main button/base shadow is cast
+            // by, reused here so burst shadows read as "projected onto the
+            // background" rather than flying in the same spot as their real
+            // particle.
+            const shadowXOffset = activeVars['--shadow-x-offset'];
+            const shadowYOffset = activeVars['--shadow-y-offset'];
 
             // Stratified angle sampling, not fully independent random angles -
             // divide this side's zone into `count` equal slices and pick one
@@ -2650,6 +2672,18 @@
                 const frameUrl = urls[Math.floor(Math.random() * urls.length)];
                 const offsetPath = `path('M0,0 Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}')`;
                 const mirrorTransform = mirror ? ' scaleX(-1)' : '';
+                // Mirroring flips the shape BEFORE skewX applies (transform
+                // composes right-to-left, and scaleX(-1) sits rightmost/
+                // innermost below) - skewing an already-flipped shape by the
+                // same angle is NOT equivalent to mirroring a skewed shape,
+                // it comes out skewed the opposite way in the shape's own
+                // local frame. Confirmed via a user report (left-side
+                // shadows looked mirrored relative to the right side) and
+                // verified by matrix composition: flip-then-skew(th) equals
+                // skew(-th)-then-flip. Negating the skew angle specifically
+                // when mirrored cancels that out, so both sides read as the
+                // same "cast shadow" direction rather than opposite ones.
+                const shadowSkewForSide = mirror ? -shadowSkewDeg : shadowSkewDeg;
 
                 const img = document.createElement('img');
                 img.src = frameUrl;
@@ -2667,14 +2701,19 @@
                 // particle-shadow's own CSS comment for why this deliberately
                 // has NO blur (unlike the main shadow), staying in the cheap
                 // per-tap cost category this session has repeatedly protected.
+                // Offset by the same --shadow-x-offset/--shadow-y-offset the
+                // main button/base shadow uses, so it reads as "cast onto the
+                // background" (displaced to one side, like the main shadow)
+                // rather than a ghost copy flying in the exact same spot as
+                // the real particle.
                 const shadow = document.createElement('img');
                 shadow.src = frameUrl;
                 shadow.className = 'click-burst-particle click-burst-particle-shadow';
                 shadow.alt = '';
-                shadow.style.left = originX + 'px';
-                shadow.style.top = originY + 'px';
+                shadow.style.left = (originX + shadowXOffset) + 'px';
+                shadow.style.top = (originY + shadowYOffset) + 'px';
                 shadow.style.offsetPath = offsetPath;
-                shadow.style.transform = `rotate(${shadowRotateDeg}deg) skewX(${shadowSkewDeg}deg) scaleY(${shadowStretch})${mirrorTransform}`;
+                shadow.style.transform = `rotate(${shadowRotateDeg}deg) skewX(${shadowSkewForSide}deg) scaleY(${shadowStretch})${mirrorTransform}`;
                 shadow.addEventListener('animationend', () => shadow.remove());
                 clickBurstContainer.appendChild(shadow);
 
@@ -2960,26 +2999,38 @@
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
         }
 
+        // Applies a value to whatever a slider controls (a cssVar or a
+        // game-mechanics special case) and refreshes its displayed number -
+        // factored out of the slider 'input' listener so the click-to-edit
+        // feature (see makeDevValuesEditable()) can reuse the exact same
+        // logic for a TYPED value, which can legitimately be outside the
+        // slider's own min/max (typing lets you go further than the slider
+        // can visually represent - see there for why that can't just reuse
+        // slider.dispatchEvent('input') directly). No duplicated apply logic
+        // either way.
+        function applySliderValue(slider, value) {
+            const { isMobile, desktopId } = resolveDevControlId(slider.id);
+            const varName = CSS_VAR_SLIDER_MAP[desktopId];
+
+            if (varName) {
+                (isMobile ? mobileCssVars : cssVars)[varName] = value;
+                applyActiveVars();
+            } else {
+                applyGameMechanicsSlider(desktopId, value);
+            }
+
+            const valueId = slider.id.replace('slider', 'value');
+            const valueEl = document.getElementById(valueId);
+            if (valueEl && !valueEl.querySelector('input')) {
+                valueEl.textContent = value.toFixed(value < 10 ? 2 : 1);
+            }
+        }
+
         function setupDevSliders() {
             const sliders = document.querySelectorAll('.dev-slider');
             sliders.forEach(slider => {
                 slider.addEventListener('input', (e) => {
-                    const value = parseFloat(e.target.value);
-                    const { isMobile, desktopId } = resolveDevControlId(e.target.id);
-                    const varName = CSS_VAR_SLIDER_MAP[desktopId];
-
-                    if (varName) {
-                        (isMobile ? mobileCssVars : cssVars)[varName] = value;
-                        applyActiveVars();
-                    } else {
-                        applyGameMechanicsSlider(desktopId, value);
-                    }
-
-                    const valueId = e.target.id.replace('slider', 'value');
-                    const valueEl = document.getElementById(valueId);
-                    if (valueEl) {
-                        valueEl.textContent = value.toFixed(value < 10 ? 2 : 1);
-                    }
+                    applySliderValue(e.target, parseFloat(e.target.value));
                 });
             });
 
@@ -3018,16 +3069,28 @@
         }
 
         // Lets you click any slider's displayed number and type an exact
-        // value instead of only dragging. Generic, not 50+ per-slider
-        // handlers: reuses the same id convention setupDevSliders() already
-        // relies on (sliderXyz <-> valueXyz) to find each span's matching
-        // slider, then drives the slider through its own real 'input' event
-        // so every existing listener (CSS_VAR_SLIDER_MAP, game-mechanics
-        // special cases, the span's own text update) fires exactly as if the
-        // user had dragged it - no parallel value-setting logic to keep in
-        // sync. Only spans with an id AND a matching range slider become
-        // editable (.dev-value-editable) - the decorative color-picker
-        // labels share the base .dev-value class but have neither.
+        // value instead of only dragging - including a value beyond the
+        // slider's own min/max, per explicit request ("the slider stays the
+        // same but I get to set it higher than the limits"). Generic, not
+        // 50+ per-slider handlers: reuses the same id convention
+        // setupDevSliders() already relies on (sliderXyz <-> valueXyz) to
+        // find each span's matching slider, then applies the typed value via
+        // the same applySliderValue() the normal drag path uses - no
+        // parallel value-setting logic to keep in sync.
+        //
+        // Can't just set slider.value to an out-of-range number and dispatch
+        // 'input' the way the original version of this did: a native
+        // <input type="range"> silently CLAMPS its own .value to [min,max]
+        // the instant you assign it, so an out-of-range typed number would
+        // never actually reach applySliderValue() at all - confirmed this is
+        // real range-input behavior, not an assumption. Fixed by clamping
+        // only what gets written to the SLIDER (so it still displays/drags
+        // normally afterward - "the slider stays the same") while applying
+        // the actual typed value separately, unclamped.
+        //
+        // Only spans with an id AND a matching range slider become editable
+        // (.dev-value-editable) - the decorative color-picker labels share
+        // the base .dev-value class but have neither.
         function makeDevValuesEditable() {
             document.querySelectorAll('.dev-value[id]').forEach(valueEl => {
                 const sliderId = valueEl.id.replace(/^value/, 'slider');
@@ -3047,9 +3110,10 @@
                 input.type = 'number';
                 input.className = 'dev-value-edit-input';
                 input.value = slider.value;
-                input.min = slider.min;
-                input.max = slider.max;
-                input.step = slider.step;
+                // Deliberately no min/max/step on this temporary input -
+                // those would hint/restrict back to the slider's own range,
+                // exactly what typing a value out of range is meant to
+                // bypass.
                 valueEl.textContent = '';
                 valueEl.appendChild(input);
                 input.focus();
@@ -3061,13 +3125,12 @@
                     settled = true;
                     let val = parseFloat(input.value);
                     if (isNaN(val)) val = parseFloat(slider.value);
-                    val = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), val));
-                    slider.value = val;
-                    // The slider's own 'input' listener re-renders valueEl's
-                    // text (and applies the value) - no need to do either
-                    // here, and it overwrites this temporary input as a
-                    // side effect of setting textContent.
-                    slider.dispatchEvent(new Event('input', { bubbles: true }));
+                    // The slider's own displayed/draggable value stays
+                    // within its declared range ("the slider stays the
+                    // same") - only the ACTUAL applied value is allowed
+                    // past it.
+                    slider.value = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), val));
+                    applySliderValue(slider, val);
                 }
                 function cancel() {
                     if (settled) return;
