@@ -1891,7 +1891,7 @@
                      determined dynamically from the guide curve's own
                      geometry at spawn time regardless of device). -->
                 <div class="dev-row">
-                    <span class="dev-label">No Shadow on Topmost Left Frame:</span>
+                    <span class="dev-label">No Shadow on Top 2 Left Frames:</span>
                     <input type="checkbox" id="checkboxClickBurstNoShadowTopLeft">
                 </div>
             </div>
@@ -1954,8 +1954,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueOverallBorderThickness">5</span>
                 </div>
             </div>
         </div>
@@ -2007,23 +2007,23 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="8">
-                    <span class="dev-value" id="valueTextFontSize">8</span>
+                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="10.68">
+                    <span class="dev-value" id="valueTextFontSize">10.68</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="0">
-                    <span class="dev-value" id="valueTextX">0</span>
+                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-4.44">
+                    <span class="dev-value" id="valueTextX">-4.44</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-20">
-                    <span class="dev-value" id="valueTextY">-20</span>
+                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-11.59">
+                    <span class="dev-value" id="valueTextY">-11.59</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="4">
-                    <span class="dev-value" id="valueRoundExtrusionDepth">4</span>
+                    <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="13">
+                    <span class="dev-value" id="valueRoundExtrusionDepth">13</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Border/Extrusion Color:</span>
@@ -2031,8 +2031,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueRoundOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="12">
+                    <span class="dev-value" id="valueRoundOverallBorderThickness">12</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -2040,13 +2040,13 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Dock X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-44.05">
-                    <span class="dev-value" id="valueRoundDockX">-44.05</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-43">
+                    <span class="dev-value" id="valueRoundDockX">-43</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Dock Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="43.49">
-                    <span class="dev-value" id="valueRoundDockY">43.49</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
+                    <span class="dev-value" id="valueRoundDockY">42.7</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Grow Speed, Small→Big (ms):</span>
@@ -2102,6 +2102,11 @@
                     <span class="dev-value" id="valueRoundBlink3Hide">250</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">New Number Hold (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="400">
+                    <span class="dev-value" id="valueRoundPostBlinkHold">400</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Small State - Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
@@ -2112,8 +2117,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Small State - Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="7">
+                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">7</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Small State - Overall Border Color:</span>
@@ -2148,7 +2153,7 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Fill Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultWinFill" value="#ffffff">
+                    <input type="color" class="dev-color-picker" id="colorResultWinFill" value="#f0fff4">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Border Color:</span>
@@ -2156,11 +2161,11 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose Fill Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultLoseFill" value="#ffffff">
+                    <input type="color" class="dev-color-picker" id="colorResultLoseFill" value="#d3a7a7">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#dd3333">
+                    <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#2c99dd">
                 </div>
             </div>
         </div>
@@ -2777,16 +2782,16 @@
             '--ui-button-radius': 6,
             '--ui-button-x-offset-vw': -42.5,
             '--ui-button-y-offset-vh': -41,
-            '--text-font-size-vw': 13.4,
-            '--text-x-offset-vw': 0,
-            '--text-y-offset-vh': -32.41,
+            '--text-font-size-vw': 10.68,
+            '--text-x-offset-vw': -4.44,
+            '--text-y-offset-vh': -11.59,
             // Round Text's "docked" (small, corner) position once gameplay
             // starts - see dockRoundText()/undockRoundText(). Font-size
             // isn't listed here since it intentionally always MATCHES
             // whatever --speed-font-size-vw currently is ("shrinks to the
             // same size as the speed text"), not an independent value.
-            '--round-dock-x-offset-vw': -44.05,
-            '--round-dock-y-offset-vh': 43.49,
+            '--round-dock-x-offset-vw': -43,
+            '--round-dock-y-offset-vh': 42.7,
             // Shared/single, not mobile-split - timing values like the
             // existing Game Mechanics sliders (Round/Result Duration),
             // not spatial ones. Applied unconditionally regardless of
@@ -2804,6 +2809,12 @@
             '--round-blink2-hide-ms': 250,
             '--round-blink2-show-ms': 250,
             '--round-blink3-hide-ms': 250,
+            // How long the NEW number holds on screen (still at big/held
+            // scale) after the blink sequence finishes, before docking
+            // into gameplay - per explicit request for a dedicated slider
+            // for this gap, separate from gameState.roundDuration (the
+            // hold BEFORE the blink starts).
+            '--round-post-blink-hold-ms': 400,
             '--target-font-size-vw': 11.74,
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -32.71,
@@ -2864,9 +2875,9 @@
             // 3, same as Target/Speed already had for depth - per explicit
             // request. Font, fill color, and size/position stay shared/own
             // as before (unaffected).
-            roundDepth: 9,
+            roundDepth: 13,
             roundBorderColor: '#c41516',
-            roundOverallBorderThickness: 5,
+            roundOverallBorderThickness: 12,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
@@ -2884,7 +2895,7 @@
             // own dock-state handling - see dockRoundText().
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 5,
+            roundDockOverallBorderThickness: 7,
             roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             // Target/Speed now also get their OWN border/extrusion color,
@@ -2896,10 +2907,10 @@
             speedDepth: 19,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
-            winFillColor: '#ffffff',
+            winFillColor: '#f0fff4',
             winBorderColor: '#22dd44',
-            loseFillColor: '#ffffff',
-            loseBorderColor: '#dd3333',
+            loseFillColor: '#d3a7a7',
+            loseBorderColor: '#2c99dd',
             // Overall border/outline wrapping the combined text+extrusion
             // silhouette (not just the glyph) - one shared on/off toggle
             // for everyone, but color now mirrors thickness: shared for
@@ -2909,7 +2920,7 @@
             // targetOverallBorderColor/speedOverallBorderColor above).
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
-            overallBorderThickness: 3,
+            overallBorderThickness: 5,
             targetOverallBorderThickness: 10,
             speedOverallBorderThickness: 9,
         };
@@ -3320,13 +3331,17 @@
             const zone = mirror ? CLICK_BURST_RIGHT_ZONE : CLICK_BURST_LEFT_ZONE;
             const zoneSliceWidth = (zone[1] - zone[0]) / pieces.length;
 
-            // "No Shadow on Topmost Left Frame": find whichever of this
-            // side's pieces sits highest on screen (smallest viewBox Y) -
+            // "No Shadow on Topmost Left Frame": find whichever 2 of this
+            // side's pieces sit highest on screen (smallest viewBox Y) -
             // only meaningful/applied for the left side (mirror === false).
-            let noShadowIndex = -1;
+            // Per follow-up request, this now covers the top 2, not just 1.
+            const noShadowIndices = new Set();
             if (!mirror && document.getElementById('checkboxClickBurstNoShadowTopLeft')?.checked) {
-                let minY = Infinity;
-                pieces.forEach((p, idx) => { if (p.y < minY) { minY = p.y; noShadowIndex = idx; } });
+                pieces
+                    .map((p, idx) => ({ idx, y: p.y }))
+                    .sort((a, b) => a.y - b.y)
+                    .slice(0, 2)
+                    .forEach(p => noShadowIndices.add(p.idx));
             }
 
             for (let i = 0; i < pieces.length; i++) {
@@ -3447,11 +3462,11 @@
                 // coming out amplified to ~127px), per explicit request to
                 // just reuse the same transform as-is instead.
                 //
-                // Skipped entirely for the topmost left-side piece when the
+                // Skipped entirely for the top 2 left-side pieces when the
                 // "No Shadow on Topmost Left Frame" checkbox is on (see
-                // noShadowIndex above) - the real particle above still
+                // noShadowIndices above) - the real particle above still
                 // spawns normally either way.
-                if (i !== noShadowIndex) {
+                if (!noShadowIndices.has(i)) {
                     const shadow = document.createElement('img');
                     shadow.src = frameUrl;
                     shadow.className = 'click-burst-particle click-burst-particle-shadow';
@@ -3611,6 +3626,7 @@
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
             document.documentElement.style.setProperty('--round-blink2-show-ms', cssVars['--round-blink2-show-ms']);
             document.documentElement.style.setProperty('--round-blink3-hide-ms', cssVars['--round-blink3-hide-ms']);
+            document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
             // The 8-bit extrusion system (color/depth/border) is mobile-
             // split too (see mobileExtrusionVars) - re-apply it here so a
             // breakpoint crossing repaints it correctly, same as everything
@@ -3788,6 +3804,7 @@
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
             'sliderRoundBlink2Show': '--round-blink2-show-ms',
             'sliderRoundBlink3Hide': '--round-blink3-hide-ms',
+            'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
             'sliderTargetFontSize': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
@@ -4458,8 +4475,15 @@
                 if (i >= phases.length) {
                     gameTextNumber.textContent = roundNum;
                     gameTextNumber.style.visibility = 'visible';
-                    dockRoundText();
-                    showTargetAndSpeed();
+                    // Holds the new number at big/held scale for its own
+                    // duration (--round-post-blink-hold-ms) before docking -
+                    // per explicit request for a dedicated slider covering
+                    // this gap, separate from gameState.roundDuration (the
+                    // hold BEFORE the blink sequence starts, above).
+                    setTimeout(() => {
+                        dockRoundText();
+                        showTargetAndSpeed();
+                    }, cssVars['--round-post-blink-hold-ms']);
                     return;
                 }
                 const phase = phases[i++];
