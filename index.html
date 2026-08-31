@@ -1759,6 +1759,19 @@
                     <span class="dev-label">Border/Extrusion Color:</span>
                     <input type="color" class="dev-color-picker" id="colorExtrusionBorder" value="#000000">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border:</span>
+                    <input type="checkbox" id="checkboxOverallBorder">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorOverallBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <span class="dev-value" id="valueOverallBorderThickness">2</span>
+                </div>
             </div>
         </div>
 
@@ -1894,6 +1907,11 @@
                     <span class="dev-value" id="valueTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <span class="dev-value" id="valueTargetOverallBorderThickness">2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.5" value="39">
                     <span class="dev-value" id="valueTargetX">39</span>
@@ -1919,6 +1937,11 @@
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueSpeedExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="10" step="1" value="2">
+                    <span class="dev-value" id="valueSpeedOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -2376,6 +2399,16 @@
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
             loseBorderColor: '#dd3333',
+            // Overall border/outline wrapping the combined text+extrusion
+            // silhouette (not just the glyph) - one shared on/off toggle and
+            // one shared color, but thickness mirrors the depth split above
+            // (shared for Start/TryAgain/Round/Win-Lose, own for Target, own
+            // for Speed) since thickness is a spatial dimension like depth.
+            overallBorderEnabled: false,
+            overallBorderColor: '#000000',
+            overallBorderThickness: 2,
+            targetOverallBorderThickness: 2,
+            speedOverallBorderThickness: 2,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
@@ -2394,6 +2427,51 @@
             return layers.join(', ');
         }
 
+        // Builds the "overall border" ring - a stroke wrapping the OUTSIDE
+        // of the combined text+extrusion shape, not just the glyph. There's
+        // no CSS primitive for "outline the union of a glyph and its
+        // diagonal shadow stack", so this fakes it the same way a plain
+        // text-stroke is faked with text-shadow: a ring of copies offset in
+        // 8 directions by the border thickness. Doing that ring at EVERY
+        // extrusion step (0 = the glyph's own front face, through depth =
+        // the backmost step), not just once, means the ring's copies fill in
+        // the full diagonal length too - the net effect thickens the whole
+        // front-to-back band on all sides, which is what "wraps the text and
+        // the extrusion combined" needs (a ring only at the front and back
+        // faces would leave the diagonal sides unbordered).
+        function buildBorderRingShadow(depthPx, thicknessPx, borderColor) {
+            const steps = Math.round(depthPx);
+            const thickness = Math.round(thicknessPx);
+            if (thickness <= 0) return '';
+            const directions = [
+                [thickness, 0], [-thickness, 0], [0, thickness], [0, -thickness],
+                [thickness, thickness], [thickness, -thickness], [-thickness, thickness], [-thickness, -thickness],
+            ];
+            const layers = [];
+            for (let i = 0; i <= steps; i++) {
+                for (const [dx, dy] of directions) {
+                    layers.push(`${i + dx}px ${i + dy}px 0 ${borderColor}`);
+                }
+            }
+            return layers.join(', ');
+        }
+
+        // Combines the border ring (painted first/furthest back, so the
+        // extrusion fill paints over it everywhere except right at the
+        // outer edge - the visible "outline" effect) with the existing
+        // extrusion stack, per element (each has its own depth and/or
+        // thickness - see the comment on extrusionVars above).
+        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx) {
+            const parts = [];
+            if (extrusionVars.overallBorderEnabled) {
+                const ring = buildBorderRingShadow(depthPx, thicknessPx, extrusionVars.overallBorderColor);
+                if (ring) parts.push(ring);
+            }
+            const extrusion = buildExtrusionShadow(depthPx, extrusionColor);
+            if (extrusion !== 'none') parts.push(extrusion);
+            return parts.length ? parts.join(', ') : 'none';
+        }
+
         // Pushes extrusionVars onto the DOM as CSS custom properties - the
         // shared font/fill color are used directly; the shadow stacks are
         // precomputed per element since each needs its own depth and/or
@@ -2402,13 +2480,13 @@
             const root = document.documentElement.style;
             root.setProperty('--extrusion-font', extrusionVars.font);
             root.setProperty('--extrusion-fill-color', extrusionVars.fillColor);
-            root.setProperty('--extrusion-shadow', buildExtrusionShadow(extrusionVars.depth, extrusionVars.borderColor));
-            root.setProperty('--target-extrusion-shadow', buildExtrusionShadow(extrusionVars.targetDepth, extrusionVars.borderColor));
-            root.setProperty('--speed-extrusion-shadow', buildExtrusionShadow(extrusionVars.speedDepth, extrusionVars.borderColor));
+            root.setProperty('--extrusion-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.borderColor, extrusionVars.overallBorderThickness));
+            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.borderColor, extrusionVars.targetOverallBorderThickness));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.borderColor, extrusionVars.speedOverallBorderThickness));
             root.setProperty('--result-win-fill-color', extrusionVars.winFillColor);
-            root.setProperty('--result-win-shadow', buildExtrusionShadow(extrusionVars.depth, extrusionVars.winBorderColor));
+            root.setProperty('--result-win-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.winBorderColor, extrusionVars.overallBorderThickness));
             root.setProperty('--result-lose-fill-color', extrusionVars.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildExtrusionShadow(extrusionVars.depth, extrusionVars.loseBorderColor));
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.loseBorderColor, extrusionVars.overallBorderThickness));
         }
 
         // Mobile overrides - same shape as cssVars/colorVars/fontVars, applied
@@ -3041,6 +3119,15 @@
             } else if (desktopId === 'sliderSpeedExtrusionDepth') {
                 extrusionVars.speedDepth = value;
                 applyExtrusionStyles();
+            } else if (desktopId === 'sliderOverallBorderThickness') {
+                extrusionVars.overallBorderThickness = value;
+                applyExtrusionStyles();
+            } else if (desktopId === 'sliderTargetOverallBorderThickness') {
+                extrusionVars.targetOverallBorderThickness = value;
+                applyExtrusionStyles();
+            } else if (desktopId === 'sliderSpeedOverallBorderThickness') {
+                extrusionVars.speedOverallBorderThickness = value;
+                applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
             }
@@ -3075,6 +3162,7 @@
                 'colorResultWinBorder': 'winBorderColor',
                 'colorResultLoseFill': 'loseFillColor',
                 'colorResultLoseBorder': 'loseBorderColor',
+                'colorOverallBorder': 'overallBorderColor',
             };
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
@@ -3107,6 +3195,15 @@
                     }
                 });
             });
+
+            // Overall Border on/off toggle for the 8-bit extrusion style.
+            const overallBorderCheckbox = document.getElementById('checkboxOverallBorder');
+            if (overallBorderCheckbox) {
+                overallBorderCheckbox.addEventListener('change', (e) => {
+                    extrusionVars.overallBorderEnabled = e.target.checked;
+                    applyExtrusionStyles();
+                });
+            }
         }
 
         // Lets you click any slider's displayed number and type an exact
