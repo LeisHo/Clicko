@@ -253,18 +253,26 @@
             transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
-        /* Background fill - sits BEHIND both the base and button layers (z-index
-           below game-button's 1 and base-svg-layer's 4), purely to cover any gap
-           that might show through between them, especially while pressed. Static,
-           same inset:0 box as base-svg-layer (moves/scales with it, since neither
-           has its own transform - only game-button moves on press) - not part of
-           the shadow-caster group at all, so it casts no shadow of its own. */
+        /* Background fill - sits BEHIND both the base and button layers, purely
+           to cover any gap that might show through between them, especially
+           while pressed. Static, same inset:0 box as base-svg-layer (moves/
+           scales with it, since neither has its own transform - only
+           game-button moves on press) - not part of the shadow-caster group
+           at all, so it casts no shadow of its own.
+           z-index:1, same as game-button - NOT 0.5: z-index only accepts
+           integers per spec, a fractional value is invalid and silently
+           ignored (falls back to the initial "auto"), confirmed happening
+           here via getComputedStyle before this was caught. With an equal
+           z-index, elements stack by DOM order instead (later paints on
+           top) - this layer is inserted BEFORE game-button in the markup,
+           so game-button still correctly paints over it, while shadow-
+           caster's z-index:0 keeps this layer above the shadow. */
         .basebg-svg-layer {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            z-index: 0.5;
+            z-index: 1;
             pointer-events: none;
         }
         .basebg-svg-layer svg {
@@ -1072,6 +1080,8 @@
   <path class="basebg-cls-2" d="M87.46,219.42l.47-.33s59.9-59.01,217.69-58.24c165.71.8,211.21,58.25,211.21,58.25l19.85,91.37-73.53,112.34-221.62,27.57-177.7-120.51,23.55-109.88"/>
   <path class="basebg-cls-4" d="M86.07,225.55l.47-.33s60.27-59.01,219.02-58.24c166.72.8,212.18,58.37,212.18,58.37l20.3,91.24-73.98,112.34-222.97,27.57-178.79-120.51,23.7-109.88"/>
   <path class="basebg-cls-6" d="M84.29,231.64l.46-.33s58.99-59.01,214.36-58.24c163.17.8,208.35,59,208.35,59l19.18,90.61-72.41,112.34-218.23,27.57-174.98-120.51,23.19-109.88"/>
+  <path class="basebg-cls-4" d="M87.61,243.14l.46-.34s58.99-60.35,214.36-62.65c163.17-2.41,208.35,55.06,208.35,55.06l19.18,90.5-72.41,114.1-218.23,31.96-174.98-117.41,23.19-110.66"/>
+  <path class="basebg-cls-3" d="M87.94,261.42l.47-.35s59.84-62.17,217.46-66.33c165.53-4.37,211.35,53.66,211.35,53.66l19.46,91.98-73.45,117.09-221.38,35.12-177.51-117.57,23.53-113.01"/>
 </svg></div>
             <button class="game-button" id="gameButton" aria-label="Game button">
                 <div class="btn-normal-svg"><svg id="buttonSvgRoot" data-name="Isolation Mode" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 589.79 605.11">
