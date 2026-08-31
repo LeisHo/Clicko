@@ -1844,6 +1844,30 @@
                     <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="55">
                     <span class="dev-value" id="valueClickBurstHeight">55</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Curve Offset (px):</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCurveOffset" min="0" max="150" step="5" value="0">
+                    <span class="dev-value" id="valueClickBurstCurveOffset">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Count Per Side - Floor:</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="3">
+                    <span class="dev-value" id="valueClickBurstCountMin">3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Count Per Side - Ceiling:</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="5">
+                    <span class="dev-value" id="valueClickBurstCountMax">5</span>
+                </div>
+                <!-- Single/shared, not mobile-split - an on/off artistic
+                     toggle, not a spatial value that would differ between
+                     device breakpoints (the "topmost" particle is
+                     determined dynamically from the guide curve's own
+                     geometry at spawn time regardless of device). -->
+                <div class="dev-row">
+                    <span class="dev-label">No Shadow on Topmost Left Frame:</span>
+                    <input type="checkbox" id="checkboxClickBurstNoShadowTopLeft">
+                </div>
             </div>
         </div>
 
@@ -2345,6 +2369,21 @@
                     <input type="range" class="dev-slider" id="sliderMobileClickBurstHeight" min="0" max="200" step="5" value="60">
                     <span class="dev-value" id="valueMobileClickBurstHeight">60</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Curve Offset (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCurveOffset" min="0" max="150" step="5" value="0">
+                    <span class="dev-value" id="valueMobileClickBurstCurveOffset">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Count Per Side - Floor:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCountMin" min="1" max="8" step="1" value="3">
+                    <span class="dev-value" id="valueMobileClickBurstCountMin">3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Count Per Side - Ceiling:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCountMax" min="1" max="8" step="1" value="5">
+                    <span class="dev-value" id="valueMobileClickBurstCountMax">5</span>
+                </div>
             </div>
         </div>
 
@@ -2659,6 +2698,9 @@
             '--click-burst-scale': 0.4,
             '--click-burst-distance-px': 135,
             '--click-burst-height-px': 55,
+            '--click-burst-curve-offset-px': 0,
+            '--click-burst-count-min': 3,
+            '--click-burst-count-max': 5,
             // Not truly a CSS var (nothing reads it via var()) - piggybacking
             // on this object purely so the frame-set choice is included in
             // copySettings()/saveSettings() for free, matching every other
@@ -2961,6 +3003,9 @@
             '--click-burst-scale': 0.4,
             '--click-burst-distance-px': 100,
             '--click-burst-height-px': 60,
+            '--click-burst-curve-offset-px': 0,
+            '--click-burst-count-min': 3,
+            '--click-burst-count-max': 5,
             '--shadow-x-offset': 106,
             '--shadow-y-offset': 88,
             '--shadow-blur': 0,
@@ -3149,7 +3194,7 @@
         clickRouteSvg.appendChild(clickRouteRightPath);
         document.body.appendChild(clickRouteSvg);
 
-        // Samples a guide curve at its 4 equal-arc-length quarter-midpoints,
+        // Samples a guide curve at `count` equal-arc-length piece-midpoints,
         // returning each as {x, y} in the curve's own viewBox space - used
         // for spawn ORIGIN only. Flight DIRECTION deliberately does NOT use
         // the curve's own local tangent: this particular authored curve
@@ -3158,12 +3203,14 @@
         // stretch flies the wrong way (a real report: a stray particle
         // launching toward ~1-2 o'clock instead of following the rest of
         // its side leftward/rightward) - see the fixed left/right zone fan
-        // used for direction in spawnClickBurstSide() instead.
-        function sampleClickRouteQuarters(pathEl) {
+        // used for direction in spawnClickBurstSide() instead. `count` is
+        // no longer fixed at 4 - each click now rolls its own count per
+        // side (see the Floor/Ceiling sliders read in spawnClickBurstSide()).
+        function sampleClickRoutePieces(pathEl, count) {
             const total = pathEl.getTotalLength();
             const points = [];
-            for (let i = 0; i < 4; i++) {
-                const p = pathEl.getPointAtLength(total * (i + 0.5) / 4);
+            for (let i = 0; i < count; i++) {
+                const p = pathEl.getPointAtLength(total * (i + 0.5) / count);
                 points.push({ x: p.x, y: p.y });
             }
             return points;
@@ -3195,19 +3242,34 @@
 
             const distance = activeVars['--click-burst-distance-px'];
             const height = activeVars['--click-burst-height-px'];
+            const curveOffset = activeVars['--click-burst-curve-offset-px'] || 0;
             // Which per-side shadow container this burst's shadows belong
             // in - see spawnClickBurst(), which sets each one's transform.
             const shadowContainer = mirror ? clickBurstShadowContainerRight : clickBurstShadowContainerLeft;
 
-            // 4 fixed origins per side, one per quarter of the guide curve -
-            // deterministic (no randomness in position or count), per
-            // explicit request that every click generates exactly 4 per
-            // side, sourced directly from the authored route.
-            const quarters = sampleClickRouteQuarters(routePathEl);
-            const zone = mirror ? CLICK_BURST_RIGHT_ZONE : CLICK_BURST_LEFT_ZONE;
-            const zoneSliceWidth = (zone[1] - zone[0]) / quarters.length;
+            // Count rolled fresh per side per click, between the Floor/
+            // Ceiling sliders (inclusive) - per explicit request ("3-5...
+            // may be generated per side"), replacing the earlier fixed
+            // count of 4. Floor is clamped so a misconfigured Ceiling below
+            // it can't invert the random range.
+            const countMin = Math.max(1, Math.round(activeVars['--click-burst-count-min']));
+            const countMax = Math.max(countMin, Math.round(activeVars['--click-burst-count-max']));
+            const count = countMin + Math.floor(Math.random() * (countMax - countMin + 1));
 
-            for (let i = 0; i < quarters.length; i++) {
+            const pieces = sampleClickRoutePieces(routePathEl, count);
+            const zone = mirror ? CLICK_BURST_RIGHT_ZONE : CLICK_BURST_LEFT_ZONE;
+            const zoneSliceWidth = (zone[1] - zone[0]) / pieces.length;
+
+            // "No Shadow on Topmost Left Frame": find whichever of this
+            // side's pieces sits highest on screen (smallest viewBox Y) -
+            // only meaningful/applied for the left side (mirror === false).
+            let noShadowIndex = -1;
+            if (!mirror && document.getElementById('checkboxClickBurstNoShadowTopLeft')?.checked) {
+                let minY = Infinity;
+                pieces.forEach((p, idx) => { if (p.y < minY) { minY = p.y; noShadowIndex = idx; } });
+            }
+
+            for (let i = 0; i < pieces.length; i++) {
                 // Checked per-particle, not once before the loop - a burst
                 // starting 1-2 below the cap could otherwise still add its
                 // full batch and overshoot it (see the dev-panel resize
@@ -3217,30 +3279,52 @@
                 // cap still bounds total DOM nodes, not just real particles.
                 if (clickBurstContainer.children.length + clickBurstShadowContainerRight.children.length + clickBurstShadowContainerLeft.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
 
-                const q = quarters[i];
+                const q = pieces[i];
                 // Map the guide curve's viewBox-space point onto the
                 // button's own rendered bounding box - the guide SVG shares
                 // the exact same viewBox proportions as the button/base
                 // artwork, so this is the same scale/position mapping the
                 // artwork's own <svg viewBox> already performs.
-                const originX = (buttonRect.left - containerRect.left) + (q.x / CLICK_ROUTE_VIEWBOX_WIDTH) * buttonRect.width;
-                const originY = (buttonRect.top - containerRect.top) + (q.y / CLICK_ROUTE_VIEWBOX_HEIGHT) * buttonRect.height;
+                let originX = (buttonRect.left - containerRect.left) + (q.x / CLICK_ROUTE_VIEWBOX_WIDTH) * buttonRect.width;
+                let originY = (buttonRect.top - containerRect.top) + (q.y / CLICK_ROUTE_VIEWBOX_HEIGHT) * buttonRect.height;
+
+                // Curve Offset: pushes the origin further from the button's
+                // own center, radially outward along the existing center->
+                // origin direction - "the larger the offset, the further
+                // from the button the clicks are generated," per explicit
+                // request. Zero by default (origin stays exactly on the
+                // curve).
+                if (curveOffset) {
+                    const buttonCenterX = (buttonRect.left - containerRect.left) + buttonRect.width / 2;
+                    const buttonCenterY = (buttonRect.top - containerRect.top) + buttonRect.height / 2;
+                    const toOriginX = originX - buttonCenterX, toOriginY = originY - buttonCenterY;
+                    const toOriginLen = Math.hypot(toOriginX, toOriginY) || 1;
+                    originX += (toOriginX / toOriginLen) * curveOffset;
+                    originY += (toOriginY / toOriginLen) * curveOffset;
+                }
+
                 // Deterministic angle slot within this side's zone (not the
-                // curve's own tangent - see sampleClickRouteQuarters()) so
-                // every particle reliably flies left-ish or right-ish.
-                const angle = zone[0] + zoneSliceWidth * (i + 0.5);
+                // curve's own tangent - see sampleClickRoutePieces()), with
+                // a bounded per-click random jitter (kept well inside the
+                // slot's own width so adjacent particles still can't
+                // collide) so repeated clicks don't fly the identical path
+                // every time - per explicit request that flight paths
+                // "randomize somewhat per click."
+                const slotFraction = pieces.length > 1 ? i / (pieces.length - 1) : 0.5; // 0..1 across this side's own pieces, for the distance-stagger below
+                const angleJitter = (Math.random() - 0.5) * zoneSliceWidth * 0.6;
+                const angle = zone[0] + zoneSliceWidth * (i + 0.5) + angleJitter;
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
-                const slotFraction = i / 3; // 0..1 across this side's own 4 quarters, for the same distance-stagger below
 
                 // Continue outward along this particle's own zone angle,
                 // then lift upward by `height` independent of that
                 // direction - "how far out" and "how high" stay two
                 // orthogonal, independently tunable controls. Distance
-                // staggered per quarter (not every particle traveling the
+                // staggered per piece (not every particle traveling the
                 // exact same radius) for extra separation margin on top of
-                // the angular separation above.
-                const slotDistance = distance * (0.85 + slotFraction * 0.3);
+                // the angular separation above, plus a modest +/-10%
+                // per-click jitter (same "randomize somewhat" request).
+                const slotDistance = distance * (0.85 + slotFraction * 0.3) * (0.9 + Math.random() * 0.2);
                 const endX = dirX * slotDistance;
                 const endY = dirY * slotDistance - height;
 
@@ -3302,16 +3386,23 @@
                 // NOT to be equivalent (a modest ~40px input offset was
                 // coming out amplified to ~127px), per explicit request to
                 // just reuse the same transform as-is instead.
-                const shadow = document.createElement('img');
-                shadow.src = frameUrl;
-                shadow.className = 'click-burst-particle click-burst-particle-shadow';
-                shadow.alt = '';
-                shadow.style.left = originX + 'px';
-                shadow.style.top = originY + 'px';
-                shadow.style.offsetPath = offsetPath;
-                if (mirror) shadow.style.transform = 'scaleX(-1)';
-                shadow.addEventListener('animationend', () => shadow.remove());
-                shadowContainer.appendChild(shadow);
+                //
+                // Skipped entirely for the topmost left-side piece when the
+                // "No Shadow on Topmost Left Frame" checkbox is on (see
+                // noShadowIndex above) - the real particle above still
+                // spawns normally either way.
+                if (i !== noShadowIndex) {
+                    const shadow = document.createElement('img');
+                    shadow.src = frameUrl;
+                    shadow.className = 'click-burst-particle click-burst-particle-shadow';
+                    shadow.alt = '';
+                    shadow.style.left = originX + 'px';
+                    shadow.style.top = originY + 'px';
+                    shadow.style.offsetPath = offsetPath;
+                    if (mirror) shadow.style.transform = 'scaleX(-1)';
+                    shadow.addEventListener('animationend', () => shadow.remove());
+                    shadowContainer.appendChild(shadow);
+                }
 
                 img.addEventListener('animationend', () => img.remove());
                 clickBurstContainer.appendChild(img);
@@ -3605,6 +3696,9 @@
             'sliderClickBurstScale': '--click-burst-scale',
             'sliderClickBurstDistance': '--click-burst-distance-px',
             'sliderClickBurstHeight': '--click-burst-height-px',
+            'sliderClickBurstCurveOffset': '--click-burst-curve-offset-px',
+            'sliderClickBurstCountMin': '--click-burst-count-min',
+            'sliderClickBurstCountMax': '--click-burst-count-max',
             'sliderShadowX': '--shadow-x-offset',
             'sliderShadowY': '--shadow-y-offset',
             'sliderShadowBlur': '--shadow-blur',
