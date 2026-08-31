@@ -524,7 +524,22 @@
                compound-darkens where the two overlap. */
             filter: brightness(0) invert(0.5);
             animation-name: click-burst-fly-shadow;
-            offset-rotate: 0deg;
+            /* offset-rotate:auto 90deg (NOT a fixed angle) - directly
+               reported via a screen recording as "shadows pointing
+               downward": the previous fixed 0deg orientation (paired with
+               a FIXED skewX/rotate/scaleY sprite transform, now removed -
+               see spawnClickBurstSide()) never adapted to each particle's
+               own individual flight angle, so for most particles the
+               sprite's rendered orientation simply didn't match its actual
+               direction of travel at all - correct for at most one flight
+               angle, visibly wrong for the rest. Matching the real
+               particle's own .click-burst-particle base class exactly (see
+               its own comment on offset-rotate/the +90deg) means the
+               shadow now always faces the direction it's actually moving,
+               same as its real counterpart - the "cast shadow" look comes
+               entirely from the WARPED PATH itself (transformShadowPoint()
+               in spawnClickBurstSide()) plus the gray filter, not from an
+               extra fixed sprite rotation. */
         }
         @keyframes click-burst-fly-shadow {
             /* Fully opaque (not semi-transparent) while visible, for the
@@ -3218,7 +3233,6 @@
 
                 const frameUrl = urls[Math.floor(Math.random() * urls.length)];
                 const offsetPath = `path('M0,0 Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}')`;
-                const mirrorTransform = mirror ? ' scaleX(-1)' : '';
                 // Mirroring flips the shape BEFORE skewX applies (transform
                 // composes right-to-left, and scaleX(-1) sits rightmost/
                 // innermost below) - skewing an already-flipped shape by the
@@ -3285,7 +3299,16 @@
                 shadow.style.left = shadowOriginAbsX + 'px';
                 shadow.style.top = shadowOriginAbsY + 'px';
                 shadow.style.offsetPath = shadowOffsetPath;
-                shadow.style.transform = `rotate(${shadowRotateDeg}deg) skewX(${shadowSkewForSide}deg) scaleY(${shadowStretch})${mirrorTransform}`;
+                // Mirror only - matching the real particle's own transform
+                // exactly (see .click-burst-particle-shadow's CSS comment
+                // for why the fixed rotate/skewX/scaleY that used to be
+                // here is gone). offset-rotate:auto 90deg (inherited from
+                // .click-burst-particle) already orients the sprite to
+                // face wherever the WARPED shadow path is actually heading
+                // at each point, using the real, per-particle flight angle
+                // instead of one fixed angle that could only ever match a
+                // single direction.
+                if (mirror) shadow.style.transform = 'scaleX(-1)';
                 shadow.addEventListener('animationend', () => shadow.remove());
                 clickBurstShadowContainer.appendChild(shadow);
 
