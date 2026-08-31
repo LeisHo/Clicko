@@ -2453,14 +2453,14 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-300" max="700" step="1" value="106">
-                    <span class="dev-value" id="valueMobileShadowX">106</span>
+                    <span class="dev-label">Shadow X (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-75" max="170" step="0.5" value="25.73">
+                    <span class="dev-value" id="valueMobileShadowX">25.73</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-400" max="200" step="1" value="88">
-                    <span class="dev-value" id="valueMobileShadowY">88</span>
+                    <span class="dev-label">Shadow Y (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-100" max="50" step="0.5" value="21.36">
+                    <span class="dev-value" id="valueMobileShadowY">21.36</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
@@ -2506,19 +2506,19 @@
                     <span class="dev-value" id="valueMobileClickBurstScale">0.19</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Distance Out (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstDistance" min="10" max="300" step="5" value="45">
-                    <span class="dev-value" id="valueMobileClickBurstDistance">45</span>
+                    <span class="dev-label">Distance Out (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstDistance" min="0" max="75" step="0.5" value="10.92">
+                    <span class="dev-value" id="valueMobileClickBurstDistance">10.92</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Height / Lift (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstHeight" min="0" max="200" step="5" value="0">
+                    <span class="dev-label">Height / Lift (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstHeight" min="0" max="50" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileClickBurstHeight">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Curve Offset (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCurveOffset" min="0" max="150" step="5" value="35">
-                    <span class="dev-value" id="valueMobileClickBurstCurveOffset">35</span>
+                    <span class="dev-label">Curve Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCurveOffset" min="0" max="40" step="0.5" value="8.50">
+                    <span class="dev-value" id="valueMobileClickBurstCurveOffset">8.50</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Flight Path Curviness (x):</span>
@@ -3192,14 +3192,27 @@
             '--button-release-ms': 0,
             '--click-burst-speed-ms': 260,
             '--click-burst-scale': 0.19,
-            '--click-burst-distance-px': 45,
+            // These 5 keys (through --shadow-y-offset below) hold a VW
+            // number on MOBILE despite their "-px"/plain names - per
+            // explicit request that mobile's spatial/motion values scale
+            // with screen width instead of being fixed px (so they "look
+            // correct on all phone types"), rather than a literal px
+            // count. Desktop's cssVars object keeps genuine px numbers,
+            // completely unaffected - see resolveSpatialPx() for where the
+            // vw->px resolution actually happens (at the point of use,
+            // against the CURRENT viewport, not baked in here). Converted
+            // from the previous flat px defaults (45/0/35/106/88) using a
+            // 412px reference width (Chrome on a Google Pixel 9a, inferred
+            // from matching the Pixel 9's confirmed 412x915 CSS-pixel
+            // viewport - not a Pixel-9a-specific measurement).
+            '--click-burst-distance-px': 10.92,
             '--click-burst-height-px': 0,
-            '--click-burst-curve-offset-px': 35,
+            '--click-burst-curve-offset-px': 8.50,
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
             '--click-burst-curve-amount': 0.2,
-            '--shadow-x-offset': 106,
-            '--shadow-y-offset': 88,
+            '--shadow-x-offset': 25.73,
+            '--shadow-y-offset': 21.36,
             '--shadow-blur': 0,
             '--shadow-scale': 0.65,
             '--shadow-skew': -37,
@@ -3245,6 +3258,23 @@
         const MOBILE_MEDIA_QUERY = window.matchMedia('(max-width: 767px)');
         function isMobileActive() {
             return MOBILE_MEDIA_QUERY.matches;
+        }
+
+        // Resolves one of the 5 mobile "spatial/motion" cssVar values
+        // (click-burst distance/height/curve-offset, shadow x/y-offset)
+        // into an actual PX number for the CURRENT viewport - per explicit
+        // request that these specific values scale with screen width on
+        // mobile (so the same settings "look correct on all phone types")
+        // instead of being a fixed px count that reads differently
+        // relative to the (vw-scaled) button on a narrow vs. wide phone.
+        // On desktop these values are still genuine px numbers, returned
+        // as-is, completely unaffected. On mobile the stored number is a
+        // VW value (see mobileCssVars' own comment on these 5 keys),
+        // multiplied by the CURRENT window.innerWidth here, at the point
+        // of use - not cached - so a real device rotation/resize is
+        // picked up live, same as a native CSS vw unit would be.
+        function resolveSpatialPx(value) {
+            return isMobileActive() ? value * window.innerWidth / 100 : value;
         }
 
         // Game state
@@ -3526,9 +3556,13 @@
             const urls = CLICK_FRAME_URLS[frameSet];
             if (!urls) return;
 
-            const distance = activeVars['--click-burst-distance-px'];
-            const height = activeVars['--click-burst-height-px'];
-            const curveOffset = activeVars['--click-burst-curve-offset-px'] || 0;
+            // resolveSpatialPx() is a no-op on desktop (real px already) -
+            // on mobile it converts the stored vw number to actual current
+            // -viewport px, per explicit request that these scale with
+            // screen width on phones.
+            const distance = resolveSpatialPx(activeVars['--click-burst-distance-px']);
+            const height = resolveSpatialPx(activeVars['--click-burst-height-px']);
+            const curveOffset = resolveSpatialPx(activeVars['--click-burst-curve-offset-px']) || 0;
             const curveAmountMultiplier = activeVars['--click-burst-curve-amount'];
             // Which per-side shadow container this burst's shadows belong
             // in - see spawnClickBurst(), which sets each one's transform.
@@ -3738,7 +3772,10 @@
             const buttonCenterX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
             const buttonCenterY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
             const originStr = `${buttonCenterX}px ${buttonCenterY}px`;
-            const buildTransform = (skewDeg) => `translate(${activeVars['--shadow-x-offset']}px, ${activeVars['--shadow-y-offset']}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']})`;
+            // resolveSpatialPx() - see its own comment - resolves the
+            // shadow x/y offset to actual current-viewport px on mobile
+            // (stored as vw there) and is a no-op on desktop.
+            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']})`;
             clickBurstShadowContainerRight.style.transformOrigin = originStr;
             clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
@@ -3837,11 +3874,25 @@
         // the inactive mode's control just updates its stored value silently,
         // since this always re-derives from isMobileActive() rather than from
         // which control was touched.
+        // Keys resolveSpatialPx() applies to - kept in one place so
+        // applyActiveVars()'s push-to-root loop and every other read site
+        // stay in sync about which 5 keys are vw-on-mobile.
+        const SPATIAL_VW_ON_MOBILE_KEYS = new Set([
+            '--click-burst-distance-px', '--click-burst-height-px', '--click-burst-curve-offset-px',
+            '--shadow-x-offset', '--shadow-y-offset',
+        ]);
+
         function applyActiveVars() {
             const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
             const activeColorVars = isMobileActive() ? mobileColorVars : colorVars;
             for (const [key, value] of Object.entries(activeCssVars)) {
-                document.documentElement.style.setProperty(key, value);
+                // The CSS rules that consume --click-burst-distance-px/etc.
+                // and --shadow-x/y-offset expect a genuine px number (they
+                // multiply by *1px themselves) - resolve the vw-on-mobile
+                // value to actual current-viewport px before pushing it,
+                // rather than changing every consuming calc() expression.
+                const resolved = SPATIAL_VW_ON_MOBILE_KEYS.has(key) ? resolveSpatialPx(value) : value;
+                document.documentElement.style.setProperty(key, resolved);
             }
             for (const [key, value] of Object.entries(activeColorVars)) {
                 document.documentElement.style.setProperty(key, value);
