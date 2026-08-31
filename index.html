@@ -1769,6 +1769,16 @@
                 <div class="dev-row">
                     <span class="dev-label">Font:</span>
                     <select class="dev-select" id="select8BitFont" onchange="update8BitFont()">
+                        <option value="Roboto">Roboto</option>
+                        <option value="Courier Prime">Courier Prime</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Inter">Inter</option>
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Raleway">Raleway</option>
+                        <option value="Open Sans">Open Sans</option>
                         <option value="Press Start 2P" selected>Press Start 2P</option>
                         <option value="VT323">VT323</option>
                         <option value="Silkscreen">Silkscreen</option>
@@ -1879,6 +1889,10 @@
                     <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="10" step="1" value="2">
                     <span class="dev-value" id="valueRoundOverallBorderThickness">2</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#000000">
+                </div>
             </div>
         </div>
 
@@ -1948,6 +1962,10 @@
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
                         <option value="Press Start 2P" selected>Press Start 2P</option>
+                        <option value="VT323">VT323</option>
+                        <option value="Silkscreen">Silkscreen</option>
+                        <option value="Pixelify Sans">Pixelify Sans</option>
+                        <option value="Jersey 15">Jersey 15</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -1963,6 +1981,10 @@
                     <span class="dev-label">Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="10" step="1" value="2">
                     <span class="dev-value" id="valueTargetOverallBorderThickness">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTargetOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -1999,6 +2021,10 @@
                     <span class="dev-label">Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="10" step="1" value="2">
                     <span class="dev-value" id="valueSpeedOverallBorderThickness">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorSpeedOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -2298,6 +2324,10 @@
                         <option value="Raleway">Raleway</option>
                         <option value="Open Sans">Open Sans</option>
                         <option value="Press Start 2P" selected>Press Start 2P</option>
+                        <option value="VT323">VT323</option>
+                        <option value="Silkscreen">Silkscreen</option>
+                        <option value="Pixelify Sans">Pixelify Sans</option>
+                        <option value="Jersey 15">Jersey 15</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -2464,23 +2494,33 @@
             roundDepth: 4,
             roundBorderColor: '#000000',
             roundOverallBorderThickness: 2,
+            // Own overall-border-ring color too, decoupled from the shared
+            // overallBorderColor below - since Round has its own border
+            // THICKNESS slider, it also gets its own border COLOR, per
+            // explicit request ("for all text that have their own border
+            // thickness, I can select the border color").
+            roundOverallBorderColor: '#000000',
             targetDepth: 18,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
             targetBorderColor: '#000000',
+            targetOverallBorderColor: '#000000',
             speedDepth: 11,
             speedBorderColor: '#000000',
+            speedOverallBorderColor: '#000000',
             winFillColor: '#ffffff',
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
             loseBorderColor: '#dd3333',
             // Overall border/outline wrapping the combined text+extrusion
-            // silhouette (not just the glyph) - one shared on/off toggle and
-            // one shared color, but thickness mirrors the depth split above
-            // (shared for Start/TryAgain/Round/Win-Lose, own for Target, own
-            // for Speed) since thickness is a spatial dimension like depth.
+            // silhouette (not just the glyph) - one shared on/off toggle
+            // for everyone, but color now mirrors thickness: shared for
+            // Start/TryAgain/Win-Lose (which only ever had shared
+            // thickness), own for Target/Speed/Round (which each have
+            // their own thickness slider - see roundOverallBorderColor/
+            // targetOverallBorderColor/speedOverallBorderColor above).
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
@@ -2537,11 +2577,11 @@
         // extrusion fill paints over it everywhere except right at the
         // outer edge - the visible "outline" effect) with the existing
         // extrusion stack, per element (each has its own depth and/or
-        // thickness - see the comment on extrusionVars above).
-        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx) {
+        // thickness/color - see the comment on extrusionVars above).
+        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx, ringColor) {
             const parts = [];
             if (extrusionVars.overallBorderEnabled) {
-                const ring = buildBorderRingShadow(depthPx, thicknessPx, extrusionVars.overallBorderColor);
+                const ring = buildBorderRingShadow(depthPx, thicknessPx, ringColor);
                 if (ring) parts.push(ring);
             }
             const extrusion = buildExtrusionShadow(depthPx, extrusionColor);
@@ -2557,14 +2597,14 @@
             const root = document.documentElement.style;
             root.setProperty('--extrusion-font', extrusionVars.font);
             root.setProperty('--extrusion-fill-color', extrusionVars.fillColor);
-            root.setProperty('--extrusion-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.borderColor, extrusionVars.overallBorderThickness));
-            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDepth, extrusionVars.roundBorderColor, extrusionVars.roundOverallBorderThickness));
-            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.targetBorderColor, extrusionVars.targetOverallBorderThickness));
-            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.speedBorderColor, extrusionVars.speedOverallBorderThickness));
+            root.setProperty('--extrusion-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.borderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
+            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(extrusionVars.roundDepth, extrusionVars.roundBorderColor, extrusionVars.roundOverallBorderThickness, extrusionVars.roundOverallBorderColor));
+            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(extrusionVars.targetDepth, extrusionVars.targetBorderColor, extrusionVars.targetOverallBorderThickness, extrusionVars.targetOverallBorderColor));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(extrusionVars.speedDepth, extrusionVars.speedBorderColor, extrusionVars.speedOverallBorderThickness, extrusionVars.speedOverallBorderColor));
             root.setProperty('--result-win-fill-color', extrusionVars.winFillColor);
-            root.setProperty('--result-win-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.winBorderColor, extrusionVars.overallBorderThickness));
+            root.setProperty('--result-win-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.winBorderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
             root.setProperty('--result-lose-fill-color', extrusionVars.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.loseBorderColor, extrusionVars.overallBorderThickness));
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(extrusionVars.depth, extrusionVars.loseBorderColor, extrusionVars.overallBorderThickness, extrusionVars.overallBorderColor));
         }
 
         // Mobile overrides - same shape as cssVars/colorVars/fontVars, applied
@@ -3292,6 +3332,9 @@
                 'colorRoundExtrusionBorder': 'roundBorderColor',
                 'colorTargetExtrusionBorder': 'targetBorderColor',
                 'colorSpeedExtrusionBorder': 'speedBorderColor',
+                'colorRoundOverallBorder': 'roundOverallBorderColor',
+                'colorTargetOverallBorder': 'targetOverallBorderColor',
+                'colorSpeedOverallBorder': 'speedOverallBorderColor',
             };
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
