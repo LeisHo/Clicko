@@ -351,6 +351,14 @@
         .btn-pressed-svg { visibility: hidden; }
         .game-button.pressed .btn-normal-svg { visibility: hidden; }
         .game-button.pressed .btn-pressed-svg { visibility: visible; }
+        /* Dev-panel "Flip Normal/Pressed SVG" checkbox - swaps which artwork
+           is resting vs pressed. Two classes beats one on specificity, so
+           these override the plain .pressed rules above without needing
+           !important or touching them. */
+        .game-button.flip-svg .btn-normal-svg { visibility: hidden; }
+        .game-button.flip-svg .btn-pressed-svg { visibility: visible; }
+        .game-button.flip-svg.pressed .btn-normal-svg { visibility: visible; }
+        .game-button.flip-svg.pressed .btn-pressed-svg { visibility: hidden; }
 
         /* Click burst - comic-style "impact line" shapes that fly out from the
            button/base seam on every accepted tap (see spawnClickBurst() in the
@@ -393,6 +401,30 @@
         @keyframes click-burst-fly {
             0% { offset-distance: 0%; opacity: 1; }
             70% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; }
+        }
+        /* Paired shadow for each burst particle - flattened black, skewed/
+           stretched/rotated the same way the button/base's own shadow is
+           (see spawnClickBurstSide(), which sets this transform per-
+           instance from --shadow-skew/--shadow-stretch/--shadow-rotate).
+           Deliberately NO blur, unlike the main shadow - .shadow-caster-
+           layer's own comment already documents blur as the real per-tap
+           cost; these particles are numerous and short-lived, so brightness-
+           only stays in the cheap category while still reading as a cast
+           shadow. Painted behind its real particle by DOM order alone (the
+           shadow is always appended first) - no z-index needed. A separate
+           keyframes (not just an `opacity` override) is required: the base
+           click-burst-fly animation already animates opacity itself, and an
+           actively-animated property always wins over a plain declared
+           value on the same element, so a static opacity:0.5 here would be
+           silently overridden to 1 for most of the flight. */
+        .click-burst-particle-shadow {
+            filter: brightness(0);
+            animation-name: click-burst-fly-shadow;
+        }
+        @keyframes click-burst-fly-shadow {
+            0% { offset-distance: 0%; opacity: 0.5; }
+            70% { opacity: 0.5; }
             100% { offset-distance: 100%; opacity: 0; }
         }
 
@@ -1383,6 +1415,13 @@
             </label>
         </div>
 
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxFlipButtonSvg" onchange="updateFlipButtonSvg()">
+                <span class="dev-label" style="min-width:auto;">Flip Normal/Pressed SVG</span>
+            </label>
+        </div>
+
         <!-- Main Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
@@ -2122,6 +2161,9 @@
             // dev-panel setting's persistence. Shared, not mobile-split (see
             // updateClickFrameSet()) - only ever read from here directly.
             '--click-frame-set': 'CLICK1',
+            // Also not a true CSS var, same reasoning - piggybacks on this
+            // object purely for free persistence via copySettings().
+            '--flip-button-svg': 0,
             '--shadow-x-offset': 288,
             '--shadow-y-offset': 73,
             '--shadow-blur': 0,
@@ -2343,57 +2385,84 @@
         // simply skip spawning a new burst once at the ceiling (the existing
         // ones finish and self-remove within a few hundred ms regardless, so
         // this only ever skips during a genuinely fast streak, never causes a
-        // permanent backlog).
-        const CLICK_BURST_MAX_CONCURRENT = 24;
+        // permanent backlog). Each particle now spawns with a paired shadow
+        // (2 DOM nodes), and per-click count doubled (2-4 per side instead of
+        // 2-3 total) - raised from the original 24 to keep a comparable
+        // real-particle ceiling.
+        const CLICK_BURST_MAX_CONCURRENT = 64;
 
-        function spawnClickBurst() {
+        // Spawn angle zones, clock-position notation converted to this
+        // codebase's own angle convention (0=rightward/3-o'clock, increasing
+        // clockwise since screen Y increases downward - trigAngle = (clockHour-3)*30deg).
+        // RIGHT: 2 o'clock to 5 o'clock. LEFT: 10 o'clock to 7 o'clock (i.e.
+        // sweeping the "short way", 10->9->8->7) - the mirror image of RIGHT
+        // across the vertical axis. Both deliberately exclude straight-up
+        // (11-1 o'clock) and straight-down (~6 o'clock).
+        const RIGHT_ZONE = [(2 - 3) * Math.PI / 6, (5 - 3) * Math.PI / 6]; // [-30deg, 60deg]
+        const LEFT_ZONE = [(7 - 3) * Math.PI / 6, (10 - 3) * Math.PI / 6]; // [120deg, 210deg]
+
+        // The seam is the black curve where the base's flared bezel meets
+        // the button's dome - measured from the rendered artwork (the base
+        // layer's own black-outline path's bounding box), not guessed: it
+        // sits at roughly 58% of the button assembly's own rendered height
+        // down from its top edge.
+        const SEAM_Y_FRACTION = 0.58;
+
+        function spawnClickBurstSide(zone, mirror, containerRect, buttonRect) {
+            const count = 2 + Math.floor(Math.random() * 3); // 2-4, per explicit request
             const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
             const urls = CLICK_FRAME_URLS[frameSet];
             if (!urls) return;
 
-            const containerRect = clickBurstContainer.getBoundingClientRect();
-            const buttonRect = buttonAssembly.getBoundingClientRect();
-            const centerX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
-            const centerY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
-            // Origin sits near the button/base seam, not dead center or past
-            // the visible edge - a fraction of the button's own radius.
-            const seamRadius = Math.min(buttonRect.width, buttonRect.height) / 2 * 0.85;
+            const distance = cssVars['--click-burst-distance-px'];
+            const height = cssVars['--click-burst-height-px'];
+            const shadowSkewDeg = cssVars['--shadow-skew'];
+            const shadowStretch = cssVars['--shadow-stretch'];
+            const shadowRotateDeg = cssVars['--shadow-rotate'];
 
-            const count = 2 + Math.floor(Math.random() * 2); // 2-3, per the reference's "groups of 2-3"
             for (let i = 0; i < count; i++) {
-                // Checked per-particle, not once before the loop - otherwise
-                // a burst starting 1-2 below the cap could still add its full
-                // 2-3 particles and overshoot it (confirmed happening: a
-                // documented 24-particle cap actually reached 26 before this
-                // was moved inside the loop).
+                // Checked per-particle, not once before the loop - a burst
+                // starting 1-2 below the cap could otherwise still add its
+                // full batch and overshoot it (see the dev-panel resize
+                // handles' own identical fix earlier this session).
                 if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
-                const angle = Math.random() * Math.PI * 2;
+
+                const angle = zone[0] + Math.random() * (zone[1] - zone[0]);
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
-                const originX = centerX + dirX * seamRadius;
-                const originY = centerY + dirY * seamRadius;
 
-                const distance = cssVars['--click-burst-distance-px'];
-                const height = cssVars['--click-burst-height-px'];
-                // Continue outward along the same radial direction, then lift
+                // Origin: anchored to the seam's height (with a little
+                // per-particle jitter so a burst doesn't look like it's all
+                // emanating from one exact point), X spread by how far this
+                // particle's specific angle leans toward the side edge.
+                const originX = (buttonRect.left + buttonRect.width / 2) - containerRect.left + dirX * buttonRect.width * 0.48;
+                const seamY = (buttonRect.top - containerRect.top) + buttonRect.height * SEAM_Y_FRACTION;
+                const originY = seamY + (Math.random() - 0.5) * buttonRect.height * 0.12;
+
+                // Continue outward along this particle's own angle, then lift
                 // upward by `height` independent of that direction - "how far
                 // out" and "how high" stay two orthogonal, independently
-                // tunable controls rather than coupled into one.
+                // tunable controls.
                 const endX = dirX * distance;
                 const endY = dirY * distance - height;
-                // Quadratic bezier control point: path midpoint nudged
-                // perpendicular to the origin->end line by a random amount,
-                // for a natural swoosh that's genuinely different every time
-                // (not a separate slider - this randomization is the "why
-                // it's different every click" the reference asked for).
-                const perpX = -endY, perpY = endX;
+
+                // Quadratic bezier control point, perpendicular to the
+                // origin->end chord for a natural swoosh that's genuinely
+                // different every time (not a separate slider). Constrained
+                // to only ever point upward/sideways, never downward: of the
+                // two perpendicular directions, the one with a positive
+                // (downward, in screen coords) Y component is flipped, so
+                // the curve can never sag below its own straight chord.
+                let perpX = -endY, perpY = endX;
+                if (perpY > 0) { perpX = -perpX; perpY = -perpY; }
                 const perpLen = Math.hypot(perpX, perpY) || 1;
-                const curveAmount = (Math.random() - 0.5) * 0.7 * distance;
+                const curveAmount = Math.random() * 0.6 * distance; // magnitude only - direction is fixed upward/sideways above
                 const ctrlX = endX / 2 + (perpX / perpLen) * curveAmount;
                 const ctrlY = endY / 2 + (perpY / perpLen) * curveAmount;
 
                 const frameUrl = urls[Math.floor(Math.random() * urls.length)];
-                const mirror = dirX > 0; // right half of the button -> mirror the left-oriented artwork
+                const offsetPath = `path('M0,0 Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}')`;
+                const mirrorTransform = mirror ? ' scaleX(-1)' : '';
 
                 const img = document.createElement('img');
                 img.src = frameUrl;
@@ -2401,11 +2470,39 @@
                 img.alt = '';
                 img.style.left = originX + 'px';
                 img.style.top = originY + 'px';
-                img.style.offsetPath = `path('M0,0 Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}')`;
+                img.style.offsetPath = offsetPath;
                 if (mirror) img.style.transform = 'scaleX(-1)';
+
+                // Paired shadow: same frame, same flight path, but flattened
+                // to black and skewed/stretched/rotated the same way the
+                // button/base's own shadow is (matching cssVars --shadow-
+                // skew/--shadow-stretch/--shadow-rotate) - see .click-burst-
+                // particle-shadow's own CSS comment for why this deliberately
+                // has NO blur (unlike the main shadow), staying in the cheap
+                // per-tap cost category this session has repeatedly protected.
+                const shadow = document.createElement('img');
+                shadow.src = frameUrl;
+                shadow.className = 'click-burst-particle click-burst-particle-shadow';
+                shadow.alt = '';
+                shadow.style.left = originX + 'px';
+                shadow.style.top = originY + 'px';
+                shadow.style.offsetPath = offsetPath;
+                shadow.style.transform = `rotate(${shadowRotateDeg}deg) skewX(${shadowSkewDeg}deg) scaleY(${shadowStretch})${mirrorTransform}`;
+                shadow.addEventListener('animationend', () => shadow.remove());
+                clickBurstContainer.appendChild(shadow);
+
                 img.addEventListener('animationend', () => img.remove());
                 clickBurstContainer.appendChild(img);
             }
+        }
+
+        function spawnClickBurst() {
+            const containerRect = clickBurstContainer.getBoundingClientRect();
+            const buttonRect = buttonAssembly.getBoundingClientRect();
+            // Every click triggers 2-4 frames on BOTH sides (independently
+            // randomized counts), not one randomly-side-picked burst.
+            spawnClickBurstSide(RIGHT_ZONE, true, containerRect, buttonRect);
+            spawnClickBurstSide(LEFT_ZONE, false, containerRect, buttonRect);
         }
 
         const tapDiagnosticPanel = document.getElementById('tapDiagnosticPanel');
@@ -2590,6 +2687,16 @@
         // for free - see its own declaration there.
         function updateClickFrameSet() {
             cssVars['--click-frame-set'] = document.getElementById('selectClickFrameSet').value;
+        }
+
+        // Swaps which of the button's two hand-drawn SVGs (normal/pressed)
+        // is shown at rest vs while pressed - see .game-button.flip-svg's
+        // own CSS. A single shared setting, same reasoning as the click
+        // frame set above.
+        function updateFlipButtonSvg() {
+            const flipped = document.getElementById('checkboxFlipButtonSvg').checked;
+            cssVars['--flip-button-svg'] = flipped ? 1 : 0;
+            gameButton.classList.toggle('flip-svg', flipped);
         }
 
         // Toggle section collapse
@@ -3448,6 +3555,11 @@
         }
         setupDevSliders();
         applyActiveVars();
+        // Apply a restored --flip-button-svg even though the checkbox
+        // itself won't visually reflect it (loadSettings() doesn't sync any
+        // control's displayed value from a restored setting - a pre-existing
+        // gap affecting every dev-panel control, not specific to this one).
+        if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
     </script>
 </body>
 </html>
