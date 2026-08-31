@@ -2491,8 +2491,19 @@
             const newTop = Math.max(0, Math.min(window.innerHeight - panelRect.height, devPanelDragStart.panelTop + dy));
             cssVars['--dev-panel-left-px'] = Math.round(newLeft);
             cssVars['--dev-panel-top-px'] = Math.round(newTop);
-            document.documentElement.style.setProperty('--dev-panel-left-px', newLeft + 'px');
-            document.documentElement.style.setProperty('--dev-panel-top-px', newTop + 'px');
+            // Bare number, matching every other cssVar's convention (see
+            // applyActiveVars()) - the CSS itself is calc(var(...) * 1px),
+            // so a value already suffixed with 'px' here produces px*px,
+            // which this browser silently resolves to HALF the intended
+            // offset rather than rejecting outright (confirmed via direct
+            // getComputedStyle readback: '64px' rendered as top:32px, while
+            // bare '64' correctly rendered as top:64px). The cssVars object
+            // itself was always being set correctly - only this live-drag
+            // DOM write had the extra unit, so the bug was invisible in the
+            // stored settings and only showed up as the panel visually
+            // trailing the cursor at half-distance during an active drag.
+            document.documentElement.style.setProperty('--dev-panel-left-px', newLeft);
+            document.documentElement.style.setProperty('--dev-panel-top-px', newTop);
         });
 
         function endDevPanelDrag(e) {
@@ -2558,8 +2569,18 @@
             const newTop = Math.max(0, Math.min(window.innerHeight - panelRect.height, breakdownDragStart.panelTop + dy));
             activeVars['--round-breakdown-left-px'] = Math.round(newLeft);
             activeVars['--round-breakdown-top-px'] = Math.round(newTop);
-            document.documentElement.style.setProperty('--round-breakdown-left-px', newLeft + 'px');
-            document.documentElement.style.setProperty('--round-breakdown-top-px', newTop + 'px');
+            // Bare number, not 'px'-suffixed - see the identical note on the
+            // dev panel's own drag handler (found via direct testing while
+            // building that feature): a 'px' suffix here, combined with the
+            // CSS's own calc(var(...) * 1px), silently halves the rendered
+            // offset instead of erroring. The stored cssVars value was
+            // always correct; only this live-drag DOM write was wrong, so
+            // the panel visually trailed the cursor at half-distance while
+            // actively dragging (a reload/settings-reapply would jump it to
+            // the correct final position, masking the bug from a value-only
+            // check).
+            document.documentElement.style.setProperty('--round-breakdown-left-px', newLeft);
+            document.documentElement.style.setProperty('--round-breakdown-top-px', newTop);
         });
 
         function endBreakdownDrag(e) {
