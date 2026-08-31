@@ -3105,31 +3105,73 @@
         // simply skip spawning a new burst once at the ceiling (the existing
         // ones finish and self-remove within a few hundred ms regardless, so
         // this only ever skips during a genuinely fast streak, never causes a
-        // permanent backlog). Each particle now spawns with a paired shadow
-        // (2 DOM nodes), and per-click count doubled (2-4 per side instead of
-        // 2-3 total) - raised from the original 24 to keep a comparable
-        // real-particle ceiling.
+        // permanent backlog). Each particle spawns with a paired shadow (2
+        // DOM nodes), and every click is a fixed 4 real + 4 shadow per side
+        // (16 nodes total) - raised from the original 24 to keep a
+        // comparable real-particle ceiling.
         const CLICK_BURST_MAX_CONCURRENT = 64;
 
-        // Spawn angle zones, clock-position notation converted to this
-        // codebase's own angle convention (0=rightward/3-o'clock, increasing
-        // clockwise since screen Y increases downward - trigAngle = (clockHour-3)*30deg).
-        // RIGHT: 1 o'clock to 5 o'clock. LEFT: 7 o'clock to 11 o'clock - the
-        // mirror image of RIGHT across the vertical axis (both 120deg wide,
-        // centered on the horizontal). Both deliberately exclude straight-up
-        // and straight-down.
-        const RIGHT_ZONE = [(1 - 3) * Math.PI / 6, (5 - 3) * Math.PI / 6]; // [-60deg, 60deg]
-        const LEFT_ZONE = [(7 - 3) * Math.PI / 6, (11 - 3) * Math.PI / 6]; // [120deg, 240deg]
+        // Spawn origins now come from an artist-authored reference curve
+        // instead of a procedural angle zone - data/BUTTON/CLICK GUIDE.svg,
+        // one open path per side, drawn in the SAME viewBox as the button/
+        // base artwork (0 0 589.79 605.11), so its coordinates map directly
+        // onto the rendered button's own bounding box. Per explicit request
+        // ("divide the curve into 4, and each piece will dictate where a
+        // click can generate from... every click, both side generates 4"):
+        // each curve is divided into 4 equal-ARC-LENGTH pieces (via the
+        // browser's own SVGPathElement.getTotalLength()/getPointAtLength(),
+        // not a hand-rolled bezier-length approximation - see the shadow-
+        // transform fix earlier this session for why hand-derived geometry
+        // math here is worth avoiding), and every click spawns exactly one
+        // particle at each of the 4 quarter-midpoints, replacing the
+        // previous random 2-4-count zone system entirely.
+        const CLICK_ROUTE_VIEWBOX_WIDTH = 589.79;
+        const CLICK_ROUTE_VIEWBOX_HEIGHT = 605.11;
+        // Left path in the guide SVG has a second, tiny disconnected
+        // subpath (a stray decorative mark, not part of the route) - only
+        // the first subpath (up to but excluding the second "M") is used.
+        const CLICK_ROUTE_LEFT_D = 'M206.69,393.13c-11.47-3.05-25.67-8.8-38.09-15.49l-10.32-5.55c-13.86-7.45-26.05-17.21-36.77-28.33-7.89-8.19-15.23-16.77-20.34-27.49-4.26-8.94-7.86-18.15-8.74-28.06l-.47-.22-.08-27.11c-.03-4.42-.45-8.92.3-13.28-.85-4.24-.16-8.6-.36-13.25-.62-14.38,1.2-28.32,5.46-41.89';
+        const CLICK_ROUTE_RIGHT_D = 'M507.26,192.21c3.99,12.62,6.01,25.79,5.55,38.99l-.11,3.18-.13,16.93v30.7s-.01.04-.01.04v1.8c0,8.7-2.66,16.73-5.85,24.64-4.33,10.71-10.78,19.9-18.1,28.31-14.74,16.93-25.07,23.95-44,35.08-16.56,9.74-34.42,17.31-53.19,22.83';
 
-        // The seam is the black curve where the base's flared bezel meets
-        // the button's dome - measured from the rendered artwork (the base
-        // layer's own black-outline path's bounding box), not guessed: it
-        // sits at roughly 58% of the button assembly's own rendered height
-        // down from its top edge.
-        const SEAM_Y_FRACTION = 0.58;
+        // Rendered off-canvas (position:absolute, 0x0, overflow:hidden) so
+        // getTotalLength()/getPointAtLength() work (they require the path
+        // to be laid out), without it being visible or affecting layout.
+        const clickRouteSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        clickRouteSvg.style.position = 'absolute';
+        clickRouteSvg.style.width = '0';
+        clickRouteSvg.style.height = '0';
+        clickRouteSvg.style.overflow = 'hidden';
+        const clickRouteLeftPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        clickRouteLeftPath.setAttribute('d', CLICK_ROUTE_LEFT_D);
+        const clickRouteRightPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        clickRouteRightPath.setAttribute('d', CLICK_ROUTE_RIGHT_D);
+        clickRouteSvg.appendChild(clickRouteLeftPath);
+        clickRouteSvg.appendChild(clickRouteRightPath);
+        document.body.appendChild(clickRouteSvg);
 
-        function spawnClickBurstSide(zone, mirror, containerRect, buttonRect) {
-            const count = 2 + Math.floor(Math.random() * 3); // 2-4, per explicit request
+        // Samples a guide curve at its 4 equal-arc-length quarter-midpoints,
+        // returning each as {x, y, dirX, dirY} in the curve's own viewBox
+        // space - dirX/dirY is the curve's own local tangent direction at
+        // that point (a small arc-length finite difference), used as the
+        // particle's initial outward flight direction so motion reads as
+        // "following the authored route," not an unrelated procedural angle.
+        function sampleClickRouteQuarters(pathEl) {
+            const total = pathEl.getTotalLength();
+            const eps = Math.min(2, total / 20);
+            const points = [];
+            for (let i = 0; i < 4; i++) {
+                const len = total * (i + 0.5) / 4;
+                const p = pathEl.getPointAtLength(len);
+                const p1 = pathEl.getPointAtLength(Math.max(0, len - eps));
+                const p2 = pathEl.getPointAtLength(Math.min(total, len + eps));
+                const dx = p2.x - p1.x, dy = p2.y - p1.y;
+                const dlen = Math.hypot(dx, dy) || 1;
+                points.push({ x: p.x, y: p.y, dirX: dx / dlen, dirY: dy / dlen });
+            }
+            return points;
+        }
+
+        function spawnClickBurstSide(routePathEl, mirror, containerRect, buttonRect) {
             // Click frame set stays single/shared (see updateClickFrameSet()),
             // but distance/height/shadow-look were ALWAYS reading the desktop
             // cssVars object directly regardless of actual breakpoint - a
@@ -3148,19 +3190,13 @@
             // in - see spawnClickBurst(), which sets each one's transform.
             const shadowContainer = mirror ? clickBurstShadowContainerRight : clickBurstShadowContainerLeft;
 
-            // Deterministic angle slots, not random-within-a-margin - per
-            // explicit request that click frames must never overlap, in
-            // spawning OR throughout flight, not just avoid heavy clustering.
-            // Each particle gets the exact CENTER of its own equal slice of
-            // this side's zone (zero randomness in angle), guaranteeing a
-            // real, predictable minimum angular gap between every particle
-            // on the same side - a random angle anywhere in the slice (the
-            // previous approach) could still land close to a neighboring
-            // slice's particle.
-            const zoneWidth = zone[1] - zone[0];
-            const sliceWidth = zoneWidth / count;
+            // 4 fixed origins per side, one per quarter of the guide curve -
+            // deterministic (no randomness in position or count), per
+            // explicit request that every click generates exactly 4 per
+            // side, sourced directly from the authored route.
+            const quarters = sampleClickRouteQuarters(routePathEl);
 
-            for (let i = 0; i < count; i++) {
+            for (let i = 0; i < quarters.length; i++) {
                 // Checked per-particle, not once before the loop - a burst
                 // starting 1-2 below the cap could otherwise still add its
                 // full batch and overshoot it (see the dev-panel resize
@@ -3170,27 +3206,25 @@
                 // cap still bounds total DOM nodes, not just real particles.
                 if (clickBurstContainer.children.length + clickBurstShadowContainerRight.children.length + clickBurstShadowContainerLeft.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
 
-                const angle = zone[0] + sliceWidth * (i + 0.5);
-                const dirX = Math.cos(angle);
-                const dirY = Math.sin(angle);
+                const q = quarters[i];
+                // Map the guide curve's viewBox-space point onto the
+                // button's own rendered bounding box - the guide SVG shares
+                // the exact same viewBox proportions as the button/base
+                // artwork, so this is the same scale/position mapping the
+                // artwork's own <svg viewBox> already performs.
+                const originX = (buttonRect.left - containerRect.left) + (q.x / CLICK_ROUTE_VIEWBOX_WIDTH) * buttonRect.width;
+                const originY = (buttonRect.top - containerRect.top) + (q.y / CLICK_ROUTE_VIEWBOX_HEIGHT) * buttonRect.height;
+                const dirX = q.dirX;
+                const dirY = q.dirY;
+                const slotFraction = i / 3; // 0..1 across this side's own 4 quarters, for the same distance-stagger below
 
-                // Origin: spread across this particle's own slice of the
-                // seam (deterministic per slot, not randomly jittered - a
-                // random jitter could push two adjacent particles' origins
-                // into the same spot). X and Y both scale with the slot's
-                // own position across the zone, so slots spread out along
-                // the seam's curve instead of clustering near one width.
-                const slotFraction = (i + 0.5) / count; // 0..1 across this side's own slots
-                const originX = (buttonRect.left + buttonRect.width / 2) - containerRect.left + dirX * buttonRect.width * (0.30 + slotFraction * 0.22);
-                const seamY = (buttonRect.top - containerRect.top) + buttonRect.height * SEAM_Y_FRACTION;
-                const originY = seamY + (slotFraction - 0.5) * buttonRect.height * 0.16;
-
-                // Continue outward along this particle's own angle, then lift
-                // upward by `height` independent of that direction - "how far
-                // out" and "how high" stay two orthogonal, independently
-                // tunable controls. Distance staggered per slot (not every
-                // particle traveling the exact same radius) for extra
-                // separation margin on top of the angular separation above.
+                // Continue outward along this point's own curve-tangent
+                // direction, then lift upward by `height` independent of
+                // that direction - "how far out" and "how high" stay two
+                // orthogonal, independently tunable controls. Distance
+                // staggered per quarter (not every particle traveling the
+                // exact same radius) for extra separation margin on top of
+                // the curve's own natural spread.
                 const slotDistance = distance * (0.85 + slotFraction * 0.3);
                 const endX = dirX * slotDistance;
                 const endY = dirY * slotDistance - height;
@@ -3293,10 +3327,10 @@
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
             clickBurstShadowContainerLeft.style.transform = buildTransform(-activeVars['--shadow-skew']);
 
-            // Every click triggers 2-4 frames on BOTH sides (independently
-            // randomized counts), not one randomly-side-picked burst.
-            spawnClickBurstSide(RIGHT_ZONE, true, containerRect, buttonRect);
-            spawnClickBurstSide(LEFT_ZONE, false, containerRect, buttonRect);
+            // Every click triggers exactly 4 frames on BOTH sides (8 total),
+            // one per quarter of that side's own guide curve.
+            spawnClickBurstSide(clickRouteRightPath, true, containerRect, buttonRect);
+            spawnClickBurstSide(clickRouteLeftPath, false, containerRect, buttonRect);
         }
 
         const tapDiagnosticPanel = document.getElementById('tapDiagnosticPanel');
