@@ -1257,6 +1257,20 @@
             padding: 0;
         }
 
+        /* Standalone typed-number dev-panel controls (not the click-to-edit
+           overlay above) - same theme, own class since these are permanent
+           inputs, not a temporary overlay on a .dev-value span. */
+        .dev-text-input {
+            width: 52px;
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            font-family: monospace;
+            font-size: 11px;
+            text-align: right;
+            padding: 2px 4px;
+        }
+
         .dev-color-picker {
             width: 50px;
             height: 30px;
@@ -1876,6 +1890,11 @@
                     <span class="dev-value" id="valueClickBurstCurveOffset">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Flight Path Curviness (x):</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstCurveAmount" min="0" max="3" step="0.05" value="1">
+                    <span class="dev-value" id="valueClickBurstCurveAmount">1.00</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Count Per Side - Floor:</span>
                     <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="3">
                     <span class="dev-value" id="valueClickBurstCountMin">3</span>
@@ -1885,14 +1904,24 @@
                     <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="5">
                     <span class="dev-value" id="valueClickBurstCountMax">5</span>
                 </div>
-                <!-- Single/shared, not mobile-split - an on/off artistic
-                     toggle, not a spatial value that would differ between
-                     device breakpoints (the "topmost" particle is
-                     determined dynamically from the guide curve's own
-                     geometry at spawn time regardless of device). -->
+                <!-- Replaces the earlier "No Shadow on Top 2 Left Frames"
+                     checkbox with 2 typed frame-index selectors, applied to
+                     BOTH sides identically (not left-only anymore) - per
+                     explicit request. Single/shared, not mobile-split - an
+                     artistic choice, not a spatial value that would differ
+                     between device breakpoints. 1 = topmost frame, 2 = 2nd
+                     from top, -1 = bottommost, -2 = 2nd from bottom, etc.
+                     0/empty = no effect. If a side's actual particle count
+                     that click is smaller than the requested index, that
+                     index simply has nothing to hide that burst (see
+                     resolveHideShadowIndex() in spawnClickBurstSide()). -->
                 <div class="dev-row">
-                    <span class="dev-label">No Shadow on Top 2 Left Frames:</span>
-                    <input type="checkbox" id="checkboxClickBurstNoShadowTopLeft">
+                    <span class="dev-label">Hide Shadow - Frame Index A:</span>
+                    <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexA" step="1" value="0">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Hide Shadow - Frame Index B:</span>
+                    <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexB" step="1" value="0">
                 </div>
             </div>
         </div>
@@ -2434,6 +2463,11 @@
                     <span class="dev-value" id="valueMobileClickBurstCurveOffset">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Flight Path Curviness (x):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCurveAmount" min="0" max="3" step="0.05" value="1">
+                    <span class="dev-value" id="valueMobileClickBurstCurveAmount">1.00</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Count Per Side - Floor:</span>
                     <input type="range" class="dev-slider" id="sliderMobileClickBurstCountMin" min="1" max="8" step="1" value="3">
                     <span class="dev-value" id="valueMobileClickBurstCountMin">3</span>
@@ -2760,6 +2794,7 @@
             '--click-burst-curve-offset-px': 0,
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
+            '--click-burst-curve-amount': 1,
             // Not truly a CSS var (nothing reads it via var()) - piggybacking
             // on this object purely so the frame-set choice is included in
             // copySettings()/saveSettings() for free, matching every other
@@ -3075,6 +3110,7 @@
             '--click-burst-curve-offset-px': 0,
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
+            '--click-burst-curve-amount': 1,
             '--shadow-x-offset': 106,
             '--shadow-y-offset': 88,
             '--shadow-blur': 0,
@@ -3287,6 +3323,22 @@
             return points;
         }
 
+        // Resolves a 1-indexed, sign-aware frame-position selector (the
+        // "Hide Shadow - Frame Index A/B" dev-panel inputs) against this
+        // burst's own pieces, sorted top-to-bottom by viewBox Y: 1 =
+        // topmost, 2 = 2nd from top, -1 = bottommost, -2 = 2nd from bottom,
+        // etc. Returns -1 (no match) for 0/empty, or an index outside this
+        // burst's own actual piece count (e.g. index 4 rolled on a 3-piece
+        // burst) - deliberately a silent no-op for that burst rather than
+        // an error, since count is randomized per click.
+        function resolveHideShadowIndex(pieces, signedIndex) {
+            if (!signedIndex) return -1;
+            const sorted = pieces.map((p, idx) => idx).sort((a, b) => pieces[a].y - pieces[b].y);
+            const pos = signedIndex > 0 ? signedIndex - 1 : sorted.length + signedIndex;
+            if (pos < 0 || pos >= sorted.length) return -1;
+            return sorted[pos];
+        }
+
         // Flight-direction zones (origin still comes from the guide curve
         // above) - per explicit request, left-side particles must fly with
         // a curved path to the left, right-side to the right, mirror
@@ -3314,6 +3366,7 @@
             const distance = activeVars['--click-burst-distance-px'];
             const height = activeVars['--click-burst-height-px'];
             const curveOffset = activeVars['--click-burst-curve-offset-px'] || 0;
+            const curveAmountMultiplier = activeVars['--click-burst-curve-amount'];
             // Which per-side shadow container this burst's shadows belong
             // in - see spawnClickBurst(), which sets each one's transform.
             const shadowContainer = mirror ? clickBurstShadowContainerRight : clickBurstShadowContainerLeft;
@@ -3331,18 +3384,16 @@
             const zone = mirror ? CLICK_BURST_RIGHT_ZONE : CLICK_BURST_LEFT_ZONE;
             const zoneSliceWidth = (zone[1] - zone[0]) / pieces.length;
 
-            // "No Shadow on Topmost Left Frame": find whichever 2 of this
-            // side's pieces sit highest on screen (smallest viewBox Y) -
-            // only meaningful/applied for the left side (mirror === false).
-            // Per follow-up request, this now covers the top 2, not just 1.
-            const noShadowIndices = new Set();
-            if (!mirror && document.getElementById('checkboxClickBurstNoShadowTopLeft')?.checked) {
-                pieces
-                    .map((p, idx) => ({ idx, y: p.y }))
-                    .sort((a, b) => a.y - b.y)
-                    .slice(0, 2)
-                    .forEach(p => noShadowIndices.add(p.idx));
-            }
+            // Hide Shadow - Frame Index A/B: 2 typed selectors (see
+            // resolveHideShadowIndex()), applied to BOTH sides identically -
+            // each side resolves its own top-to-bottom order independently,
+            // per explicit request replacing the earlier checkbox.
+            const hideIndexA = parseInt(document.getElementById('inputClickBurstHideShadowIndexA')?.value, 10) || 0;
+            const hideIndexB = parseInt(document.getElementById('inputClickBurstHideShadowIndexB')?.value, 10) || 0;
+            const noShadowIndices = new Set(
+                [resolveHideShadowIndex(pieces, hideIndexA), resolveHideShadowIndex(pieces, hideIndexB)]
+                    .filter(idx => idx !== -1)
+            );
 
             for (let i = 0; i < pieces.length; i++) {
                 // Checked per-particle, not once before the loop - a burst
@@ -3418,7 +3469,11 @@
                 let perpX = -endY, perpY = endX;
                 if (perpY > 0) { perpX = -perpX; perpY = -perpY; }
                 const perpLen = Math.hypot(perpX, perpY) || 1;
-                const curveAmount = (0.1 + Math.random() * 0.15) * slotDistance;
+                // Curviness multiplier: 0 = perfectly straight flight paths,
+                // 1 = the original swoosh amount, higher = more pronounced
+                // curve - per explicit request for a "straighten or curve
+                // more" slider.
+                const curveAmount = (0.1 + Math.random() * 0.15) * slotDistance * curveAmountMultiplier;
                 const ctrlX = endX / 2 + (perpX / perpLen) * curveAmount;
                 const ctrlY = endY / 2 + (perpY / perpLen) * curveAmount;
 
@@ -3462,10 +3517,10 @@
                 // coming out amplified to ~127px), per explicit request to
                 // just reuse the same transform as-is instead.
                 //
-                // Skipped entirely for the top 2 left-side pieces when the
-                // "No Shadow on Topmost Left Frame" checkbox is on (see
-                // noShadowIndices above) - the real particle above still
-                // spawns normally either way.
+                // Skipped entirely for whichever piece(s) the Hide Shadow
+                // Frame Index A/B inputs resolve to (see noShadowIndices
+                // above) - the real particle above still spawns normally
+                // either way.
                 if (!noShadowIndices.has(i)) {
                     const shadow = document.createElement('img');
                     shadow.src = frameUrl;
@@ -3779,6 +3834,7 @@
             'sliderClickBurstCurveOffset': '--click-burst-curve-offset-px',
             'sliderClickBurstCountMin': '--click-burst-count-min',
             'sliderClickBurstCountMax': '--click-burst-count-max',
+            'sliderClickBurstCurveAmount': '--click-burst-curve-amount',
             'sliderShadowX': '--shadow-x-offset',
             'sliderShadowY': '--shadow-y-offset',
             'sliderShadowBlur': '--shadow-blur',
