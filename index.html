@@ -416,6 +416,26 @@
             z-index: 2;
             overflow: visible;
         }
+        /* Shadow particles get their OWN container, separate from the real
+           particles above - z-index -1 puts them below game-button (z:1)
+           and base-svg-layer (z:4), matching how a real shadow sits behind
+           the object casting it (the real particles stay in the z:2
+           container above, still visible flying past the button). Also
+           carries the SAME single group opacity .shadow-caster uses for the
+           main button/base shadow (see there) - each individual shadow
+           particle is fully opaque (see .click-burst-particle-shadow's
+           keyframes), so overlapping shadow particles composite as one
+           flattened opaque shape BEFORE this opacity is applied once,
+           instead of each particle darkening independently where they
+           overlap. */
+        .click-burst-shadow-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: visible;
+            opacity: 0.5;
+        }
         .click-burst-particle {
             position: absolute;
             left: 0;
@@ -477,8 +497,17 @@
             offset-rotate: 0deg;
         }
         @keyframes click-burst-fly-shadow {
-            0% { offset-distance: 0%; opacity: 0.5; }
-            70% { opacity: 0.5; }
+            /* Fully opaque (not 0.5) while visible - the 0.5 "shadow shade"
+               now comes ONCE from .click-burst-shadow-container's own group
+               opacity (see there), not from each individual particle. If
+               every particle were independently semi-transparent, 2+
+               overlapping shadows would compound into a visibly darker
+               patch instead of reading as one flat shadow - the group-
+               opacity technique composites all the (opaque) shadows
+               together first, then applies one opacity to the flattened
+               result, so overlap never darkens. */
+            0% { offset-distance: 0%; opacity: 1; }
+            70% { opacity: 1; }
             100% { offset-distance: 100%; opacity: 0; }
         }
 
@@ -1540,6 +1569,7 @@
   <path class="base-cls-5" d="M518.79,249.87c-.59-1.32-.72-2.73-1.97-3.14-.08-.02-.16-.05-.24-.07-.06,7.11-.12,14.09-.14,19.95.21,1.08.4,2.07.55,2.92.66,3.79,1.13,7.55,1.38,11.3h0c.04.65.08,1.31.11,1.96,0,.15.01.3.02.46.03.64.05,1.28.06,1.92,0,.16,0,.31,0,.47.03,1.93,0,3.85-.11,5.77-.02.29-.03.57-.05.86-.03.52-.07,1.04-.12,1.57-.03.35-.06.69-.1,1.04-.05.49-.09.98-.15,1.47-.09.75-.18,1.5-.29,2.25-.06.39-.13.79-.19,1.18-.08.48-.16.97-.25,1.45-.07.39-.15.77-.22,1.15-.1.52-.22,1.05-.33,1.57-.07.33-.14.66-.22.99-.2.84-.41,1.67-.63,2.5-.04.15-.09.29-.13.43-.21.73-.42,1.47-.65,2.2-.08.25-.16.5-.24.75-.22.67-.45,1.35-.69,2.02-.07.21-.15.41-.22.62-.33.88-.67,1.76-1.03,2.64-12.75,30.87-39.95,53.91-68.91,69.53-44.06,23.75-94.69,33.59-144.66,33.28-45.03-.28-91.35-9.33-131.82-29.25-5.59-2.75-11.01-5.72-16.26-8.93-10.99-6.71-21.24-14.45-30.7-23.4-8.74-8.28-15.96-17.36-22.04-27.64-.18-.3-.35-.61-.52-.92-.39-.67-.77-1.34-1.14-2.02-.25-.46-.48-.93-.73-1.4-.28-.53-.56-1.07-.82-1.61-.25-.52-.49-1.04-.73-1.56-.23-.49-.46-.98-.68-1.47-.25-.56-.48-1.12-.72-1.68-.19-.46-.38-.91-.56-1.37-.24-.6-.46-1.2-.68-1.8-.16-.42-.31-.84-.46-1.26-.22-.64-.44-1.28-.65-1.93-.12-.38-.24-.75-.36-1.13-.21-.69-.42-1.38-.61-2.08-.09-.32-.17-.63-.25-.95-.2-.76-.4-1.52-.57-2.28-.05-.23-.1-.45-.15-.68-.19-.85-.38-1.71-.54-2.57-.01-.07-.02-.13-.03-.2-1.33-7.16-1.68-14.51-.98-21.95.08-.9.18-1.81.29-2.71,0-.12,0-.24,0-.36.1-1.71.16-8.09.2-16.47-.48.18-1.18.77-1.47.95-.41.25-.54.74-.75,1.37-1.9,5.65-3.36,11.36-4.12,17.19h-.01c-.16,1.2-.27,2.4-.37,3.61,0,.03,0,.05,0,.08-.18,2.35-.26,4.73-.19,7.13.45,14.69,4.54,28.33,11.78,41.2,16.89,30.01,46.77,51.67,77.44,66.4,23.43,11.25,48.15,18.67,73.85,23.14,45.39,7.9,91.99,6.53,136.81-4.07,24.48-5.79,47.7-14.67,69.62-26.79,31.47-17.41,61.95-44.83,72.66-80.09.99-3.24,1.82-6.55,2.45-9.92.02-.09.03-.18.04-.27.16-.88.31-1.76.44-2.64.07-.44.12-.87.18-1.31.07-.52.14-1.04.19-1.57.06-.54.12-1.07.17-1.61.03-.36.06-.73.09-1.09,1.18-14.8-1.75-29.55-7.88-43.15Z"/>
 </svg></div>
         </div>
+        <div class="click-burst-shadow-container" id="clickBurstShadowContainer"></div>
         <div class="click-burst-container" id="clickBurstContainer"></div>
         <button class="start-button" id="startButton">START</button>
         <div class="game-text" id="gameText"></div>
@@ -2634,6 +2664,7 @@
         const clickCounter = document.getElementById('clickCounter');
         const buttonAssembly = document.getElementById('buttonAssembly');
         const clickBurstContainer = document.getElementById('clickBurstContainer');
+        const clickBurstShadowContainer = document.getElementById('clickBurstShadowContainer');
 
         // Click burst - comic-style "impact line" shapes flung out from the
         // button/base seam on every accepted tap. See the .click-burst-*
@@ -2678,6 +2709,23 @@
         // down from its top edge.
         const SEAM_Y_FRACTION = 0.58;
 
+        // Applies the SAME 2D affine warp the main button/base shadow's own
+        // CSS transform uses (scaleY -> skewX -> rotate, composed in that
+        // order - matching .shadow-caster-layer's documented right-to-left
+        // reasoning) to a single LOCAL point. Used to pre-warp a burst
+        // shadow's own flight-path coordinates (control point + end point),
+        // not just its sprite - see the call site below for why "location"
+        // needs this too, not only "form".
+        function transformShadowPoint(x, y, skewDeg, stretch, rotateDeg) {
+            const sy = y * stretch;
+            const skewRad = skewDeg * Math.PI / 180;
+            const sx = x + sy * Math.tan(skewRad);
+            const rotRad = rotateDeg * Math.PI / 180;
+            const rx = sx * Math.cos(rotRad) - sy * Math.sin(rotRad);
+            const ry = sx * Math.sin(rotRad) + sy * Math.cos(rotRad);
+            return [rx, ry];
+        }
+
         function spawnClickBurstSide(zone, mirror, containerRect, buttonRect) {
             const count = 2 + Math.floor(Math.random() * 3); // 2-4, per explicit request
             // Click frame set stays single/shared (see updateClickFrameSet()),
@@ -2704,61 +2752,69 @@
             const shadowXOffset = activeVars['--shadow-x-offset'];
             const shadowYOffset = activeVars['--shadow-y-offset'];
 
-            // Stratified angle sampling, not fully independent random angles -
-            // divide this side's zone into `count` equal slices and pick one
-            // random angle per slice, WITH a reserved margin at each slice
-            // boundary the angle can never land in. Slicing alone (angle
-            // uniform across the FULL slice) only stops large-scale
-            // clustering - it does NOT guarantee a minimum gap, since
-            // particle i could still land at the very end of its slice and
-            // particle i+1 at the very start of its, landing them almost
-            // touching (confirmed happening: live-dispatched bursts measured
-            // gaps under 6deg despite a 30deg slice width). Reserving a 20%
-            // margin on each side of every slice and only picking within the
-            // remaining middle 60% guarantees a real minimum gap of
-            // 0.4 * sliceWidth between any two same-side particles.
+            // Deterministic angle slots, not random-within-a-margin - per
+            // explicit request that click frames must never overlap, in
+            // spawning OR throughout flight, not just avoid heavy clustering.
+            // Each particle gets the exact CENTER of its own equal slice of
+            // this side's zone (zero randomness in angle), guaranteeing a
+            // real, predictable minimum angular gap between every particle
+            // on the same side - a random angle anywhere in the slice (the
+            // previous approach) could still land close to a neighboring
+            // slice's particle.
             const zoneWidth = zone[1] - zone[0];
             const sliceWidth = zoneWidth / count;
-            const sliceMargin = sliceWidth * 0.2;
 
             for (let i = 0; i < count; i++) {
                 // Checked per-particle, not once before the loop - a burst
                 // starting 1-2 below the cap could otherwise still add its
                 // full batch and overshoot it (see the dev-panel resize
                 // handles' own identical fix earlier this session).
-                if (clickBurstContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
+                // Shadows now live in their own container (see
+                // .click-burst-shadow-container) - sum both so the cap still
+                // bounds total DOM nodes, not just real particles.
+                if (clickBurstContainer.children.length + clickBurstShadowContainer.children.length >= CLICK_BURST_MAX_CONCURRENT) return;
 
-                const sliceStart = zone[0] + i * sliceWidth;
-                const angle = sliceStart + sliceMargin + Math.random() * (sliceWidth - 2 * sliceMargin);
+                const angle = zone[0] + sliceWidth * (i + 0.5);
                 const dirX = Math.cos(angle);
                 const dirY = Math.sin(angle);
 
-                // Origin: anchored to the seam's height (with a little
-                // per-particle jitter so a burst doesn't look like it's all
-                // emanating from one exact point), X spread by how far this
-                // particle's specific angle leans toward the side edge.
-                const originX = (buttonRect.left + buttonRect.width / 2) - containerRect.left + dirX * buttonRect.width * 0.48;
+                // Origin: spread across this particle's own slice of the
+                // seam (deterministic per slot, not randomly jittered - a
+                // random jitter could push two adjacent particles' origins
+                // into the same spot). X and Y both scale with the slot's
+                // own position across the zone, so slots spread out along
+                // the seam's curve instead of clustering near one width.
+                const slotFraction = (i + 0.5) / count; // 0..1 across this side's own slots
+                const originX = (buttonRect.left + buttonRect.width / 2) - containerRect.left + dirX * buttonRect.width * (0.30 + slotFraction * 0.22);
                 const seamY = (buttonRect.top - containerRect.top) + buttonRect.height * SEAM_Y_FRACTION;
-                const originY = seamY + (Math.random() - 0.5) * buttonRect.height * 0.12;
+                const originY = seamY + (slotFraction - 0.5) * buttonRect.height * 0.16;
 
                 // Continue outward along this particle's own angle, then lift
                 // upward by `height` independent of that direction - "how far
                 // out" and "how high" stay two orthogonal, independently
-                // tunable controls.
-                const endX = dirX * distance;
-                const endY = dirY * distance - height;
+                // tunable controls. Distance staggered per slot (not every
+                // particle traveling the exact same radius) for extra
+                // separation margin on top of the angular separation above.
+                const slotDistance = distance * (0.85 + slotFraction * 0.3);
+                const endX = dirX * slotDistance;
+                const endY = dirY * slotDistance - height;
 
                 // Quadratic bezier control point, perpendicular to the
-                // origin->end chord for a natural swoosh that's genuinely
-                // different every time (not a separate slider). Constrained
-                // to only ever point upward/sideways, never downward: of the
-                // two perpendicular directions, the one with a positive
+                // origin->end chord for a natural swoosh. Constrained to only
+                // ever point upward/sideways, never downward: of the two
+                // perpendicular directions, the one with a positive
                 // (downward, in screen coords) Y component is flipped, so
                 // the curve can never sag below its own straight chord.
+                // Magnitude capped much lower than before (was up to 0.6x
+                // distance) - a wide swoosh could swing a particle out of
+                // its own angular slot and into a neighbor's, defeating the
+                // whole point of separating them by angle in the first
+                // place; this keeps the curve inside its own corridor while
+                // still reading as organic movement, not a straight line.
                 let perpX = -endY, perpY = endX;
                 if (perpY > 0) { perpX = -perpX; perpY = -perpY; }
                 const perpLen = Math.hypot(perpX, perpY) || 1;
-                const curveAmount = Math.random() * 0.6 * distance; // magnitude only - direction is fixed upward/sideways above
+                const curveAmount = (0.1 + Math.random() * 0.15) * slotDistance;
                 const ctrlX = endX / 2 + (perpX / perpLen) * curveAmount;
                 const ctrlY = endY / 2 + (perpY / perpLen) * curveAmount;
 
@@ -2787,28 +2843,42 @@
                 img.style.offsetPath = offsetPath;
                 if (mirror) img.style.transform = 'scaleX(-1)';
 
-                // Paired shadow: same frame, same flight path, but flattened
-                // to black and skewed/stretched/rotated the same way the
-                // button/base's own shadow is (matching cssVars --shadow-
-                // skew/--shadow-stretch/--shadow-rotate) - see .click-burst-
-                // particle-shadow's own CSS comment for why this deliberately
-                // has NO blur (unlike the main shadow), staying in the cheap
-                // per-tap cost category this session has repeatedly protected.
-                // Offset by the same --shadow-x-offset/--shadow-y-offset the
-                // main button/base shadow uses, so it reads as "cast onto the
-                // background" (displaced to one side, like the main shadow)
-                // rather than a ghost copy flying in the exact same spot as
-                // the real particle.
+                // Paired shadow: same frame, flattened to black, in its own
+                // lower-z-index container (behind the button/base - see
+                // .click-burst-shadow-container). Its FLIGHT PATH is the
+                // real particle's own path pre-warped through the exact
+                // same skew/stretch/rotate transform the main button/base
+                // shadow's CSS applies (transformShadowPoint(), above) - not
+                // just the same path shifted by a constant offset. That's
+                // what makes the shadow trace a correspondingly
+                // skewed/stretched/rotated arc instead of a parallel copy of
+                // the real particle's own arc, i.e. "the same shadow
+                // transformations... to find the actual shadow location",
+                // per explicit request. The sprite's OWN rendering then gets
+                // the identical skew/stretch/rotate applied a second time
+                // via its CSS transform below (the "form" half of the same
+                // request) - both halves use the same numbers, they're just
+                // two different technical channels (motion-path coordinates
+                // for location, CSS transform for the sprite's own pixels)
+                // for what is conceptually one single transform. The
+                // existing shadowXOffset/shadowYOffset (left/top below) is
+                // the transform's translate component - kept as a separate
+                // additive step, same as .shadow-caster-layer's own
+                // translate is listed outermost/last in its transform chain.
+                const [shadowCtrlX, shadowCtrlY] = transformShadowPoint(ctrlX, ctrlY, shadowSkewForSide, shadowStretch, shadowRotateDeg);
+                const [shadowEndX, shadowEndY] = transformShadowPoint(endX, endY, shadowSkewForSide, shadowStretch, shadowRotateDeg);
+                const shadowOffsetPath = `path('M0,0 Q${shadowCtrlX.toFixed(1)},${shadowCtrlY.toFixed(1)} ${shadowEndX.toFixed(1)},${shadowEndY.toFixed(1)}')`;
+
                 const shadow = document.createElement('img');
                 shadow.src = frameUrl;
                 shadow.className = 'click-burst-particle click-burst-particle-shadow';
                 shadow.alt = '';
                 shadow.style.left = (originX + shadowXOffset) + 'px';
                 shadow.style.top = (originY + shadowYOffset) + 'px';
-                shadow.style.offsetPath = offsetPath;
+                shadow.style.offsetPath = shadowOffsetPath;
                 shadow.style.transform = `rotate(${shadowRotateDeg}deg) skewX(${shadowSkewForSide}deg) scaleY(${shadowStretch})${mirrorTransform}`;
                 shadow.addEventListener('animationend', () => shadow.remove());
-                clickBurstContainer.appendChild(shadow);
+                clickBurstShadowContainer.appendChild(shadow);
 
                 img.addEventListener('animationend', () => img.remove());
                 clickBurstContainer.appendChild(img);
