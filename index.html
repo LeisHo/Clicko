@@ -227,6 +227,33 @@
             height: 100%;
             display: block;
         }
+        /* Bridges hairline-scale internal seams between adjacent paths in
+           the shadow's own duplicated artwork - reported as "hairline
+           outlines within the shadow" and confirmed via an offscreen-canvas
+           alpha-channel scan of the actual rendered SVGs: hundreds (button)
+           to thousands (base) of partial-alpha gap pixels sit between
+           adjacent path edges, invisible in the real colored artwork (where
+           adjacent similar-toned fills mask a sub-pixel gap) but exposed
+           once .shadow-caster-layer's filter flattens everything to one
+           flat gray. Per explicit request to fix this WITHOUT using
+           --shadow-blur (the user doesn't want a blurred shadow). Stroke
+           COLOR is irrelevant here - it gets flattened to the same gray as
+           the fill regardless of what's set - only the WIDTH matters, as a
+           small outward dilation of each path that bridges the gap next to
+           it. Scoped to just the shadow's own SVG copies (this selector),
+           never touching .base-svg-layer/.game-button's real, visible
+           paths, so the actual colored artwork is completely unaffected.
+           2 SVG units (viewBox is ~590 wide) took base's gap-pixel count
+           from 7721 to 0 and button's from 615 to 9 (99%+) in direct
+           measurement - negligible growth (~0.34% of the shape's own
+           width) applied locally to each path's own edge, not a uniform
+           scale() from a shared center, so unlike an earlier-tried
+           base-shadow scale() fix (see the z-index comment above) this
+           can't visibly shift the shadow's position. */
+        .shadow-caster-layer svg path {
+            stroke: #000;
+            stroke-width: 2;
+        }
         /* The button-shadow layer mirrors the real .game-button's own press
            motion exactly: translates down by --button-press-intensity-px
            (same diameter-relative formula) AND swaps to the hand-drawn
