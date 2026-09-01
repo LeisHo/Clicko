@@ -141,7 +141,7 @@
         .shadow-caster-layer {
             position: absolute;
             inset: 0;
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(-45deg) scaleX(var(--shadow-stretch-45)) rotate(45deg);
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
             /* brightness(0) flattens the artwork to solid black (alpha
                unchanged - the silhouette shape stays fully opaque wherever
                the source art itself was opaque); invert(0.5) then partially
@@ -307,7 +307,7 @@
            out-of-sync shadow during an eased release is a minor cosmetic
            cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(-45deg) scaleX(var(--shadow-stretch-45)) rotate(45deg) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Background fill - sits BEHIND both the base and button layers, purely
@@ -544,7 +544,8 @@
         /* Paired shadow for each burst particle - flattened black, skewed/
            stretched/rotated the same way the button/base's own shadow is
            (see spawnClickBurstSide(), which sets this transform per-
-           instance from --shadow-skew/--shadow-stretch/--shadow-rotate).
+           instance from --shadow-skew/--shadow-elongation-intensity/
+           --shadow-elongation-angle/--shadow-rotate).
            Deliberately NO blur, unlike the main shadow - .shadow-caster-
            layer's own comment already documents blur as the real per-tap
            cost; these particles are numerous and short-lived, so brightness-
@@ -1954,20 +1955,22 @@
                     <input type="range" class="dev-slider" id="sliderShadowSkew" min="-90" max="0" step="1" value="-22">
                     <span class="dev-value" id="valueShadowSkew">-22</span>
                 </div>
+                <!-- Replaces the previous 3 separate axis-locked stretch
+                     sliders (Y/X/45deg) with a single continuous-angle
+                     elongation, per explicit request. Angle 0 = vertical
+                     (Y-axis), 90 = horizontal (X-axis), matching CSS
+                     rotate()'s own rotation direction in between - see the
+                     comment on --shadow-elongation-angle in cssVars for the
+                     rotate/scaleY/rotate-back math. -->
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Stretch (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowStretch" min="0" max="2" step="0.1" value="2">
-                    <span class="dev-value" id="valueShadowStretch">2</span>
+                    <span class="dev-label">Elongation Intensity:</span>
+                    <input type="range" class="dev-slider" id="sliderShadowElongationIntensity" min="0" max="3" step="0.1" value="2">
+                    <span class="dev-value" id="valueShadowElongationIntensity">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Stretch X (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowStretchX" min="0" max="2" step="0.1" value="1">
-                    <span class="dev-value" id="valueShadowStretchX">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Stretch 45&deg; (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowStretch45" min="0" max="2" step="0.1" value="1">
-                    <span class="dev-value" id="valueShadowStretch45">1</span>
+                    <span class="dev-label">Elongation Angle (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowElongationAngle" min="0" max="360" step="1" value="0">
+                    <span class="dev-value" id="valueShadowElongationAngle">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
@@ -2636,19 +2639,14 @@
                     <span class="dev-value" id="valueMobileShadowSkew">-37</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Stretch (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1">
-                    <span class="dev-value" id="valueMobileShadowStretch">1</span>
+                    <span class="dev-label">Elongation Intensity:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowElongationIntensity" min="1" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueMobileShadowElongationIntensity">1</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Stretch X (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowStretchX" min="1" max="5" step="0.1" value="1">
-                    <span class="dev-value" id="valueMobileShadowStretchX">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Stretch 45&deg; (elongation):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch45" min="1" max="5" step="0.1" value="1">
-                    <span class="dev-value" id="valueMobileShadowStretch45">1</span>
+                    <span class="dev-label">Elongation Angle (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowElongationAngle" min="0" max="360" step="1" value="0">
+                    <span class="dev-value" id="valueMobileShadowElongationAngle">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
@@ -3063,17 +3061,27 @@
             '--shadow-blur': 0,
             '--shadow-scale': 0.6,
             '--shadow-skew': -22,
-            '--shadow-stretch': 2,
-            // Stretch (elongation) along 2 more axes, per explicit request
-            // - X (--shadow-stretch-x, a plain scaleX) and the -45deg
-            // diagonal (--shadow-stretch-45, rotate(-45deg) scaleX(...)
-            // rotate(45deg) - mirrored from the initial +45deg per explicit
-            // correction - the standard way to scale along an arbitrary
-            // axis: rotate that axis onto X, scale X only, rotate back).
-            // Both default to 1 (no stretch), reproducing the previous
-            // behavior exactly until tuned.
-            '--shadow-stretch-x': 1,
-            '--shadow-stretch-45': 1,
+            // Replaces the previous 3 separate axis-locked stretch vars
+            // (--shadow-stretch/-x/-45, one fixed direction each) with a
+            // single continuous elongation - per explicit request ("replace
+            // the 3 elongation sliders with these 2 - elongation intensity,
+            // elongation angle"). Angle 0 = vertical (the Y-axis), 90 =
+            // horizontal (X-axis), matching CSS rotate()'s own rotation
+            // direction for everything in between - per explicit spec.
+            // Implemented as rotate(angle) scaleY(intensity) rotate(-angle):
+            // the pre-rotation aligns whatever axis sits at `angle` from
+            // vertical onto the real Y-axis, scaleY stretches THAT axis,
+            // and the post-rotation restores the original orientation - the
+            // standard way to scale along a continuously-variable arbitrary
+            // axis (a strict generalization of the old fixed-axis
+            // rotate(45)/rotate(-45) trick the previous 45deg slider used).
+            // Defaults (2, 0) reproduce the exact prior desktop look: at
+            // angle 0 the pre/post rotations are both 0deg (no-ops), so the
+            // formula collapses to a plain scaleY(intensity) - identical to
+            // the old Y-only --shadow-stretch (X/45 were both already
+            // inactive at 1, i.e. no stretch on those axes).
+            '--shadow-elongation-intensity': 2,
+            '--shadow-elongation-angle': 0,
             '--shadow-rotate': 41,
             '--ui-button-width-vw': 10,
             '--ui-button-height-vh': 6,
@@ -3394,9 +3402,8 @@
             '--shadow-blur': 0,
             '--shadow-scale': 0.65,
             '--shadow-skew': -37,
-            '--shadow-stretch': 1,
-            '--shadow-stretch-x': 1,
-            '--shadow-stretch-45': 1,
+            '--shadow-elongation-intensity': 1,
+            '--shadow-elongation-angle': 0,
             '--shadow-rotate': 11,
             '--ui-button-width-vw': 15.5,
             '--ui-button-height-vh': 6,
@@ -3974,7 +3981,7 @@
             // resolveSpatialPx() - see its own comment - resolves the
             // shadow x/y offset to actual current-viewport px on mobile
             // (stored as vw there) and is a no-op on desktop.
-            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']}) scaleX(${activeVars['--shadow-stretch-x']}) rotate(-45deg) scaleX(${activeVars['--shadow-stretch-45']}) rotate(45deg)`;
+            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) rotate(${activeVars['--shadow-elongation-angle']}deg) scaleY(${activeVars['--shadow-elongation-intensity']}) rotate(${-activeVars['--shadow-elongation-angle']}deg)`;
             clickBurstShadowContainerRight.style.transformOrigin = originStr;
             clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
@@ -4300,9 +4307,8 @@
             'sliderShadowBlur': '--shadow-blur',
             'sliderShadowScale': '--shadow-scale',
             'sliderShadowSkew': '--shadow-skew',
-            'sliderShadowStretch': '--shadow-stretch',
-            'sliderShadowStretchX': '--shadow-stretch-x',
-            'sliderShadowStretch45': '--shadow-stretch-45',
+            'sliderShadowElongationIntensity': '--shadow-elongation-intensity',
+            'sliderShadowElongationAngle': '--shadow-elongation-angle',
             'sliderShadowRotate': '--shadow-rotate',
             'sliderUIButtonWidth': '--ui-button-width-vw',
             'sliderUIButtonHeight': '--ui-button-height-vh',
