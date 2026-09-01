@@ -2526,8 +2526,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-50" max="50" step="0.01" value="0">
-                    <span class="dev-value" id="valueMobileButtonX">0</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-50" max="50" step="0.01" value="-2.32">
+                    <span class="dev-value" id="valueMobileButtonX">-2.32</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
@@ -2548,8 +2548,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Y (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-100" max="50" step="0.5" value="17.48">
-                    <span class="dev-value" id="valueMobileShadowY">17.48</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-100" max="50" step="0.5" value="14">
+                    <span class="dev-value" id="valueMobileShadowY">14</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
@@ -2596,8 +2596,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Distance Out (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstDistance" min="0" max="75" step="0.5" value="10.92">
-                    <span class="dev-value" id="valueMobileClickBurstDistance">10.92</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstDistance" min="0" max="75" step="0.5" value="8">
+                    <span class="dev-value" id="valueMobileClickBurstDistance">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height / Lift (vw):</span>
@@ -2606,8 +2606,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Curve Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCurveOffset" min="0" max="40" step="0.5" value="8.50">
-                    <span class="dev-value" id="valueMobileClickBurstCurveOffset">8.50</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstCurveOffset" min="0" max="40" step="0.5" value="6.5">
+                    <span class="dev-value" id="valueMobileClickBurstCurveOffset">6.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Flight Path Curviness (x):</span>
@@ -3276,7 +3276,7 @@
             '--button-min-diameter-px': 165,
             '--button-height-offset-px': -3.5,
             '--button-press-intensity-px': 8.5,
-            '--button-x-offset-vw': 0,
+            '--button-x-offset-vw': -2.32,
             '--button-y-offset-vh': 16,
             '--button-release-ms': 0,
             '--click-burst-speed-ms': 260,
@@ -3294,14 +3294,14 @@
             // 412px reference width (Chrome on a Google Pixel 9a, inferred
             // from matching the Pixel 9's confirmed 412x915 CSS-pixel
             // viewport - not a Pixel-9a-specific measurement).
-            '--click-burst-distance-px': 10.92,
+            '--click-burst-distance-px': 8,
             '--click-burst-height-px': 0,
-            '--click-burst-curve-offset-px': 8.50,
+            '--click-burst-curve-offset-px': 6.5,
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
             '--click-burst-curve-amount': 0.2,
             '--shadow-x-offset': 21.12,
-            '--shadow-y-offset': 17.48,
+            '--shadow-y-offset': 14,
             '--shadow-blur': 0,
             '--shadow-scale': 0.65,
             '--shadow-skew': -37,
