@@ -4079,9 +4079,27 @@
             setBaseHue(document.getElementById(id).value);
         }
 
+        // Game Mechanics dev-panel sliders aren't cssVars/extrusionVars - they
+        // write straight into gameState/TAP_DEBOUNCE_MS via
+        // applyGameMechanicsSlider() (see there), so unlike every other dev
+        // control they need their own explicit capture/restore list here for
+        // COPY/SAVE/load to include them at all (previously missing entirely -
+        // reported as "Starting Time isn't what I set" after a reload/dump-
+        // and-reapply, since these silently fell back to their HTML defaults).
+        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease'];
+
+        function captureGameMechanics() {
+            const gameMechanics = {};
+            GAME_MECHANICS_SLIDER_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) gameMechanics[id] = parseFloat(el.value);
+            });
+            return gameMechanics;
+        }
+
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics() };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -4100,7 +4118,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics() };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -4127,6 +4145,16 @@
                     Object.assign(mobileColorVars, settings.mobileColorVars);
                     Object.assign(extrusionVars, settings.extrusionVars);
                     Object.assign(mobileExtrusionVars, settings.mobileExtrusionVars);
+                    if (settings.gameMechanics) {
+                        GAME_MECHANICS_SLIDER_IDS.forEach(id => {
+                            const value = settings.gameMechanics[id];
+                            const el = document.getElementById(id);
+                            if (el && value !== undefined) {
+                                el.value = value;
+                                applySliderValue(el, value);
+                            }
+                        });
+                    }
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
