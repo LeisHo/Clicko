@@ -141,7 +141,7 @@
         .shadow-caster-layer {
             position: absolute;
             inset: 0;
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(45deg) scaleX(var(--shadow-stretch-45)) rotate(-45deg);
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(-45deg) scaleX(var(--shadow-stretch-45)) rotate(45deg);
             /* brightness(0) flattens the artwork to solid black (alpha
                unchanged - the silhouette shape stays fully opaque wherever
                the source art itself was opaque); invert(0.5) then partially
@@ -307,7 +307,7 @@
            out-of-sync shadow during an eased release is a minor cosmetic
            cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(45deg) scaleX(var(--shadow-stretch-45)) rotate(-45deg) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(-45deg) scaleX(var(--shadow-stretch-45)) rotate(45deg) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Background fill - sits BEHIND both the base and button layers, purely
@@ -3065,12 +3065,13 @@
             '--shadow-skew': -22,
             '--shadow-stretch': 2,
             // Stretch (elongation) along 2 more axes, per explicit request
-            // - X (--shadow-stretch-x, a plain scaleX) and the 45deg
-            // diagonal (--shadow-stretch-45, rotate(45deg) scaleX(...)
-            // rotate(-45deg) - the standard way to scale along an
-            // arbitrary axis: rotate that axis onto X, scale X only,
-            // rotate back). Both default to 1 (no stretch), reproducing
-            // the previous behavior exactly until tuned.
+            // - X (--shadow-stretch-x, a plain scaleX) and the -45deg
+            // diagonal (--shadow-stretch-45, rotate(-45deg) scaleX(...)
+            // rotate(45deg) - mirrored from the initial +45deg per explicit
+            // correction - the standard way to scale along an arbitrary
+            // axis: rotate that axis onto X, scale X only, rotate back).
+            // Both default to 1 (no stretch), reproducing the previous
+            // behavior exactly until tuned.
             '--shadow-stretch-x': 1,
             '--shadow-stretch-45': 1,
             '--shadow-rotate': 41,
@@ -3973,7 +3974,7 @@
             // resolveSpatialPx() - see its own comment - resolves the
             // shadow x/y offset to actual current-viewport px on mobile
             // (stored as vw there) and is a no-op on desktop.
-            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']}) scaleX(${activeVars['--shadow-stretch-x']}) rotate(45deg) scaleX(${activeVars['--shadow-stretch-45']}) rotate(-45deg)`;
+            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']}) scaleX(${activeVars['--shadow-stretch-x']}) rotate(-45deg) scaleX(${activeVars['--shadow-stretch-45']}) rotate(45deg)`;
             clickBurstShadowContainerRight.style.transformOrigin = originStr;
             clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
