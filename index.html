@@ -4970,29 +4970,38 @@
         function showTargetAndSpeed() {
             const targetFloor = gameState.targetFloorBase + (gameState.currentRound - 1) * gameState.targetFloorIncreasePerRound;
             gameState.targetCount = Math.floor(Math.random() * 29) + targetFloor;
-            // effectiveDecrease shrinks each round when speedDecreaseDecay
-            // < 1 (exponential decay, compounded per round - see its own
-            // gameState comment) - per explicit request that the speed-
-            // limit increase gets smaller at higher rounds. Floored at 1ms
-            // rather than continuing to decay toward 0 - per explicit
-            // follow-up ("once it hits 1ms per round, it just stays at 1
-            // from there on").
-            const baseSpeedDecrease = gameState.speedDecrease * Math.pow(gameState.speedDecreaseDecay, gameState.currentRound - 1);
-            // Tolerance jitter: a fresh +/- speedDecreaseDecayTolerance%
-            // random swing applied to THIS round's decay only (not
-            // compounded into the exponent future rounds are based on) -
-            // per explicit request, re-rolled every round.
-            const toleranceFraction = gameState.speedDecreaseDecayTolerance / 100;
-            const jitter = 1 + (Math.random() * 2 - 1) * toleranceFraction;
-            const effectiveSpeedDecrease = Math.max(1, baseSpeedDecrease * jitter);
-            let nextMaxTimeMs = gameState.maxTimeMs - effectiveSpeedDecrease;
-            // Rounds to the nearest multiple of speedTimeRounding (1 = no-op)
-            // BEFORE the 100ms floor below, so the floor still holds exactly
-            // even if rounding would otherwise push a near-floor value under it.
-            if (gameState.speedTimeRounding > 1) {
-                nextMaxTimeMs = Math.round(nextMaxTimeMs / gameState.speedTimeRounding) * gameState.speedTimeRounding;
+            // Round 1 plays at exactly the Starting Time slider value, no
+            // decrease applied - per explicit request/correction. startGame()
+            // already sets gameState.maxTimeMs straight from that slider, so
+            // skipping the whole decrease/rounding/floor block on round 1
+            // leaves it untouched. Every other round's math is unchanged -
+            // the exponent below still counts from round 1 (currentRound - 1),
+            // it just never gets evaluated when currentRound is 1.
+            if (gameState.currentRound > 1) {
+                // effectiveDecrease shrinks each round when speedDecreaseDecay
+                // < 1 (exponential decay, compounded per round - see its own
+                // gameState comment) - per explicit request that the speed-
+                // limit increase gets smaller at higher rounds. Floored at 1ms
+                // rather than continuing to decay toward 0 - per explicit
+                // follow-up ("once it hits 1ms per round, it just stays at 1
+                // from there on").
+                const baseSpeedDecrease = gameState.speedDecrease * Math.pow(gameState.speedDecreaseDecay, gameState.currentRound - 1);
+                // Tolerance jitter: a fresh +/- speedDecreaseDecayTolerance%
+                // random swing applied to THIS round's decay only (not
+                // compounded into the exponent future rounds are based on) -
+                // per explicit request, re-rolled every round.
+                const toleranceFraction = gameState.speedDecreaseDecayTolerance / 100;
+                const jitter = 1 + (Math.random() * 2 - 1) * toleranceFraction;
+                const effectiveSpeedDecrease = Math.max(1, baseSpeedDecrease * jitter);
+                let nextMaxTimeMs = gameState.maxTimeMs - effectiveSpeedDecrease;
+                // Rounds to the nearest multiple of speedTimeRounding (1 = no-op)
+                // BEFORE the 100ms floor below, so the floor still holds exactly
+                // even if rounding would otherwise push a near-floor value under it.
+                if (gameState.speedTimeRounding > 1) {
+                    nextMaxTimeMs = Math.round(nextMaxTimeMs / gameState.speedTimeRounding) * gameState.speedTimeRounding;
+                }
+                gameState.maxTimeMs = Math.max(100, nextMaxTimeMs);
             }
-            gameState.maxTimeMs = Math.max(100, nextMaxTimeMs);
             // currentTapCount and friends are correctly PER-ROUND state - reset
             // here every time a new round begins, same as always.
             gameState.currentTapCount = 0;
