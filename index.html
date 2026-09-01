@@ -2425,13 +2425,13 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Starting Time (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderStartingSpeed" min="50" max="800" step="10" value="600">
-                    <span class="dev-value" id="valueStartingSpeed">600</span>
+                    <input type="range" class="dev-slider" id="sliderStartingSpeed" min="50" max="800" step="10" value="500">
+                    <span class="dev-value" id="valueStartingSpeed">500</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Speed Decrease (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedDecrease" min="5" max="150" step="5" value="30">
-                    <span class="dev-value" id="valueSpeedDecrease">30</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedDecrease" min="5" max="150" step="5" value="75">
+                    <span class="dev-value" id="valueSpeedDecrease">75</span>
                 </div>
                 <!-- Multiplier on Speed Decrease, compounded per round -
                      100% = no decay (every round drops the same flat
@@ -2441,13 +2441,23 @@
                      clarification. -->
                 <div class="dev-row">
                     <span class="dev-label">Speed Decrease Decay (%):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecay" min="0" max="100" step="1" value="100">
-                    <span class="dev-value" id="valueSpeedDecreaseDecay">100</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecay" min="0" max="100" step="1" value="75">
+                    <span class="dev-value" id="valueSpeedDecreaseDecay">75</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Speed Decrease Decay Tolerance (%):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecayTolerance" min="0" max="100" step="1" value="0">
-                    <span class="dev-value" id="valueSpeedDecreaseDecayTolerance">0</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecayTolerance" min="0" max="100" step="1" value="5">
+                    <span class="dev-value" id="valueSpeedDecreaseDecayTolerance">5</span>
+                </div>
+                <!-- Rounds the round's speed time to the nearest multiple of
+                     this value (e.g. 10 -> nearest 10ms) after the decay/
+                     jitter calculation, applied before the 100ms floor so the
+                     floor still holds exactly. 1 = no rounding (identity for
+                     integer ms), reproducing prior behavior exactly. -->
+                <div class="dev-row">
+                    <span class="dev-label">Speed Time Rounding (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedTimeRounding" min="1" max="100" step="1" value="1">
+                    <span class="dev-value" id="valueSpeedTimeRounding">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
@@ -3069,7 +3079,7 @@
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
-            '--dev-panel-width-px': 683,
+            '--dev-panel-width-px': 455,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
             // with real viewport-computed values at load time, see below.
@@ -3078,8 +3088,8 @@
             '--dev-panel-height-px': -1,
             '--round-breakdown-width-px': 320,
             '--round-breakdown-height-px': 450,
-            '--round-breakdown-left-px': 1000,
-            '--round-breakdown-top-px': 200,
+            '--round-breakdown-left-px': 1200,
+            '--round-breakdown-top-px': 140,
         };
 
         // Color variables
@@ -3365,8 +3375,8 @@
             '--result-y-offset-vh': 1.46,
             '--round-breakdown-width-px': 280,
             '--round-breakdown-height-px': 350,
-            '--round-breakdown-left-px': 20,
-            '--round-breakdown-top-px': 100,
+            '--round-breakdown-left-px': 1240,
+            '--round-breakdown-top-px': 190,
         };
         const mobileColorVars = {
             '--button-color': '#ff3333',
@@ -3410,8 +3420,8 @@
             isPlaying: false,
             canTap: false,
             isCountingTaps: false,
-            maxTimeMs: 600,
-            speedDecrease: 30,
+            maxTimeMs: 500,
+            speedDecrease: 75,
             // Multiplier applied to speedDecrease, compounded per round
             // (effectiveDecrease = speedDecrease * decayMultiplier^(round-1))
             // - per explicit request that the speed-limit increase gets
@@ -3419,7 +3429,7 @@
             // maxTimeMs by the same flat speedDecrease, the previous
             // behavior), less than 1 makes each round's drop shrink
             // relative to the one before it.
-            speedDecreaseDecay: 1,
+            speedDecreaseDecay: 0.75,
             // +/- tolerance (%) applied as a fresh random jitter to the
             // EFFECTIVE per-round decay value (not compounded into future
             // rounds' base) - per explicit request: "10" means each
@@ -3427,7 +3437,11 @@
             // of what it would otherwise be, re-rolled every round. 0 (the
             // default) means no jitter at all - exactly the previous
             // deterministic behavior.
-            speedDecreaseDecayTolerance: 0,
+            speedDecreaseDecayTolerance: 5,
+            // Rounds the computed speed time to the nearest multiple of this
+            // value each round (e.g. 10 -> nearest 10ms), applied before the
+            // 100ms floor. 1 (the default) is a no-op - exact prior behavior.
+            speedTimeRounding: 1,
             roundDuration: 1000,
             resultDuration: 1000,
             // Minimum possible target count on Round 1, and how much that
@@ -4086,7 +4100,7 @@
         // COPY/SAVE/load to include them at all (previously missing entirely -
         // reported as "Starting Time isn't what I set" after a reload/dump-
         // and-reapply, since these silently fell back to their HTML defaults).
-        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease'];
+        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease'];
 
         function captureGameMechanics() {
             const gameMechanics = {};
@@ -4309,6 +4323,7 @@
             else if (desktopId === 'sliderSpeedDecrease') gameState.speedDecrease = value;
             else if (desktopId === 'sliderSpeedDecreaseDecay') gameState.speedDecreaseDecay = value / 100;
             else if (desktopId === 'sliderSpeedDecreaseDecayTolerance') gameState.speedDecreaseDecayTolerance = value;
+            else if (desktopId === 'sliderSpeedTimeRounding') gameState.speedTimeRounding = value;
             else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
             else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
@@ -4970,7 +4985,14 @@
             const toleranceFraction = gameState.speedDecreaseDecayTolerance / 100;
             const jitter = 1 + (Math.random() * 2 - 1) * toleranceFraction;
             const effectiveSpeedDecrease = Math.max(1, baseSpeedDecrease * jitter);
-            gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - effectiveSpeedDecrease);
+            let nextMaxTimeMs = gameState.maxTimeMs - effectiveSpeedDecrease;
+            // Rounds to the nearest multiple of speedTimeRounding (1 = no-op)
+            // BEFORE the 100ms floor below, so the floor still holds exactly
+            // even if rounding would otherwise push a near-floor value under it.
+            if (gameState.speedTimeRounding > 1) {
+                nextMaxTimeMs = Math.round(nextMaxTimeMs / gameState.speedTimeRounding) * gameState.speedTimeRounding;
+            }
+            gameState.maxTimeMs = Math.max(100, nextMaxTimeMs);
             // currentTapCount and friends are correctly PER-ROUND state - reset
             // here every time a new round begins, same as always.
             gameState.currentTapCount = 0;
