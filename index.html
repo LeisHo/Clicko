@@ -141,7 +141,7 @@
         .shadow-caster-layer {
             position: absolute;
             inset: 0;
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(45deg) scaleX(var(--shadow-stretch-45)) rotate(-45deg);
             /* brightness(0) flattens the artwork to solid black (alpha
                unchanged - the silhouette shape stays fully opaque wherever
                the source art itself was opaque); invert(0.5) then partially
@@ -280,7 +280,7 @@
            out-of-sync shadow during an eased release is a minor cosmetic
            cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) scaleY(var(--shadow-stretch)) scaleX(var(--shadow-stretch-x)) rotate(45deg) scaleX(var(--shadow-stretch-45)) rotate(-45deg) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Background fill - sits BEHIND both the base and button layers, purely
@@ -1933,6 +1933,16 @@
                     <span class="dev-value" id="valueShadowStretch">2</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Shadow Stretch X (elongation):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowStretchX" min="0" max="2" step="0.1" value="1">
+                    <span class="dev-value" id="valueShadowStretchX">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Stretch 45&deg; (elongation):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowStretch45" min="0" max="2" step="0.1" value="1">
+                    <span class="dev-value" id="valueShadowStretch45">1</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
                     <input type="range" class="dev-slider" id="sliderShadowRotate" min="-90" max="135" step="1" value="41">
                     <span class="dev-value" id="valueShadowRotate">41</span>
@@ -2414,7 +2424,7 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Game Mechanics</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Starting Max Time (ms):</span>
+                    <span class="dev-label">Starting Time (ms):</span>
                     <input type="range" class="dev-slider" id="sliderStartingSpeed" min="50" max="800" step="10" value="600">
                     <span class="dev-value" id="valueStartingSpeed">600</span>
                 </div>
@@ -2433,6 +2443,11 @@
                     <span class="dev-label">Speed Decrease Decay (%):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecay" min="0" max="100" step="1" value="100">
                     <span class="dev-value" id="valueSpeedDecreaseDecay">100</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Speed Decrease Decay Tolerance (%):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecayTolerance" min="0" max="100" step="1" value="0">
+                    <span class="dev-value" id="valueSpeedDecreaseDecayTolerance">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
@@ -2570,6 +2585,16 @@
                     <span class="dev-label">Shadow Stretch (elongation):</span>
                     <input type="range" class="dev-slider" id="sliderMobileShadowStretch" min="1" max="5" step="0.1" value="1">
                     <span class="dev-value" id="valueMobileShadowStretch">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Stretch X (elongation):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowStretchX" min="1" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueMobileShadowStretchX">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Stretch 45&deg; (elongation):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowStretch45" min="1" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueMobileShadowStretch45">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Rotate (deg):</span>
@@ -2985,6 +3010,15 @@
             '--shadow-scale': 0.6,
             '--shadow-skew': -22,
             '--shadow-stretch': 2,
+            // Stretch (elongation) along 2 more axes, per explicit request
+            // - X (--shadow-stretch-x, a plain scaleX) and the 45deg
+            // diagonal (--shadow-stretch-45, rotate(45deg) scaleX(...)
+            // rotate(-45deg) - the standard way to scale along an
+            // arbitrary axis: rotate that axis onto X, scale X only,
+            // rotate back). Both default to 1 (no stretch), reproducing
+            // the previous behavior exactly until tuned.
+            '--shadow-stretch-x': 1,
+            '--shadow-stretch-45': 1,
             '--shadow-rotate': 41,
             '--ui-button-width-vw': 10,
             '--ui-button-height-vh': 6,
@@ -3306,6 +3340,8 @@
             '--shadow-scale': 0.65,
             '--shadow-skew': -37,
             '--shadow-stretch': 1,
+            '--shadow-stretch-x': 1,
+            '--shadow-stretch-45': 1,
             '--shadow-rotate': 11,
             '--ui-button-width-vw': 15.5,
             '--ui-button-height-vh': 6,
@@ -3384,6 +3420,14 @@
             // behavior), less than 1 makes each round's drop shrink
             // relative to the one before it.
             speedDecreaseDecay: 1,
+            // +/- tolerance (%) applied as a fresh random jitter to the
+            // EFFECTIVE per-round decay value (not compounded into future
+            // rounds' base) - per explicit request: "10" means each
+            // round's decay can randomly land anywhere from -10% to +10%
+            // of what it would otherwise be, re-rolled every round. 0 (the
+            // default) means no jitter at all - exactly the previous
+            // deterministic behavior.
+            speedDecreaseDecayTolerance: 0,
             roundDuration: 1000,
             resultDuration: 1000,
             // Minimum possible target count on Round 1, and how much that
@@ -3864,7 +3908,7 @@
             // resolveSpatialPx() - see its own comment - resolves the
             // shadow x/y offset to actual current-viewport px on mobile
             // (stored as vw there) and is a no-op on desktop.
-            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']})`;
+            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) scaleY(${activeVars['--shadow-stretch']}) scaleX(${activeVars['--shadow-stretch-x']}) rotate(45deg) scaleX(${activeVars['--shadow-stretch-45']}) rotate(-45deg)`;
             clickBurstShadowContainerRight.style.transformOrigin = originStr;
             clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
@@ -4163,6 +4207,8 @@
             'sliderShadowScale': '--shadow-scale',
             'sliderShadowSkew': '--shadow-skew',
             'sliderShadowStretch': '--shadow-stretch',
+            'sliderShadowStretchX': '--shadow-stretch-x',
+            'sliderShadowStretch45': '--shadow-stretch-45',
             'sliderShadowRotate': '--shadow-rotate',
             'sliderUIButtonWidth': '--ui-button-width-vw',
             'sliderUIButtonHeight': '--ui-button-height-vh',
@@ -4234,6 +4280,7 @@
             if (desktopId === 'sliderStartingSpeed') gameState.maxTimeMs = value;
             else if (desktopId === 'sliderSpeedDecrease') gameState.speedDecrease = value;
             else if (desktopId === 'sliderSpeedDecreaseDecay') gameState.speedDecreaseDecay = value / 100;
+            else if (desktopId === 'sliderSpeedDecreaseDecayTolerance') gameState.speedDecreaseDecayTolerance = value;
             else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
             else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
@@ -4887,7 +4934,14 @@
             // rather than continuing to decay toward 0 - per explicit
             // follow-up ("once it hits 1ms per round, it just stays at 1
             // from there on").
-            const effectiveSpeedDecrease = Math.max(1, gameState.speedDecrease * Math.pow(gameState.speedDecreaseDecay, gameState.currentRound - 1));
+            const baseSpeedDecrease = gameState.speedDecrease * Math.pow(gameState.speedDecreaseDecay, gameState.currentRound - 1);
+            // Tolerance jitter: a fresh +/- speedDecreaseDecayTolerance%
+            // random swing applied to THIS round's decay only (not
+            // compounded into the exponent future rounds are based on) -
+            // per explicit request, re-rolled every round.
+            const toleranceFraction = gameState.speedDecreaseDecayTolerance / 100;
+            const jitter = 1 + (Math.random() * 2 - 1) * toleranceFraction;
+            const effectiveSpeedDecrease = Math.max(1, baseSpeedDecrease * jitter);
             gameState.maxTimeMs = Math.max(100, gameState.maxTimeMs - effectiveSpeedDecrease);
             // currentTapCount and friends are correctly PER-ROUND state - reset
             // here every time a new round begins, same as always.
