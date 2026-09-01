@@ -2484,6 +2484,23 @@
                     <input type="range" class="dev-slider" id="sliderTargetFloorIncrease" min="0" max="10" step="1" value="0">
                     <span class="dev-value" id="valueTargetFloorIncrease">0</span>
                 </div>
+                <!-- Target Ceiling caps the same per-round random range Target
+                     Floor starts - previously a fixed +29 above the floor
+                     (Math.floor(Math.random()*29) + targetFloor); now the
+                     ceiling is independently configurable the same way the
+                     floor already is. Default 30 (base) / 0 (increase)
+                     reproduces the exact previous range (2 to 30 at round 1)
+                     until tuned. -->
+                <div class="dev-row">
+                    <span class="dev-label">Target Ceiling - Round 1:</span>
+                    <input type="range" class="dev-slider" id="sliderTargetCeilingBase" min="0" max="60" step="1" value="30">
+                    <span class="dev-value" id="valueTargetCeilingBase">30</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Target Ceiling - Increase Per Round:</span>
+                    <input type="range" class="dev-slider" id="sliderTargetCeilingIncrease" min="0" max="10" step="1" value="0">
+                    <span class="dev-value" id="valueTargetCeilingIncrease">0</span>
+                </div>
             </div>
         </div>
 
@@ -3452,6 +3469,13 @@
             // "always +2" behavior exactly until tuned.
             targetFloorBase: 2,
             targetFloorIncreasePerRound: 0,
+            // Maximum possible target count on Round 1, and how much that
+            // maximum rises per round - same shape as targetFloorBase/
+            // targetFloorIncreasePerRound above, per explicit request. 30/0
+            // defaults reproduce the previous fixed "floor+29" range (2 to
+            // 30 at round 1) exactly until tuned.
+            targetCeilingBase: 30,
+            targetCeilingIncreasePerRound: 0,
             checkTimeoutId: null,
         };
 
@@ -4100,7 +4124,7 @@
         // COPY/SAVE/load to include them at all (previously missing entirely -
         // reported as "Starting Time isn't what I set" after a reload/dump-
         // and-reapply, since these silently fell back to their HTML defaults).
-        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease'];
+        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease', 'sliderTargetCeilingBase', 'sliderTargetCeilingIncrease'];
 
         function captureGameMechanics() {
             const gameMechanics = {};
@@ -4329,6 +4353,8 @@
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
             else if (desktopId === 'sliderTargetFloorBase') gameState.targetFloorBase = value;
             else if (desktopId === 'sliderTargetFloorIncrease') gameState.targetFloorIncreasePerRound = value;
+            else if (desktopId === 'sliderTargetCeilingBase') gameState.targetCeilingBase = value;
+            else if (desktopId === 'sliderTargetCeilingIncrease') gameState.targetCeilingIncreasePerRound = value;
         }
 
         // Applies a value to whatever a slider controls (a cssVar or a
@@ -4969,7 +4995,13 @@
 
         function showTargetAndSpeed() {
             const targetFloor = gameState.targetFloorBase + (gameState.currentRound - 1) * gameState.targetFloorIncreasePerRound;
-            gameState.targetCount = Math.floor(Math.random() * 29) + targetFloor;
+            // Ceiling mirrors the floor's own base+per-round-increase shape -
+            // per explicit request that the target range be independently
+            // capped at both ends. Clamped to never fall below targetFloor
+            // (e.g. if the ceiling's own increase is set slower than the
+            // floor's) so the random range below is never inverted/negative.
+            const targetCeiling = Math.max(targetFloor, gameState.targetCeilingBase + (gameState.currentRound - 1) * gameState.targetCeilingIncreasePerRound);
+            gameState.targetCount = Math.floor(Math.random() * (targetCeiling - targetFloor + 1)) + targetFloor;
             // Round 1 plays at exactly the Starting Time slider value, no
             // decrease applied - per explicit request/correction. startGame()
             // already sets gameState.maxTimeMs straight from that slider, so
