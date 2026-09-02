@@ -1363,6 +1363,21 @@
             display: none !important;
         }
 
+        /* #desktopTabContent/#mobileTabContent's own "hidden" class (toggled
+           by the Desktop/Mobile tab buttons) had NO matching CSS rule at all
+           - every other .hidden usage in this file is scoped to a specific
+           element class (.start-button.hidden, .game-text.hidden, etc.),
+           and these 2 plain-div containers never got their own scoped rule.
+           Confirmed via direct report ("i see duplicates of the groups in
+           both desktop and mobile") - both tabs' full group lists rendered
+           simultaneously the entire time, just stacked one after the other
+           in DOM order (mobile's content starting ~7000px below desktop's),
+           so the inactive tab was never actually hidden, only scrolled out
+           of the immediate view. */
+        #desktopTabContent.hidden, #mobileTabContent.hidden {
+            display: none !important;
+        }
+
         .dev-header {
             /* Drag handle for moving the panel - see JS. The whole header
                bar is the hit-target, not just the "DEV" text - that text is
