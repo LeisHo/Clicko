@@ -1190,6 +1190,33 @@
             flex-direction: column;
         }
 
+        /* Collapsed state - distinct from fully hidden (.hidden, toggled by
+           the D key / dev-hide-btn): the panel stays present at its header's
+           height only, settings/resize handles hidden, per CLAUDE.md Section
+           12c's "two distinct states (fully hidden vs. collapsed-but-
+           present)". Height overridden to auto rather than the usual
+           --dev-panel-height-px cssVar, since a collapsed panel's real
+           height is just whatever its header needs, not a user-resized value -
+           the panel remembers its expanded height (still driven by the
+           cssVar) for when it's uncollapsed.
+
+           BUG (found live): .dev-header lives INSIDE .dev-panel-scroll-
+           content (needed for its own position:sticky to work, which is
+           relative to its nearest scrolling ancestor) - hiding the whole
+           scroll-content wrapper therefore hid the header too, taking the
+           collapse button down with it and leaving no way to see the panel
+           existed at all, let alone re-expand it ("the panel did collapse,
+           but the panel ui disappeared"). Fixed by targeting the scroll-
+           content's children EXCEPT .dev-header, not the wrapper itself. */
+        .dev-panel.panel-collapsed {
+            height: auto !important;
+        }
+        .dev-panel.panel-collapsed .dev-panel-scroll-content > *:not(.dev-header),
+        .dev-panel.panel-collapsed .dev-panel-resize-edge,
+        .dev-panel.panel-collapsed .dev-panel-resize-corner {
+            display: none !important;
+        }
+
         /* 4 edge strips (top/bottom/left/right) - inset from the corners so
            they don't overlap the corner handles below. Resizing from
            top/left moves the panel's position too (the OPPOSITE edge stays
@@ -1323,6 +1350,33 @@
         }
 
         .dev-hide-btn:hover {
+            background: #0ff;
+        }
+
+        /* Groups Collapse + Hide together at the top-right of the header -
+           per explicit request (previously 3 flex children under
+           justify-content:space-between spread Collapse into the middle of
+           the bar instead of alongside Hide). */
+        .dev-header-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dev-collapse-btn {
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .dev-collapse-btn:hover {
             background: #0ff;
         }
 
@@ -2023,7 +2077,10 @@
             <div class="dev-panel-title">
                 DEV
             </div>
-            <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
+            <div class="dev-header-buttons">
+                <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
+                <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
+            </div>
         </div>
 
         <div class="dev-buttons">
@@ -5759,6 +5816,11 @@
         }
         document.addEventListener('pointerup', endDevPanelDrag);
         document.addEventListener('pointercancel', endDevPanelDrag);
+
+        function toggleDevPanelCollapsed() {
+            const collapsed = devPanel.classList.toggle('panel-collapsed');
+            document.getElementById('devCollapseBtn').textContent = collapsed ? '▢' : '▁';
+        }
 
         // Custom resize handles (native CSS `resize` isn't touch-draggable on
         // most mobile browsers - see the handles' own CSS comment). Generic
