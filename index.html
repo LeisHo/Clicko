@@ -2762,8 +2762,8 @@
                 <div class="dev-row">
                     <span class="dev-label">"?" Animation Mode:</span>
                     <select class="dev-select" id="selectTryAgainMode" onchange="cssVars['--try-again-question-mark-mode'] = this.value; if (document.getElementById('startButtonFlashChar')) startTryAgainFlash();">
-                        <option value="flash" selected>Flashing</option>
-                        <option value="rotate">Rotating</option>
+                        <option value="flash">Flashing</option>
+                        <option value="rotate" selected>Rotating</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -2793,7 +2793,7 @@
                      tickTryAgainRotate(). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" checked onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
+                        <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
                         <span class="dev-label" style="min-width:auto;">Extrusion/Border Scales/Mirrors With Text</span>
                     </label>
                 </div>
@@ -4165,7 +4165,7 @@
             // since Round Text no longer has a big state at all and the
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
-            '--text-font-size-vw': 12.39,
+            '--text-font-size-vw': 16.87,
             '--text-x-offset-vw': -0.16,
             '--text-y-offset-vh': -13.75,
             '--text-letter-spacing-px': 10,
@@ -4199,11 +4199,11 @@
             // "?" animation mode - 'flash' (hide/show, the original look) or
             // 'rotate' (2D scaleX flip - see tickTryAgainRotate()). Shared/
             // single like the flash/hold durations above, not mobile-split.
-            '--try-again-question-mark-mode': 'flash',
+            '--try-again-question-mark-mode': 'rotate',
             '--try-again-rotate-speed-ms': 1500,
             '--try-again-rotate-tweening': 'linear',
             '--try-again-rotate-min-width-scale': 0,
-            '--try-again-rotate-extrusion-matches-glyph': 1,
+            '--try-again-rotate-extrusion-matches-glyph': 0,
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
@@ -4224,8 +4224,8 @@
             '--target-text-align': 'right',
             '--target-text-valign': 'center',
             '--speed-font-size-vw': 7.51,
-            '--speed-x-offset-vw': 38.23,
-            '--speed-y-offset-vh': 42.65,
+            '--speed-x-offset-vw': 46.95,
+            '--speed-y-offset-vh': 41.62,
             '--speed-letter-spacing-px': 6.5,
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
@@ -4235,11 +4235,11 @@
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 4.47,
-            '--ms-per-click-x-offset-vw': 47.72,
-            '--ms-per-click-y-offset-vh': -1.78,
+            '--ms-per-click-font-size-vw': 3.01,
+            '--ms-per-click-x-offset-vw': 46.95,
+            '--ms-per-click-y-offset-vh': -8.38,
             '--ms-per-click-letter-spacing-px': 1,
-            '--ms-per-click-line-height': 1.2,
+            '--ms-per-click-line-height': 1,
             '--ms-per-click-text-align': 'right',
             '--ms-per-click-text-valign': 'center',
             '--result-font-size-vw': 13.5,
@@ -4299,21 +4299,21 @@
             // request. Font, fill color, and size/position stay shared/own
             // as before (unaffected).
             roundDepth: 9,
-            roundBorderColor: '#c41516',
-            roundOverallBorderThickness: 11,
+            roundBorderColor: '#ffffff',
+            roundOverallBorderThickness: 17,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
-            roundOverallBorderColor: '#5c191d',
+            roundOverallBorderColor: '#b60300',
             // Try Again's own border/extrusion colors, independent from
             // Start's above - per explicit request. Depth/thickness stay
             // shared (roundDepth/roundOverallBorderThickness) since only
             // color was asked for; starts matching Start's own colors
             // until tuned, same convention as the font-size/position split.
-            tryAgainBorderColor: '#c41516',
-            tryAgainOverallBorderColor: '#5c191d',
+            tryAgainBorderColor: '#ffffff',
+            tryAgainOverallBorderColor: '#59181b',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
             // BUTTON instead of Round Text - repurposed since Round Text no
@@ -4325,24 +4325,24 @@
             // cssVars) and font-size (always matches --speed-font-size-vw)
             // are read directly by .game-text's CSS, unconditionally.
             roundDockDepth: 9,
-            roundDockBorderColor: '#c41516',
+            roundDockBorderColor: '#ffffff',
             roundDockOverallBorderThickness: 8,
-            roundDockOverallBorderColor: '#c41516',
+            roundDockOverallBorderColor: '#bd0d07',
             targetDepth: 26,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
-            targetBorderColor: '#e03e3e',
-            targetOverallBorderColor: '#c41516',
+            targetBorderColor: '#ffffff',
+            targetOverallBorderColor: '#b50300',
             speedDepth: 19,
-            speedBorderColor: '#ff0000',
-            speedOverallBorderColor: '#cc1b20',
+            speedBorderColor: '#ffffff',
+            speedOverallBorderColor: '#ae0000',
             // "___ms / click" label above the countdown - own extrusion
             // group, same shape as Target/Speed's own copies above.
             msPerClickDepth: 12,
-            msPerClickBorderColor: '#ff0000',
-            msPerClickOverallBorderColor: '#cc1b20',
+            msPerClickBorderColor: '#ffffff',
+            msPerClickOverallBorderColor: '#ad0000',
             winFillColor: '#f0fff4',
             winBorderColor: '#22dd44',
             loseFillColor: '#d3a7a7',
@@ -6211,7 +6211,7 @@
         };
         const TEXT_OVERRIDE_DEFAULTS = {
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
-            winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / CLICK',
+            winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / \nCLICK',
             targetPrefix: '',
         };
         function overrideOr(slot) {
@@ -6409,7 +6409,7 @@
         // change needed.
         const textEditWrapWidths = {
             startButton: null, gameTextLabel: null, resultText: null,
-            speedDisplay: null, targetCount: null, msPerClickDisplay: null,
+            speedDisplay: 540.1875, targetCount: null, msPerClickDisplay: 188.640625,
         };
         const TEXT_EDIT_WRAP_MIN_PX = 20;
         function applyTextEditWrapWidth(elId) {
