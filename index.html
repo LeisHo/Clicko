@@ -1026,8 +1026,15 @@
             position: fixed;
             left: calc(var(--dev-panel-left-px) * 1px);
             top: calc(var(--dev-panel-top-px) * 1px);
-            background: rgba(0, 0, 0, 0.95);
-            color: #fff;
+            /* Background/text colors, opacity, and every font-size below
+               are the built-in "Dev Panel" settings group - CLAUDE.md
+               Section 12i, independent per Desktop/Mobile TAB (not tied to
+               the real device viewport like everything else - see
+               applyDevPanelOwnStyling()), same as the panel's own
+               position/size already were. */
+            background: var(--dev-panel-bg-color);
+            opacity: var(--dev-panel-opacity);
+            color: var(--dev-panel-non-title-text-color);
             padding: 15px;
             /* Missing unit was invalid CSS (a bare number isn't a valid width) -
                the browser fell back to sizing the panel by its own content
@@ -1041,7 +1048,7 @@
             min-height: 120px;
             max-width: 92vw;
             max-height: 92vh;
-            font-size: 11px;
+            font-size: calc(var(--dev-body-font-size-px) * 1px);
             z-index: 99999;
             font-family: monospace;
             border-left: 2px solid #0f0;
@@ -1210,6 +1217,8 @@
             cursor: grab;
             user-select: none;
             touch-action: none;
+            font-size: calc(var(--dev-panel-title-font-size-px) * 1px);
+            color: var(--dev-panel-title-text-color);
         }
 
         .dev-panel-title.dragging {
@@ -1268,7 +1277,7 @@
             border-radius: 3px;
             padding: 6px 0;
             font-family: monospace;
-            font-size: 12px;
+            font-size: calc(var(--dev-tab-font-size-px) * 1px);
             font-weight: bold;
             cursor: pointer;
         }
@@ -1331,6 +1340,7 @@
         .dev-section-title {
             color: #0ff;
             font-weight: bold;
+            font-size: calc(var(--dev-group-title-font-size-px) * 1px);
             margin-bottom: 8px;
             cursor: pointer;
             user-select: none;
@@ -1363,7 +1373,7 @@
         .dev-label {
             min-width: 140px;
             color: #aaa;
-            font-size: 10px;
+            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
         }
 
         .dev-slider {
@@ -2006,6 +2016,60 @@
         </div>
 
         <div id="desktopTabContent">
+        <!-- Built-in "Dev Panel" settings group - CLAUDE.md Section 12i.
+             Standing scaffolding, part of the panel itself, not per-project -
+             independent per tab (this copy only affects the panel's look
+             while the Desktop tab is selected; see the Mobile tab's own
+             copy). Font sizes/colors/opacity for the panel's own text, not
+             the game's. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Dev Panel</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderDevPanelTitleFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueDevPanelTitleFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Tab Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderDevTabFontSize" min="6" max="30" step="1" value="12">
+                    <span class="dev-value" id="valueDevTabFontSize">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Group Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderDevGroupTitleFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueDevGroupTitleFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Setting Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderDevSettingTitleFontSize" min="6" max="30" step="1" value="10">
+                    <span class="dev-value" id="valueDevSettingTitleFontSize">10</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Body Text Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderDevBodyFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueDevBodyFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Opacity:</span>
+                    <input type="range" class="dev-slider" id="sliderDevPanelOpacity" min="0.1" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueDevPanelOpacity">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Background Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorDevPanelBg" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Title Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorDevPanelTitleText" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Non-Title Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorDevPanelNonTitleText" value="#ffffff">
+                </div>
+            </div>
+        </div>
+
         <!-- Main Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
@@ -2735,6 +2799,57 @@
              automatically, no manual toggle). Lets layout/appearance be
              tuned independently for mobile without disturbing the desktop
              configuration. -->
+        <!-- Built-in "Dev Panel" settings group (Mobile tab's own copy) -
+             CLAUDE.md Section 12i. Only affects the panel's look while the
+             Mobile tab is selected - see the Desktop tab's own copy. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Dev Panel</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevPanelTitleFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueMobileDevPanelTitleFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Tab Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevTabFontSize" min="6" max="30" step="1" value="12">
+                    <span class="dev-value" id="valueMobileDevTabFontSize">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Group Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevGroupTitleFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueMobileDevGroupTitleFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Setting Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevSettingTitleFontSize" min="6" max="30" step="1" value="10">
+                    <span class="dev-value" id="valueMobileDevSettingTitleFontSize">10</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Body Text Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevBodyFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueMobileDevBodyFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Opacity:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevPanelOpacity" min="0.1" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueMobileDevPanelOpacity">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Background Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelBg" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Title Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelTitleText" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Non-Title Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelNonTitleText" value="#ffffff">
+                </div>
+            </div>
+        </div>
+
         <!-- Main Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
@@ -3239,6 +3354,50 @@
 
     <script>
         // CSS Variables initialization
+        // Built-in "Dev Panel" panel-styling settings - CLAUDE.md Section
+        // 12i. Independent per TAB (not per real device viewport, unlike
+        // everything else in cssVars/mobileCssVars) - see
+        // switchDevPanelTab()/applyDevPanelOwnStyling(). Plain objects, not
+        // part of cssVars, since they're keyed by which tab is currently
+        // being VIEWED, not by isMobileActive(). Defaults reproduce the
+        // panel's previous hardcoded look closely - the one deliberate
+        // exception is background: this used to be a single rgba(0,0,0,0.95)
+        // value; now split into a solid bgColor + a separate whole-panel
+        // opacity control per the spec's own 2 separate settings, so a
+        // fresh load is very slightly more opaque (1.0) than before (0.95)
+        // until tuned - a disclosed, minor default difference, not a bug.
+        const devPanelStyle = {
+            titleFontSize: 11,
+            tabFontSize: 12,
+            groupTitleFontSize: 11,
+            settingTitleFontSize: 10,
+            bodyFontSize: 11,
+            opacity: 1,
+            bgColor: '#000000',
+            titleTextColor: '#ffffff',
+            nonTitleTextColor: '#ffffff',
+        };
+        const mobileDevPanelStyle = { ...devPanelStyle };
+
+        const DEV_PANEL_STYLE_VAR_MAP = {
+            titleFontSize: '--dev-panel-title-font-size-px',
+            tabFontSize: '--dev-tab-font-size-px',
+            groupTitleFontSize: '--dev-group-title-font-size-px',
+            settingTitleFontSize: '--dev-setting-title-font-size-px',
+            bodyFontSize: '--dev-body-font-size-px',
+            opacity: '--dev-panel-opacity',
+            bgColor: '--dev-panel-bg-color',
+            titleTextColor: '--dev-panel-title-text-color',
+            nonTitleTextColor: '--dev-panel-non-title-text-color',
+        };
+
+        function applyDevPanelOwnStyling(isDesktopTab) {
+            const style = isDesktopTab ? devPanelStyle : mobileDevPanelStyle;
+            for (const [key, varName] of Object.entries(DEV_PANEL_STYLE_VAR_MAP)) {
+                document.documentElement.style.setProperty(varName, style[key]);
+            }
+        }
+
         const cssVars = {
             '--button-diameter-vw': 42.5,
             // 380, not some smaller "safe-looking" number - at this
@@ -4424,7 +4583,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -4443,7 +4602,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -4480,6 +4639,35 @@
                             }
                         });
                     }
+                    // Built-in "Dev Panel" styling (Section 12i) - restore
+                    // the underlying objects AND sync every slider/color
+                    // input's own DOM value (Object.assign alone wouldn't
+                    // move the visible control), then re-apply whichever
+                    // tab is currently active.
+                    if (settings.devPanelStyle) Object.assign(devPanelStyle, settings.devPanelStyle);
+                    if (settings.mobileDevPanelStyle) Object.assign(mobileDevPanelStyle, settings.mobileDevPanelStyle);
+                    const DEV_PANEL_STYLE_CONTROL_IDS = {
+                        titleFontSize: ['sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize'],
+                        tabFontSize: ['sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
+                        groupTitleFontSize: ['sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
+                        settingTitleFontSize: ['sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
+                        bodyFontSize: ['sliderDevBodyFontSize', 'sliderMobileDevBodyFontSize'],
+                        opacity: ['sliderDevPanelOpacity', 'sliderMobileDevPanelOpacity'],
+                        bgColor: ['colorDevPanelBg', 'colorMobileDevPanelBg'],
+                        titleTextColor: ['colorDevPanelTitleText', 'colorMobileDevPanelTitleText'],
+                        nonTitleTextColor: ['colorDevPanelNonTitleText', 'colorMobileDevPanelNonTitleText'],
+                    };
+                    Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId]]) => {
+                        const deskEl = document.getElementById(deskId);
+                        if (deskEl) deskEl.value = devPanelStyle[key];
+                        const mobEl = document.getElementById(mobId);
+                        if (mobEl) mobEl.value = mobileDevPanelStyle[key];
+                        const deskValEl = document.getElementById(deskId.replace(/^(slider|color)/, 'value'));
+                        if (deskValEl) deskValEl.textContent = devPanelStyle[key];
+                        const mobValEl = document.getElementById(mobId.replace(/^(slider|color)/, 'value'));
+                        if (mobValEl) mobValEl.textContent = mobileDevPanelStyle[key];
+                    });
+                    applyDevPanelOwnStyling(!document.getElementById('desktopTabContent').classList.contains('hidden'));
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -5780,6 +5968,10 @@
             document.getElementById('mobileTabContent').classList.toggle('hidden', isDesktop);
             document.getElementById('devTabDesktopBtn').classList.toggle('active', isDesktop);
             document.getElementById('devTabMobileBtn').classList.toggle('active', !isDesktop);
+            // The panel's OWN styling (Section 12i) is independent per tab,
+            // not tied to the real device viewport - re-apply whichever
+            // tab's own saved look now that it's the one showing.
+            applyDevPanelOwnStyling(isDesktop);
         }
 
         // Keyboard shortcuts
@@ -5870,7 +6062,59 @@
             step();
         }
 
+        // Wires the 18 built-in "Dev Panel" panel-styling controls (9
+        // desktop + 9 mobile) - bypasses the generic cssVars/CSS_VAR_SLIDER_MAP
+        // mechanism deliberately, since these are keyed by which TAB is
+        // being viewed, not by isMobileActive() like everything that
+        // mechanism otherwise handles.
+        function setupDevPanelStyleControls() {
+            const sliderKeys = [
+                ['titleFontSize', 'sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize'],
+                ['tabFontSize', 'sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
+                ['groupTitleFontSize', 'sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
+                ['settingTitleFontSize', 'sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
+                ['bodyFontSize', 'sliderDevBodyFontSize', 'sliderMobileDevBodyFontSize'],
+                ['opacity', 'sliderDevPanelOpacity', 'sliderMobileDevPanelOpacity'],
+            ];
+            sliderKeys.forEach(([key, deskId, mobId]) => {
+                const deskEl = document.getElementById(deskId);
+                if (deskEl) deskEl.addEventListener('input', (e) => {
+                    devPanelStyle[key] = parseFloat(e.target.value);
+                    applyDevPanelOwnStyling(true);
+                    const valEl = document.getElementById(deskId.replace('slider', 'value'));
+                    if (valEl) valEl.textContent = e.target.value;
+                });
+                const mobEl = document.getElementById(mobId);
+                if (mobEl) mobEl.addEventListener('input', (e) => {
+                    mobileDevPanelStyle[key] = parseFloat(e.target.value);
+                    applyDevPanelOwnStyling(false);
+                    const valEl = document.getElementById(mobId.replace('slider', 'value'));
+                    if (valEl) valEl.textContent = e.target.value;
+                });
+            });
+
+            const colorKeys = [
+                ['bgColor', 'colorDevPanelBg', 'colorMobileDevPanelBg'],
+                ['titleTextColor', 'colorDevPanelTitleText', 'colorMobileDevPanelTitleText'],
+                ['nonTitleTextColor', 'colorDevPanelNonTitleText', 'colorMobileDevPanelNonTitleText'],
+            ];
+            colorKeys.forEach(([key, deskId, mobId]) => {
+                const deskEl = document.getElementById(deskId);
+                if (deskEl) deskEl.addEventListener('input', (e) => {
+                    devPanelStyle[key] = e.target.value;
+                    applyDevPanelOwnStyling(true);
+                });
+                const mobEl = document.getElementById(mobId);
+                if (mobEl) mobEl.addEventListener('input', (e) => {
+                    mobileDevPanelStyle[key] = e.target.value;
+                    applyDevPanelOwnStyling(false);
+                });
+            });
+        }
+
         // Initialize
+        setupDevPanelStyleControls();
+        applyDevPanelOwnStyling(true);
         loadSettings();
         // The round-breakdown panel's left/top defaults (picked before any
         // real viewport was known) are only safe on a wide-enough screen -
