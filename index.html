@@ -6878,7 +6878,13 @@
         // of the R-key handler so the dev panel's own RESET button (see
         // CLAUDE.md Section 12d - every dev panel needs a Reset button, not
         // just a keyboard shortcut) can call the exact same logic.
-        function resetDevSettings() {
+        // Stops the current round/game and returns the UI to its idle
+        // state - the dev panel RESET button/R key used to do this, but per
+        // CLAUDE.md Section 12d ("Reset - restores inputs to the saved
+        // local default") that's not what Reset is supposed to mean; kept
+        // under its own name in case a dedicated gameplay-reset control is
+        // wanted later, just no longer wired to RESET/R.
+        function resetGameplayState() {
             gameState.isPlaying = false;
             gameState.isCountingTaps = false;
             gameState.currentRound = 0;
@@ -6895,6 +6901,17 @@
             refreshButtonHue();
             totalClickCount = 0;
             clickCounter.textContent = totalClickCount;
+        }
+
+        // RESET (button + R key) - per CLAUDE.md Section 12d, restores
+        // every input to whatever was last SAVED locally (not the
+        // hardcoded page defaults, and not a gameplay reset - see
+        // resetGameplayState() above for the previous behavior this
+        // replaces). Reuses loadSettings() exactly - if nothing has been
+        // saved yet, that's correctly a no-op (there's no saved default to
+        // restore to).
+        function resetDevSettings() {
+            loadSettings();
         }
 
         // Collapses the dev panel to just its header - distinct from fully
