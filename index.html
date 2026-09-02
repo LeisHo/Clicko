@@ -5431,18 +5431,16 @@
         // README.md for setup.
         const DEV_PANEL_SAVE_SECRET = 'PkrbMti03M6xm3FEThYXa8gGW_08BOGj';
 
-        // Best-effort push of a Save Settings dump to the git-tracked
-        // settings log (data/processed/dev-panel-settings.json) via the
-        // /api/save-settings serverless function, so a desktop Claude Code
-        // session working on this repo can see what was last saved from
-        // ANY device/browser - not just this one's own localStorage, which
-        // is what the pre-existing save below already covers on its own.
-        // Never throws / never blocks the local save - a missing backend,
-        // no network, or the endpoint not being configured yet all just
-        // show as a skipped/failed sync, never a broken Save button.
+        // Push of a Save Settings dump to the git-tracked settings log
+        // (data/processed/dev-panel-settings.json) via the /api/save-
+        // settings serverless function - per explicit request, this is now
+        // the ONLY place SAVE writes to (no localStorage fallback), so a
+        // failed/unavailable sync means nothing was saved at all, not just
+        // a missed extra copy. The status label makes that failure clearly
+        // visible rather than silently doing nothing.
         function syncSettingsToRepo(settings) {
             const statusEl = document.getElementById('saveSyncStatus');
-            if (statusEl) { statusEl.textContent = 'Syncing...'; statusEl.style.color = ''; }
+            if (statusEl) { statusEl.textContent = 'Saving...'; statusEl.style.color = ''; }
             fetch('/api/save-settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-Dev-Panel-Secret': DEV_PANEL_SAVE_SECRET },
@@ -5451,44 +5449,50 @@
                 const data = await resp.json().catch(() => ({}));
                 if (statusEl) {
                     if (resp.ok && data.ok) {
-                        statusEl.textContent = 'Synced to repo';
+                        statusEl.textContent = 'Saved to repo';
                         statusEl.style.color = 'var(--dev-accent-color)';
                     } else {
-                        statusEl.textContent = 'Sync failed: ' + (data.error || resp.status);
+                        statusEl.textContent = 'NOT saved: ' + (data.error || resp.status);
                         statusEl.style.color = '#ff4444';
                     }
                 }
             }).catch((err) => {
-                if (statusEl) { statusEl.textContent = 'Sync unavailable (offline?)'; statusEl.style.color = '#ff4444'; }
+                if (statusEl) { statusEl.textContent = 'NOT saved (offline?)'; statusEl.style.color = '#ff4444'; }
             });
         }
 
-        // Save settings to localStorage
+        // Save settings - git-only (data/processed/dev-panel-settings.json
+        // via syncSettingsToRepo() above), per explicit request. No
+        // localStorage write.
         function saveSettings() {
             const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
-            try {
-                localStorage.setItem('clickoSettings', JSON.stringify(settings));
-                alert('Settings saved!');
-            } catch (e) {
-                alert('Local storage unavailable in this context (e.g. data: URL preview). Use COPY instead.');
-            }
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 syncSettingsToRepo(settings);
             }
         }
 
         // Load settings from localStorage
-        function loadSettings() {
-            let saved = null;
+        // Loads from the git-tracked settings log (data/processed/dev-panel-
+        // settings.json), NOT localStorage - per explicit request, SAVE is
+        // git-only (no local fallback), so this is the one and only place
+        // a saved default can come from. This deliberately departs from
+        // CLAUDE.md Section 12l's literal "not just local, but also git"
+        // wording - a direct, explicit instruction for this project only.
+        // Async (a same-origin static-file fetch, not instant) - callers
+        // that need subsequent code to see the restored values must await
+        // this, see the Initialize block below.
+        async function loadSettings() {
+            let settings = null;
             try {
-                saved = localStorage.getItem('clickoSettings');
+                const resp = await fetch('/data/processed/dev-panel-settings.json', { cache: 'no-store' });
+                if (!resp.ok) return; // e.g. 404 before the file exists on a fresh deploy
+                settings = await resp.json();
             } catch (e) {
-                // localStorage is inaccessible (e.g. data: URL sandboxed preview) - skip loading, use defaults
+                // Network unavailable, not deployed yet, or malformed JSON - skip loading, use defaults
                 return;
             }
-            if (saved) {
+            if (settings && typeof settings === 'object' && Object.keys(settings).length) {
                 try {
-                    const settings = JSON.parse(saved);
                     Object.assign(cssVars, settings.cssVars);
                     Object.assign(colorVars, settings.colorVars);
                     Object.assign(mobileCssVars, settings.mobileCssVars);
@@ -7854,37 +7858,45 @@
             });
         }
 
+        // The round-breakdown panel's and dev panel's left/top(/height)
+        // defaults are sentinels (picked before any real viewport was
+        // known), resolved into real viewport-safe numbers here - but ONLY
+        // when a value still exactly matches its untouched literal
+        // sentinel, so a real saved/dragged position (from loadSettings())
+        // is never overwritten. Extracted into its own function since it
+        // now has to run twice: once synchronously below (so first paint -
+        // before loadSettings()'s fetch resolves - never shows a literal
+        // unresolved sentinel like left:-1px) and once again after
+        // loadSettings() completes (to correctly no-op past whatever it
+        // just restored, or resolve fresh if it restored nothing).
+        function resolvePositionSentinels() {
+            [
+                [cssVars, 1000, 200],
+                [mobileCssVars, 20, 100],
+            ].forEach(([vars, defaultLeft, defaultTop]) => {
+                if (vars['--round-breakdown-left-px'] === defaultLeft && vars['--round-breakdown-top-px'] === defaultTop) {
+                    vars['--round-breakdown-left-px'] = Math.max(16, window.innerWidth - vars['--round-breakdown-width-px'] - 16);
+                    vars['--round-breakdown-top-px'] = Math.max(16, (window.innerHeight - vars['--round-breakdown-height-px']) / 2);
+                }
+            });
+            // Dev panel: same sentinel-default pattern, reproducing its old
+            // fixed right:0/top:0/bottom:0 CSS anchor as real numbers.
+            if (cssVars['--dev-panel-left-px'] === -1 && cssVars['--dev-panel-top-px'] === -1 && cssVars['--dev-panel-height-px'] === -1) {
+                cssVars['--dev-panel-left-px'] = Math.max(0, window.innerWidth - cssVars['--dev-panel-width-px']);
+                cssVars['--dev-panel-top-px'] = 0;
+                cssVars['--dev-panel-height-px'] = window.innerHeight;
+            }
+        }
+
         // Initialize
         setupDevPanelStyleControls();
         applyDevPanelOwnStyling(true);
-        loadSettings();
-        // The round-breakdown panel's left/top defaults (picked before any
-        // real viewport was known) are only safe on a wide-enough screen -
-        // on a narrower one the panel could render partly off-screen before
-        // the user ever gets to drag it. Recompute a viewport-safe starting
-        // position (mirroring the old right:16px/vertically-centered CSS
-        // this feature replaced) but ONLY when the value still exactly
-        // matches the untouched literal default - a user's own
-        // dragged/resized position (already restored by loadSettings()
-        // above, if saved) is never overwritten.
-        [
-            [cssVars, 1000, 200],
-            [mobileCssVars, 20, 100],
-        ].forEach(([vars, defaultLeft, defaultTop]) => {
-            if (vars['--round-breakdown-left-px'] === defaultLeft && vars['--round-breakdown-top-px'] === defaultTop) {
-                vars['--round-breakdown-left-px'] = Math.max(16, window.innerWidth - vars['--round-breakdown-width-px'] - 16);
-                vars['--round-breakdown-top-px'] = Math.max(16, (window.innerHeight - vars['--round-breakdown-height-px']) / 2);
-            }
-        });
-        // Dev panel: same sentinel-default pattern, reproducing its old
-        // fixed right:0/top:0/bottom:0 CSS anchor as real numbers on first
-        // load, but only when untouched - a saved drag/resize (already
-        // restored by loadSettings() above) is never overwritten.
-        if (cssVars['--dev-panel-left-px'] === -1 && cssVars['--dev-panel-top-px'] === -1 && cssVars['--dev-panel-height-px'] === -1) {
-            cssVars['--dev-panel-left-px'] = Math.max(0, window.innerWidth - cssVars['--dev-panel-width-px']);
-            cssVars['--dev-panel-top-px'] = 0;
-            cssVars['--dev-panel-height-px'] = window.innerHeight;
-        }
+        // Wire up + paint with hardcoded defaults FIRST, synchronously -
+        // loadSettings() is now an async fetch (git-only settings log, not
+        // instant localStorage - see its own comment), and none of this
+        // should sit waiting on a network round-trip just to become
+        // interactive/visible. loadSettings() re-applies on top of this,
+        // below, once (if) it actually has something to restore.
         setupDevSliders();
         setupTextAlignSelects();
         setupTextEditMode();
@@ -7894,13 +7906,31 @@
         setupDragReorder('.dev-section-title', '.dev-section', null);
         setupDragReorder('.dev-section-content .dev-label', '.dev-row', null);
         makeDevValuesEditable();
+        resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
-        // Apply a restored --flip-button-svg even though the checkbox
-        // itself won't visually reflect it (loadSettings() doesn't sync any
-        // control's displayed value from a restored setting - a pre-existing
-        // gap affecting every dev-panel control, not specific to this one).
         if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
+
+        // Restore a saved setup on top of the above, once the fetch
+        // resolves - a no-op if nothing's been saved yet (or the backend
+        // isn't configured/reachable), same as the old localStorage-empty
+        // case. Known, accepted trade-off of going git-only: on a slow
+        // connection there can be a brief visible moment of default
+        // positions/colors before a saved setup applies - there's no local
+        // copy left to paint instantly from.
+        (async () => {
+            await loadSettings();
+            resolvePositionSentinels();
+            // Re-apply now that a restored setup (if any) is in cssVars/
+            // mobileCssVars - harmless no-op re-push if nothing changed.
+            applyActiveVars();
+            applyExtrusionStyles();
+            // Apply a restored --flip-button-svg even though the checkbox
+            // itself won't visually reflect it (loadSettings() doesn't sync any
+            // control's displayed value from a restored setting - a pre-existing
+            // gap affecting every dev-panel control, not specific to this one).
+            if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
+        })();
     </script>
 </body>
 </html>
