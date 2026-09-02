@@ -1500,6 +1500,14 @@
             padding: 2px 4px;
         }
 
+        /* Hide Shadow spec inputs - free-text position/range lists (e.g.
+           "0=>1, 3, -4=>-7") need real room, unlike the short numeric
+           .dev-text-input fields elsewhere. */
+        .dev-text-input-wide {
+            width: 160px;
+            text-align: left;
+        }
+
         .dev-color-picker {
             width: 50px;
             height: 30px;
@@ -2317,25 +2325,26 @@
                     <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="5">
                     <span class="dev-value" id="valueClickBurstCountMax">5</span>
                 </div>
-                <!-- Replaces the earlier "No Shadow on Top 2 Left Frames"
-                     checkbox with 2 typed frame-position CUTOFFS, applied
-                     to BOTH sides identically (not left-only anymore) - per
-                     explicit request. Mobile-split (see the Mobile
-                     Overrides section's own copies), per a later explicit
-                     request. A value of N hides the RANGE from that side's
-                     edge up to and including N, not just position N: 2
-                     hides the top 2 (1 and 2), -1 hides the bottom 1, -3
-                     hides the bottom 3, etc. 0/empty = no effect. Silently
-                     clamps to a burst's own actual particle count when the
-                     cutoff exceeds it (see resolveHideShadowRange() in
-                     spawnClickBurstSide()). -->
+                <!-- A applies to the LEFT side only, B to the RIGHT only -
+                     per explicit request (previously both applied to both
+                     sides identically). Free-text position/range list, e.g.
+                     "0=>1, 3, -4=>-7" - position 0 is the topmost piece in
+                     that side's own top-to-bottom order, a negative
+                     position counts from the bottom instead (-1 = bottom-
+                     most), and "a=>b" is an inclusive range (either
+                     endpoint, either order). Comma-separates multiple
+                     terms. Mobile-split (see the Mobile Overrides section's
+                     own copies). Out-of-range positions are silently
+                     dropped rather than erroring - see
+                     parseHideShadowSpec()/resolveHideShadowPosition() in
+                     spawnClickBurstSide(). -->
                 <div class="dev-row">
-                    <span class="dev-label">Hide Shadow - Frame Index A:</span>
-                    <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexA" step="1" value="3">
+                    <span class="dev-label">Hide Shadow (Left) - Frame Positions:</span>
+                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputClickBurstHideShadowIndexA" value="0=>2">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Hide Shadow - Frame Index B:</span>
-                    <input type="number" class="dev-text-input" id="inputClickBurstHideShadowIndexB" step="1" value="-2">
+                    <span class="dev-label">Hide Shadow (Right) - Frame Positions:</span>
+                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputClickBurstHideShadowIndexB" value="-2=>-1">
                 </div>
                 <!-- Guide-curve angle filter, per side - 4 typed angles
                      (not sliders, per explicit request). Per explicit
@@ -3201,12 +3210,12 @@
                      comments) - per explicit request that mobile and
                      desktop get independent values here. -->
                 <div class="dev-row">
-                    <span class="dev-label">Hide Shadow - Frame Index A:</span>
-                    <input type="number" class="dev-text-input" id="inputMobileClickBurstHideShadowIndexA" step="1" value="3">
+                    <span class="dev-label">Hide Shadow (Left) - Frame Positions:</span>
+                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputMobileClickBurstHideShadowIndexA" value="0=>2">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Hide Shadow - Frame Index B:</span>
-                    <input type="number" class="dev-text-input" id="inputMobileClickBurstHideShadowIndexB" step="1" value="-2">
+                    <span class="dev-label">Hide Shadow (Right) - Frame Positions:</span>
+                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputMobileClickBurstHideShadowIndexB" value="-2=>-1">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Right Floor Angle (deg):</span>
@@ -4447,16 +4456,42 @@
         // 0/empty hides nothing. Silently clamps to this burst's own actual
         // piece count (e.g. a cutoff of 4 on a 3-piece burst just hides all
         // 3) rather than erroring, since count is randomized per click.
-        function resolveHideShadowRange(pieces, signedCutoff) {
+        // Hide Shadow spec parser - free-text list of positions/ranges, e.g.
+        // "0=>1, 3, -4=>-7", per explicit request replacing the old single-
+        // cutoff number input. Positions are 0-based from the TOP of this
+        // side's own top-to-bottom order (0 = topmost); a negative position
+        // counts from the BOTTOM instead (-1 = bottommost, -2 = second from
+        // bottom, etc.) - same addressing either endpoint of a "=>" range
+        // can use, in either order (min/max resolved after converting both
+        // to absolute indices, so "-4=>-7" and "-7=>-4" behave identically).
+        // Out-of-range positions are silently dropped, same "clamps rather
+        // than errors" spirit as the old cutoff input.
+        function resolveHideShadowPosition(position, count) {
+            const idx = position >= 0 ? position : count + position;
+            return (idx >= 0 && idx < count) ? idx : null;
+        }
+        function parseHideShadowSpec(spec, pieces) {
             const indices = new Set();
-            if (!signedCutoff) return indices;
+            const count = pieces.length;
+            if (!spec || !count) return indices;
+            // Position 0 = topmost piece, matching the old cutoff input's
+            // own top-to-bottom addressing - resolve positions against this
+            // sorted order, then translate back to real piece indices.
             const sorted = pieces.map((p, idx) => idx).sort((a, b) => pieces[a].y - pieces[b].y);
-            if (signedCutoff > 0) {
-                for (let k = 0; k < Math.min(signedCutoff, sorted.length); k++) indices.add(sorted[k]);
-            } else {
-                const n = Math.min(-signedCutoff, sorted.length);
-                for (let k = 0; k < n; k++) indices.add(sorted[sorted.length - 1 - k]);
-            }
+            spec.split(',').forEach(rawTerm => {
+                const term = rawTerm.trim();
+                if (!term) return;
+                const rangeMatch = term.match(/^(-?\d+)\s*=>\s*(-?\d+)$/);
+                if (rangeMatch) {
+                    const a = resolveHideShadowPosition(parseInt(rangeMatch[1], 10), count);
+                    const b = resolveHideShadowPosition(parseInt(rangeMatch[2], 10), count);
+                    if (a === null || b === null) return;
+                    for (let pos = Math.min(a, b); pos <= Math.max(a, b); pos++) indices.add(sorted[pos]);
+                } else {
+                    const single = resolveHideShadowPosition(parseInt(term, 10), count);
+                    if (single !== null) indices.add(sorted[single]);
+                }
+            });
             return indices;
         }
 
@@ -4511,20 +4546,14 @@
             const ceilingDeg = parseFloat(document.getElementById(ceilingId).value);
             const pieces = sampleClickRoutePiecesInAngleRange(routePathEl, count, floorDeg, ceilingDeg);
 
-            // Hide Shadow - Frame Index A/B: 2 typed cutoffs (see
-            // resolveHideShadowRange()), applied to BOTH sides identically -
-            // each side resolves its own top-to-bottom order independently.
-            // Per explicit clarification: a value of N doesn't select just
-            // the Nth piece, it hides the whole range from that side's edge
-            // up to and including N (e.g. 2 hides the top 2, -1 hides the
-            // bottom 1). Mobile-split, same reasoning as the angle inputs
-            // above.
-            const hideIndexA = parseInt(document.getElementById(`${mobilePrefix}ClickBurstHideShadowIndexA`)?.value, 10) || 0;
-            const hideIndexB = parseInt(document.getElementById(`${mobilePrefix}ClickBurstHideShadowIndexB`)?.value, 10) || 0;
-            const noShadowIndices = new Set([
-                ...resolveHideShadowRange(pieces, hideIndexA),
-                ...resolveHideShadowRange(pieces, hideIndexB),
-            ]);
+            // Hide Shadow - Frame Index A/B: A applies to the LEFT side
+            // only, B to the RIGHT only (per explicit request - previously
+            // both applied to both sides identically). Each is a free-text
+            // list of positions/ranges like "0=>1, 3, -4=>-7" - see
+            // parseHideShadowSpec(). Mobile-split, same reasoning as the
+            // angle inputs above.
+            const hideSpec = document.getElementById(`${mobilePrefix}ClickBurstHideShadowIndex${mirror ? 'B' : 'A'}`)?.value || '';
+            const noShadowIndices = parseHideShadowSpec(hideSpec, pieces);
 
             for (let i = 0; i < pieces.length; i++) {
                 // Checked per-particle, not once before the loop - a burst
