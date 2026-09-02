@@ -644,6 +644,19 @@
             outline: none;
         }
 
+        /* Try Again gets its own font-size/position, independent from
+           Start's - per explicit request ("so both Start and Try Again get
+           their own set"). Applied via a state class (JS toggles this
+           whenever the button's content switches - see the startLabel/
+           tryAgainLabel render sites) rather than a second element, since
+           overriding left/top/font-size here is simpler than duplicating
+           the whole button. */
+        .start-button.try-again-state {
+            left: calc(50% + var(--try-again-text-x-offset-vw) * 1vw);
+            top: calc(50% + var(--try-again-text-y-offset-vh) * 1vh);
+            font-size: calc(var(--try-again-text-font-size-vw) * 1vw);
+        }
+
         .start-button.pressed {
             transform: translate(-50%, calc(-50% + 3px));
         }
@@ -2045,7 +2058,7 @@
              See setupTextEditMode()/textOverrides. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxTextEditMode" onchange="textEditModeEnabled = this.checked;">
+                <input type="checkbox" id="checkboxTextEditMode" onchange="setTextEditModeEnabled(this.checked);">
                 <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
             </label>
         </div>
@@ -2434,6 +2447,23 @@
                     <span class="dev-label">Button Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTextY">-13.75</span>
+                </div>
+                <!-- Try Again's own font-size/position - independent from
+                     Start's above, per explicit request. -->
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="1" max="20" step="0.01" value="12.94">
+                    <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextX" min="-40" max="40" step="0.01" value="-0.16">
+                    <span class="dev-value" id="valueTryAgainTextX">-0.16</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
+                    <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
@@ -3243,6 +3273,21 @@
                     <span class="dev-value" id="valueMobileTextY">-16.5</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Try Again Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSize" min="1" max="20" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueMobileTryAgainTextX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextY" min="-50" max="50" step="0.01" value="-0.49">
+                    <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
@@ -3663,6 +3708,12 @@
             '--text-y-offset-vh': -13.75,
             '--text-letter-spacing-px': 0,
             '--start-text-align': 'center',
+            // Try Again's own font-size/position, independent from Start's -
+            // per explicit request. Starts matching Start's own values until
+            // tuned - see .start-button.try-again-state's CSS.
+            '--try-again-text-font-size-vw': 12.94,
+            '--try-again-text-x-offset-vw': -0.16,
+            '--try-again-text-y-offset-vh': -13.75,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
@@ -4012,6 +4063,9 @@
             '--text-y-offset-vh': -0.49,
             '--text-letter-spacing-px': 0,
             '--start-text-align': 'center',
+            '--try-again-text-font-size-vw': 20,
+            '--try-again-text-x-offset-vw': 0,
+            '--try-again-text-y-offset-vh': -0.49,
             '--round-dock-x-offset-vw': -36.41,
             '--round-dock-y-offset-vh': 46.12,
             '--round-font-size-vw': 5.43,
@@ -4995,6 +5049,9 @@
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
             'sliderTextLetterSpacing': '--text-letter-spacing-px',
+            'sliderTryAgainTextFontSize': '--try-again-text-font-size-vw',
+            'sliderTryAgainTextX': '--try-again-text-x-offset-vw',
+            'sliderTryAgainTextY': '--try-again-text-y-offset-vh',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
             'sliderRoundFontSize': '--round-font-size-vw',
@@ -5141,10 +5198,12 @@
         const textOverrides = {
             startLabel: null, tryAgainLabel: null, roundLabel: null,
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: null,
+            targetPrefix: null,
         };
         const TEXT_OVERRIDE_DEFAULTS = {
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
             winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / click',
+            targetPrefix: '',
         };
         function overrideOr(slot) {
             const v = textOverrides[slot];
@@ -5164,8 +5223,10 @@
                 render: (slot) => {
                     if (slot === 'tryAgainLabel') {
                         startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar">?</span>`;
+                        startButton.classList.add('try-again-state');
                     } else {
                         startButton.textContent = overrideOr('startLabel');
+                        startButton.classList.remove('try-again-state');
                     }
                 },
             },
@@ -5181,6 +5242,17 @@
                 getSlot: () => 'speedSuffix',
                 getPrefix: () => (speedDisplay.textContent.match(/^-?\d+/) || ['0'])[0],
                 render: (slot, prefix) => { speedDisplay.textContent = (prefix != null ? prefix : '0') + overrideOr(slot); },
+            },
+            targetCount: {
+                // Target Count has no static wording at all normally (just
+                // the bare number) - this adds an optional PREFIX (default
+                // '', reproducing today's bare-number look exactly) so it's
+                // still renameable like every other text, per explicit
+                // follow-up request. Wording goes BEFORE the live number
+                // here, unlike Speed/Ms-per-click's suffix-after pattern.
+                getSlot: () => 'targetPrefix',
+                getPrefix: () => (targetCount.textContent.match(/-?\d+$/) || [String(gameState.targetCount)])[0],
+                render: (slot, liveNumber) => { targetCount.textContent = overrideOr(slot) + (liveNumber != null ? liveNumber : String(gameState.targetCount)); },
             },
             msPerClickDisplay: {
                 getSlot: () => 'msPerClickSuffix',
@@ -5198,11 +5270,28 @@
             });
         }
 
+        // Text Edit Mode's checkbox toggles more than the flag - these
+        // elements are deliberately pointer-events:none during normal play
+        // (so they don't block taps meant for the button underneath/near
+        // them), which ALSO silently blocked Text Edit Mode's own click
+        // handler - confirmed the bug via a real click, not the .click()
+        // DOM-method calls used in earlier testing, which bypass CSS
+        // pointer-events entirely and so falsely looked like they worked.
+        // Re-enabled only while Text Edit Mode is actually on.
+        function setTextEditModeEnabled(enabled) {
+            textEditModeEnabled = enabled;
+            Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
+                document.getElementById(elId).style.pointerEvents = enabled ? 'auto' : '';
+            });
+        }
+
         function setupTextEditMode() {
             Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
                 const el = document.getElementById(elId);
                 const cfg = TEXT_EDIT_TARGETS[elId];
-                el.addEventListener('click', (e) => {
+                // Right-click (contextmenu), not left-click, per explicit
+                // request - preventDefault suppresses the native context menu.
+                el.addEventListener('contextmenu', (e) => {
                     if (!textEditModeEnabled) return;
                     if (el.querySelector('input.text-edit-input')) return; // already editing
                     e.stopPropagation();
@@ -6270,6 +6359,7 @@
                     // "Try again?" and nothing else. The "?" is its own span
                     // so it can blink independently - see startTryAgainFlash().
                     startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar">?</span>`;
+                    startButton.classList.add('try-again-state');
                     startButton.classList.remove('hidden');
                     startTryAgainFlash();
                     resultText.classList.add('hidden');
@@ -6369,6 +6459,7 @@
             stopTryAgainFlash();
             startButton.classList.remove('hidden');
             startButton.textContent = overrideOr('startLabel');
+            startButton.classList.remove('try-again-state');
             gameText.classList.add('hidden');
             resultText.classList.add('hidden');
             targetCount.classList.add('hidden');
