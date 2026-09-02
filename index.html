@@ -5208,7 +5208,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -5227,7 +5227,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -5321,6 +5321,12 @@
                     const frameSetSelect = document.getElementById('selectClickFrameSet');
                     if (frameSetSelect && cssVars['--click-frame-set']) frameSetSelect.value = cssVars['--click-frame-set'];
                     restoreClickBurstFrameVars(cssVars['--click-frame-set'] || 'CLICK1');
+                    // Hide Shadow spec + angle floor/ceiling text/number
+                    // inputs - previously never persisted at all (see
+                    // clickBurstTextInputs' own comment).
+                    if (settings.clickBurstTextInputs) Object.assign(clickBurstTextInputs, settings.clickBurstTextInputs);
+                    if (settings.mobileClickBurstTextInputs) Object.assign(mobileClickBurstTextInputs, settings.mobileClickBurstTextInputs);
+                    applyClickBurstTextInputs();
                     applySectionOrder(settings.sectionOrder);
                     applySectionCollapseState(settings.sectionCollapseState);
                 } catch(e) {
@@ -5372,6 +5378,60 @@
         }
         const clickBurstFrameVars = seedClickBurstFrameVars(cssVars);
         const mobileClickBurstFrameVars = seedClickBurstFrameVars(mobileCssVars);
+
+        // Hide Shadow position spec + guide-curve angle floor/ceiling -
+        // plain typed text/number inputs (not sliders, not per-frame-set),
+        // previously read directly from the DOM at spawn-time with no JS
+        // mirror at all - confirmed via search that no code path ever wrote
+        // their value anywhere else, so Copy/Save/Load silently never
+        // included them, per direct report ("make sure the color picker
+        // settings are also copied and saved... as well as any dropdowns
+        // or text boxes"). Mirrored here so they persist like every other
+        // control - single shared value per tab (not per-frame-set, unlike
+        // CLICK_BURST_SCOPED_KEYS above), matching how they're actually
+        // read (mobilePrefix picks the tab, not the frame set).
+        const clickBurstTextInputs = {
+            hideShadowIndexA: '0=>2', hideShadowIndexB: '-2=>-1',
+            rightFloorDeg: 20, rightCeilingDeg: 135,
+            leftFloorDeg: 230, leftCeilingDeg: 340,
+        };
+        const mobileClickBurstTextInputs = {
+            hideShadowIndexA: '0=>2', hideShadowIndexB: '-2=>-1',
+            rightFloorDeg: 20, rightCeilingDeg: 135,
+            leftFloorDeg: 230, leftCeilingDeg: 340,
+        };
+        const CLICK_BURST_TEXT_INPUT_MAP = {
+            'inputClickBurstHideShadowIndexA': [clickBurstTextInputs, 'hideShadowIndexA'],
+            'inputClickBurstHideShadowIndexB': [clickBurstTextInputs, 'hideShadowIndexB'],
+            'inputClickBurstRightFloorDeg': [clickBurstTextInputs, 'rightFloorDeg'],
+            'inputClickBurstRightCeilingDeg': [clickBurstTextInputs, 'rightCeilingDeg'],
+            'inputClickBurstLeftFloorDeg': [clickBurstTextInputs, 'leftFloorDeg'],
+            'inputClickBurstLeftCeilingDeg': [clickBurstTextInputs, 'leftCeilingDeg'],
+            'inputMobileClickBurstHideShadowIndexA': [mobileClickBurstTextInputs, 'hideShadowIndexA'],
+            'inputMobileClickBurstHideShadowIndexB': [mobileClickBurstTextInputs, 'hideShadowIndexB'],
+            'inputMobileClickBurstRightFloorDeg': [mobileClickBurstTextInputs, 'rightFloorDeg'],
+            'inputMobileClickBurstRightCeilingDeg': [mobileClickBurstTextInputs, 'rightCeilingDeg'],
+            'inputMobileClickBurstLeftFloorDeg': [mobileClickBurstTextInputs, 'leftFloorDeg'],
+            'inputMobileClickBurstLeftCeilingDeg': [mobileClickBurstTextInputs, 'leftCeilingDeg'],
+        };
+        function setupClickBurstTextInputs() {
+            Object.keys(CLICK_BURST_TEXT_INPUT_MAP).forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const [store, key] = CLICK_BURST_TEXT_INPUT_MAP[id];
+                el.addEventListener('input', () => {
+                    store[key] = (el.type === 'number') ? parseFloat(el.value) : el.value;
+                });
+            });
+        }
+        function applyClickBurstTextInputs() {
+            Object.keys(CLICK_BURST_TEXT_INPUT_MAP).forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const [store, key] = CLICK_BURST_TEXT_INPUT_MAP[id];
+                el.value = store[key];
+            });
+        }
 
         // Restores a frame set's remembered 8 values into cssVars/
         // mobileCssVars AND syncs every scoped slider's own DOM value/
@@ -7548,6 +7608,7 @@
         setupDevSliders();
         setupTextAlignSelects();
         setupTextEditMode();
+        setupClickBurstTextInputs();
         // No onDrop action needed - the DOM order itself IS the live state;
         // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
         setupDragReorder('.dev-section-title', '.dev-section', null);
