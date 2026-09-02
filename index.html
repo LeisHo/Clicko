@@ -5598,16 +5598,30 @@
             }
         }
 
+        // Same repo/path GITHUB_REPO/SETTINGS_FILE_PATH default to server-
+        // side in api/save-settings.js - kept in sync manually, since the
+        // client can't read the function's own env vars. Update both
+        // together if either ever changes.
+        const SETTINGS_GITHUB_API_URL = 'https://api.github.com/repos/LeisHo/Clicko/contents/data/processed/dev-panel-settings.json?ref=main';
+
         // Acquires the raw saved-settings object from whichever source
-        // applies. Git-only (fetches the static settings-log file) EXCEPT
-        // when location.protocol === 'file:' - opened directly as a local
-        // file, no server behind it at all, so there is nothing to write/
-        // read the git-tracked log through (CLAUDE.md Section 12l's own
+        // applies. Git-only (fetches LIVE from GitHub's Contents API, not
+        // the same-origin static file - that file only reflects whatever
+        // was live at the LAST deployment, not the latest commit, so a
+        // save right after a deploy would look invisible until the next
+        // one; confirmed directly while testing 12l's rollout) EXCEPT when
+        // location.protocol === 'file:' - opened directly as a local file,
+        // no server behind it at all, so there is nothing to write/read
+        // the git-tracked log through (CLAUDE.md Section 12l's own
         // exception) - that case falls back to this browser's own
         // localStorage instead (the same key/behavior this project used
         // before going git-only). Returns null if nothing's saved yet, or
         // the source is unreachable/unparsable - callers treat that as
-        // "use defaults."
+        // "use defaults." No auth needed for a public repo's contents, but
+        // this DOES count against GitHub's unauthenticated rate limit (60
+        // req/hr/IP) - a real, accepted tradeoff for staying serverless on
+        // the read path; a failure here just falls back to defaults, same
+        // as any other unreachable-source case.
         async function acquireSavedSettings() {
             if (location.protocol === 'file:') {
                 try {
@@ -5618,11 +5632,17 @@
                 }
             }
             try {
-                const resp = await fetch('/data/processed/dev-panel-settings.json', { cache: 'no-store' });
-                if (!resp.ok) return null; // e.g. 404 before the file exists on a fresh deploy
-                return await resp.json();
+                const resp = await fetch(SETTINGS_GITHUB_API_URL, {
+                    headers: { Accept: 'application/vnd.github+json' },
+                    cache: 'no-store',
+                });
+                if (!resp.ok) return null; // e.g. 404 before the file exists, or rate-limited
+                const data = await resp.json();
+                const base64 = (data.content || '').replace(/\s/g, '');
+                const jsonText = decodeURIComponent(escape(atob(base64)));
+                return JSON.parse(jsonText);
             } catch (e) {
-                return null; // network unavailable, not deployed yet, or malformed JSON
+                return null; // network unavailable, rate-limited, or malformed JSON
             }
         }
 
