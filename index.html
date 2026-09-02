@@ -1087,6 +1087,24 @@
             flex-direction: column;
         }
 
+        /* Collapsed state - distinct from fully hidden (.hidden, toggled by
+           the D key / dev-hide-btn): the panel stays present at its header's
+           height only, settings/resize handles hidden, per CLAUDE.md Section
+           12c's "two distinct states (fully hidden vs. collapsed-but-
+           present)". Height overridden to auto rather than the usual
+           --dev-panel-height-px cssVar, since a collapsed panel's real
+           height is just whatever its header needs, not a user-resized value -
+           the panel remembers its expanded height (still driven by the
+           cssVar) for when it's uncollapsed. */
+        .dev-panel.panel-collapsed {
+            height: auto !important;
+        }
+        .dev-panel.panel-collapsed .dev-panel-scroll-content,
+        .dev-panel.panel-collapsed .dev-panel-resize-edge,
+        .dev-panel.panel-collapsed .dev-panel-resize-corner {
+            display: none !important;
+        }
+
         /* 4 edge strips (top/bottom/left/right) - inset from the corners so
            they don't overlap the corner handles below. Resizing from
            top/left moves the panel's position too (the OPPOSITE edge stays
@@ -1208,6 +1226,25 @@
         }
 
         .dev-hide-btn:hover {
+            background: #0ff;
+        }
+
+        .dev-collapse-btn {
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-right: 4px;
+        }
+
+        .dev-collapse-btn:hover {
             background: #0ff;
         }
 
@@ -1872,14 +1909,16 @@
         <div class="dev-panel-scroll-content">
         <div class="dev-header">
             <div class="dev-panel-title">
-                DEV PANEL<br>
+                DEV<br>
                 <span style="font-size: 9px; color: #888;">Press D to toggle | R to reset</span>
             </div>
+            <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()" title="Collapse dev panel">▁</button>
             <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')" title="Hide dev panel">✕</button>
         </div>
 
         <div class="dev-buttons">
             <button onclick="copySettings()">COPY</button>
+            <button onclick="resetDevSettings()">RESET</button>
             <button onclick="saveSettings()">SAVE</button>
         </div>
 
@@ -4643,11 +4682,18 @@
                     settled = true;
                     let val = parseFloat(input.value);
                     if (isNaN(val)) val = parseFloat(slider.value);
-                    // The slider's own displayed/draggable value stays
-                    // within its declared range ("the slider stays the
-                    // same") - only the ACTUAL applied value is allowed
-                    // past it.
-                    slider.value = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), val));
+                    // Auto-expand whichever bound the typed value crosses to
+                    // typed-value +/- 20%, per the project-wide dev-panel
+                    // standard (CLAUDE.md Section 12h) - so a typed
+                    // out-of-range value doesn't end up visually pinned at
+                    // the slider's old extreme. Replaces the previous
+                    // behavior of clamping the slider's own displayed value
+                    // while only the applied value went past it.
+                    const min = parseFloat(slider.min);
+                    const max = parseFloat(slider.max);
+                    if (val > max) slider.max = String(val + Math.abs(val) * 0.2);
+                    if (val < min) slider.min = String(val - Math.abs(val) * 0.2);
+                    slider.value = val;
                     // Remove the temporary <input> BEFORE calling
                     // applySliderValue() - that function's own textContent
                     // update is guarded by "!valueEl.querySelector('input')"
@@ -5551,27 +5597,42 @@
             document.getElementById('devToggleBtn').style.setProperty('display', 'none', 'important');
         }
 
+        // Resets gameplay state back to the landing screen - factored out
+        // of the R-key handler so the dev panel's own RESET button (see
+        // CLAUDE.md Section 12d - every dev panel needs a Reset button, not
+        // just a keyboard shortcut) can call the exact same logic.
+        function resetDevSettings() {
+            gameState.isPlaying = false;
+            gameState.isCountingTaps = false;
+            gameState.currentRound = 0;
+            stopRoundCountdown();
+            stopTryAgainFlash();
+            startButton.classList.remove('hidden');
+            startButton.textContent = 'START';
+            gameText.classList.add('hidden');
+            resultText.classList.add('hidden');
+            targetCount.classList.add('hidden');
+            speedDisplay.classList.add('hidden');
+            msPerClickDisplay.classList.add('hidden');
+            refreshButtonHue();
+            totalClickCount = 0;
+            clickCounter.textContent = totalClickCount;
+        }
+
+        // Collapses the dev panel to just its header - distinct from fully
+        // hiding it (the D key / dev-hide-btn) - per CLAUDE.md Section 12c.
+        function toggleDevPanelCollapsed() {
+            const collapsed = devPanel.classList.toggle('panel-collapsed');
+            document.getElementById('devCollapseBtn').textContent = collapsed ? '▢' : '▁';
+        }
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'd' && isDevAllowed) {
                 devPanel.classList.toggle('hidden');
             }
             if (e.key.toLowerCase() === 'r') {
-                gameState.isPlaying = false;
-                gameState.isCountingTaps = false;
-                gameState.currentRound = 0;
-                stopRoundCountdown();
-                stopTryAgainFlash();
-                startButton.classList.remove('hidden');
-                startButton.textContent = 'START';
-                gameText.classList.add('hidden');
-                resultText.classList.add('hidden');
-                targetCount.classList.add('hidden');
-                speedDisplay.classList.add('hidden');
-                msPerClickDisplay.classList.add('hidden');
-                refreshButtonHue();
-                totalClickCount = 0;
-                clickCounter.textContent = totalClickCount;
+                resetDevSettings();
             }
         });
 
