@@ -625,6 +625,7 @@
             transform: translate(-50%, -50%);
             padding: 0;
             font-size: calc(var(--text-font-size-vw) * 1vw);
+            letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
@@ -663,7 +664,8 @@
             left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
             top: calc(50% + var(--round-dock-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
-            font-size: calc(var(--speed-font-size-vw) * 1vw);
+            font-size: calc(var(--round-font-size-vw) * 1vw);
+            letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
@@ -754,6 +756,7 @@
             top: calc(50% + var(--target-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
             font-size: calc(var(--target-font-size-vw) * 1vw);
+            letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
@@ -774,6 +777,7 @@
             top: calc(50% + var(--speed-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
             font-size: calc(var(--speed-font-size-vw) * 1vw);
+            letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
@@ -800,6 +804,7 @@
             top: calc(50% + var(--ms-per-click-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
             font-size: calc(var(--ms-per-click-font-size-vw) * 1vw);
+            letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
@@ -2236,56 +2241,92 @@
             </div>
         </div>
 
-        <!-- Start/Try Again Button & Round Text Section - the Start/Try
-             Again button used to be its own boxed UI element with an
-             independent position/size/color (the old "UI Button" section);
-             per explicit request it now has NO box and is formatted exactly
-             like Round Text's old "big" form was - so it directly reuses
-             THIS section's font-size/position/extrusion sliders (previously
-             Round Text's big-state controls) rather than duplicating a
-             parallel set. Round Text itself no longer has a big state at
-             all (see .game-text's CSS and showRoundText() - it now only
-             ever renders at its dock position/size/extrusion, even during
-             the number-flash blink sequence), so the "Dock"/"Small State"
-             sliders below are Round Text's ONE permanent look, not a
-             special docked state anymore. The Grow/Shrink Speed and Anim.
-             Tweening sliders that used to animate between big and small are
-             gone entirely - there's no more transition to animate. -->
+        <!-- Start/Try Again Button Section - this button used to be its own
+             boxed UI element with an independent position/size/color (the
+             old "UI Button" section); per explicit request it now has NO
+             box and is formatted exactly like Round Text's old "big" form
+             was - so it directly reuses these font-size/position/extrusion
+             sliders (previously Round Text's big-state controls) rather
+             than duplicating a parallel set. Split into its own group,
+             separate from Round Text, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button &amp; Round Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Button Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="10.68">
-                    <span class="dev-value" id="valueTextFontSize">10.68</span>
+                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="12.94">
+                    <span class="dev-value" id="valueTextFontSize">12.94</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueTextLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-4.44">
-                    <span class="dev-value" id="valueTextX">-4.44</span>
+                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-0.16">
+                    <span class="dev-value" id="valueTextX">-0.16</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-11.59">
-                    <span class="dev-value" id="valueTextY">-11.59</span>
+                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-13.75">
+                    <span class="dev-value" id="valueTextY">-13.75</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="13">
-                    <span class="dev-value" id="valueRoundExtrusionDepth">13</span>
+                    <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueRoundExtrusionDepth">9</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Border/Extrusion Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#000000">
+                    <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="12">
-                    <span class="dev-value" id="valueRoundOverallBorderThickness">12</span>
+                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="11">
+                    <span class="dev-value" id="valueRoundOverallBorderThickness">11</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#000000">
+                    <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#5c191d">
+                </div>
+                <!-- The "?" in "Try again?" blinks while that text is on
+                     screen - per explicit request. Shared/single, not
+                     mobile-split, like every other timing-only slider (Game
+                     Mechanics durations, Round Text's own blink-sequence
+                     sliders) - see startTryAgainFlash(). -->
+                <div class="dev-row">
+                    <span class="dev-label">Try Again "?" Flash Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainFlashDuration" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueTryAgainFlashDuration">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again "?" Hold Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainHoldDuration" min="0" max="3000" step="10" value="1000">
+                    <span class="dev-value" id="valueTryAgainHoldDuration">1000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round Text Section - split into its own group, separate from
+             the Start/Try Again button, per explicit request. Round Text no
+             longer has a big/animated state at all (see .game-text's CSS
+             and showRoundText()) - it always renders at its one permanent
+             look, even during the number-flash blink sequence. Font size
+             used to always match --speed-font-size-vw; now has its own
+             independent slider, per explicit request. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundFontSize" min="1" max="20" step="0.01" value="3.3">
+                    <span class="dev-value" id="valueRoundFontSize">3.3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueRoundLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text X Offset (vw):</span>
@@ -2296,21 +2337,6 @@
                     <span class="dev-label">Round Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
                     <span class="dev-value" id="valueRoundDockY">42.7</span>
-                </div>
-                <!-- The "?" in "Try again?" blinks while that text is on
-                     screen - per explicit request. Shared/single, not
-                     mobile-split, like every other timing-only slider (Game
-                     Mechanics durations, the blink-sequence sliders below) -
-                     see startTryAgainFlash(). -->
-                <div class="dev-row">
-                    <span class="dev-label">Try Again "?" Flash Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainFlashDuration" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueTryAgainFlashDuration">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again "?" Hold Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainHoldDuration" min="0" max="3000" step="10" value="1000">
-                    <span class="dev-value" id="valueTryAgainHoldDuration">1000</span>
                 </div>
                 <!-- Round-change blink sequence: the number blinks 3 times
                      (hides, shows the OLD number, hides, shows the OLD
@@ -2460,6 +2486,11 @@
                     <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.01" value="-32.71">
                     <span class="dev-value" id="valueTargetY">-32.71</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueTargetLetterSpacing">0</span>
+                </div>
             </div>
         </div>
 
@@ -2500,6 +2531,11 @@
                     <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.01" value="-14.85">
                     <span class="dev-value" id="valueSpeedY">-14.85</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueSpeedLetterSpacing">0</span>
+                </div>
             </div>
         </div>
 
@@ -2511,13 +2547,13 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="1" max="25" step="0.01" value="2.2">
-                    <span class="dev-value" id="valueMsPerClickFontSize">2.2</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="1" max="25" step="0.01" value="2">
+                    <span class="dev-value" id="valueMsPerClickFontSize">2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickExtrusionDepth" min="0" max="20" step="1" value="9">
-                    <span class="dev-value" id="valueMsPerClickExtrusionDepth">9</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickExtrusionDepth" min="0" max="20" step="1" value="8">
+                    <span class="dev-value" id="valueMsPerClickExtrusionDepth">8</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Border/Extrusion Color:</span>
@@ -2534,13 +2570,18 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickX" min="-50" max="50" step="0.01" value="39.47">
-                    <span class="dev-value" id="valueMsPerClickX">39.47</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickX" min="-50" max="50" step="0.01" value="40.2">
+                    <span class="dev-value" id="valueMsPerClickX">40.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickY" min="-50" max="50" step="0.01" value="-19.85">
-                    <span class="dev-value" id="valueMsPerClickY">-19.85</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickY" min="-50" max="50" step="0.01" value="-14.88">
+                    <span class="dev-value" id="valueMsPerClickY">-14.88</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMsPerClickLetterSpacing">0</span>
                 </div>
             </div>
         </div>
@@ -2864,18 +2905,21 @@
             </div>
         </div>
 
-        <!-- Start/Try Again Button & Round Text Section (Mobile) - see the
-             desktop section's own comment for the full explanation: the
-             button has no box and reuses these font-size/position/extrusion
-             sliders (formerly Round Text's big-state controls), and Round
-             Text itself now only ever renders at its dock look. -->
+        <!-- Start/Try Again Button Section (Mobile) - see the desktop
+             section's own comment for the full explanation. Split into its
+             own group, separate from Round Text, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button &amp; Round Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Button Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.01" value="8">
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileTextLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button X Offset (vw):</span>
@@ -2886,16 +2930,6 @@
                     <span class="dev-label">Button Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
                     <span class="dev-value" id="valueMobileTextY">-16.5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
-                    <span class="dev-value" id="valueMobileRoundDockX">-30</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
-                    <span class="dev-value" id="valueMobileRoundDockY">35</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
@@ -2914,6 +2948,35 @@
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundOverallBorder" value="#000000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Round Text Section (Mobile) - split into its own group per
+             explicit request. Font size used to always match
+             --speed-font-size-vw; now has its own independent slider. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundFontSize" min="1" max="20" step="0.01" value="5.43">
+                    <span class="dev-value" id="valueMobileRoundFontSize">5.43</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileRoundLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
+                    <span class="dev-value" id="valueMobileRoundDockX">-30</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
+                    <span class="dev-value" id="valueMobileRoundDockY">35</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Extrusion Depth (px):</span>
@@ -2997,6 +3060,11 @@
                     <span class="dev-value" id="valueMobileTargetY">-23.5</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileTargetLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileTargetExtrusionDepth">4</span>
@@ -3037,6 +3105,11 @@
                     <span class="dev-value" id="valueMobileSpeedY">-19.5</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileSpeedLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
@@ -3075,6 +3148,11 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickY" min="-50" max="50" step="0.01" value="-26.84">
                     <span class="dev-value" id="valueMobileMsPerClickY">-26.84</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileMsPerClickLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -3187,17 +3265,19 @@
             // since Round Text no longer has a big state at all and the
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
-            '--text-font-size-vw': 10.68,
-            '--text-x-offset-vw': -4.44,
-            '--text-y-offset-vh': -11.59,
+            '--text-font-size-vw': 12.94,
+            '--text-x-offset-vw': -0.16,
+            '--text-y-offset-vh': -13.75,
+            '--text-letter-spacing-px': 0,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
-            // CSS comment). Font-size isn't listed here since it
-            // intentionally always MATCHES whatever --speed-font-size-vw
-            // currently is ("shrinks to the same size as the speed text"),
-            // not an independent value.
+            // CSS comment). Font-size now has its own independent slider
+            // (--round-font-size-vw) - per explicit request; it used to
+            // always MATCH --speed-font-size-vw, no longer does.
             '--round-dock-x-offset-vw': -43,
             '--round-dock-y-offset-vh': 42.7,
+            '--round-font-size-vw': 3.3,
+            '--round-letter-spacing-px': 0,
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
@@ -3219,17 +3299,20 @@
             '--target-font-size-vw': 11.74,
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -32.71,
+            '--target-letter-spacing-px': 0,
             '--speed-font-size-vw': 3.3,
             '--speed-x-offset-vw': 39.47,
             '--speed-y-offset-vh': -14.85,
+            '--speed-letter-spacing-px': 0,
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 2.2,
-            '--ms-per-click-x-offset-vw': 39.47,
-            '--ms-per-click-y-offset-vh': -19.85,
+            '--ms-per-click-font-size-vw': 2,
+            '--ms-per-click-x-offset-vw': 40.2,
+            '--ms-per-click-y-offset-vh': -14.88,
+            '--ms-per-click-letter-spacing-px': 0,
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
@@ -3283,15 +3366,15 @@
             // 3, same as Target/Speed already had for depth - per explicit
             // request. Font, fill color, and size/position stay shared/own
             // as before (unaffected).
-            roundDepth: 13,
+            roundDepth: 9,
             roundBorderColor: '#c41516',
-            roundOverallBorderThickness: 12,
+            roundOverallBorderThickness: 11,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
-            roundOverallBorderColor: '#c41516',
+            roundOverallBorderColor: '#5c191d',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
             // BUTTON instead of Round Text - repurposed since Round Text no
@@ -3318,7 +3401,7 @@
             speedOverallBorderColor: '#cc1b20',
             // "___ms / click" label above the countdown - own extrusion
             // group, same shape as Target/Speed's own copies above.
-            msPerClickDepth: 9,
+            msPerClickDepth: 8,
             msPerClickBorderColor: '#ff0000',
             msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#f0fff4',
@@ -3521,17 +3604,23 @@
             '--text-font-size-vw': 20,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -0.49,
+            '--text-letter-spacing-px': 0,
             '--round-dock-x-offset-vw': -36.41,
             '--round-dock-y-offset-vh': 46.12,
+            '--round-font-size-vw': 5.43,
+            '--round-letter-spacing-px': 0,
             '--target-font-size-vw': 14.75,
             '--target-x-offset-vw': 23.79,
             '--target-y-offset-vh': -34.47,
+            '--target-letter-spacing-px': 0,
             '--speed-font-size-vw': 5.43,
             '--speed-x-offset-vw': 24.76,
             '--speed-y-offset-vh': -21.84,
+            '--speed-letter-spacing-px': 0,
             '--ms-per-click-font-size-vw': 3.6,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -26.84,
+            '--ms-per-click-letter-spacing-px': 0,
             '--result-font-size-vw': 15.94,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': 1.46,
@@ -4434,8 +4523,11 @@
             'sliderTextFontSize': '--text-font-size-vw',
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
+            'sliderTextLetterSpacing': '--text-letter-spacing-px',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
+            'sliderRoundFontSize': '--round-font-size-vw',
+            'sliderRoundLetterSpacing': '--round-letter-spacing-px',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
             'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
@@ -4448,12 +4540,15 @@
             'sliderTargetFontSize': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
+            'sliderTargetLetterSpacing': '--target-letter-spacing-px',
             'sliderSpeedFontSize': '--speed-font-size-vw',
             'sliderSpeedX': '--speed-x-offset-vw',
             'sliderSpeedY': '--speed-y-offset-vh',
+            'sliderSpeedLetterSpacing': '--speed-letter-spacing-px',
             'sliderMsPerClickFontSize': '--ms-per-click-font-size-vw',
             'sliderMsPerClickX': '--ms-per-click-x-offset-vw',
             'sliderMsPerClickY': '--ms-per-click-y-offset-vh',
+            'sliderMsPerClickLetterSpacing': '--ms-per-click-letter-spacing-px',
             'sliderResultFontSize': '--result-font-size-vw',
             'sliderResultX': '--result-x-offset-vw',
             'sliderResultY': '--result-y-offset-vh',
