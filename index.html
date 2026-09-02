@@ -690,8 +690,19 @@
            start at identical (untransformed) size/position, so independent
            transform-origin:center scaleX() on each still pivots around the
            same shared visual point. */
+        /* Independently positioned/sized/colored - per explicit request
+           ("separate size, color, and x y sliders for the question mark").
+           Used to be plain inline text (flowed right after "Try again",
+           inheriting that text's own font-size/color/position entirely) -
+           now fixed like every other on-screen element, same screen-center
+           vw/vh origin (CLAUDE.md Section 12k) so a copied X/Y value means
+           the same thing here as anywhere else. */
         #startButtonFlashChar {
-            position: relative;
+            position: fixed;
+            left: calc(50% + var(--try-again-question-mark-x-offset-vw) * 1vw);
+            top: calc(50% + var(--try-again-question-mark-y-offset-vh) * 1vh);
+            font-size: calc(var(--try-again-question-mark-font-size-vw) * 1vw);
+            transform: translate(-50%, -50%);
             display: inline-block;
         }
         #startButtonFlashCharExtrusion {
@@ -725,7 +736,7 @@
             position: relative;
             display: inline-block;
             transform-origin: center;
-            color: var(--try-again-fill-color);
+            color: var(--try-again-question-mark-fill-color);
         }
 
         /* Text Edit Mode's inline input - sized to roughly match the huge
@@ -2803,6 +2814,31 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainRotateMinWidth" min="0" max="1" step="0.01" value="0">
                     <span class="dev-value" id="valueTryAgainRotateMinWidth">0</span>
                 </div>
+                <!-- The "?" glyph's own size/color/position - independent
+                     from the "Try again" text (which keeps its own separate
+                     controls up in Start/Try Again Button) - per explicit
+                     request. Device-specific (see the Mobile tab's own copy
+                     of just these 4, further down) - Mode/Speed/Tweening/
+                     Min Width above stay single/shared. -->
+                <div class="dev-row">
+                    <span class="dev-label">"?" Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkFontSize" min="1" max="30" step="0.01" value="12.94">
+                    <span class="dev-value" id="valueTryAgainQuestionMarkFontSize">12.94</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTryAgainQuestionMarkFill" value="#ffffff">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkX" min="-50" max="50" step="0.01" value="-0.16">
+                    <span class="dev-value" id="valueTryAgainQuestionMarkX">-0.16</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="0.05">
+                    <span class="dev-value" id="valueTryAgainQuestionMarkY">0.05</span>
+                </div>
                 <!-- Checked (default): extrusion/border follows the glyph's
                      own scaleX exactly - the whole token transforms as one
                      unit. Unchecked: extrusion/border still tracks the
@@ -3684,6 +3720,35 @@
             </div>
         </div>
 
+        <!-- Rotation Animation Section (Mobile) - just the "?" glyph's own
+             device-specific size/color/position (see the Desktop tab's own
+             copy). Mode/Speed/Tweening/Min Width/Extrusion-Matches-Glyph
+             stay single/shared, controlled only from the Desktop tab. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Rotation Animation</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">"?" Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkFontSize" min="1" max="30" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTryAgainQuestionMarkFontSize">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainQuestionMarkFill" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkX" min="-50" max="50" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTryAgainQuestionMarkX">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="5.05">
+                    <span class="dev-value" id="valueMobileTryAgainQuestionMarkY">5.05</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Round Text Section (Mobile) - split into its own group per
              explicit request. Font size used to always match
              --speed-font-size-vw; now has its own independent slider. -->
@@ -4196,6 +4261,19 @@
             '--try-again-text-font-size-vw': 12.94,
             '--try-again-text-x-offset-vw': -0.16,
             '--try-again-text-y-offset-vh': -13.75,
+            // The "?" glyph's own font-size/position, independent from the
+            // "Try again" text above - per explicit request. Was inline
+            // text before (flowed right after "Try again", no independent
+            // placement at all) - now position:fixed like every other
+            // element, same screen-center vw/vh origin (CLAUDE.md Section
+            // 12k). Defaults are a live measurement of exactly where the
+            // "?" already rendered under the old inline layout, so shipping
+            // this causes no visual jump - not the same numbers as Try
+            // Again's own X/Y above, since those position the whole button/
+            // text box, not this glyph's rendered center.
+            '--try-again-question-mark-font-size-vw': 12.94,
+            '--try-again-question-mark-x-offset-vw': -0.16,
+            '--try-again-question-mark-y-offset-vh': 0.05,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
@@ -4332,6 +4410,12 @@
             // until tuned, same convention as the font-size/position split.
             tryAgainBorderColor: '#ffffff',
             tryAgainOverallBorderColor: '#59181b',
+            // The "?" glyph's own fill color, independent from the "Try
+            // again" text's own color above - per explicit request ("I
+            // dont see separate size, color, and x y sliders for the
+            // question mark"). Starts matching tryAgainBorderColor above
+            // until tuned, same convention as every other split.
+            questionMarkFillColor: '#ffffff',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
             // BUTTON instead of Round Text - repurposed since Round Text no
@@ -4397,6 +4481,7 @@
             roundOverallBorderColor: '#c41516',
             tryAgainBorderColor: '#c41516',
             tryAgainOverallBorderColor: '#c41516',
+            questionMarkFillColor: '#c41516',
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
             roundDockOverallBorderThickness: 5,
@@ -4575,6 +4660,7 @@
             // and the extrusion/border effect behind it.
             root.setProperty('--round-fill-color', ext.roundBorderColor);
             root.setProperty('--try-again-fill-color', ext.tryAgainBorderColor);
+            root.setProperty('--try-again-question-mark-fill-color', ext.questionMarkFillColor);
             root.setProperty('--round-dock-fill-color', ext.roundDockBorderColor);
             root.setProperty('--target-fill-color', ext.targetBorderColor);
             root.setProperty('--speed-fill-color', ext.speedBorderColor);
@@ -4640,6 +4726,11 @@
             '--try-again-text-font-size-vw': 20,
             '--try-again-text-x-offset-vw': 0,
             '--try-again-text-y-offset-vh': -0.49,
+            // See the desktop cssVars' own comment - same live-measured-
+            // default reasoning, mobile viewport.
+            '--try-again-question-mark-font-size-vw': 20,
+            '--try-again-question-mark-x-offset-vw': 20,
+            '--try-again-question-mark-y-offset-vh': 5.05,
             '--round-dock-x-offset-vw': -36.41,
             '--round-dock-y-offset-vh': 46.12,
             '--round-font-size-vw': 5.43,
@@ -6103,6 +6194,9 @@
             'sliderTryAgainTextFontSize': '--try-again-text-font-size-vw',
             'sliderTryAgainTextX': '--try-again-text-x-offset-vw',
             'sliderTryAgainTextY': '--try-again-text-y-offset-vh',
+            'sliderTryAgainQuestionMarkFontSize': '--try-again-question-mark-font-size-vw',
+            'sliderTryAgainQuestionMarkX': '--try-again-question-mark-x-offset-vw',
+            'sliderTryAgainQuestionMarkY': '--try-again-question-mark-y-offset-vh',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
             'sliderRoundFontSize': '--round-font-size-vw',
@@ -6679,6 +6773,7 @@
                 'colorRoundExtrusionBorder': 'roundBorderColor',
                 'colorTryAgainExtrusionBorder': 'tryAgainBorderColor',
                 'colorTryAgainOverallBorder': 'tryAgainOverallBorderColor',
+                'colorTryAgainQuestionMarkFill': 'questionMarkFillColor',
                 'colorTargetExtrusionBorder': 'targetBorderColor',
                 'colorSpeedExtrusionBorder': 'speedBorderColor',
                 'colorMsPerClickExtrusionBorder': 'msPerClickBorderColor',
