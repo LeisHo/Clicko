@@ -1190,24 +1190,6 @@
             flex-direction: column;
         }
 
-        /* Collapsed state - distinct from fully hidden (.hidden, toggled by
-           the D key / dev-hide-btn): the panel stays present at its header's
-           height only, settings/resize handles hidden, per CLAUDE.md Section
-           12c's "two distinct states (fully hidden vs. collapsed-but-
-           present)". Height overridden to auto rather than the usual
-           --dev-panel-height-px cssVar, since a collapsed panel's real
-           height is just whatever its header needs, not a user-resized value -
-           the panel remembers its expanded height (still driven by the
-           cssVar) for when it's uncollapsed. */
-        .dev-panel.panel-collapsed {
-            height: auto !important;
-        }
-        .dev-panel.panel-collapsed .dev-panel-scroll-content,
-        .dev-panel.panel-collapsed .dev-panel-resize-edge,
-        .dev-panel.panel-collapsed .dev-panel-resize-corner {
-            display: none !important;
-        }
-
         /* 4 edge strips (top/bottom/left/right) - inset from the corners so
            they don't overlap the corner handles below. Resizing from
            top/left moves the panel's position too (the OPPOSITE edge stays
@@ -1341,25 +1323,6 @@
         }
 
         .dev-hide-btn:hover {
-            background: #0ff;
-        }
-
-        .dev-collapse-btn {
-            background: #0f0;
-            color: #000;
-            border: none;
-            border-radius: 3px;
-            width: 22px;
-            height: 22px;
-            font-size: 14px;
-            font-weight: bold;
-            line-height: 1;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-right: 4px;
-        }
-
-        .dev-collapse-btn:hover {
             background: #0ff;
         }
 
@@ -2060,7 +2023,6 @@
             <div class="dev-panel-title">
                 DEV
             </div>
-            <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
             <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
         </div>
 
@@ -4967,7 +4929,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -4986,7 +4948,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -5061,6 +5023,19 @@
                         Object.assign(textOverrides, settings.textOverrides);
                         refreshAllTextOverrides();
                     }
+                    // Click Burst per-frame-set memory - restore all 4
+                    // frame sets' remembered values, sync the Frame Set
+                    // select's own displayed option to match the restored
+                    // cssVars['--click-frame-set'] (a pre-existing gap for
+                    // this particular select, fixed here since it's now
+                    // directly load-bearing for which frame set's values
+                    // are shown), then restore that frame set's own values
+                    // into cssVars/mobileCssVars and every scoped slider.
+                    if (settings.clickBurstFrameVars) Object.assign(clickBurstFrameVars, settings.clickBurstFrameVars);
+                    if (settings.mobileClickBurstFrameVars) Object.assign(mobileClickBurstFrameVars, settings.mobileClickBurstFrameVars);
+                    const frameSetSelect = document.getElementById('selectClickFrameSet');
+                    if (frameSetSelect && cssVars['--click-frame-set']) frameSetSelect.value = cssVars['--click-frame-set'];
+                    restoreClickBurstFrameVars(cssVars['--click-frame-set'] || 'CLICK1');
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -5085,8 +5060,65 @@
         // screen-size-driven decision the way spatial layout is). Stored in
         // cssVars purely so it rides along with copySettings()/saveSettings()
         // for free - see its own declaration there.
+        //
+        // Per-frame-set (Click1-4) memory for the 8 "look and feel" sliders
+        // below (Speed/Scale/Distance/Height/Curve Offset/Curve Amount/
+        // Count Floor/Count Ceiling) - each frame style remembers its own
+        // tuning, independent per device, per explicit request ("each frame
+        // type... have their own scale and speed etc settings"). cssVars/
+        // mobileCssVars still hold the CURRENTLY ACTIVE frame set's values
+        // (unchanged - every existing render/slider path keeps working as-
+        // is); this is a memory layer alongside it, captured on every edit
+        // (applySliderValue()) and restored on every frame-set switch
+        // (restoreClickBurstFrameVars()) - including in-session edits never
+        // explicitly Saved, which is the whole point (switching back to a
+        // frame set shows whatever you last set it to THIS session, not the
+        // saved-to-disk value, until you actually click SAVE).
+        const CLICK_BURST_SCOPED_KEYS = ['--click-burst-speed-ms', '--click-burst-scale', '--click-burst-distance-px', '--click-burst-height-px', '--click-burst-curve-offset-px', '--click-burst-curve-amount', '--click-burst-count-min', '--click-burst-count-max'];
+        const CLICK_FRAME_SET_NAMES = ['CLICK1', 'CLICK2', 'CLICK3', 'CLICK4'];
+        function seedClickBurstFrameVars(sourceVars) {
+            const seed = {};
+            CLICK_BURST_SCOPED_KEYS.forEach(k => { seed[k] = sourceVars[k]; });
+            const perFrame = {};
+            CLICK_FRAME_SET_NAMES.forEach(name => { perFrame[name] = { ...seed }; });
+            return perFrame;
+        }
+        const clickBurstFrameVars = seedClickBurstFrameVars(cssVars);
+        const mobileClickBurstFrameVars = seedClickBurstFrameVars(mobileCssVars);
+
+        // Restores a frame set's remembered 8 values into cssVars/
+        // mobileCssVars AND syncs every scoped slider's own DOM value/
+        // readout, desktop+mobile - Object.assign into cssVars alone
+        // wouldn't move a slider's thumb.
+        function restoreClickBurstFrameVars(frameSet) {
+            CLICK_BURST_SCOPED_KEYS.forEach(varName => {
+                cssVars[varName] = clickBurstFrameVars[frameSet][varName];
+                mobileCssVars[varName] = mobileClickBurstFrameVars[frameSet][varName];
+            });
+            Object.keys(CSS_VAR_SLIDER_MAP).forEach(desktopId => {
+                const varName = CSS_VAR_SLIDER_MAP[desktopId];
+                if (!CLICK_BURST_SCOPED_KEYS.includes(varName)) return;
+                const deskEl = document.getElementById(desktopId);
+                if (deskEl) {
+                    deskEl.value = cssVars[varName];
+                    const v = document.getElementById(desktopId.replace('slider', 'value'));
+                    if (v) v.textContent = deskEl.value;
+                }
+                const mobId = 'sliderMobile' + desktopId.slice('slider'.length);
+                const mobEl = document.getElementById(mobId);
+                if (mobEl) {
+                    mobEl.value = mobileCssVars[varName];
+                    const v = document.getElementById(mobId.replace('slider', 'value'));
+                    if (v) v.textContent = mobEl.value;
+                }
+            });
+            applyActiveVars();
+        }
+
         function updateClickFrameSet() {
-            cssVars['--click-frame-set'] = document.getElementById('selectClickFrameSet').value;
+            const frameSet = document.getElementById('selectClickFrameSet').value;
+            cssVars['--click-frame-set'] = frameSet;
+            restoreClickBurstFrameVars(frameSet);
         }
 
         // Swaps which of the button's two hand-drawn SVGs (normal/pressed)
@@ -5249,6 +5281,14 @@
 
             if (varName) {
                 (isMobile ? mobileCssVars : cssVars)[varName] = value;
+                // Click Burst per-frame-set memory - capture this edit into
+                // the CURRENTLY selected frame set's own storage, so
+                // switching frame sets and back preserves it even before
+                // Save (see restoreClickBurstFrameVars()).
+                if (CLICK_BURST_SCOPED_KEYS.includes(varName)) {
+                    const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
+                    (isMobile ? mobileClickBurstFrameVars : clickBurstFrameVars)[frameSet][varName] = value;
+                }
                 applyActiveVars();
             } else if (extrusionKey) {
                 (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey] = value;
@@ -6621,11 +6661,6 @@
 
         // Collapses the dev panel to just its header - distinct from fully
         // hiding it (the D key / dev-hide-btn) - per CLAUDE.md Section 12c.
-        function toggleDevPanelCollapsed() {
-            const collapsed = devPanel.classList.toggle('panel-collapsed');
-            document.getElementById('devCollapseBtn').textContent = collapsed ? '▢' : '▁';
-        }
-
         // Desktop/Mobile dev-panel tabs - per CLAUDE.md Section 12f. Purely
         // a PRESENTATION change: which tab is showing doesn't affect which
         // device's actual game rendering is active (that's still
