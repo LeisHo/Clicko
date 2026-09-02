@@ -2566,61 +2566,19 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
+                <!-- Reordered to match Target/Speed/Ms-per-click's own
+                     established field order (Font Size, Extrusion Depth,
+                     Text Color, Overall Border Thickness, Overall Border
+                     Color, X Offset, Y Offset, Letter Spacing, Text Align)
+                     - per explicit request that all text settings share
+                     one consistent order. Try Again's own fields (font-
+                     size/position/colors independent from Start's) follow
+                     the same relative pattern, then the "?" flash timing
+                     last. -->
                 <div class="dev-row">
                     <span class="dev-label">Button Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="12.94">
                     <span class="dev-value" id="valueTextFontSize">12.94</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueTextLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Align:</span>
-                    <select class="dev-select dev-align-select" id="selectStartTextAlign" data-var="--start-text-align">
-                        <option value="left">Left</option>
-                        <option value="center" selected>Center</option>
-                        <option value="right">Right</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-0.16">
-                    <span class="dev-value" id="valueTextX">-0.16</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-13.75">
-                    <span class="dev-value" id="valueTextY">-13.75</span>
-                </div>
-                <!-- Try Again's own font-size/position - independent from
-                     Start's above, per explicit request. -->
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="1" max="20" step="0.01" value="12.94">
-                    <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextX" min="-40" max="40" step="0.01" value="-0.16">
-                    <span class="dev-value" id="valueTryAgainTextX">-0.16</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
-                    <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
-                </div>
-                <!-- Try Again's own border/extrusion colors - independent
-                     from Start's, per explicit request. Depth/thickness
-                     stay shared (only color was asked for). -->
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTryAgainOverallBorder" value="#5c191d">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
@@ -2639,6 +2597,55 @@
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#5c191d">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-0.16">
+                    <span class="dev-value" id="valueTextX">-0.16</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-13.75">
+                    <span class="dev-value" id="valueTextY">-13.75</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueTextLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectStartTextAlign" data-var="--start-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <!-- Try Again's own font-size/position/colors - independent
+                     from Start's above, per explicit request. Depth/
+                     thickness stay shared (only color was asked for). -->
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="1" max="20" step="0.01" value="12.94">
+                    <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTryAgainOverallBorder" value="#5c191d">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextX" min="-40" max="40" step="0.01" value="-0.16">
+                    <span class="dev-value" id="valueTryAgainTextX">-0.16</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
+                    <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
                 </div>
                 <!-- The "?" in "Try again?" blinks while that text is on
                      screen - per explicit request. Shared/single, not
@@ -2719,10 +2726,42 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text</div>
             <div class="dev-section-content">
+                <!-- Reordered to match Target/Speed/Ms-per-click's own
+                     established field order, per explicit request that all
+                     text settings share one consistent order - the unique
+                     blink-sequence fields stay grouped at the end. -->
                 <div class="dev-row">
                     <span class="dev-label">Round Text Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderRoundFontSize" min="1" max="20" step="0.01" value="3.3">
                     <span class="dev-value" id="valueRoundFontSize">3.3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorRoundDockOverallBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-43">
+                    <span class="dev-value" id="valueRoundDockX">-43</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
+                    <span class="dev-value" id="valueRoundDockY">42.7</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Letter Spacing (px):</span>
@@ -2736,16 +2775,6 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-43">
-                    <span class="dev-value" id="valueRoundDockX">-43</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
-                    <span class="dev-value" id="valueRoundDockY">42.7</span>
                 </div>
                 <!-- Round-change blink sequence: the number blinks 3 times
                      (hides, shows the OLD number, hides, shows the OLD
@@ -2790,24 +2819,6 @@
                     <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="1300">
                     <span class="dev-value" id="valueRoundPostBlinkHold">1300</span>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundDockOverallBorder" value="#000000">
-                </div>
             </div>
         </div>
 
@@ -2820,6 +2831,10 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Win/Lose Text</div>
             <div class="dev-section-content">
+                <!-- Reordered (Font Size, X/Y Offset, Text Align first,
+                     matching every other text section's own field order,
+                     then the unique Win/Lose colors) per explicit request
+                     that all text settings share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderResultFontSize" min="1" max="20" step="0.01" value="8">
@@ -2836,6 +2851,14 @@
                     <span class="dev-value" id="valueResultY">-20</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectResultTextAlign" data-var="--result-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Win Fill Color:</span>
                     <input type="color" class="dev-color-picker" id="colorResultWinFill" value="#f0fff4">
                 </div>
@@ -2850,14 +2873,6 @@
                 <div class="dev-row">
                     <span class="dev-label">Lose Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#2c99dd">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Align:</span>
-                    <select class="dev-select dev-align-select" id="selectResultTextAlign" data-var="--result-text-align">
-                        <option value="left">Left</option>
-                        <option value="center" selected>Center</option>
-                        <option value="right">Right</option>
-                    </select>
                 </div>
             </div>
         </div>
@@ -3422,56 +3437,13 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
+                <!-- Reordered to match the desktop section's own established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Button Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.01" value="8">
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueMobileTextLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Align:</span>
-                    <select class="dev-select dev-align-select" id="selectMobileStartTextAlign" data-var="--start-text-align">
-                        <option value="left">Left</option>
-                        <option value="center" selected>Center</option>
-                        <option value="right">Right</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.01" value="0">
-                    <span class="dev-value" id="valueMobileTextX">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
-                    <span class="dev-value" id="valueMobileTextY">-16.5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSize" min="1" max="20" step="0.01" value="20">
-                    <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextX" min="-40" max="40" step="0.01" value="0">
-                    <span class="dev-value" id="valueMobileTryAgainTextX">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextY" min="-50" max="50" step="0.01" value="-0.49">
-                    <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainExtrusionBorder" value="#c41516">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainOverallBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
@@ -3491,6 +3463,52 @@
                     <span class="dev-label">Button Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundOverallBorder" value="#000000">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueMobileTextX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
+                    <span class="dev-value" id="valueMobileTextY">-16.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileTextLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileStartTextAlign" data-var="--start-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSize" min="1" max="20" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainExtrusionBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainOverallBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueMobileTryAgainTextX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextY" min="-50" max="50" step="0.01" value="-0.49">
+                    <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
+                </div>
             </div>
         </div>
 
@@ -3500,33 +3518,13 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text</div>
             <div class="dev-section-content">
+                <!-- Reordered to match the desktop section's own established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Round Text Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundFontSize" min="1" max="20" step="0.01" value="5.43">
                     <span class="dev-value" id="valueMobileRoundFontSize">5.43</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueMobileRoundLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Align:</span>
-                    <select class="dev-select dev-align-select" id="selectMobileRoundTextAlign" data-var="--round-text-align">
-                        <option value="left">Left</option>
-                        <option value="center" selected>Center</option>
-                        <option value="right">Right</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
-                    <span class="dev-value" id="valueMobileRoundDockX">-30</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
-                    <span class="dev-value" id="valueMobileRoundDockY">35</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Extrusion Depth (px):</span>
@@ -3546,6 +3544,29 @@
                     <span class="dev-label">Round Text Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundDockOverallBorder" value="#000000">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
+                    <span class="dev-value" id="valueMobileRoundDockX">-30</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
+                    <span class="dev-value" id="valueMobileRoundDockY">35</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Round Text Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileRoundLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileRoundTextAlign" data-var="--round-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -3553,6 +3574,9 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Win/Lose Text</div>
             <div class="dev-section-content">
+                <!-- Reordered to match the desktop section's own established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultFontSize" min="1" max="20" step="0.01" value="11.4">
@@ -3567,6 +3591,14 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultY" min="-50" max="50" step="0.01" value="-20">
                     <span class="dev-value" id="valueMobileResultY">-20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileResultTextAlign" data-var="--result-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Fill Color:</span>
@@ -3584,14 +3616,6 @@
                     <span class="dev-label">Lose Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileResultLoseBorder" value="#dd3333">
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Align:</span>
-                    <select class="dev-select dev-align-select" id="selectMobileResultTextAlign" data-var="--result-text-align">
-                        <option value="left">Left</option>
-                        <option value="center" selected>Center</option>
-                        <option value="right">Right</option>
-                    </select>
-                </div>
             </div>
         </div>
 
@@ -3599,6 +3623,9 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Target Count Display</div>
             <div class="dev-section-content">
+                <!-- Reordered to match every other text section's established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="1" max="25" step="0.01" value="25">
@@ -3607,6 +3634,24 @@
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not mobile-split), per
                      explicit request. -->
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueMobileTargetExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTargetExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileTargetOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTargetOverallBorder" value="#000000">
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.01" value="20">
@@ -3630,24 +3675,6 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetExtrusionDepth" min="0" max="20" step="1" value="4">
-                    <span class="dev-value" id="valueMobileTargetExtrusionDepth">4</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileTargetExtrusionBorder" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueMobileTargetOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileTargetOverallBorder" value="#000000">
-                </div>
             </div>
         </div>
 
@@ -3655,10 +3682,31 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
+                <!-- Reordered to match every other text section's established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="1" max="25" step="0.01" value="9">
                     <span class="dev-value" id="valueMobileSpeedFontSize">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileSpeedExtrusionBorder" value="#000000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileSpeedOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileSpeedOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -3683,24 +3731,6 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
-                    <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileSpeedExtrusionBorder" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueMobileSpeedOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileSpeedOverallBorder" value="#000000">
-                </div>
             </div>
         </div>
 
@@ -3708,10 +3738,31 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Ms/Click Display</div>
             <div class="dev-section-content">
+                <!-- Reordered to match every other text section's established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
                 <div class="dev-row">
                     <span class="dev-label">Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickFontSize" min="1" max="25" step="0.01" value="3.6">
                     <span class="dev-value" id="valueMobileMsPerClickFontSize">3.6</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueMobileMsPerClickExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileMsPerClickExtrusionBorder" value="#ff0000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileMsPerClickOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileMsPerClickOverallBorder" value="#cc1b20">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -3735,24 +3786,6 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickExtrusionDepth" min="0" max="20" step="1" value="9">
-                    <span class="dev-value" id="valueMobileMsPerClickExtrusionDepth">9</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileMsPerClickExtrusionBorder" value="#ff0000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueMobileMsPerClickOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileMsPerClickOverallBorder" value="#cc1b20">
                 </div>
             </div>
         </div>
