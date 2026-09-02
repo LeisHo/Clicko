@@ -5383,14 +5383,16 @@
             if (gameState.currentTapCount === 1) {
                 startRoundCountdown();
             }
-
-            if (gameState.currentTapCount === gameState.targetCount) {
-                // Exact hit - win immediately. Any further tap would have
-                // been caught as an overshoot above, so there's nothing left
-                // to wait for.
-                stopRoundCountdown();
-                endGame(true);
-            }
+            // Reaching exact target does NOT win immediately - per explicit
+            // bug report ("I win if I just keep clicking"): winning
+            // instantly on the tap that reaches target meant rapid
+            // clicking always won, since count increments by exactly 1 and
+            // is guaranteed to pass through targetCount if you just keep
+            // tapping, bypassing any real timing pressure. The round now
+            // only resolves when the countdown naturally expires (see
+            // startRoundCountdown()'s timeout) - win if still at exactly
+            // targetCount at that moment, lose otherwise. Overshoot above
+            // still ends the round immediately either way.
         }
 
         // Countdown timer replacing the old per-tap re-armed ceiling - per
@@ -5406,10 +5408,16 @@
         function startRoundCountdown() {
             gameState.countdownStartTime = Date.now();
             gameState.checkTimeoutId = setTimeout(() => {
-                // Reaching here always means undershoot - overshoot ends the
-                // round immediately in handleGameButtonPress, and an exact
-                // hit calls stopRoundCountdown() before this could ever fire.
-                endGame(false, 'not-enough');
+                // The round resolves HERE, not on the tap that reaches
+                // target (see handleGameButtonPress) - win if exactly at
+                // target when time runs out, undershoot otherwise. Overshoot
+                // still ends the round immediately elsewhere, so this can
+                // never fire after an overshoot has already happened.
+                if (gameState.currentTapCount === gameState.targetCount) {
+                    endGame(true);
+                } else {
+                    endGame(false, 'not-enough');
+                }
             }, gameState.roundTotalTimeMs);
             tickRoundCountdown();
         }
