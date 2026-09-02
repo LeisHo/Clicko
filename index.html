@@ -1612,12 +1612,20 @@
             padding: 5px;
             background: rgba(0, 255, 255, 0.1);
             border-radius: 3px;
-            /* Drag handle for reordering groups (CLAUDE.md Section 12e) -
-               without this, a touch-drag here gets interpreted as the
-               browser's own page-scroll gesture instead of delivering
-               continuous pointermove events, same reason the panel's own
-               move/resize handles already need it. */
-            touch-action: none;
+            /* Drag handle for reordering groups (CLAUDE.md Section 12e).
+               Deliberately NOT touch-action:none, unlike the panel's own
+               move/resize handles - this sits INSIDE the scrollable
+               settings list, not in a small fixed strip outside it, and
+               since nearly every group has a title, marking them all
+               touch-action:none blocked the native scroll gesture across
+               most of the panel's surface on a touchscreen (reported as
+               "cant scroll the Dev panel in mobile browser"). Group/
+               setting reordering by touch-dragging a title/label is a real
+               casualty of this fix (the browser will treat a vertical
+               touch-drag here as scrolling instead) - reordering remains
+               fully functional via mouse on desktop, which touch-action
+               never governs. Scrolling the entire panel is the more
+               fundamental capability, so it wins this tradeoff. */
         }
 
         .dev-section-title:hover {
@@ -1649,11 +1657,13 @@
 
         /* Drag handle for reordering settings within a group (CLAUDE.md
            Section 12e) - the group title's own handle styling lives on
-           .dev-section-title above. */
+           .dev-section-title above. Deliberately NOT touch-action:none -
+           same "blocks scrolling across most of the panel on a
+           touchscreen, since almost every row has a label" reasoning as
+           .dev-section-title above; see that comment. */
         .dev-section-content .dev-label {
             cursor: grab;
             user-select: none;
-            touch-action: none;
         }
         .dev-reorder-dragging {
             opacity: 0.5;
