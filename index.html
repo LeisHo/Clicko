@@ -676,9 +676,35 @@
            transform-origin:center actually pivots on the glyph's own
            center (a plain inline element's transform origin can behave
            inconsistently across browsers) - see tickTryAgainRotate(). */
+        /* Wrapper only - positioning context for the 2 stacked layers below,
+           itself never transformed. Rotate mode needs the glyph and its
+           extrusion/border to be independently scalable (see
+           tickTryAgainRotate()), which a single element's own text-shadow
+           can't do (a transform on one element carries its text-shadow
+           along with it as one unit) - split into 2 same-position, same-
+           size overlapping spans instead: a plain colored glyph on top, an
+           extruded/bordered copy of the same character behind it. Both
+           start at identical (untransformed) size/position, so independent
+           transform-origin:center scaleX() on each still pivots around the
+           same shared visual point. */
         #startButtonFlashChar {
+            position: relative;
+            display: inline-block;
+        }
+        #startButtonFlashCharExtrusion {
+            position: absolute;
+            left: 0;
+            top: 0;
             display: inline-block;
             transform-origin: center;
+            color: var(--extrusion-fill-color);
+            text-shadow: var(--round-extrusion-shadow);
+        }
+        #startButtonFlashCharGlyph {
+            position: relative;
+            display: inline-block;
+            transform-origin: center;
+            color: var(--extrusion-fill-color);
         }
 
         /* Text Edit Mode's inline input - sized to roughly match the huge
@@ -2571,6 +2597,18 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainRotateMinWidth" min="0" max="1" step="0.01" value="0">
                     <span class="dev-value" id="valueTryAgainRotateMinWidth">0</span>
                 </div>
+                <!-- Checked (default): extrusion/border follows the glyph's
+                     own scaleX exactly - the whole token transforms as one
+                     unit. Unchecked: extrusion/border still tracks the
+                     current glyph (same character/position) but follows
+                     sin(angle) instead of cos(angle) - see
+                     tickTryAgainRotate(). -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" checked onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scales/Mirrors With Text</span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -3771,6 +3809,7 @@
             '--try-again-rotate-speed-ms': 1500,
             '--try-again-rotate-tweening': 'linear',
             '--try-again-rotate-min-width-scale': 0,
+            '--try-again-rotate-extrusion-matches-glyph': 1,
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
@@ -4868,6 +4907,7 @@
             document.documentElement.style.setProperty('--try-again-rotate-speed-ms', cssVars['--try-again-rotate-speed-ms']);
             document.documentElement.style.setProperty('--try-again-rotate-tweening', cssVars['--try-again-rotate-tweening']);
             document.documentElement.style.setProperty('--try-again-rotate-min-width-scale', cssVars['--try-again-rotate-min-width-scale']);
+            document.documentElement.style.setProperty('--try-again-rotate-extrusion-matches-glyph', cssVars['--try-again-rotate-extrusion-matches-glyph']);
             document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
             document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
@@ -5299,7 +5339,7 @@
                 getSlot: () => document.getElementById('startButtonFlashChar') ? 'tryAgainLabel' : 'startLabel',
                 render: (slot) => {
                     if (slot === 'tryAgainLabel') {
-                        startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar">?</span>`;
+                        startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>`;
                         startButton.classList.add('try-again-state');
                     } else {
                         startButton.textContent = overrideOr('startLabel');
@@ -6036,16 +6076,42 @@
 
         function tickTryAgainRotate() {
             const charEl = document.getElementById('startButtonFlashChar');
-            if (!charEl) return; // button content changed since this was scheduled
+            const glyphEl = document.getElementById('startButtonFlashCharGlyph');
+            const extrusionEl = document.getElementById('startButtonFlashCharExtrusion');
+            if (!charEl || !glyphEl || !extrusionEl) return; // button content changed since this was scheduled
             const cycleMs = Math.max(50, cssVars['--try-again-rotate-speed-ms']);
             const elapsed = Date.now() - tryAgainRotateStartTime;
             const rawT = (elapsed % cycleMs) / cycleMs;
             const t = easeTryAgainRotateProgress(rawT, cssVars['--try-again-rotate-tweening'] || 'linear');
-            const cos = Math.cos(t * Math.PI * 2);
+            const angle = t * Math.PI * 2;
+            const cos = Math.cos(angle);
             const minWidth = cssVars['--try-again-rotate-min-width-scale'] || 0;
-            const scaleX = (cos < 0 ? -1 : 1) * Math.max(Math.abs(cos), minWidth);
+            const glyphScaleX = (cos < 0 ? -1 : 1) * Math.max(Math.abs(cos), minWidth);
+
+            // Extrusion/Border Scales With Text (checkbox) - checked
+            // reproduces the glyph's own scaleX exactly (the whole token
+            // transforms as one unit, matching how a single-element
+            // text-shadow always behaved before this split). Unchecked: the
+            // extrusion/border is still "of" the current glyph (same
+            // character, same position) but follows sin(angle) instead of
+            // cos(angle) - the complementary curve a real extruded object's
+            // SIDE/depth would trace as its FRONT face foreshortens, so the
+            // depth is least visible when the glyph faces the viewer
+            // straight-on (0deg/180deg) and most visible right as the glyph
+            // itself goes edge-on (90deg/270deg) - per explicit request/
+            // discussion in chat.
+            const extrusionMatchesGlyph = cssVars['--try-again-rotate-extrusion-matches-glyph'] !== 0;
+            let extrusionScaleX;
+            if (extrusionMatchesGlyph) {
+                extrusionScaleX = glyphScaleX;
+            } else {
+                const sin = Math.sin(angle);
+                extrusionScaleX = (sin < 0 ? -1 : 1) * Math.max(Math.abs(sin), minWidth);
+            }
+
             charEl.style.visibility = 'visible';
-            charEl.style.transform = `scaleX(${scaleX})`;
+            glyphEl.style.transform = `scaleX(${glyphScaleX})`;
+            extrusionEl.style.transform = `scaleX(${extrusionScaleX})`;
             tryAgainRotateRafId = requestAnimationFrame(tickTryAgainRotate);
         }
 
@@ -6441,7 +6507,7 @@
                     // prefix - per explicit request, this button says only
                     // "Try again?" and nothing else. The "?" is its own span
                     // so it can blink independently - see startTryAgainFlash().
-                    startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar">?</span>`;
+                    startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>`;
                     startButton.classList.add('try-again-state');
                     startButton.classList.remove('hidden');
                     startTryAgainFlash();
