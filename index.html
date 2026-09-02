@@ -700,7 +700,25 @@
             top: 0;
             display: inline-block;
             transform-origin: center;
-            color: var(--try-again-fill-color);
+            /* Transparent, not the fill color - this layer exists ONLY to
+               cast its own text-shadow (the real extrusion/border pixels);
+               its own glyph shape was never meant to be independently
+               visible. When this layer's scaleX matches the glyph layer's
+               exactly (checkbox checked), the two are pixel-identical so a
+               solid fill here was invisible anyway - completely hidden
+               behind the glyph layer on top. But once they diverge
+               (checkbox unchecked, per explicit design), this layer's own
+               solid glyph is no longer fully covered and peeks out as a
+               second, independently-shaped "?" - confirmed via direct
+               report ("the rotating question mark still shows as 2
+               question marks") and by reading buildExtrusionShadow()
+               (its shadow stack starts at 1px offset, assuming depth 0
+               - the element's own real fill - is provided by something
+               else, which here is this element itself, wrongly). Making
+               it transparent leaves only the genuine shadow-based
+               extrusion trail, so this layer can never itself look like an
+               independent glyph again. */
+            color: transparent;
             text-shadow: var(--try-again-extrusion-shadow);
         }
         #startButtonFlashCharGlyph {
@@ -4701,6 +4719,17 @@
             roundTotalTimeMs: 0,
             countdownStartTime: null,
             countdownRafId: null,
+            // Per-click ceiling's own ACTIVE timer - per direct follow-up
+            // report ("if i dont click again for a duration longer than
+            // the Ms/Click number I dont lose... the lose screen should
+            // trigger the moment the time has passed"). The reactive gap
+            // check added earlier only fires when a NEW tap arrives late -
+            // it can never catch "no further tap ever comes" since there's
+            // no event to react to. This is a real setTimeout, (re)armed on
+            // every accepted tap via armPerClickTimeout(), that fires the
+            // loss on its own if silence outlasts maxTimeMs - see
+            // stopRoundCountdown() for where it's torn down.
+            perClickTimeoutId: null,
         };
 
         // Per-round tap timing, for the loss-screen round breakdown. Reset for a
@@ -7488,6 +7517,12 @@
             if (gameState.currentTapCount === 1) {
                 startRoundCountdown();
             }
+            // (Re)arm the per-click ceiling's own ACTIVE timer on every
+            // accepted tap, including the first - per direct follow-up
+            // report that the reactive check above never fires at all if
+            // the player simply stops tapping (there's no later tap to
+            // react to). See armPerClickTimeout().
+            armPerClickTimeout();
             // Reaching exact target does NOT win immediately - per explicit
             // bug report ("I win if I just keep clicking"): winning
             // instantly on the tap that reaches target meant rapid
@@ -7544,9 +7579,27 @@
             }
         }
 
+        // Per-click ceiling's own ACTIVE timer - (re)armed on every accepted
+        // tap (see handleGameButtonPress), independent of the aggregate
+        // round countdown above. Fires the loss ON ITS OWN if silence
+        // outlasts maxTimeMs, rather than waiting for a later tap to
+        // reactively notice the gap was too long - per direct follow-up
+        // report ("the lose screen should trigger the moment the Ms/Click
+        // time has passed since the last click", not only on the next tap).
+        function armPerClickTimeout() {
+            if (gameState.perClickTimeoutId) { clearTimeout(gameState.perClickTimeoutId); }
+            gameState.perClickTimeoutId = setTimeout(() => {
+                gameState.perClickTimeoutId = null;
+                if (!gameState.isPlaying || !gameState.canTap) return;
+                stopRoundCountdown();
+                endGame(false, 'too-slow');
+            }, gameState.maxTimeMs);
+        }
+
         function stopRoundCountdown() {
             if (gameState.checkTimeoutId) { clearTimeout(gameState.checkTimeoutId); gameState.checkTimeoutId = null; }
             if (gameState.countdownRafId) { cancelAnimationFrame(gameState.countdownRafId); gameState.countdownRafId = null; }
+            if (gameState.perClickTimeoutId) { clearTimeout(gameState.perClickTimeoutId); gameState.perClickTimeoutId = null; }
         }
 
         function handleGameButtonRelease() {
