@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clicko Dicko</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Raleway:wght@400;700&family=Open+Sans:wght@400;700&family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&family=DotGothic16&family=Micro+5&family=Handjet&family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jersey+25&family=Jersey+10&family=Jersey+20&family=Jacquard+24&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -782,6 +782,29 @@
         .result-text.hidden {
             display: none !important;
         }
+
+        /* Text alignment also sets the position ANCHOR point, not just the
+           internal text-align (which alone had no visible effect on a
+           shrink-to-fit, nowrap box) - per explicit request: with Left
+           selected, the leftmost letter never moves as letter-spacing/
+           font-size/content length change, since the LEFT edge becomes the
+           fixed anchor instead of the center; Right anchors the right edge
+           the same way. Center (default) keeps the existing centered
+           anchor. Toggled by applyTextAlignAnchors(), called from
+           applyActiveVars() so it re-evaluates on every cssVar change,
+           breakpoint cross, and settings load, same as everything else
+           driven by that function. result-text keeps its own rotate(90deg)
+           layered on top, same as its base rule above. */
+        .start-button.align-left, .game-text.align-left, .target-count.align-left,
+        .speed-display.align-left, .ms-per-click-display.align-left {
+            transform: translate(0%, -50%);
+        }
+        .start-button.align-right, .game-text.align-right, .target-count.align-right,
+        .speed-display.align-right, .ms-per-click-display.align-right {
+            transform: translate(-100%, -50%);
+        }
+        .result-text.align-left { transform: translate(0%, -50%) rotate(90deg); }
+        .result-text.align-right { transform: translate(-100%, -50%) rotate(90deg); }
 
         /* Target Count Display - font stays on the existing Numbers Font
            dropdown (excluded from the shared 8-bit style's font control),
@@ -2363,21 +2386,21 @@
                 <div class="dev-row">
                     <span class="dev-label">Font:</span>
                     <select class="dev-select" id="select8BitFont" onchange="update8BitFont()">
-                        <option value="Roboto">Roboto</option>
-                        <option value="Courier Prime">Courier Prime</option>
-                        <option value="Playfair Display">Playfair Display</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Inter">Inter</option>
-                        <option value="JetBrains Mono">JetBrains Mono</option>
-                        <option value="Source Code Pro">Source Code Pro</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Open Sans">Open Sans</option>
                         <option value="Press Start 2P" selected>Press Start 2P</option>
                         <option value="VT323">VT323</option>
                         <option value="Silkscreen">Silkscreen</option>
                         <option value="Pixelify Sans">Pixelify Sans</option>
                         <option value="Jersey 15">Jersey 15</option>
+                        <option value="DotGothic16">DotGothic16</option>
+                        <option value="Micro 5">Micro 5</option>
+                        <option value="Handjet">Handjet</option>
+                        <option value="Tiny5">Tiny5</option>
+                        <option value="Jacquard 12">Jacquard 12</option>
+                        <option value="Jacquarda Bastarda 9">Jacquarda Bastarda 9</option>
+                        <option value="Jersey 25">Jersey 25</option>
+                        <option value="Jersey 10">Jersey 10</option>
+                        <option value="Jersey 20">Jersey 20</option>
+                        <option value="Jacquard 24">Jacquard 24</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -4832,6 +4855,7 @@
             refreshButtonHue();
             refreshBaseHue();
             clampDevPanelPosition();
+            applyTextAlignAnchors();
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
@@ -5181,6 +5205,28 @@
                     (isMobile ? mobileCssVars : cssVars)[select.dataset.var] = select.value;
                     applyActiveVars();
                 });
+            });
+        }
+
+        // Alignment also sets the position ANCHOR point - see the
+        // .align-left/.align-right CSS. Called from applyActiveVars() so it
+        // re-evaluates on every cssVar change, breakpoint cross, and
+        // settings load, not just when a select itself changes.
+        const TEXT_ALIGN_TARGET_ELEMENT_IDS = {
+            '--start-text-align': 'startButton',
+            '--round-text-align': 'gameText',
+            '--target-text-align': 'targetCount',
+            '--speed-text-align': 'speedDisplay',
+            '--ms-per-click-text-align': 'msPerClickDisplay',
+            '--result-text-align': 'resultText',
+        };
+        function applyTextAlignAnchors() {
+            const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
+            Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
+                const el = document.getElementById(elId);
+                const align = activeCssVars[varName] || 'center';
+                el.classList.remove('align-left', 'align-center', 'align-right');
+                el.classList.add('align-' + align);
             });
         }
 
