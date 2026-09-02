@@ -35,6 +35,9 @@
     "--try-again-text-font-size-vw": 12.94,
     "--try-again-text-x-offset-vw": -0.16,
     "--try-again-text-y-offset-vh": -13.75,
+    "--try-again-question-mark-font-size-vw": 19.68,
+    "--try-again-question-mark-x-offset-vw": -0.26,
+    "--try-again-question-mark-y-offset-vh": 29.06,
     "--round-dock-x-offset-vw": -47.33,
     "--round-dock-y-offset-vh": 41.37,
     "--round-font-size-vw": 7.51,
@@ -130,6 +133,9 @@
     "--try-again-text-font-size-vw": 20,
     "--try-again-text-x-offset-vw": 0,
     "--try-again-text-y-offset-vh": -0.49,
+    "--try-again-question-mark-font-size-vw": 20,
+    "--try-again-question-mark-x-offset-vw": 20,
+    "--try-again-question-mark-y-offset-vh": 5.05,
     "--round-dock-x-offset-vw": -36.41,
     "--round-dock-y-offset-vh": 46.12,
     "--round-font-size-vw": 5.43,
@@ -182,7 +188,8 @@
     "roundOverallBorderThickness": 17,
     "roundOverallBorderColor": "#431114",
     "tryAgainBorderColor": "#ffffff",
-    "tryAgainOverallBorderColor": "#200f11",
+    "tryAgainOverallBorderColor": "#431114",
+    "questionMarkFillColor": "#ffffff",
     "roundDockDepth": 9,
     "roundDockBorderColor": "#ffffff",
     "roundDockOverallBorderThickness": 8,
@@ -217,6 +224,7 @@
     "roundOverallBorderColor": "#c41516",
     "tryAgainBorderColor": "#c41516",
     "tryAgainOverallBorderColor": "#c41516",
+    "questionMarkFillColor": "#c41516",
     "roundDockDepth": 9,
     "roundDockBorderColor": "#c41516",
     "roundDockOverallBorderThickness": 5,
@@ -407,7 +415,7 @@
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:Start/Try Again Button": false,
-    "desktop:Rotation Animation": true,
+    "desktop:Rotation Animation": false,
     "desktop:Round Text": false,
     "desktop:Win/Lose Text": false,
     "desktop:Target Count Display": false,
@@ -415,6 +423,7 @@
     "desktop:Ms/Click Display": false,
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
+    "mobile:Rotation Animation": false,
     "mobile:Dev Panel": false,
     "mobile:Main Button": false,
     "mobile:Shadow": false,
@@ -528,6 +537,10 @@
       {
         "key": "desktop:Rotation Animation",
         "rowKeys": [
+          "sliderTryAgainQuestionMarkFontSize",
+          "colorTryAgainQuestionMarkFill",
+          "sliderTryAgainQuestionMarkX",
+          "sliderTryAgainQuestionMarkY",
           "selectTryAgainMode",
           "sliderTryAgainRotateSpeed",
           "selectTryAgainTweening",
@@ -647,6 +660,15 @@
       }
     ],
     "mobileTabContent": [
+      {
+        "key": "mobile:Rotation Animation",
+        "rowKeys": [
+          "sliderMobileTryAgainQuestionMarkFontSize",
+          "colorMobileTryAgainQuestionMarkFill",
+          "sliderMobileTryAgainQuestionMarkX",
+          "sliderMobileTryAgainQuestionMarkY"
+        ]
+      },
       {
         "key": "mobile:Dev Panel",
         "rowKeys": [
