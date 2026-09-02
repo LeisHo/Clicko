@@ -90,8 +90,7 @@
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1200,
-    "--round-breakdown-top-px": 140,
-    "--verify-marker": "save-load-roundtrip-1788361299947"
+    "--round-breakdown-top-px": 140
   },
   "colorVars": {
     "--button-color": "#ff3333",
