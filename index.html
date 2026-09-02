@@ -3512,6 +3512,18 @@
             targetCeilingBase: 30,
             targetCeilingIncreasePerRound: 0,
             checkTimeoutId: null,
+            // The Speed display now shows a live countdown instead of a
+            // static number - per explicit request. roundTotalTimeMs (the
+            // countdown's starting value = maxTimeMs * targetCount) is
+            // computed once per round in showTargetAndSpeed(); the actual
+            // countdown only starts on the round's first accepted tap (see
+            // startRoundCountdown()), not before. countdownRafId tracks the
+            // requestAnimationFrame loop that redraws the remaining time
+            // every frame - see stopRoundCountdown() for where both this
+            // and checkTimeoutId get torn down together.
+            roundTotalTimeMs: 0,
+            countdownStartTime: null,
+            countdownRafId: null,
         };
 
         // Per-round tap timing, for the loss-screen round breakdown. Reset for a
@@ -5072,7 +5084,7 @@
             // here every time a new round begins, same as always.
             gameState.currentTapCount = 0;
             gameState.isCountingTaps = false;
-            if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+            stopRoundCountdown();
             currentRoundTaps = [];
             roundStartTime = Date.now();
             // totalClickCount and lastAcceptedTapTime are NOT per-round state -
@@ -5096,7 +5108,14 @@
             resultText.classList.add('hidden');
             targetCount.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
-            speedDisplay.textContent = gameState.maxTimeMs.toFixed(0) + ' ms';
+            // Countdown's total budget, per explicit request - not rounded,
+            // shown with real decimal precision (see startRoundCountdown()/
+            // tickRoundCountdown() for the live ticking display, which only
+            // begins on the round's first tap; until then this just shows
+            // the static starting value, exactly like this did before).
+            gameState.roundTotalTimeMs = gameState.maxTimeMs * gameState.targetCount;
+            gameState.countdownStartTime = null;
+            speedDisplay.textContent = gameState.roundTotalTimeMs.toFixed(1) + ' ms';
             speedDisplay.classList.remove('hidden');
 
             // Reset button color
@@ -5231,38 +5250,72 @@
             if (!gameState.isPlaying || !gameState.canTap) return;
 
             // There is no minimum-speed floor - tap as fast as you want, every tap
-            // counts immediately. maxTimeMs is a CEILING on the gap between clicks,
-            // not a floor: if too much time passes without a tap, you lose.
+            // counts immediately. The round has one total time budget
+            // (roundTotalTimeMs = maxTimeMs * targetCount, see
+            // showTargetAndSpeed()) instead of a per-tap ceiling: if it runs
+            // out before the target is reached, you lose - see
+            // startRoundCountdown() below.
             gameState.isCountingTaps = true;
             gameState.currentTapCount++;
             currentRoundTaps.push(now);
 
             if (gameState.currentTapCount > gameState.targetCount) {
                 // Overshot - lose immediately, no waiting for any timer.
-                if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+                stopRoundCountdown();
                 endGame(false, 'too-many');
                 return;
             }
 
-            // (Re)schedule the max-time check after every tap, whether or not the
-            // target has been reached yet. If no further tap arrives before maxTimeMs
-            // elapses, whatever the count is right now decides win or lose.
-            scheduleMaxTimeCheck();
+            // Countdown starts on the round's FIRST accepted tap, not
+            // before - per explicit request.
+            if (gameState.currentTapCount === 1) {
+                startRoundCountdown();
+            }
+
+            if (gameState.currentTapCount === gameState.targetCount) {
+                // Exact hit - win immediately. Any further tap would have
+                // been caught as an overshoot above, so there's nothing left
+                // to wait for.
+                stopRoundCountdown();
+                endGame(true);
+            }
         }
 
-        function scheduleMaxTimeCheck() {
-            if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
-
+        // Countdown timer replacing the old per-tap re-armed ceiling - per
+        // explicit request ("the moment the first click occurs, the
+        // countdown timer starts counting down. And when the time runs out,
+        // they lose"). One continuous timer for the whole round instead of
+        // one re-armed after every tap: a single setTimeout fires the loss
+        // at roundTotalTimeMs, while a separate requestAnimationFrame loop
+        // (tickRoundCountdown) redraws the remaining time into speedDisplay
+        // every frame - decoupled so the VISUAL update rate has nothing to
+        // do with the actual loss-timing accuracy (setTimeout), same
+        // reasoning as any timer/display split.
+        function startRoundCountdown() {
+            gameState.countdownStartTime = Date.now();
             gameState.checkTimeoutId = setTimeout(() => {
-                if (!gameState.isCountingTaps) return;
-                if (gameState.currentTapCount === gameState.targetCount) {
-                    endGame(true);
-                } else {
-                    // currentTapCount < targetCount here - overshoot already ends
-                    // the round immediately above, so this is always an undershoot.
-                    endGame(false, 'not-enough');
-                }
-            }, gameState.maxTimeMs);
+                // Reaching here always means undershoot - overshoot ends the
+                // round immediately in handleGameButtonPress, and an exact
+                // hit calls stopRoundCountdown() before this could ever fire.
+                endGame(false, 'not-enough');
+            }, gameState.roundTotalTimeMs);
+            tickRoundCountdown();
+        }
+
+        function tickRoundCountdown() {
+            const elapsed = Date.now() - gameState.countdownStartTime;
+            const remaining = Math.max(0, gameState.roundTotalTimeMs - elapsed);
+            // Not rounded to a whole number - per explicit request ("the
+            // timer does not need to be rounded").
+            speedDisplay.textContent = remaining.toFixed(1) + ' ms';
+            if (remaining > 0 && gameState.isCountingTaps) {
+                gameState.countdownRafId = requestAnimationFrame(tickRoundCountdown);
+            }
+        }
+
+        function stopRoundCountdown() {
+            if (gameState.checkTimeoutId) { clearTimeout(gameState.checkTimeoutId); gameState.checkTimeoutId = null; }
+            if (gameState.countdownRafId) { cancelAnimationFrame(gameState.countdownRafId); gameState.countdownRafId = null; }
         }
 
         function handleGameButtonRelease() {
@@ -5282,7 +5335,7 @@
         function endGame(won, reason) {
             gameState.isCountingTaps = false;
             gameState.canTap = false;
-            if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+            stopRoundCountdown();
 
             const gaps = [];
             for (let i = 1; i < currentRoundTaps.length; i++) {
@@ -5435,7 +5488,7 @@
                 gameState.isPlaying = false;
                 gameState.isCountingTaps = false;
                 gameState.currentRound = 0;
-                if (gameState.checkTimeoutId) clearTimeout(gameState.checkTimeoutId);
+                stopRoundCountdown();
                 startButton.classList.remove('hidden');
                 startButton.textContent = 'START';
                 gameText.classList.add('hidden');
