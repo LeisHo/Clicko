@@ -1505,6 +1505,12 @@
             padding: 5px;
             background: rgba(0, 255, 255, 0.1);
             border-radius: 3px;
+            /* Drag handle for reordering groups (CLAUDE.md Section 12e) -
+               without this, a touch-drag here gets interpreted as the
+               browser's own page-scroll gesture instead of delivering
+               continuous pointermove events, same reason the panel's own
+               move/resize handles already need it. */
+            touch-action: none;
         }
 
         .dev-section-title:hover {
@@ -1532,6 +1538,18 @@
             min-width: 140px;
             color: #aaa;
             font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+        }
+
+        /* Drag handle for reordering settings within a group (CLAUDE.md
+           Section 12e) - the group title's own handle styling lives on
+           .dev-section-title above. */
+        .dev-section-content .dev-label {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .dev-reorder-dragging {
+            opacity: 0.5;
         }
 
         .dev-slider {
@@ -2518,7 +2536,7 @@
                     <input type="color" class="dev-color-picker" id="colorExtrusionFill" value="#ffffff">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -2597,7 +2615,7 @@
                      from Start's, per explicit request. Depth/thickness
                      stay shared (only color was asked for). -->
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Border/Extrusion Color:</span>
+                    <span class="dev-label">Try Again Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
@@ -2610,7 +2628,7 @@
                     <span class="dev-value" id="valueRoundExtrusionDepth">9</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Button Border/Extrusion Color:</span>
+                    <span class="dev-label">Button Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
@@ -2778,7 +2796,7 @@
                     <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Border/Extrusion Color:</span>
+                    <span class="dev-label">Round Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -2863,7 +2881,7 @@
                     <span class="dev-value" id="valueTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorTargetExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -2916,7 +2934,7 @@
                     <span class="dev-value" id="valueSpeedExtrusionDepth">19</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorSpeedExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -2971,7 +2989,7 @@
                     <span class="dev-value" id="valueMsPerClickExtrusionDepth">8</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMsPerClickExtrusionBorder" value="#ff0000">
                 </div>
                 <div class="dev-row">
@@ -3379,7 +3397,7 @@
                     <input type="color" class="dev-color-picker" id="colorMobileExtrusionFill" value="#ffffff">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -3448,7 +3466,7 @@
                     <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Border/Extrusion Color:</span>
+                    <span class="dev-label">Try Again Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileTryAgainExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
@@ -3461,7 +3479,7 @@
                     <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Button Border/Extrusion Color:</span>
+                    <span class="dev-label">Button Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -3516,7 +3534,7 @@
                     <span class="dev-value" id="valueMobileRoundDockExtrusionDepth">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Border/Extrusion Color:</span>
+                    <span class="dev-label">Round Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundDockExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -3618,7 +3636,7 @@
                     <span class="dev-value" id="valueMobileTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileTargetExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -3671,7 +3689,7 @@
                     <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileSpeedExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
@@ -3724,7 +3742,7 @@
                     <span class="dev-value" id="valueMobileMsPerClickExtrusionDepth">9</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileMsPerClickExtrusionBorder" value="#ff0000">
                 </div>
                 <div class="dev-row">
@@ -5114,7 +5132,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -5133,7 +5151,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -5223,6 +5241,7 @@
                     const frameSetSelect = document.getElementById('selectClickFrameSet');
                     if (frameSetSelect && cssVars['--click-frame-set']) frameSetSelect.value = cssVars['--click-frame-set'];
                     restoreClickBurstFrameVars(cssVars['--click-frame-set'] || 'CLICK1');
+                    applySectionOrder(settings.sectionOrder);
                     applySectionCollapseState(settings.sectionCollapseState);
                 } catch(e) {
                     console.error('Failed to parse saved settings');
@@ -5320,10 +5339,87 @@
         }
 
         // Toggle section collapse
+        // Set while a genuine drag-reorder just finished on a section title,
+        // so the click that naturally follows a pointerup doesn't ALSO
+        // toggle the group open/closed - see setupDragReorder().
+        let sectionJustDragged = false;
         function toggleSection(titleEl) {
+            if (sectionJustDragged) { sectionJustDragged = false; return; }
             const content = titleEl.nextElementSibling;
             content.classList.toggle('collapsed');
             titleEl.textContent = content.classList.contains('collapsed') ? '▶ ' + titleEl.textContent.slice(2) : '▼ ' + titleEl.textContent.slice(2);
+        }
+
+        // Generic pointer-based drag-to-reorder - per CLAUDE.md Section 12e
+        // ("Both the collapsible groups themselves and the individual
+        // settings within a group can be reordered by dragging them up/
+        // down"). Pointer events (not native HTML5 draggable=true) for the
+        // same reason every other drag in this panel uses them - real touch
+        // support, matching the panel's own move/resize handles. A live
+        // "swap on crossing" reorder (no ghost/placeholder element): once
+        // past a small movement threshold (distinguishing an actual drag
+        // from a plain click - important for group titles, which already
+        // have their own click-to-toggle behavior), the dragged item is
+        // immediately moved in the DOM whenever the pointer crosses a
+        // sibling's own midpoint.
+        //   handleSelector: what starts a drag (e.g. '.dev-section-title'
+        //     for groups, '.dev-label' for settings - NOT the item's own
+        //     interactive control, so dragging a slider/checkbox/input
+        //     still works normally).
+        //   itemSelector: the element that actually moves (may differ from
+        //     the handle - a group's handle is its title, but the whole
+        //     .dev-section reorders).
+        //   onDrop: called once after a real drag completes, to persist the
+        //     new order.
+        function setupDragReorder(handleSelector, itemSelector, onDrop) {
+            let dragging = null;
+            let startY = 0;
+            let moved = false;
+            const THRESHOLD = 8;
+
+            document.addEventListener('pointerdown', (e) => {
+                const handle = e.target.closest(handleSelector);
+                if (!handle) return;
+                const item = handle.closest(itemSelector);
+                if (!item) return;
+                dragging = item;
+                startY = e.clientY;
+                moved = false;
+            });
+
+            document.addEventListener('pointermove', (e) => {
+                if (!dragging) return;
+                if (!moved && Math.abs(e.clientY - startY) > THRESHOLD) {
+                    moved = true;
+                    dragging.classList.add('dev-reorder-dragging');
+                }
+                if (!moved) return;
+                e.preventDefault();
+                const siblings = Array.from(dragging.parentElement.querySelectorAll(':scope > ' + itemSelector)).filter(el => el !== dragging);
+                for (const sib of siblings) {
+                    const rect = sib.getBoundingClientRect();
+                    const mid = rect.top + rect.height / 2;
+                    const draggingIsBefore = !!(dragging.compareDocumentPosition(sib) & Node.DOCUMENT_POSITION_FOLLOWING);
+                    if (e.clientY < mid && draggingIsBefore) {
+                        sib.parentElement.insertBefore(dragging, sib);
+                        break;
+                    } else if (e.clientY >= mid && !draggingIsBefore) {
+                        sib.parentElement.insertBefore(dragging, sib.nextSibling);
+                        break;
+                    }
+                }
+            });
+
+            document.addEventListener('pointerup', () => {
+                if (!dragging) return;
+                dragging.classList.remove('dev-reorder-dragging');
+                if (moved) {
+                    sectionJustDragged = true; // harmless no-op for the settings-row case, where nothing reads this flag
+                    if (onDrop) onDrop();
+                }
+                dragging = null;
+                moved = false;
+            });
         }
 
         // Persists which collapsible groups are open/closed across Copy/
@@ -5334,22 +5430,95 @@
         // since desktop and mobile both have identically-named sections
         // (e.g. "Round Text") that are genuinely separate DOM elements and
         // should track their own collapsed state independently.
+        // Stable identity for a collapsible group - tab + title text, NOT
+        // DOM position. Per CLAUDE.md Section 12e, groups (and the settings
+        // within them) are now drag-reorderable, so a positional index
+        // would silently point at the WRONG group after any reorder -
+        // title text is stable across reorders (and across a save/reload)
+        // the same way a real id would be, without needing to add one to
+        // every section-title element. Desktop and Mobile each have their
+        // own "Round Text"/etc, hence the tab prefix.
+        function getSectionKey(titleEl) {
+            const tab = titleEl.closest('#desktopTabContent') ? 'desktop' : 'mobile';
+            return tab + ':' + titleEl.textContent.replace(/^[▼▶]\s*/, '');
+        }
         function captureSectionCollapseState() {
             const state = {};
-            document.querySelectorAll('.dev-section-title').forEach((titleEl, idx) => {
-                state[idx] = titleEl.nextElementSibling.classList.contains('collapsed');
+            document.querySelectorAll('.dev-section-title').forEach(titleEl => {
+                state[getSectionKey(titleEl)] = titleEl.nextElementSibling.classList.contains('collapsed');
             });
             return state;
         }
         function applySectionCollapseState(state) {
             if (!state) return;
-            document.querySelectorAll('.dev-section-title').forEach((titleEl, idx) => {
-                const shouldCollapse = !!state[idx];
+            document.querySelectorAll('.dev-section-title').forEach(titleEl => {
+                const key = getSectionKey(titleEl);
+                if (!(key in state)) return; // unknown group (e.g. saved before a later section was added) - leave at its own default
+                const shouldCollapse = !!state[key];
                 const content = titleEl.nextElementSibling;
                 if (content.classList.contains('collapsed') !== shouldCollapse) {
                     content.classList.toggle('collapsed');
                     titleEl.textContent = content.classList.contains('collapsed') ? '▶ ' + titleEl.textContent.slice(2) : '▼ ' + titleEl.textContent.slice(2);
                 }
+            });
+        }
+
+        // Stable identity for a single setting ROW within a group - the id
+        // of whatever slider/color-picker/select/input it contains (every
+        // real setting row has exactly one), falling back to its own
+        // current position only for the rare row with no id'd control at
+        // all (nothing in this panel currently lacks one, but this keeps
+        // capture from throwing rather than silently mis-keying).
+        function getRowKey(row, fallbackIndex) {
+            const idEl = row.querySelector('[id]');
+            return idEl ? idEl.id : ('__row' + fallbackIndex);
+        }
+
+        // Order (groups within each tab, and settings within each group) -
+        // per CLAUDE.md Section 12e ("that order is saved state"). Captured/
+        // applied together with collapse state in one combined object so
+        // Copy/Save/Load only need one field for all of §12e's layout state.
+        function captureSectionOrder() {
+            const result = {};
+            ['desktopTabContent', 'mobileTabContent'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (!tabEl) return;
+                const sections = Array.from(tabEl.querySelectorAll(':scope > .dev-section'));
+                result[tabId] = sections.map(sec => {
+                    const titleEl = sec.querySelector('.dev-section-title');
+                    const rows = Array.from(sec.querySelectorAll('.dev-section-content > .dev-row'));
+                    return {
+                        key: getSectionKey(titleEl),
+                        rowKeys: rows.map((row, i) => getRowKey(row, i)),
+                    };
+                });
+            });
+            return result;
+        }
+        function applySectionOrder(order) {
+            if (!order) return;
+            ['desktopTabContent', 'mobileTabContent'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                const savedSections = order[tabId];
+                if (!tabEl || !savedSections) return;
+                const sectionsByKey = {};
+                tabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
+                    sectionsByKey[getSectionKey(sec.querySelector('.dev-section-title'))] = sec;
+                });
+                savedSections.forEach(({ key, rowKeys }) => {
+                    const sec = sectionsByKey[key];
+                    if (!sec) return; // unknown group - leave wherever it already is
+                    tabEl.appendChild(sec); // moves to the end, in saved order -> reproduces the full saved sequence
+                    const content = sec.querySelector('.dev-section-content');
+                    const rowsByKey = {};
+                    content.querySelectorAll(':scope > .dev-row').forEach((row, i) => {
+                        rowsByKey[getRowKey(row, i)] = row;
+                    });
+                    (rowKeys || []).forEach(rowKey => {
+                        const row = rowsByKey[rowKey];
+                        if (row) content.appendChild(row);
+                    });
+                });
             });
         }
 
@@ -7109,6 +7278,10 @@
         setupDevSliders();
         setupTextAlignSelects();
         setupTextEditMode();
+        // No onDrop action needed - the DOM order itself IS the live state;
+        // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
+        setupDragReorder('.dev-section-title', '.dev-section', null);
+        setupDragReorder('.dev-section-content .dev-label', '.dev-row', null);
         makeDevValuesEditable();
         applyActiveVars();
         applyExtrusionStyles();
