@@ -5462,36 +5462,73 @@
         }
 
         // Save settings - git-only (data/processed/dev-panel-settings.json
-        // via syncSettingsToRepo() above), per explicit request. No
-        // localStorage write.
+        // via syncSettingsToRepo() above), per explicit request, EXCEPT
+        // when opened directly as a local file with no server behind it
+        // (location.protocol === 'file:') - there's nothing to write the
+        // git-tracked log through in that mode (CLAUDE.md Section 12l's
+        // own exception), so this falls back to localStorage instead. See
+        // acquireSavedSettings() for the matching read-back side.
         function saveSettings() {
             const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
-                syncSettingsToRepo(settings);
+                if (location.protocol === 'file:') {
+                    const statusEl = document.getElementById('saveSyncStatus');
+                    try {
+                        localStorage.setItem('clickoSettings', JSON.stringify(settings));
+                        if (statusEl) { statusEl.textContent = 'Saved locally (no server - not synced to repo)'; statusEl.style.color = 'var(--dev-accent-color)'; }
+                    } catch (e) {
+                        if (statusEl) { statusEl.textContent = 'NOT saved (local storage unavailable)'; statusEl.style.color = '#ff4444'; }
+                    }
+                } else {
+                    syncSettingsToRepo(settings);
+                }
             }
         }
 
-        // Load settings from localStorage
-        // Loads from the git-tracked settings log (data/processed/dev-panel-
-        // settings.json), NOT localStorage - per explicit request, SAVE is
-        // git-only (no local fallback), so this is the one and only place
-        // a saved default can come from. This deliberately departs from
-        // CLAUDE.md Section 12l's literal "not just local, but also git"
-        // wording - a direct, explicit instruction for this project only.
-        // Async (a same-origin static-file fetch, not instant) - callers
+        // Restores a saved setup - git-tracked settings log (data/processed/
+        // dev-panel-settings.json) per CLAUDE.md Section 12l, EXCEPT when
+        // there's no server to write/read that file through (opened as a
+        // bare local file - see acquireSavedSettings()'s own comment, 12l's
+        // own exception), where this reads back a localStorage fallback
+        // instead. Async either way (a fetch is never instant) - callers
         // that need subsequent code to see the restored values must await
         // this, see the Initialize block below.
         async function loadSettings() {
-            let settings = null;
+            const settings = await acquireSavedSettings();
+            if (settings && typeof settings === 'object' && Object.keys(settings).length) {
+                applyLoadedSettings(settings);
+            }
+        }
+
+        // Acquires the raw saved-settings object from whichever source
+        // applies. Git-only (fetches the static settings-log file) EXCEPT
+        // when location.protocol === 'file:' - opened directly as a local
+        // file, no server behind it at all, so there is nothing to write/
+        // read the git-tracked log through (CLAUDE.md Section 12l's own
+        // exception) - that case falls back to this browser's own
+        // localStorage instead (the same key/behavior this project used
+        // before going git-only). Returns null if nothing's saved yet, or
+        // the source is unreachable/unparsable - callers treat that as
+        // "use defaults."
+        async function acquireSavedSettings() {
+            if (location.protocol === 'file:') {
+                try {
+                    const saved = localStorage.getItem('clickoSettings');
+                    return saved ? JSON.parse(saved) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
             try {
                 const resp = await fetch('/data/processed/dev-panel-settings.json', { cache: 'no-store' });
-                if (!resp.ok) return; // e.g. 404 before the file exists on a fresh deploy
-                settings = await resp.json();
+                if (!resp.ok) return null; // e.g. 404 before the file exists on a fresh deploy
+                return await resp.json();
             } catch (e) {
-                // Network unavailable, not deployed yet, or malformed JSON - skip loading, use defaults
-                return;
+                return null; // network unavailable, not deployed yet, or malformed JSON
             }
-            if (settings && typeof settings === 'object' && Object.keys(settings).length) {
+        }
+
+        function applyLoadedSettings(settings) {
                 try {
                     Object.assign(cssVars, settings.cssVars);
                     Object.assign(colorVars, settings.colorVars);
@@ -5577,7 +5614,6 @@
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
-            }
         }
 
         // Update font functions - mobile counterparts write into mobileFontVars
