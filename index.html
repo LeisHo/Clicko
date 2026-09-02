@@ -609,23 +609,31 @@
             100% { offset-distance: 100%; opacity: 0; }
         }
 
-        /* Start Button (UI) */
+        /* Start Button (UI) - no box, per explicit request: formatted
+           exactly like Round Text's old "big" form (position/size/
+           extrusion/color), since Round Text no longer HAS a big form to
+           share the look with - see the dev-panel section comment above
+           for the full reasoning. Directly reuses --text-x/y-offset-vw/vh
+           and --text-font-size-vw (formerly Round Text's big-state
+           position/size vars) and --round-extrusion-shadow (Round's own
+           extrusion group, not the shared Start/TryAgain/WinLose one this
+           used before). */
         .start-button {
             position: absolute;
-            width: calc(var(--ui-button-width-vw) * 1vw);
-            height: calc(var(--ui-button-height-vh) * 1vh);
-            left: calc(50% + var(--ui-button-x-offset-vw) * 1vw);
-            top: calc(50% + var(--ui-button-y-offset-vh) * 1vh);
+            left: calc(50% + var(--text-x-offset-vw) * 1vw);
+            top: calc(50% + var(--text-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
             padding: 0;
-            font-size: calc(var(--ui-button-font-size-vh) * 1vh);
-            font-weight: 600;
+            font-size: calc(var(--text-font-size-vw) * 1vw);
+            font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
-            text-shadow: var(--extrusion-shadow);
-            background: var(--ui-button-color);
+            text-shadow: var(--round-extrusion-shadow);
+            text-align: center;
+            white-space: nowrap;
+            background: none;
             border: none;
-            border-radius: calc(var(--ui-button-radius) * 1px);
+            box-shadow: none;
             cursor: pointer;
             user-select: none;
             -webkit-user-select: none;
@@ -633,11 +641,6 @@
             touch-action: manipulation;
             transition: transform 0.05s ease-out;
             outline: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 2px 4px rgba(255,255,255, 0.3),
-                        inset 0 -3px 6px rgba(0,0,0, 0.3);
         }
 
         .start-button.pressed {
@@ -648,34 +651,27 @@
             display: none !important;
         }
 
-        /* Game Text Displays */
+        /* Game Text Displays - Round Text no longer has a "big" state or
+           any animation at all, per explicit request: it always renders at
+           its one permanent look (position/size/extrusion previously only
+           used for its DOCKED state), even during the number-flash blink
+           sequence. dockRoundText()/undockRoundText() and the grow/shrink
+           transition this rule used to have are gone entirely - nothing
+           left to animate between. */
         .game-text {
             position: absolute;
-            left: calc(50% + var(--text-x-offset-vw) * 1vw);
-            top: calc(50% + var(--text-y-offset-vh) * 1vh);
+            left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
+            top: calc(50% + var(--round-dock-y-offset-vh) * 1vh);
             transform: translate(-50%, -50%);
-            font-size: calc(var(--text-font-size-vw) * 1vw);
+            font-size: calc(var(--speed-font-size-vw) * 1vw);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
-            text-shadow: var(--round-extrusion-shadow);
+            text-shadow: var(--round-dock-extrusion-shadow);
             text-align: center;
             white-space: nowrap;
             pointer-events: none;
             z-index: 10;
-            /* Shrink-and-dock animation: dockRoundText()/undockRoundText()
-               (see JS) toggle --text-x-offset-vw/--text-y-offset-vh/
-               --text-font-size-vw as an INLINE override directly on this
-               element (higher specificity than the root-level value), so
-               these same 3 properties this rule already reads drive both
-               the "large, centered" state (root/default value, dev-panel
-               sliders) and the "small, docked" state (inline override) -
-               no separate .docked CSS rule or duplicate position vars
-               needed. This transition is what makes that property swap
-               animate instead of jumping instantly. */
-            transition-property: left, top, font-size;
-            transition-duration: calc(var(--round-anim-duration-ms) * 1ms);
-            transition-timing-function: var(--round-anim-easing);
         }
 
         .game-text.hidden {
@@ -2150,113 +2146,66 @@
             </div>
         </div>
 
-        <!-- UI Button Section -->
+        <!-- Start/Try Again Button & Round Text Section - the Start/Try
+             Again button used to be its own boxed UI element with an
+             independent position/size/color (the old "UI Button" section);
+             per explicit request it now has NO box and is formatted exactly
+             like Round Text's old "big" form was - so it directly reuses
+             THIS section's font-size/position/extrusion sliders (previously
+             Round Text's big-state controls) rather than duplicating a
+             parallel set. Round Text itself no longer has a big state at
+             all (see .game-text's CSS and showRoundText() - it now only
+             ever renders at its dock position/size/extrusion, even during
+             the number-flash blink sequence), so the "Dock"/"Small State"
+             sliders below are Round Text's ONE permanent look, not a
+             special docked state anymore. The Grow/Shrink Speed and Anim.
+             Tweening sliders that used to animate between big and small are
+             gone entirely - there's no more transition to animate. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button &amp; Round Text</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Width (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonWidth" min="2" max="25" step="0.5" value="10">
-                    <span class="dev-value" id="valueUIButtonWidth">10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Height (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonHeight" min="2" max="15" step="0.5" value="6">
-                    <span class="dev-value" id="valueUIButtonHeight">6</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonFontSize" min="0.5" max="8" step="0.01" value="2.1">
-                    <span class="dev-value" id="valueUIButtonFontSize">2.10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Color (button plate):</span>
-                    <input type="color" class="dev-color-picker" id="colorUIButton" value="#e82121">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Corner Radius (px):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonRadius" min="0" max="40" step="1" value="6">
-                    <span class="dev-value" id="valueUIButtonRadius">6</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonX" min="-50" max="50" step="0.01" value="-42.5">
-                    <span class="dev-value" id="valueUIButtonX">-42.5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderUIButtonY" min="-50" max="50" step="0.01" value="-41">
-                    <span class="dev-value" id="valueUIButtonY">-41</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Round Text Section -->
-        <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text (ROUND X)</div>
-            <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
+                    <span class="dev-label">Button Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="10.68">
                     <span class="dev-value" id="valueTextFontSize">10.68</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">X Offset (vw):</span>
+                    <span class="dev-label">Button X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-4.44">
                     <span class="dev-value" id="valueTextX">-4.44</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Y Offset (vh):</span>
+                    <span class="dev-label">Button Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-11.59">
                     <span class="dev-value" id="valueTextY">-11.59</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="13">
                     <span class="dev-value" id="valueRoundExtrusionDepth">13</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Button Border/Extrusion Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Button Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="12">
                     <span class="dev-value" id="valueRoundOverallBorderThickness">12</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
+                    <span class="dev-label">Button Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Dock X Offset (vw):</span>
+                    <span class="dev-label">Round Text X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-43">
                     <span class="dev-value" id="valueRoundDockX">-43</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Dock Y Offset (vh):</span>
+                    <span class="dev-label">Round Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
                     <span class="dev-value" id="valueRoundDockY">42.7</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Grow Speed, Small→Big (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundAnimDuration" min="0" max="2000" step="10" value="600">
-                    <span class="dev-value" id="valueRoundAnimDuration">600</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shrink Speed, Big→Small (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundShrinkDuration" min="0" max="2000" step="10" value="400">
-                    <span class="dev-value" id="valueRoundShrinkDuration">400</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Anim. Tweening:</span>
-                    <select class="dev-select" id="selectRoundAnimEasing" onchange="updateRoundAnimEasing()">
-                        <option value="linear">Linear</option>
-                        <option value="ease">Ease</option>
-                        <option value="ease-in">Ease In</option>
-                        <option value="ease-out">Ease Out</option>
-                        <option value="ease-in-out" selected>Ease In Out</option>
-                    </select>
                 </div>
                 <!-- Round-change blink sequence: the number blinks 3 times
                      (hides, shows the OLD number, hides, shows the OLD
@@ -2302,21 +2251,21 @@
                     <span class="dev-value" id="valueRoundPostBlinkHold">1300</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Extrusion Depth (px):</span>
+                    <span class="dev-label">Round Text Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Border/Extrusion Color:</span>
+                    <span class="dev-label">Round Text Border/Extrusion Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Overall Border Thickness (px):</span>
+                    <span class="dev-label">Round Text Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="7">
                     <span class="dev-value" id="valueRoundDockOverallBorderThickness">7</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Overall Border Color:</span>
+                    <span class="dev-label">Round Text Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundDockOverallBorder" value="#000000">
                 </div>
             </div>
@@ -2768,110 +2717,73 @@
             </div>
         </div>
 
-        <!-- UI Button Section -->
+        <!-- Start/Try Again Button & Round Text Section (Mobile) - see the
+             desktop section's own comment for the full explanation: the
+             button has no box and reuses these font-size/position/extrusion
+             sliders (formerly Round Text's big-state controls), and Round
+             Text itself now only ever renders at its dock look. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ UI Button (START)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button &amp; Round Text</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Width (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonWidth" min="2" max="25" step="0.5" value="15.5">
-                    <span class="dev-value" id="valueMobileUIButtonWidth">15.50</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Height (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonHeight" min="2" max="15" step="0.5" value="6">
-                    <span class="dev-value" id="valueMobileUIButtonHeight">6</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonFontSize" min="0.5" max="8" step="0.01" value="2.1">
-                    <span class="dev-value" id="valueMobileUIButtonFontSize">2.10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Color (button plate):</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileUIButton" value="#3366dd">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Corner Radius (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonRadius" min="0" max="40" step="1" value="10">
-                    <span class="dev-value" id="valueMobileUIButtonRadius">10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonX" min="-50" max="50" step="0.01" value="2.5">
-                    <span class="dev-value" id="valueMobileUIButtonX">2.5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileUIButtonY" min="-50" max="50" step="0.01" value="-38">
-                    <span class="dev-value" id="valueMobileUIButtonY">-38</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Round Text Section -->
-        <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text (ROUND X)</div>
-            <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
+                    <span class="dev-label">Button Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.01" value="8">
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">X Offset (vw):</span>
+                    <span class="dev-label">Button X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTextX">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Y Offset (vh):</span>
+                    <span class="dev-label">Button Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
                     <span class="dev-value" id="valueMobileTextY">-16.5</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Dock X Offset (vw):</span>
+                    <span class="dev-label">Round Text X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
                     <span class="dev-value" id="valueMobileRoundDockX">-30</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Dock Y Offset (vh):</span>
+                    <span class="dev-label">Round Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
                     <span class="dev-value" id="valueMobileRoundDockY">35</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <span class="dev-label">Button Border/Extrusion Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Button Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundOverallBorderThickness" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueMobileRoundOverallBorderThickness">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
+                    <span class="dev-label">Button Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Extrusion Depth (px):</span>
+                    <span class="dev-label">Round Text Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueMobileRoundDockExtrusionDepth">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Border/Extrusion Color:</span>
+                    <span class="dev-label">Round Text Border/Extrusion Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundDockExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Overall Border Thickness (px):</span>
+                    <span class="dev-label">Round Text Overall Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueMobileRoundDockOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Small State - Overall Border Color:</span>
+                    <span class="dev-label">Round Text Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundDockOverallBorder" value="#000000">
                 </div>
             </div>
@@ -3083,34 +2995,22 @@
             '--shadow-elongation-intensity': 2,
             '--shadow-elongation-angle': 0,
             '--shadow-rotate': 41,
-            '--ui-button-width-vw': 10,
-            '--ui-button-height-vh': 6,
-            '--ui-button-font-size-vh': 2.1,
-            '--ui-button-radius': 6,
-            '--ui-button-x-offset-vw': -42.5,
-            '--ui-button-y-offset-vh': -41,
+            // Formerly Round Text's big-state position/size - repurposed to
+            // drive the Start/Try Again BUTTON's position/size instead,
+            // since Round Text no longer has a big state at all and the
+            // button now borrows this exact look per explicit request (see
+            // .start-button's own CSS comment).
             '--text-font-size-vw': 10.68,
             '--text-x-offset-vw': -4.44,
             '--text-y-offset-vh': -11.59,
-            // Round Text's "docked" (small, corner) position once gameplay
-            // starts - see dockRoundText()/undockRoundText(). Font-size
-            // isn't listed here since it intentionally always MATCHES
-            // whatever --speed-font-size-vw currently is ("shrinks to the
-            // same size as the speed text"), not an independent value.
+            // Round Text's ONE permanent position - it no longer has a
+            // separate "big" state to dock away from (see .game-text's own
+            // CSS comment). Font-size isn't listed here since it
+            // intentionally always MATCHES whatever --speed-font-size-vw
+            // currently is ("shrinks to the same size as the speed text"),
+            // not an independent value.
             '--round-dock-x-offset-vw': -43,
             '--round-dock-y-offset-vh': 42.7,
-            // Shared/single, not mobile-split - timing values like the
-            // existing Game Mechanics sliders (Round/Result Duration),
-            // not spatial ones. Applied unconditionally regardless of
-            // breakpoint, same pattern as --bg-color - see the
-            // unconditional lines in applyActiveVars().
-            // --round-anim-duration-ms is used for the GROW (small->big)
-            // transition; --round-shrink-duration-ms is its own separate
-            // speed for the SHRINK (big->small) transition - per explicit
-            // request that big/small each have their own move speed.
-            '--round-anim-duration-ms': 600,
-            '--round-shrink-duration-ms': 400,
-            '--round-anim-easing': 'ease-in-out',
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
@@ -3148,7 +3048,6 @@
         // Color variables
         const colorVars = {
             '--button-color': '#ff3333',
-            '--ui-button-color': '#7b1214',
             '--bg-color': '#ffffff',
         };
 
@@ -3192,15 +3091,16 @@
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
             roundOverallBorderColor: '#c41516',
-            // Round Text's DOCKED (small) state gets its own complete,
-            // independent copy of every extrusion setting above - depth,
-            // border/extrusion color, overall-border thickness, AND
-            // overall-border color - fully separate from the "big"
-            // (roundDepth/roundBorderColor/roundOverallBorderThickness/
-            // roundOverallBorderColor) values above, per explicit request.
-            // Position (--round-dock-x/y-offset-vw/vh, in cssVars) and font-
-            // size (always matches --speed-font-size-vw) already have their
-            // own dock-state handling - see dockRoundText().
+            // roundDepth/roundBorderColor/roundOverallBorderThickness/
+            // roundOverallBorderColor above now style the Start/Try Again
+            // BUTTON instead of Round Text - repurposed since Round Text no
+            // longer has a "big" state at all (see .start-button/.game-text
+            // CSS comments). roundDockDepth/etc below are Round Text's ONE
+            // permanent extrusion look - originally its own independent
+            // "docked (small) state" copy, kept as-is now that it's the
+            // only state. Position (--round-dock-x/y-offset-vw/vh, in
+            // cssVars) and font-size (always matches --speed-font-size-vw)
+            // are read directly by .game-text's CSS, unconditionally.
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
             roundDockOverallBorderThickness: 7,
@@ -3343,10 +3243,11 @@
             root.setProperty('--extrusion-font', extrusionVars.font);
             root.setProperty('--extrusion-fill-color', ext.fillColor);
             root.setProperty('--extrusion-shadow', buildCombinedShadow(ext.depth, ext.borderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
+            // Now the Start/Try Again button's extrusion look, not Round
+            // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
-            // Round Text's docked/small-state extrusion look - read by
-            // dockRoundText() as an inline override, same mechanism as its
-            // position/font-size overrides.
+            // Round Text's one permanent extrusion look - read directly by
+            // .game-text's CSS, unconditionally.
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--target-extrusion-shadow', buildCombinedShadow(ext.targetDepth, ext.targetBorderColor, ext.targetOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
@@ -3405,12 +3306,6 @@
             '--shadow-elongation-intensity': 1,
             '--shadow-elongation-angle': 0,
             '--shadow-rotate': 11,
-            '--ui-button-width-vw': 15.5,
-            '--ui-button-height-vh': 6,
-            '--ui-button-font-size-vh': 2.1,
-            '--ui-button-radius': 10,
-            '--ui-button-x-offset-vw': 2.5,
-            '--ui-button-y-offset-vh': -38,
             '--text-font-size-vw': 20,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -0.49,
@@ -3432,7 +3327,6 @@
         };
         const mobileColorVars = {
             '--button-color': '#ff3333',
-            '--ui-button-color': '#3366dd',
             // No --bg-color here - the background color is a single shared
             // value (colorVars['--bg-color'] only), see applyActiveVars().
         };
@@ -4124,8 +4018,6 @@
             // existing Game Mechanics timing sliders. Dock POSITION
             // (--round-dock-x/y-offset) stays in the normal mobile-split
             // loop above since it's spatial, not timing.
-            document.documentElement.style.setProperty('--round-anim-duration-ms', cssVars['--round-anim-duration-ms']);
-            document.documentElement.style.setProperty('--round-anim-easing', cssVars['--round-anim-easing']);
             document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
             document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
@@ -4258,13 +4150,6 @@
             applyExtrusionStyles();
         }
 
-        // Round Text shrink/dock animation easing - single/shared like its
-        // duration/flash siblings, not mobile-split.
-        function updateRoundAnimEasing() {
-            cssVars['--round-anim-easing'] = document.getElementById('selectRoundAnimEasing').value;
-            applyActiveVars();
-        }
-
         // Which set of pre-drawn click-burst frames to use - a single shared
         // choice, not mobile/desktop-split like the visual cssVars above
         // (there's one game running, and which artwork style to use isn't a
@@ -4322,19 +4207,15 @@
             'sliderShadowElongationIntensity': '--shadow-elongation-intensity',
             'sliderShadowElongationAngle': '--shadow-elongation-angle',
             'sliderShadowRotate': '--shadow-rotate',
-            'sliderUIButtonWidth': '--ui-button-width-vw',
-            'sliderUIButtonHeight': '--ui-button-height-vh',
-            'sliderUIButtonFontSize': '--ui-button-font-size-vh',
-            'sliderUIButtonRadius': '--ui-button-radius',
-            'sliderUIButtonX': '--ui-button-x-offset-vw',
-            'sliderUIButtonY': '--ui-button-y-offset-vh',
+            // --text-font-size-vw/-x/-y-offset now drive the Start/Try
+            // Again BUTTON (formerly Round Text's big-state position/size,
+            // repurposed since Round Text no longer has a big state - see
+            // the dev-panel section comment above .start-button's CSS).
             'sliderTextFontSize': '--text-font-size-vw',
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
-            'sliderRoundAnimDuration': '--round-anim-duration-ms',
-            'sliderRoundShrinkDuration': '--round-shrink-duration-ms',
             'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
             'sliderRoundBlink1Show': '--round-blink1-show-ms',
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
@@ -4445,7 +4326,6 @@
 
             // Setup color pickers
             const COLOR_VAR_MAP = {
-                'colorUIButton': '--ui-button-color',
                 'colorBg': '--bg-color',
             };
             // The 8-bit extrusion style's colors are mobile-split (see
@@ -4913,61 +4793,23 @@
         }).observe(roundBreakdownPanel);
 
         // Game logic
-        // Moves Round Text to its small "docked" corner position/size -
-        // sets --text-x-offset-vw/--text-y-offset-vh/--text-font-size-vw
-        // directly on the element itself (overriding the root-level value
-        // .game-text's CSS otherwise reads), so the existing transition on
-        // those same 3 properties animates the change. Font-size is read
-        // from --speed-font-size-vw at the moment of docking (not a fixed
-        // dock font-size) so it always matches "the same size as the speed
-        // text", per explicit request, even if that slider is later tuned.
-        function dockRoundText() {
-            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
-            // Shrink-specific duration, set alongside (not after) the
-            // position/size/shadow overrides below so the browser picks up
-            // both together for THIS transition - the same trick
-            // .game-text's transition-duration already relies on reading a
-            // var(), just toggled per-direction here.
-            gameText.style.setProperty('--round-anim-duration-ms', cssVars['--round-shrink-duration-ms']);
-            gameText.style.setProperty('--text-x-offset-vw', activeVars['--round-dock-x-offset-vw']);
-            gameText.style.setProperty('--text-y-offset-vh', activeVars['--round-dock-y-offset-vh']);
-            gameText.style.setProperty('--text-font-size-vw', activeVars['--speed-font-size-vw']);
-            gameText.style.setProperty('--round-extrusion-shadow', 'var(--round-dock-extrusion-shadow)');
-        }
-
-        // Returns Round Text to its normal large/centered position/size/
-        // extrusion by removing every inline override dockRoundText() set -
-        // .game-text's CSS then falls back to reading the root-level (dev-
-        // panel-driven) values again, the same transition animating it back
-        // (now at the GROW duration, since --round-anim-duration-ms's own
-        // override is removed too, falling back to the root/"big state"
-        // value).
-        function undockRoundText() {
-            gameText.style.removeProperty('--round-anim-duration-ms');
-            gameText.style.removeProperty('--text-x-offset-vw');
-            gameText.style.removeProperty('--text-y-offset-vh');
-            gameText.style.removeProperty('--text-font-size-vw');
-            gameText.style.removeProperty('--round-extrusion-shadow');
-        }
-
+        // Round Text no longer grows to a "big" state or animates at all -
+        // per explicit request, it always renders at its one permanent
+        // look (.game-text's CSS reads --round-dock-* directly, unconditionally).
+        // dockRoundText()/undockRoundText() are gone entirely - there's
+        // nothing left to toggle between.
         function showRoundText(roundNum) {
             gameState.canTap = false;
-            // Whatever's already showing (the OLD round's docked number, or
-            // nothing on a fresh game) - captured BEFORE any change below,
-            // since undockRoundText() only touches position/size, not text.
-            const hadPreviousRound = !!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum);
-
-            undockRoundText();
             gameText.classList.remove('hidden');
             // Hidden here explicitly (not left for showTargetAndSpeed() to
             // hide later) - a REAL pre-existing overlap, found while
             // building this: the win path's resultText (":)"), never
             // explicitly hidden until showTargetAndSpeed() ran at the END
-            // of the large-Round-text phase, was staying on screen for the
-            // entire large-announcement window, directly on top of it. Per
-            // explicit request the large Round text must never overlap the
+            // of the round-announcement phase, was staying on screen for
+            // the entire announcement window, directly on top of it. Per
+            // explicit request the Round text must never overlap the
             // Win/Lose text, so it's hidden right here instead, before the
-            // large announcement even starts.
+            // announcement even starts.
             resultText.classList.add('hidden');
             targetCount.classList.add('hidden');
             speedDisplay.classList.add('hidden');
@@ -4978,25 +4820,23 @@
             // comment).
             gameTextLabel.textContent = 'ROUND';
 
+            const hadPreviousRound = !!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum);
             if (!hadPreviousRound) {
-                // Nothing to grow/blink away from (very first round of a
-                // game, or already showing this exact round) - just show it
-                // large immediately, hold, then dock into gameplay.
+                // Nothing to blink away from (very first round of a game,
+                // or already showing this exact round) - just show it, hold,
+                // then start gameplay.
                 gameTextNumber.textContent = roundNum;
                 gameTextNumber.style.visibility = 'visible';
                 setTimeout(() => {
-                    dockRoundText();
                     showTargetAndSpeed();
                 }, gameState.roundDuration);
                 return;
             }
 
-            // The OLD number stays on screen and grows/moves to the big
-            // state WITH the word "Round" (undockRoundText() above only
-            // animates position/size). Holds at big size for
-            // gameState.roundDuration (the existing "Round Text Duration"
-            // slider, reused rather than adding a duplicate), THEN runs the
-            // blink sequence, THEN docks into gameplay.
+            // The OLD number stays on screen (still at its one permanent
+            // size). Holds for gameState.roundDuration (the existing
+            // "Round Text Duration" slider, reused rather than adding a
+            // duplicate), THEN runs the blink sequence, THEN starts gameplay.
             setTimeout(() => runRoundBlinkSequence(roundNum), gameState.roundDuration);
         }
 
@@ -5021,13 +4861,12 @@
                 if (i >= phases.length) {
                     gameTextNumber.textContent = roundNum;
                     gameTextNumber.style.visibility = 'visible';
-                    // Holds the new number at big/held scale for its own
-                    // duration (--round-post-blink-hold-ms) before docking -
+                    // Holds the new number on screen for its own duration
+                    // (--round-post-blink-hold-ms) before gameplay starts -
                     // per explicit request for a dedicated slider covering
                     // this gap, separate from gameState.roundDuration (the
                     // hold BEFORE the blink sequence starts, above).
                     setTimeout(() => {
-                        dockRoundText();
                         showTargetAndSpeed();
                     }, cssVars['--round-post-blink-hold-ms']);
                     return;
@@ -5503,7 +5342,6 @@
                 startButton.classList.remove('hidden');
                 startButton.textContent = 'START';
                 gameText.classList.add('hidden');
-                undockRoundText();
                 resultText.classList.add('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
