@@ -86,7 +86,7 @@
     "--dev-panel-width-px": 455,
     "--dev-panel-left-px": 6,
     "--dev-panel-top-px": 6,
-    "--dev-panel-height-px": 0,
+    "--dev-panel-height-px": 120,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1200,
