@@ -7466,6 +7466,23 @@
                 return;
             }
 
+            // Per-click ceiling - per direct request/confirmation ("when
+            // the click duration is more than the time/click number, I
+            // dont lose. fix that"): lose immediately if the gap since the
+            // PREVIOUS tap THIS ROUND exceeds maxTimeMs (the "ms/click"
+            // setting), independent of the aggregate round countdown below.
+            // Only checked from the 2nd tap onward - the first tap has no
+            // prior tap this round to measure a gap against (time-to-
+            // first-tap isn't constrained by this ceiling, same as before).
+            if (currentRoundTaps.length > 1) {
+                const gapSinceLastRoundTap = currentRoundTaps[currentRoundTaps.length - 1] - currentRoundTaps[currentRoundTaps.length - 2];
+                if (gapSinceLastRoundTap > gameState.maxTimeMs) {
+                    stopRoundCountdown();
+                    endGame(false, 'too-slow');
+                    return;
+                }
+            }
+
             // Countdown starts on the round's FIRST accepted tap, not
             // before - per explicit request.
             if (gameState.currentTapCount === 1) {
