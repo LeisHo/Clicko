@@ -630,7 +630,7 @@
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--round-extrusion-shadow);
-            text-align: center;
+            text-align: var(--start-text-align, center);
             white-space: nowrap;
             background: none;
             border: none;
@@ -659,6 +659,30 @@
            sequence. dockRoundText()/undockRoundText() and the grow/shrink
            transition this rule used to have are gone entirely - nothing
            left to animate between. */
+        /* The flashing/rotating "?" in "Try again?" - inline-block so
+           transform-origin:center actually pivots on the glyph's own
+           center (a plain inline element's transform origin can behave
+           inconsistently across browsers) - see tickTryAgainRotate(). */
+        #startButtonFlashChar {
+            display: inline-block;
+            transform-origin: center;
+        }
+
+        /* Text Edit Mode's inline input - sized to roughly match the huge
+           extruded game text it temporarily replaces, so it doesn't look
+           like a broken tiny form field mid-edit. */
+        .text-edit-input {
+            font: inherit;
+            font-family: inherit;
+            color: #000;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 4px;
+            padding: 0 6px;
+            width: 6em;
+            text-align: center;
+        }
+
         .game-text {
             position: absolute;
             left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
@@ -670,7 +694,7 @@
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--round-dock-extrusion-shadow);
-            text-align: center;
+            text-align: var(--round-text-align, center);
             white-space: nowrap;
             pointer-events: none;
             z-index: 10;
@@ -726,7 +750,7 @@
             font-size: calc(var(--result-font-size-vw) * 1vw);
             font-weight: 700;
             font-family: var(--extrusion-font);
-            text-align: center;
+            text-align: var(--result-text-align, center);
             white-space: nowrap;
             pointer-events: none;
             z-index: 10;
@@ -761,6 +785,7 @@
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--target-extrusion-shadow);
+            text-align: var(--target-text-align, center);
             pointer-events: none;
             z-index: 10;
             white-space: nowrap;
@@ -782,6 +807,7 @@
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--speed-extrusion-shadow);
+            text-align: var(--speed-text-align, center);
             pointer-events: none;
             z-index: 10;
             white-space: nowrap;
@@ -809,6 +835,7 @@
             font-family: var(--extrusion-font);
             color: var(--extrusion-fill-color);
             text-shadow: var(--ms-per-click-extrusion-shadow);
+            text-align: var(--ms-per-click-text-align, center);
             pointer-events: none;
             z-index: 10;
             white-space: nowrap;
@@ -2000,6 +2027,19 @@
             <button onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
         </div>
 
+        <!-- Text Edit Mode - lets clicking a game-text element rename its
+             STATIC wording (labels/suffixes) without freezing the LIVE
+             number next to it - per explicit request ("I can click on any
+             text and change the actual text content itself"). Shared, not
+             tab-specific - editing wording isn't a device-specific concept.
+             See setupTextEditMode()/textOverrides. -->
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxTextEditMode" onchange="textEditModeEnabled = this.checked;">
+                <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
+            </label>
+        </div>
+
         <!-- Desktop/Mobile tabs - per CLAUDE.md Section 12f. Everything
              below was previously one continuous scroll with a nested
              "MOBILE OVERRIDES" collapsible mega-section; that inner content
@@ -2368,6 +2408,14 @@
                     <span class="dev-value" id="valueTextLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectStartTextAlign" data-var="--start-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-0.16">
                     <span class="dev-value" id="valueTextX">-0.16</span>
@@ -2413,6 +2461,45 @@
             </div>
         </div>
 
+        <!-- Rotation Animation Section - the "?" in "Try again?" can flash
+             (hide/show, the original look) or rotate: a 2D fake of a 3D
+             flip on the vertical axis through the glyph's center, done via
+             scaleX(cos(angle)) rather than a real 3D transform - per
+             explicit request. Shared/single, not mobile-split, same
+             reasoning as the Flash/Hold Duration sliders above (one "?",
+             not a separate one per device). -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Rotation Animation</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">"?" Animation Mode:</span>
+                    <select class="dev-select" id="selectTryAgainMode" onchange="cssVars['--try-again-question-mark-mode'] = this.value; if (document.getElementById('startButtonFlashChar')) startTryAgainFlash();">
+                        <option value="flash" selected>Flashing</option>
+                        <option value="rotate">Rotating</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Rotation Speed (ms per cycle):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainRotateSpeed" min="200" max="5000" step="50" value="1500">
+                    <span class="dev-value" id="valueTryAgainRotateSpeed">1500</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Tweening of Rotation:</span>
+                    <select class="dev-select" id="selectTryAgainTweening" onchange="cssVars['--try-again-rotate-tweening'] = this.value;">
+                        <option value="linear" selected>Linear</option>
+                        <option value="easeInOut">Ease In Out</option>
+                        <option value="easeIn">Ease In</option>
+                        <option value="easeOut">Ease Out</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Minimum Width of Rotated Text:</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainRotateMinWidth" min="0" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueTryAgainRotateMinWidth">0</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Round Text Section - split into its own group, separate from
              the Start/Try Again button, per explicit request. Round Text no
              longer has a big/animated state at all (see .game-text's CSS
@@ -2432,6 +2519,14 @@
                     <span class="dev-label">Round Text Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueRoundLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectRoundTextAlign" data-var="--round-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text X Offset (vw):</span>
@@ -2547,6 +2642,14 @@
                     <span class="dev-label">Lose Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#2c99dd">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectResultTextAlign" data-var="--result-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -2596,6 +2699,14 @@
                     <input type="range" class="dev-slider" id="sliderTargetLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueTargetLetterSpacing">0</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectTargetTextAlign" data-var="--target-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -2640,6 +2751,14 @@
                     <span class="dev-label">Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueSpeedLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectSpeedTextAlign" data-var="--speed-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -2688,6 +2807,14 @@
                     <input type="range" class="dev-slider" id="sliderMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMsPerClickLetterSpacing">0</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMsPerClickTextAlign" data-var="--ms-per-click-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -2730,6 +2857,16 @@
                     <span class="dev-label">Speed Time Rounding (ms):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedTimeRounding" min="1" max="100" step="1" value="1">
                     <span class="dev-value" id="valueSpeedTimeRounding">1</span>
+                </div>
+                <!-- Rounds the live countdown display (.speed-display, ticking
+                     down every frame in tickRoundCountdown()) to the nearest
+                     multiple of this value - separate from Speed Time
+                     Rounding above, which rounds the per-round DECREASING
+                     max-time value, not the live display. 1 = no rounding. -->
+                <div class="dev-row">
+                    <span class="dev-label">Countdown Display Rounding (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderCountdownRounding" min="1" max="100" step="1" value="1">
+                    <span class="dev-value" id="valueCountdownRounding">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
@@ -3078,6 +3215,14 @@
                     <span class="dev-value" id="valueMobileTextLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileStartTextAlign" data-var="--start-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTextX">0</span>
@@ -3123,6 +3268,14 @@
                     <span class="dev-label">Round Text Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileRoundLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileRoundTextAlign" data-var="--round-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text X Offset (vw):</span>
@@ -3190,6 +3343,14 @@
                     <span class="dev-label">Lose Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileResultLoseBorder" value="#dd3333">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileResultTextAlign" data-var="--result-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -3219,6 +3380,14 @@
                     <span class="dev-label">Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileTargetLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileTargetTextAlign" data-var="--target-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -3266,6 +3435,14 @@
                     <span class="dev-value" id="valueMobileSpeedLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileSpeedTextAlign" data-var="--speed-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
@@ -3309,6 +3486,14 @@
                     <span class="dev-label">Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileMsPerClickLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileMsPerClickTextAlign" data-var="--ms-per-click-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -3467,6 +3652,7 @@
             '--text-x-offset-vw': -0.16,
             '--text-y-offset-vh': -13.75,
             '--text-letter-spacing-px': 0,
+            '--start-text-align': 'center',
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
@@ -3476,12 +3662,20 @@
             '--round-dock-y-offset-vh': 42.7,
             '--round-font-size-vw': 3.3,
             '--round-letter-spacing-px': 0,
+            '--round-text-align': 'center',
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
             // startTryAgainFlash().
             '--try-again-flash-duration-ms': 250,
             '--try-again-hold-duration-ms': 1000,
+            // "?" animation mode - 'flash' (hide/show, the original look) or
+            // 'rotate' (2D scaleX flip - see tickTryAgainRotate()). Shared/
+            // single like the flash/hold durations above, not mobile-split.
+            '--try-again-question-mark-mode': 'flash',
+            '--try-again-rotate-speed-ms': 1500,
+            '--try-again-rotate-tweening': 'linear',
+            '--try-again-rotate-min-width-scale': 0,
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
@@ -3498,10 +3692,12 @@
             '--target-x-offset-vw': 39.5,
             '--target-y-offset-vh': -32.71,
             '--target-letter-spacing-px': 0,
+            '--target-text-align': 'center',
             '--speed-font-size-vw': 3.3,
             '--speed-x-offset-vw': 39.47,
             '--speed-y-offset-vh': -14.85,
             '--speed-letter-spacing-px': 0,
+            '--speed-text-align': 'center',
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
@@ -3511,9 +3707,11 @@
             '--ms-per-click-x-offset-vw': 40.2,
             '--ms-per-click-y-offset-vh': -14.88,
             '--ms-per-click-letter-spacing-px': 0,
+            '--ms-per-click-text-align': 'center',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
+            '--result-text-align': 'center',
             '--dev-panel-width-px': 455,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
@@ -3803,25 +4001,31 @@
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -0.49,
             '--text-letter-spacing-px': 0,
+            '--start-text-align': 'center',
             '--round-dock-x-offset-vw': -36.41,
             '--round-dock-y-offset-vh': 46.12,
             '--round-font-size-vw': 5.43,
             '--round-letter-spacing-px': 0,
+            '--round-text-align': 'center',
             '--target-font-size-vw': 14.75,
             '--target-x-offset-vw': 23.79,
             '--target-y-offset-vh': -34.47,
             '--target-letter-spacing-px': 0,
+            '--target-text-align': 'center',
             '--speed-font-size-vw': 5.43,
             '--speed-x-offset-vw': 24.76,
             '--speed-y-offset-vh': -21.84,
             '--speed-letter-spacing-px': 0,
+            '--speed-text-align': 'center',
             '--ms-per-click-font-size-vw': 3.6,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -26.84,
             '--ms-per-click-letter-spacing-px': 0,
+            '--ms-per-click-text-align': 'center',
             '--result-font-size-vw': 15.94,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': 1.46,
+            '--result-text-align': 'center',
             '--round-breakdown-width-px': 280,
             '--round-breakdown-height-px': 350,
             '--round-breakdown-left-px': 1240,
@@ -3890,6 +4094,7 @@
             // value each round (e.g. 10 -> nearest 10ms), applied before the
             // 100ms floor. 1 (the default) is a no-op - exact prior behavior.
             speedTimeRounding: 1,
+            countdownRoundingIncrement: 1,
             roundDuration: 1000,
             resultDuration: 1000,
             // Minimum possible target count on Round 1, and how much that
@@ -3929,8 +4134,13 @@
         let currentRoundTaps = [];
         let roundStartTime = 0;
         // The "Try again?" button's flashing "?" - see startTryAgainFlash()/
-        // stopTryAgainFlash().
+        // stopTryAgainFlash(). Two mutually-exclusive animation modes now -
+        // flash (hide/show) or rotate (2D scaleX flip, see tickTryAgainRotate()) -
+        // per explicit request/dropdown; only one of these two ids is ever
+        // active at a time.
         let tryAgainFlashTimeoutId = null;
+        let tryAgainRotateRafId = null;
+        let tryAgainRotateStartTime = null;
 
         // Messages
         const tooManyMessages = ['TOO MANY!', 'OVERSHOT!', 'ONE TOO FAR!', 'TOO FAR!'];
@@ -4468,13 +4678,24 @@
         // which already fires on resize/breakpoint crossing - uses the
         // panel's own actual rendered size, so it respects the existing
         // max-width/max-height clamp too.
+        // The resize edges/corners straddle the panel's own border at -6px
+        // (see .dev-panel-resize-edge/-corner CSS) - clamping position to
+        // just the panel's own rect (0..viewport-width) let that 6px
+        // overhang go off-screen at the true edge, making the handle there
+        // partially ungrabbable. Every position clamp below keeps this much
+        // margin so the full handle - not just the panel's own box - always
+        // stays in frame, per explicit request ("the resize corners will
+        // always be in frame").
+        const DEV_PANEL_HANDLE_OVERHANG_PX = 6;
+
         function clampDevPanelPosition() {
             const rect = devPanel.getBoundingClientRect();
             if (rect.width === 0 && rect.height === 0) return; // hidden (display:none) - nothing to clamp yet
-            const maxLeft = Math.max(0, window.innerWidth - rect.width);
-            const maxTop = Math.max(0, window.innerHeight - rect.height);
-            const clampedLeft = Math.min(Math.max(0, cssVars['--dev-panel-left-px']), maxLeft);
-            const clampedTop = Math.min(Math.max(0, cssVars['--dev-panel-top-px']), maxTop);
+            const o = DEV_PANEL_HANDLE_OVERHANG_PX;
+            const maxLeft = Math.max(o, window.innerWidth - rect.width - o);
+            const maxTop = Math.max(o, window.innerHeight - rect.height - o);
+            const clampedLeft = Math.min(Math.max(o, cssVars['--dev-panel-left-px']), maxLeft);
+            const clampedTop = Math.min(Math.max(o, cssVars['--dev-panel-top-px']), maxTop);
             if (clampedLeft !== cssVars['--dev-panel-left-px']) {
                 cssVars['--dev-panel-left-px'] = clampedLeft;
                 document.documentElement.style.setProperty('--dev-panel-left-px', clampedLeft);
@@ -4525,6 +4746,10 @@
             // mobile-split loop above since it's spatial, not timing.
             document.documentElement.style.setProperty('--try-again-flash-duration-ms', cssVars['--try-again-flash-duration-ms']);
             document.documentElement.style.setProperty('--try-again-hold-duration-ms', cssVars['--try-again-hold-duration-ms']);
+            document.documentElement.style.setProperty('--try-again-question-mark-mode', cssVars['--try-again-question-mark-mode']);
+            document.documentElement.style.setProperty('--try-again-rotate-speed-ms', cssVars['--try-again-rotate-speed-ms']);
+            document.documentElement.style.setProperty('--try-again-rotate-tweening', cssVars['--try-again-rotate-tweening']);
+            document.documentElement.style.setProperty('--try-again-rotate-min-width-scale', cssVars['--try-again-rotate-min-width-scale']);
             document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
             document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
@@ -4570,7 +4795,7 @@
         // COPY/SAVE/load to include them at all (previously missing entirely -
         // reported as "Starting Time isn't what I set" after a reload/dump-
         // and-reapply, since these silently fell back to their HTML defaults).
-        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease', 'sliderTargetCeilingBase', 'sliderTargetCeilingIncrease'];
+        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderCountdownRounding', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease', 'sliderTargetCeilingBase', 'sliderTargetCeilingIncrease'];
 
         function captureGameMechanics() {
             const gameMechanics = {};
@@ -4583,7 +4808,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -4602,7 +4827,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -4668,6 +4893,15 @@
                         if (mobValEl) mobValEl.textContent = mobileDevPanelStyle[key];
                     });
                     applyDevPanelOwnStyling(!document.getElementById('desktopTabContent').classList.contains('hidden'));
+                    // Text Edit Mode overrides - restore the raw values then
+                    // re-render every editable slot from them (also picks
+                    // up the checkbox's own current state, not stored here,
+                    // since Text Edit Mode being ON/OFF isn't itself a
+                    // per-text override).
+                    if (settings.textOverrides) {
+                        Object.assign(textOverrides, settings.textOverrides);
+                        refreshAllTextOverrides();
+                    }
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -4757,6 +4991,8 @@
             'sliderRoundLetterSpacing': '--round-letter-spacing-px',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
+            'sliderTryAgainRotateSpeed': '--try-again-rotate-speed-ms',
+            'sliderTryAgainRotateMinWidth': '--try-again-rotate-min-width-scale',
             'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
             'sliderRoundBlink1Show': '--round-blink1-show-ms',
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
@@ -4824,6 +5060,7 @@
             else if (desktopId === 'sliderSpeedDecreaseDecay') gameState.speedDecreaseDecay = value / 100;
             else if (desktopId === 'sliderSpeedDecreaseDecayTolerance') gameState.speedDecreaseDecayTolerance = value;
             else if (desktopId === 'sliderSpeedTimeRounding') gameState.speedTimeRounding = value;
+            else if (desktopId === 'sliderCountdownRounding') gameState.countdownRoundingIncrement = value;
             else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
             else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
@@ -4863,6 +5100,135 @@
             if (valueEl && !valueEl.querySelector('input')) {
                 valueEl.textContent = value.toFixed(value < 10 ? 2 : 1);
             }
+        }
+
+        // Text alignment dropdowns (left/center/right) for All Text - per
+        // explicit request. Each select's own data-var names the exact
+        // cssVar it drives (e.g. --start-text-align), so this one generic
+        // handler covers all 6 texts x 2 tabs without a per-text map, same
+        // resolveDevControlId split as every slider/color above.
+        function setupTextAlignSelects() {
+            document.querySelectorAll('.dev-align-select').forEach(select => {
+                select.addEventListener('change', () => {
+                    const { isMobile } = resolveDevControlId(select.id);
+                    (isMobile ? mobileCssVars : cssVars)[select.dataset.var] = select.value;
+                    applyActiveVars();
+                });
+            });
+        }
+
+        // Text Edit Mode - per explicit request ("I can click on any text
+        // and change the actual text content itself. So I can rename
+        // things or change wording"). Keyed by named SLOT, not by element,
+        // because several elements show two different static strings
+        // depending on game state (Start/Try Again, Win/Lose) and two show
+        // a static suffix beside a LIVE number (Speed/Ms-per-click) that
+        // must keep updating - editing overrides only the static wording,
+        // never freezes a live value. Target Count has no static wording at
+        // all (just the bare number) so it has no edit slot here - it still
+        // gets its own Text Align dropdown above, a separate concern.
+        let textEditModeEnabled = false;
+        const textOverrides = {
+            startLabel: null, tryAgainLabel: null, roundLabel: null,
+            winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: null,
+        };
+        const TEXT_OVERRIDE_DEFAULTS = {
+            startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
+            winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / click',
+        };
+        function overrideOr(slot) {
+            const v = textOverrides[slot];
+            return (v !== null && v !== undefined) ? v : TEXT_OVERRIDE_DEFAULTS[slot];
+        }
+
+        // elementId -> how to determine which slot is currently showing,
+        // how to pull out any live numeric prefix that must survive the
+        // edit (Speed/Ms-per-click only), and how to re-render after a
+        // commit/load. render(slot, prefix) always fully recomputes the
+        // element's content from scratch - never touches the input DOM
+        // node directly - so it's safe to reuse for both a live commit and
+        // a settings-load restore.
+        const TEXT_EDIT_TARGETS = {
+            startButton: {
+                getSlot: () => document.getElementById('startButtonFlashChar') ? 'tryAgainLabel' : 'startLabel',
+                render: (slot) => {
+                    if (slot === 'tryAgainLabel') {
+                        startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar">?</span>`;
+                    } else {
+                        startButton.textContent = overrideOr('startLabel');
+                    }
+                },
+            },
+            gameTextLabel: {
+                getSlot: () => 'roundLabel',
+                render: () => { gameTextLabel.textContent = overrideOr('roundLabel'); },
+            },
+            resultText: {
+                getSlot: () => resultText.classList.contains('result-win') ? 'winSymbol' : 'loseSymbol',
+                render: (slot) => { resultText.textContent = overrideOr(slot); },
+            },
+            speedDisplay: {
+                getSlot: () => 'speedSuffix',
+                getPrefix: () => (speedDisplay.textContent.match(/^-?\d+/) || ['0'])[0],
+                render: (slot, prefix) => { speedDisplay.textContent = (prefix != null ? prefix : '0') + overrideOr(slot); },
+            },
+            msPerClickDisplay: {
+                getSlot: () => 'msPerClickSuffix',
+                getPrefix: () => (msPerClickDisplay.textContent.match(/^-?\d+/) || [gameState.maxTimeMs.toFixed(0)])[0],
+                render: (slot, prefix) => { msPerClickDisplay.textContent = (prefix != null ? prefix : gameState.maxTimeMs.toFixed(0)) + overrideOr(slot); },
+            },
+        };
+
+        function refreshAllTextOverrides() {
+            Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
+                const cfg = TEXT_EDIT_TARGETS[elId];
+                const slot = cfg.getSlot();
+                const prefix = cfg.getPrefix ? cfg.getPrefix() : null;
+                cfg.render(slot, prefix);
+            });
+        }
+
+        function setupTextEditMode() {
+            Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
+                const el = document.getElementById(elId);
+                const cfg = TEXT_EDIT_TARGETS[elId];
+                el.addEventListener('click', (e) => {
+                    if (!textEditModeEnabled) return;
+                    if (el.querySelector('input.text-edit-input')) return; // already editing
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const slot = cfg.getSlot();
+                    const prefix = cfg.getPrefix ? cfg.getPrefix() : null;
+                    const originalHTML = el.innerHTML;
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'text-edit-input';
+                    input.value = overrideOr(slot);
+                    el.innerHTML = '';
+                    el.appendChild(input);
+                    input.focus();
+                    input.select();
+                    let settled = false;
+                    function commit() {
+                        if (settled) return;
+                        settled = true;
+                        const typed = input.value;
+                        textOverrides[slot] = (typed === '' || typed === TEXT_OVERRIDE_DEFAULTS[slot]) ? null : typed;
+                        cfg.render(slot, prefix);
+                    }
+                    function cancel() {
+                        if (settled) return;
+                        settled = true;
+                        el.innerHTML = originalHTML;
+                    }
+                    input.addEventListener('blur', commit);
+                    input.addEventListener('keydown', (ev) => {
+                        if (ev.key === 'Enter') input.blur();
+                        else if (ev.key === 'Escape') cancel();
+                    });
+                    input.addEventListener('click', (ev) => ev.stopPropagation());
+                });
+            });
         }
 
         function setupDevSliders() {
@@ -5093,8 +5459,9 @@
             const dx = e.clientX - devPanelDragStart.pointerX;
             const dy = e.clientY - devPanelDragStart.pointerY;
             const panelRect = devPanel.getBoundingClientRect();
-            const newLeft = Math.max(0, Math.min(window.innerWidth - panelRect.width, devPanelDragStart.panelLeft + dx));
-            const newTop = Math.max(0, Math.min(window.innerHeight - panelRect.height, devPanelDragStart.panelTop + dy));
+            const o = DEV_PANEL_HANDLE_OVERHANG_PX;
+            const newLeft = Math.max(o, Math.min(window.innerWidth - panelRect.width - o, devPanelDragStart.panelLeft + dx));
+            const newTop = Math.max(o, Math.min(window.innerHeight - panelRect.height - o, devPanelDragStart.panelTop + dy));
             cssVars['--dev-panel-left-px'] = Math.round(newLeft);
             cssVars['--dev-panel-top-px'] = Math.round(newTop);
             // Bare number, matching every other cssVar's convention (see
@@ -5162,12 +5529,13 @@
                 } else if (xEdge === 'left') {
                     newWidth = Math.max(minW, Math.min(maxW, start.width - dx));
                     newLeft = start.left + (start.width - newWidth);
-                    // Don't let the left edge push the panel off the left of
-                    // the viewport - matches the existing title-bar drag's
-                    // own clamp. Re-derives width from the clamped left so
-                    // the RIGHT edge (the one NOT being dragged) still stays
-                    // exactly fixed even when this clamp kicks in.
-                    const clampedLeft = Math.max(0, newLeft);
+                    // Don't let the left edge push the panel (or its own
+                    // -6px-overhang resize handle) off the left of the
+                    // viewport - matches the title-bar drag's own clamp.
+                    // Re-derives width from the clamped left so the RIGHT
+                    // edge (the one NOT being dragged) still stays exactly
+                    // fixed even when this clamp kicks in.
+                    const clampedLeft = Math.max(DEV_PANEL_HANDLE_OVERHANG_PX, newLeft);
                     if (clampedLeft !== newLeft) {
                         newWidth = newWidth - (clampedLeft - newLeft);
                         newLeft = clampedLeft;
@@ -5181,7 +5549,7 @@
                     newHeight = Math.max(minH, Math.min(maxH, start.height - dy));
                     newTop = start.top + (start.height - newHeight);
                     // Same viewport-edge clamp, top side.
-                    const clampedTop = Math.max(0, newTop);
+                    const clampedTop = Math.max(DEV_PANEL_HANDLE_OVERHANG_PX, newTop);
                     if (clampedTop !== newTop) {
                         newHeight = newHeight - (clampedTop - newTop);
                         newTop = clampedTop;
@@ -5377,7 +5745,7 @@
             // number specifically so it never has to move or re-render
             // when the number blinks/changes (see #gameTextLabel's own CSS
             // comment).
-            gameTextLabel.textContent = 'ROUND';
+            gameTextLabel.textContent = overrideOr('roundLabel');
 
             const hadPreviousRound = !!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum);
             if (!hadPreviousRound) {
@@ -5443,6 +5811,11 @@
         // whenever that state ends (a new game starts, or an R-key reset).
         function startTryAgainFlash() {
             stopTryAgainFlash();
+            if ((cssVars['--try-again-question-mark-mode'] || 'flash') === 'rotate') {
+                tryAgainRotateStartTime = Date.now();
+                tickTryAgainRotate();
+                return;
+            }
             function cycle(visible) {
                 const charEl = document.getElementById('startButtonFlashChar');
                 if (!charEl) return; // button content changed since this was scheduled
@@ -5453,8 +5826,42 @@
             cycle(true);
         }
 
+        // 2D fake of a Y-axis (vertical-line-through-center) 3D flip - per
+        // explicit request, done by scaling the "?" horizontally instead of
+        // a real 3D rotation (see the CLAUDE.md-style discussion in chat for
+        // why true 3D extrusion is a much bigger separate lift). scaleX
+        // follows cos(angle): 1 at 0deg (normal), ~0 at 90deg (edge-on),
+        // -1 at 180deg (mirrored), ~0 at 270deg, back to 1 at 360deg - an
+        // accurate foreshortening curve for a flat card-style flip. Minimum
+        // Width floors the edge-on magnitude so it doesn't fully vanish
+        // unless that's set to 0. Tweening eases the loop's own time
+        // progress before computing the angle, not a CSS transition (this
+        // is a continuous rAF loop, not a one-shot animation).
+        function easeTryAgainRotateProgress(t, mode) {
+            if (mode === 'easeInOut') return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            if (mode === 'easeIn') return t * t;
+            if (mode === 'easeOut') return 1 - (1 - t) * (1 - t);
+            return t; // linear
+        }
+
+        function tickTryAgainRotate() {
+            const charEl = document.getElementById('startButtonFlashChar');
+            if (!charEl) return; // button content changed since this was scheduled
+            const cycleMs = Math.max(50, cssVars['--try-again-rotate-speed-ms']);
+            const elapsed = Date.now() - tryAgainRotateStartTime;
+            const rawT = (elapsed % cycleMs) / cycleMs;
+            const t = easeTryAgainRotateProgress(rawT, cssVars['--try-again-rotate-tweening'] || 'linear');
+            const cos = Math.cos(t * Math.PI * 2);
+            const minWidth = cssVars['--try-again-rotate-min-width-scale'] || 0;
+            const scaleX = (cos < 0 ? -1 : 1) * Math.max(Math.abs(cos), minWidth);
+            charEl.style.visibility = 'visible';
+            charEl.style.transform = `scaleX(${scaleX})`;
+            tryAgainRotateRafId = requestAnimationFrame(tickTryAgainRotate);
+        }
+
         function stopTryAgainFlash() {
             if (tryAgainFlashTimeoutId) { clearTimeout(tryAgainFlashTimeoutId); tryAgainFlashTimeoutId = null; }
+            if (tryAgainRotateRafId) { cancelAnimationFrame(tryAgainRotateRafId); tryAgainRotateRafId = null; }
         }
 
         function showTargetAndSpeed() {
@@ -5549,7 +5956,7 @@
             // The raw per-click rate, shown above the countdown - per
             // explicit request, since the countdown itself only shows the
             // TOTAL round budget now.
-            msPerClickDisplay.textContent = gameState.maxTimeMs.toFixed(0) + 'ms / click';
+            msPerClickDisplay.textContent = gameState.maxTimeMs.toFixed(0) + overrideOr('msPerClickSuffix');
             msPerClickDisplay.classList.remove('hidden');
 
             // Reset button color
@@ -5746,10 +6153,16 @@
 
         function tickRoundCountdown() {
             const elapsed = Date.now() - gameState.countdownStartTime;
-            const remaining = Math.max(0, gameState.roundTotalTimeMs - elapsed);
+            let remaining = Math.max(0, gameState.roundTotalTimeMs - elapsed);
+            // Countdown Display Rounding (Game Mechanics) - rounds the LIVE
+            // ticking display to the nearest multiple; 1 = no rounding
+            // (reproduces the exact-ms display this always had before).
+            if (gameState.countdownRoundingIncrement > 1) {
+                remaining = Math.round(remaining / gameState.countdownRoundingIncrement) * gameState.countdownRoundingIncrement;
+            }
             // Rounded to a whole number - per explicit follow-up request
             // (reversing the initial "doesn't need to be rounded" ask).
-            speedDisplay.textContent = remaining.toFixed(0) + ' ms';
+            speedDisplay.textContent = remaining.toFixed(0) + overrideOr('speedSuffix');
             if (remaining > 0 && gameState.isCountingTaps) {
                 gameState.countdownRafId = requestAnimationFrame(tickRoundCountdown);
             }
@@ -5804,7 +6217,7 @@
                 // per explicit request - winMessages itself is left in place
                 // (harmless unused data) rather than deleted, in case this is
                 // revisited.
-                resultText.textContent = ':)';
+                resultText.textContent = overrideOr('winSymbol');
                 resultText.classList.remove('result-lose');
                 resultText.classList.add('result-win');
                 resultText.classList.remove('hidden');
@@ -5822,7 +6235,7 @@
                 // of the randomized tooManyMessages/notEnoughMessages pools
                 // (and the trailing "(count/target)" suffix, which was part
                 // of the same "randomized text" being replaced).
-                resultText.textContent = ':(';
+                resultText.textContent = overrideOr('loseSymbol');
                 resultText.classList.remove('result-win');
                 resultText.classList.add('result-lose');
                 resultText.classList.remove('hidden');
@@ -5838,7 +6251,7 @@
                     // prefix - per explicit request, this button says only
                     // "Try again?" and nothing else. The "?" is its own span
                     // so it can blink independently - see startTryAgainFlash().
-                    startButton.innerHTML = 'Try again<span id="startButtonFlashChar">?</span>';
+                    startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar">?</span>`;
                     startButton.classList.remove('hidden');
                     startTryAgainFlash();
                     resultText.classList.add('hidden');
@@ -5937,7 +6350,7 @@
             stopRoundCountdown();
             stopTryAgainFlash();
             startButton.classList.remove('hidden');
-            startButton.textContent = 'START';
+            startButton.textContent = overrideOr('startLabel');
             gameText.classList.add('hidden');
             resultText.classList.add('hidden');
             targetCount.classList.add('hidden');
@@ -6002,7 +6415,7 @@
         // whatever real gameplay state was showing before.
         document.getElementById('checkboxPreviewRoundText').addEventListener('change', (e) => {
             if (e.target.checked) {
-                gameTextLabel.textContent = 'ROUND';
+                gameTextLabel.textContent = overrideOr('roundLabel');
                 if (!gameTextNumber.textContent) gameTextNumber.textContent = '1';
                 gameTextNumber.style.visibility = 'visible';
                 gameText.classList.remove('hidden');
@@ -6015,7 +6428,7 @@
         // in its WIN look (fixed ':)' text, per its own comment in endGame()).
         document.getElementById('checkboxPreviewWinText').addEventListener('change', (e) => {
             if (e.target.checked) {
-                resultText.textContent = ':)';
+                resultText.textContent = overrideOr('winSymbol');
                 resultText.classList.remove('result-lose');
                 resultText.classList.add('result-win');
                 resultText.classList.remove('hidden');
@@ -6036,7 +6449,7 @@
         // effect of what's meant to be a pure visual preview. This replays
         // the exact same phase list standalone, with no gameplay effects.
         function triggerRoundTextFlash() {
-            gameTextLabel.textContent = 'ROUND';
+            gameTextLabel.textContent = overrideOr('roundLabel');
             gameText.classList.remove('hidden');
             const current = parseInt(gameTextNumber.textContent, 10) || 0;
             const nextNum = current + 1;
@@ -6144,6 +6557,8 @@
             cssVars['--dev-panel-height-px'] = window.innerHeight;
         }
         setupDevSliders();
+        setupTextAlignSelects();
+        setupTextEditMode();
         makeDevValuesEditable();
         applyActiveVars();
         applyExtrusionStyles();
