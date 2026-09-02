@@ -622,7 +622,7 @@
             position: absolute;
             left: calc(50% + var(--text-x-offset-vw) * 1vw);
             top: calc(50% + var(--text-y-offset-vh) * 1vh);
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, var(--anchor-ty, -50%));
             padding: 0;
             font-size: calc(var(--text-font-size-vw) * 1vw);
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
@@ -775,7 +775,7 @@
             position: absolute;
             left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
             top: calc(50% + var(--round-dock-y-offset-vh) * 1vh);
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--round-font-size-vw) * 1vw);
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             font-weight: 700;
@@ -834,7 +834,7 @@
                ":)"/":(" glyphs in the pixel font used here render in a way
                that only reads as a correct smiley face once turned on its
                side, per direct visual confirmation. */
-            transform: translate(-50%, -50%) rotate(90deg);
+            transform: translate(-50%, var(--anchor-ty, -50%)) rotate(90deg);
             font-size: calc(var(--result-font-size-vw) * 1vw);
             font-weight: 700;
             font-family: var(--extrusion-font);
@@ -872,14 +872,14 @@
            layered on top, same as its base rule above. */
         .start-button.align-left, .game-text.align-left, .target-count.align-left,
         .speed-display.align-left, .ms-per-click-display.align-left {
-            transform: translate(0%, -50%);
+            transform: translate(0%, var(--anchor-ty, -50%));
         }
         .start-button.align-right, .game-text.align-right, .target-count.align-right,
         .speed-display.align-right, .ms-per-click-display.align-right {
-            transform: translate(-100%, -50%);
+            transform: translate(-100%, var(--anchor-ty, -50%));
         }
-        .result-text.align-left { transform: translate(0%, -50%) rotate(90deg); }
-        .result-text.align-right { transform: translate(-100%, -50%) rotate(90deg); }
+        .result-text.align-left { transform: translate(0%, var(--anchor-ty, -50%)) rotate(90deg); }
+        .result-text.align-right { transform: translate(-100%, var(--anchor-ty, -50%)) rotate(90deg); }
 
         /* Target Count Display - font stays on the existing Numbers Font
            dropdown (excluded from the shared 8-bit style's font control),
@@ -889,7 +889,7 @@
             position: absolute;
             left: calc(50% + var(--target-x-offset-vw) * 1vw);
             top: calc(50% + var(--target-y-offset-vh) * 1vh);
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--target-font-size-vw) * 1vw);
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
             font-weight: 700;
@@ -911,7 +911,7 @@
             position: absolute;
             left: calc(50% + var(--speed-x-offset-vw) * 1vw);
             top: calc(50% + var(--speed-y-offset-vh) * 1vh);
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--speed-font-size-vw) * 1vw);
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             font-weight: 700;
@@ -939,7 +939,7 @@
             position: absolute;
             left: calc(50% + var(--ms-per-click-x-offset-vw) * 1vw);
             top: calc(50% + var(--ms-per-click-y-offset-vh) * 1vh);
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--ms-per-click-font-size-vw) * 1vw);
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             font-weight: 700;
@@ -2671,6 +2671,14 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectStartTextValign" data-var="--start-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
                 <!-- Try Again's own font-size/position/colors - independent
                      from Start's above, per explicit request. Depth/
                      thickness stay shared (only color was asked for). -->
@@ -2826,6 +2834,14 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectRoundTextValign" data-var="--round-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
                 <!-- Round-change blink sequence: the number blinks 3 times
                      (hides, shows the OLD number, hides, shows the OLD
                      number, hides) before the NEW number appears - each
@@ -2909,6 +2925,14 @@
                     </select>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectResultTextValign" data-var="--result-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Win Fill Color:</span>
                     <input type="color" class="dev-color-picker" id="colorResultWinFill" value="#f0fff4">
                 </div>
@@ -2981,6 +3005,14 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectTargetTextValign" data-var="--target-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -3032,6 +3064,14 @@
                         <option value="left">Left</option>
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectSpeedTextValign" data-var="--speed-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
                     </select>
                 </div>
             </div>
@@ -3087,6 +3127,14 @@
                         <option value="left">Left</option>
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMsPerClickTextValign" data-var="--ms-per-click-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
                     </select>
                 </div>
             </div>
@@ -3529,6 +3577,14 @@
                     </select>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileStartTextValign" data-var="--start-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Try Again Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSize" min="1" max="20" step="0.01" value="20">
                     <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
@@ -3609,6 +3665,14 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileRoundTextValign" data-var="--round-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -3640,6 +3704,14 @@
                         <option value="left">Left</option>
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileResultTextValign" data-var="--result-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
                     </select>
                 </div>
                 <div class="dev-row">
@@ -3717,6 +3789,14 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileTargetTextValign" data-var="--target-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -3773,6 +3853,14 @@
                         <option value="right">Right</option>
                     </select>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileSpeedTextValign" data-var="--speed-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -3827,6 +3915,14 @@
                         <option value="left">Left</option>
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileMsPerClickTextValign" data-var="--ms-per-click-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
                     </select>
                 </div>
             </div>
@@ -3993,6 +4089,7 @@
             '--text-y-offset-vh': -13.75,
             '--text-letter-spacing-px': 10,
             '--start-text-align': 'center',
+            '--start-text-valign': 'center',
             // Try Again's own font-size/position, independent from Start's -
             // per explicit request. Starts matching Start's own values until
             // tuned - see .start-button.try-again-state's CSS.
@@ -4009,6 +4106,7 @@
             '--round-font-size-vw': 7.51,
             '--round-letter-spacing-px': 1,
             '--round-text-align': 'left',
+            '--round-text-valign': 'center',
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
@@ -4040,11 +4138,13 @@
             '--target-y-offset-vh': -32.89,
             '--target-letter-spacing-px': 0,
             '--target-text-align': 'right',
+            '--target-text-valign': 'center',
             '--speed-font-size-vw': 7.51,
             '--speed-x-offset-vw': 38.23,
             '--speed-y-offset-vh': 42.65,
             '--speed-letter-spacing-px': 6.5,
             '--speed-text-align': 'right',
+            '--speed-text-valign': 'center',
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
@@ -4055,10 +4155,12 @@
             '--ms-per-click-y-offset-vh': -1.78,
             '--ms-per-click-letter-spacing-px': 1,
             '--ms-per-click-text-align': 'right',
+            '--ms-per-click-text-valign': 'center',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
             '--result-text-align': 'center',
+            '--result-text-valign': 'center',
             '--dev-panel-width-px': 455,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
@@ -4374,6 +4476,7 @@
             '--text-y-offset-vh': -0.49,
             '--text-letter-spacing-px': 0,
             '--start-text-align': 'center',
+            '--start-text-valign': 'center',
             '--try-again-text-font-size-vw': 20,
             '--try-again-text-x-offset-vw': 0,
             '--try-again-text-y-offset-vh': -0.49,
@@ -4382,25 +4485,30 @@
             '--round-font-size-vw': 5.43,
             '--round-letter-spacing-px': 0,
             '--round-text-align': 'center',
+            '--round-text-valign': 'center',
             '--target-font-size-vw': 14.75,
             '--target-x-offset-vw': 23.79,
             '--target-y-offset-vh': -34.47,
             '--target-letter-spacing-px': 0,
             '--target-text-align': 'center',
+            '--target-text-valign': 'center',
             '--speed-font-size-vw': 5.43,
             '--speed-x-offset-vw': 24.76,
             '--speed-y-offset-vh': -21.84,
             '--speed-letter-spacing-px': 0,
             '--speed-text-align': 'center',
+            '--speed-text-valign': 'center',
             '--ms-per-click-font-size-vw': 3.6,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -26.84,
             '--ms-per-click-letter-spacing-px': 0,
             '--ms-per-click-text-align': 'center',
+            '--ms-per-click-text-valign': 'center',
             '--result-font-size-vw': 15.94,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': 1.46,
             '--result-text-align': 'center',
+            '--result-text-valign': 'center',
             '--round-breakdown-width-px': 280,
             '--round-breakdown-height-px': 350,
             '--round-breakdown-left-px': 1240,
@@ -5883,13 +5991,14 @@
             }
         }
 
-        // Text alignment dropdowns (left/center/right) for All Text - per
-        // explicit request. Each select's own data-var names the exact
-        // cssVar it drives (e.g. --start-text-align), so this one generic
-        // handler covers all 6 texts x 2 tabs without a per-text map, same
+        // Text alignment dropdowns (left/center/right, and top/center/
+        // bottom) for All Text - per explicit request. Each select's own
+        // data-var names the exact cssVar it drives (e.g. --start-text-
+        // align / --start-text-valign), so this one generic handler covers
+        // both dropdowns x 6 texts x 2 tabs without a per-text map, same
         // resolveDevControlId split as every slider/color above.
         function setupTextAlignSelects() {
-            document.querySelectorAll('.dev-align-select').forEach(select => {
+            document.querySelectorAll('.dev-align-select, .dev-valign-select').forEach(select => {
                 select.addEventListener('change', () => {
                     const { isMobile } = resolveDevControlId(select.id);
                     (isMobile ? mobileCssVars : cssVars)[select.dataset.var] = select.value;
@@ -5899,9 +6008,12 @@
         }
 
         // Alignment also sets the position ANCHOR point - see the
-        // .align-left/.align-right CSS. Called from applyActiveVars() so it
-        // re-evaluates on every cssVar change, breakpoint cross, and
-        // settings load, not just when a select itself changes.
+        // .align-left/.align-right CSS (horizontal) and the --anchor-ty
+        // custom property (vertical, set per-element below since multiple
+        // elements share the same var name but need independent values).
+        // Called from applyActiveVars() so it re-evaluates on every cssVar
+        // change, breakpoint cross, and settings load, not just when a
+        // select itself changes.
         const TEXT_ALIGN_TARGET_ELEMENT_IDS = {
             '--start-text-align': 'startButton',
             '--round-text-align': 'gameText',
@@ -5910,6 +6022,23 @@
             '--ms-per-click-text-align': 'msPerClickDisplay',
             '--result-text-align': 'resultText',
         };
+        // Top/Center/Bottom - per explicit request ("provide another one
+        // for top, center, and bottom so together I can get 'top-left'").
+        // Combines with horizontal align independently: horizontal is still
+        // class-based (.align-left/.align-right, unchanged - the resize-
+        // handle code reads those classes directly, see
+        // getTextEditAnchorSide()), vertical is a per-element --anchor-ty
+        // custom property so both axes compose freely without a 3x3
+        // combinatorial CSS rule matrix.
+        const TEXT_VALIGN_TARGET_ELEMENT_IDS = {
+            '--start-text-valign': 'startButton',
+            '--round-text-valign': 'gameText',
+            '--target-text-valign': 'targetCount',
+            '--speed-text-valign': 'speedDisplay',
+            '--ms-per-click-text-valign': 'msPerClickDisplay',
+            '--result-text-valign': 'resultText',
+        };
+        const VALIGN_TY = { top: '0%', center: '-50%', bottom: '-100%' };
         function applyTextAlignAnchors() {
             const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
@@ -5917,6 +6046,11 @@
                 const align = activeCssVars[varName] || 'center';
                 el.classList.remove('align-left', 'align-center', 'align-right');
                 el.classList.add('align-' + align);
+            });
+            Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
+                const el = document.getElementById(elId);
+                const valign = activeCssVars[varName] || 'center';
+                el.style.setProperty('--anchor-ty', VALIGN_TY[valign] || VALIGN_TY.center);
             });
         }
 
