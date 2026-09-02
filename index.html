@@ -626,6 +626,7 @@
             padding: 0;
             font-size: calc(var(--text-font-size-vw) * 1vw);
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
+            line-height: var(--text-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--round-fill-color);
@@ -778,6 +779,7 @@
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--round-font-size-vw) * 1vw);
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
+            line-height: var(--round-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--round-dock-fill-color);
@@ -836,6 +838,7 @@
                side, per direct visual confirmation. */
             transform: translate(-50%, var(--anchor-ty, -50%)) rotate(90deg);
             font-size: calc(var(--result-font-size-vw) * 1vw);
+            line-height: var(--result-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             text-align: var(--result-text-align, center);
@@ -892,6 +895,7 @@
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--target-font-size-vw) * 1vw);
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
+            line-height: var(--target-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--target-fill-color);
@@ -914,6 +918,7 @@
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--speed-font-size-vw) * 1vw);
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
+            line-height: var(--speed-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--speed-fill-color);
@@ -942,6 +947,7 @@
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--ms-per-click-font-size-vw) * 1vw);
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
+            line-height: var(--ms-per-click-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--ms-per-click-fill-color);
@@ -2664,6 +2670,11 @@
                     <span class="dev-value" id="valueTextLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Button Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueTextLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectStartTextAlign" data-var="--start-text-align">
                         <option value="left">Left</option>
@@ -2827,6 +2838,11 @@
                     <span class="dev-value" id="valueRoundLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Text Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderRoundLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueRoundLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectRoundTextAlign" data-var="--round-text-align">
                         <option value="left">Left</option>
@@ -2917,6 +2933,11 @@
                     <span class="dev-value" id="valueResultY">-20</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueResultLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectResultTextAlign" data-var="--result-text-align">
                         <option value="left">Left</option>
@@ -2998,6 +3019,11 @@
                     <span class="dev-value" id="valueTargetLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderTargetLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueTargetLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectTargetTextAlign" data-var="--target-text-align">
                         <option value="left">Left</option>
@@ -3057,6 +3083,11 @@
                     <span class="dev-label">Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueSpeedLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueSpeedLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -3120,6 +3151,11 @@
                     <span class="dev-label">Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMsPerClickLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMsPerClickLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -3569,6 +3605,11 @@
                     <span class="dev-value" id="valueMobileTextLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Button Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileTextLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileStartTextAlign" data-var="--start-text-align">
                         <option value="left">Left</option>
@@ -3658,6 +3699,11 @@
                     <span class="dev-value" id="valueMobileRoundLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Text Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileRoundLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileRoundTextAlign" data-var="--round-text-align">
                         <option value="left">Left</option>
@@ -3697,6 +3743,11 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultY" min="-50" max="50" step="0.01" value="-20">
                     <span class="dev-value" id="valueMobileResultY">-20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileResultLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -3782,6 +3833,11 @@
                     <span class="dev-value" id="valueMobileTargetLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileTargetLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileTargetTextAlign" data-var="--target-text-align">
                         <option value="left">Left</option>
@@ -3846,6 +3902,11 @@
                     <span class="dev-value" id="valueMobileSpeedLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileSpeedLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileSpeedTextAlign" data-var="--speed-text-align">
                         <option value="left">Left</option>
@@ -3908,6 +3969,11 @@
                     <span class="dev-label">Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileMsPerClickLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileMsPerClickLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4088,6 +4154,7 @@
             '--text-x-offset-vw': -0.16,
             '--text-y-offset-vh': -13.75,
             '--text-letter-spacing-px': 10,
+            '--text-line-height': 1.2,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
             // Try Again's own font-size/position, independent from Start's -
@@ -4105,6 +4172,7 @@
             '--round-dock-y-offset-vh': 41.37,
             '--round-font-size-vw': 7.51,
             '--round-letter-spacing-px': 1,
+            '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'center',
             // The "?" in "Try again?" blinks while that text is shown - per
@@ -4137,12 +4205,14 @@
             '--target-x-offset-vw': 47.78,
             '--target-y-offset-vh': -32.89,
             '--target-letter-spacing-px': 0,
+            '--target-line-height': 1.2,
             '--target-text-align': 'right',
             '--target-text-valign': 'center',
             '--speed-font-size-vw': 7.51,
             '--speed-x-offset-vw': 38.23,
             '--speed-y-offset-vh': 42.65,
             '--speed-letter-spacing-px': 6.5,
+            '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
             '--speed-text-valign': 'center',
             // Shows gameState.maxTimeMs as "___ms / click", above the
@@ -4154,10 +4224,12 @@
             '--ms-per-click-x-offset-vw': 47.72,
             '--ms-per-click-y-offset-vh': -1.78,
             '--ms-per-click-letter-spacing-px': 1,
+            '--ms-per-click-line-height': 1.2,
             '--ms-per-click-text-align': 'right',
             '--ms-per-click-text-valign': 'center',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
+            '--result-line-height': 1.2,
             '--result-y-offset-vh': -13,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
@@ -4475,6 +4547,7 @@
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -0.49,
             '--text-letter-spacing-px': 0,
+            '--text-line-height': 1.2,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
             '--try-again-text-font-size-vw': 20,
@@ -4484,28 +4557,33 @@
             '--round-dock-y-offset-vh': 46.12,
             '--round-font-size-vw': 5.43,
             '--round-letter-spacing-px': 0,
+            '--round-line-height': 1.2,
             '--round-text-align': 'center',
             '--round-text-valign': 'center',
             '--target-font-size-vw': 14.75,
             '--target-x-offset-vw': 23.79,
             '--target-y-offset-vh': -34.47,
             '--target-letter-spacing-px': 0,
+            '--target-line-height': 1.2,
             '--target-text-align': 'center',
             '--target-text-valign': 'center',
             '--speed-font-size-vw': 5.43,
             '--speed-x-offset-vw': 24.76,
             '--speed-y-offset-vh': -21.84,
             '--speed-letter-spacing-px': 0,
+            '--speed-line-height': 1.2,
             '--speed-text-align': 'center',
             '--speed-text-valign': 'center',
             '--ms-per-click-font-size-vw': 3.6,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -26.84,
             '--ms-per-click-letter-spacing-px': 0,
+            '--ms-per-click-line-height': 1.2,
             '--ms-per-click-text-align': 'center',
             '--ms-per-click-text-valign': 'center',
             '--result-font-size-vw': 15.94,
             '--result-x-offset-vw': 0,
+            '--result-line-height': 1.2,
             '--result-y-offset-vh': 1.46,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
@@ -5863,6 +5941,7 @@
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
             'sliderTextLetterSpacing': '--text-letter-spacing-px',
+            'sliderTextLineHeight': '--text-line-height',
             'sliderTryAgainTextFontSize': '--try-again-text-font-size-vw',
             'sliderTryAgainTextX': '--try-again-text-x-offset-vw',
             'sliderTryAgainTextY': '--try-again-text-y-offset-vh',
@@ -5870,6 +5949,7 @@
             'sliderRoundDockY': '--round-dock-y-offset-vh',
             'sliderRoundFontSize': '--round-font-size-vw',
             'sliderRoundLetterSpacing': '--round-letter-spacing-px',
+            'sliderRoundLineHeight': '--round-line-height',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
             'sliderTryAgainRotateSpeed': '--try-again-rotate-speed-ms',
@@ -5885,17 +5965,21 @@
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
             'sliderTargetLetterSpacing': '--target-letter-spacing-px',
+            'sliderTargetLineHeight': '--target-line-height',
             'sliderSpeedFontSize': '--speed-font-size-vw',
             'sliderSpeedX': '--speed-x-offset-vw',
             'sliderSpeedY': '--speed-y-offset-vh',
             'sliderSpeedLetterSpacing': '--speed-letter-spacing-px',
+            'sliderSpeedLineHeight': '--speed-line-height',
             'sliderMsPerClickFontSize': '--ms-per-click-font-size-vw',
             'sliderMsPerClickX': '--ms-per-click-x-offset-vw',
             'sliderMsPerClickY': '--ms-per-click-y-offset-vh',
             'sliderMsPerClickLetterSpacing': '--ms-per-click-letter-spacing-px',
+            'sliderMsPerClickLineHeight': '--ms-per-click-line-height',
             'sliderResultFontSize': '--result-font-size-vw',
             'sliderResultX': '--result-x-offset-vw',
             'sliderResultY': '--result-y-offset-vh',
+            'sliderResultLineHeight': '--result-line-height',
         };
 
         // Desktop slider id -> extrusionVars/mobileExtrusionVars key -
