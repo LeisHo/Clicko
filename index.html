@@ -655,6 +655,7 @@
             left: calc(50% + var(--try-again-text-x-offset-vw) * 1vw);
             top: calc(50% + var(--try-again-text-y-offset-vh) * 1vh);
             font-size: calc(var(--try-again-text-font-size-vw) * 1vw);
+            text-shadow: var(--try-again-extrusion-shadow);
         }
 
         .start-button.pressed {
@@ -2544,6 +2545,17 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
                 </div>
+                <!-- Try Again's own border/extrusion colors - independent
+                     from Start's, per explicit request. Depth/thickness
+                     stay shared (only color was asked for). -->
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTryAgainOverallBorder" value="#5c191d">
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="9">
@@ -2555,8 +2567,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="11">
-                    <span class="dev-value" id="valueRoundOverallBorderThickness">11</span>
+                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="7">
+                    <span class="dev-value" id="valueRoundOverallBorderThickness">7</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Color:</span>
@@ -2723,8 +2735,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="7">
-                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">7</span>
+                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Round Text Overall Border Color:</span>
@@ -2808,8 +2820,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueTargetOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueTargetOverallBorderThickness">4</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -2861,8 +2873,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueSpeedOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueSpeedOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -2916,8 +2928,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="5">
-                    <span class="dev-value" id="valueMsPerClickOverallBorderThickness">5</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMsPerClickOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -3379,6 +3391,14 @@
                     <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Try Again Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainExtrusionBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainOverallBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
@@ -3389,8 +3409,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueMobileRoundOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueMobileRoundOverallBorderThickness">5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Overall Border Color:</span>
@@ -3546,8 +3566,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueMobileTargetOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileTargetOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -3599,8 +3619,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedOverallBorderThickness" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueMobileSpeedOverallBorderThickness">2</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileSpeedOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -3652,8 +3672,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="5">
-                    <span class="dev-value" id="valueMobileMsPerClickOverallBorderThickness">5</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueMobileMsPerClickOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border Color:</span>
@@ -3917,13 +3937,20 @@
             // as before (unaffected).
             roundDepth: 9,
             roundBorderColor: '#c41516',
-            roundOverallBorderThickness: 11,
+            roundOverallBorderThickness: 7,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
             roundOverallBorderColor: '#5c191d',
+            // Try Again's own border/extrusion colors, independent from
+            // Start's above - per explicit request. Depth/thickness stay
+            // shared (roundDepth/roundOverallBorderThickness) since only
+            // color was asked for; starts matching Start's own colors
+            // until tuned, same convention as the font-size/position split.
+            tryAgainBorderColor: '#c41516',
+            tryAgainOverallBorderColor: '#5c191d',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
             // BUTTON instead of Round Text - repurposed since Round Text no
@@ -3936,7 +3963,7 @@
             // are read directly by .game-text's CSS, unconditionally.
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 7,
+            roundDockOverallBorderThickness: 1,
             roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             // Target/Speed now also get their OWN border/extrusion color,
@@ -3967,9 +3994,9 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 5,
-            targetOverallBorderThickness: 10,
-            speedOverallBorderThickness: 9,
-            msPerClickOverallBorderThickness: 5,
+            targetOverallBorderThickness: 4,
+            speedOverallBorderThickness: 1,
+            msPerClickOverallBorderThickness: 1,
         };
 
         // Mobile counterpart to extrusionVars above - same shape, minus
@@ -3987,9 +4014,11 @@
             roundBorderColor: '#c41516',
             roundOverallBorderThickness: 5,
             roundOverallBorderColor: '#c41516',
+            tryAgainBorderColor: '#c41516',
+            tryAgainOverallBorderColor: '#c41516',
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 5,
+            roundDockOverallBorderThickness: 1,
             roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             targetBorderColor: '#ff0000',
@@ -4007,9 +4036,9 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
-            targetOverallBorderThickness: 10,
-            speedOverallBorderThickness: 9,
-            msPerClickOverallBorderThickness: 5,
+            targetOverallBorderThickness: 1,
+            speedOverallBorderThickness: 1,
+            msPerClickOverallBorderThickness: 1,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
@@ -4089,6 +4118,9 @@
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
+            // Try Again's own colors, same depth/thickness as Start (see
+            // .start-button.try-again-state's CSS) - per explicit request.
+            root.setProperty('--try-again-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.tryAgainBorderColor, ext.roundOverallBorderThickness, ext.tryAgainOverallBorderColor, ext.overallBorderEnabled));
             // Round Text's one permanent extrusion look - read directly by
             // .game-text's CSS, unconditionally.
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
@@ -5575,6 +5607,8 @@
                 'colorResultLoseBorder': 'loseBorderColor',
                 'colorOverallBorder': 'overallBorderColor',
                 'colorRoundExtrusionBorder': 'roundBorderColor',
+                'colorTryAgainExtrusionBorder': 'tryAgainBorderColor',
+                'colorTryAgainOverallBorder': 'tryAgainOverallBorderColor',
                 'colorTargetExtrusionBorder': 'targetBorderColor',
                 'colorSpeedExtrusionBorder': 'speedBorderColor',
                 'colorMsPerClickExtrusionBorder': 'msPerClickBorderColor',
