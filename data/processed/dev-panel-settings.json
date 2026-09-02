@@ -48,7 +48,7 @@
     "--try-again-rotate-speed-ms": 1500,
     "--try-again-rotate-tweening": "linear",
     "--try-again-rotate-min-width-scale": 0,
-    "--try-again-rotate-extrusion-matches-glyph": 1,
+    "--try-again-rotate-extrusion-matches-glyph": 0,
     "--round-blink1-hide-ms": 250,
     "--round-blink1-show-ms": 250,
     "--round-blink2-hide-ms": 250,
