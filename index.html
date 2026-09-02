@@ -2191,6 +2191,7 @@
             <button onclick="copySettings()">COPY</button>
             <button onclick="resetDevSettings()">RESET</button>
             <button onclick="saveSettings()">SAVE</button>
+            <span id="saveSyncStatus" class="dev-save-sync-status"></span>
         </div>
 
         <div class="dev-row">
@@ -6088,7 +6089,14 @@
             const el = document.getElementById(elId);
             if (!el) return;
             const w = textEditWrapWidths[elId];
-            el.style.maxWidth = (w !== null && w !== undefined) ? w + 'px' : '';
+            // width, not max-width - these elements are shrink-to-fit
+            // (inline-block/auto), so max-width can only ever CAP them
+            // smaller than their natural content size, never force them
+            // WIDER than it - confirmed via direct report ("it lets me
+            // shrink the box, but not expand it"). An explicit width both
+            // shrinks (forcing a wrap) and expands (adding empty space
+            // past the content) correctly.
+            el.style.width = (w !== null && w !== undefined) ? w + 'px' : '';
         }
         function applyAllTextEditWrapWidths() {
             Object.keys(textEditWrapWidths).forEach(applyTextEditWrapWidth);
