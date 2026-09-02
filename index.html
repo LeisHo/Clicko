@@ -7773,8 +7773,18 @@
             // the win condition - reaching target correctly was silently
             // turned into a loss almost every time. Found via direct
             // report ("I click the correct times but it doesnt say i win").
+            //
+            // Skipping the re-arm alone wasn't enough - confirmed via a
+            // live instrumented test that the PREVIOUS tap's still-pending
+            // timer (armed one tap ago, before target was reached) fires on
+            // its own regardless, since nothing was cancelling it. Must
+            // explicitly clear it too once target is reached, not just
+            // decline to renew it.
             if (gameState.currentTapCount < gameState.targetCount) {
                 armPerClickTimeout();
+            } else if (gameState.perClickTimeoutId) {
+                clearTimeout(gameState.perClickTimeoutId);
+                gameState.perClickTimeoutId = null;
             }
             // Reaching exact target does NOT win immediately - per explicit
             // bug report ("I win if I just keep clicking"): winning
