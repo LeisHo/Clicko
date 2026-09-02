@@ -5047,7 +5047,18 @@
             // (e.g. if the ceiling's own increase is set slower than the
             // floor's) so the random range below is never inverted/negative.
             const targetCeiling = Math.max(targetFloor, gameState.targetCeilingBase + (gameState.currentRound - 1) * gameState.targetCeilingIncreasePerRound);
-            gameState.targetCount = Math.floor(Math.random() * (targetCeiling - targetFloor + 1)) + targetFloor;
+            // Re-roll until it differs from the PREVIOUS round's target -
+            // per explicit request that target numbers never repeat back to
+            // back. Only re-rolls when there's a real previous round to
+            // avoid (skipped on round 1) AND the range actually has more
+            // than one possible value (targetCeiling > targetFloor) - a
+            // single-value range can never avoid repeating by definition,
+            // so that guard prevents an infinite loop rather than silently
+            // failing to satisfy an impossible constraint.
+            const previousTargetCount = gameState.targetCount;
+            do {
+                gameState.targetCount = Math.floor(Math.random() * (targetCeiling - targetFloor + 1)) + targetFloor;
+            } while (gameState.currentRound > 1 && targetCeiling > targetFloor && gameState.targetCount === previousTargetCount);
             // Round 1 plays at exactly the Starting Time slider value, no
             // decrease applied - per explicit request/correction. startGame()
             // already sets gameState.maxTimeMs straight from that slider, so
