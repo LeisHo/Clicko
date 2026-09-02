@@ -631,7 +631,7 @@
             color: var(--extrusion-fill-color);
             text-shadow: var(--round-extrusion-shadow);
             text-align: var(--start-text-align, center);
-            white-space: nowrap;
+            white-space: pre-line;
             background: none;
             border: none;
             box-shadow: none;
@@ -691,9 +691,11 @@
             background: #fff;
             border: 2px solid #000;
             border-radius: 4px;
-            padding: 0 6px;
+            padding: 4px 6px;
             width: 6em;
             text-align: center;
+            resize: none;
+            overflow: hidden;
         }
 
         .game-text {
@@ -708,7 +710,7 @@
             color: var(--extrusion-fill-color);
             text-shadow: var(--round-dock-extrusion-shadow);
             text-align: var(--round-text-align, center);
-            white-space: nowrap;
+            white-space: pre-line;
             pointer-events: none;
             z-index: 10;
         }
@@ -764,7 +766,7 @@
             font-weight: 700;
             font-family: var(--extrusion-font);
             text-align: var(--result-text-align, center);
-            white-space: nowrap;
+            white-space: pre-line;
             pointer-events: none;
             z-index: 10;
         }
@@ -824,7 +826,7 @@
             text-align: var(--target-text-align, center);
             pointer-events: none;
             z-index: 10;
-            white-space: nowrap;
+            white-space: pre-line;
         }
 
         .target-count.hidden {
@@ -846,7 +848,7 @@
             text-align: var(--speed-text-align, center);
             pointer-events: none;
             z-index: 10;
-            white-space: nowrap;
+            white-space: pre-line;
         }
 
         .speed-display.hidden {
@@ -874,7 +876,7 @@
             text-align: var(--ms-per-click-text-align, center);
             pointer-events: none;
             z-index: 10;
-            white-space: nowrap;
+            white-space: pre-line;
         }
 
         .ms-per-click-display.hidden {
@@ -3726,10 +3728,10 @@
             // since Round Text no longer has a big state at all and the
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
-            '--text-font-size-vw': 12.94,
+            '--text-font-size-vw': 12.39,
             '--text-x-offset-vw': -0.16,
             '--text-y-offset-vh': -13.75,
-            '--text-letter-spacing-px': 0,
+            '--text-letter-spacing-px': 10,
             '--start-text-align': 'center',
             // Try Again's own font-size/position, independent from Start's -
             // per explicit request. Starts matching Start's own values until
@@ -3742,10 +3744,10 @@
             // CSS comment). Font-size now has its own independent slider
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
-            '--round-dock-x-offset-vw': -43,
-            '--round-dock-y-offset-vh': 42.7,
+            '--round-dock-x-offset-vw': -40.76,
+            '--round-dock-y-offset-vh': 42.65,
             '--round-font-size-vw': 3.3,
-            '--round-letter-spacing-px': 0,
+            '--round-letter-spacing-px': 6.5,
             '--round-text-align': 'center',
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
@@ -3772,25 +3774,25 @@
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
-            '--target-font-size-vw': 11.74,
-            '--target-x-offset-vw': 39.5,
+            '--target-font-size-vw': 18.33,
+            '--target-x-offset-vw': 41.15,
             '--target-y-offset-vh': -32.71,
             '--target-letter-spacing-px': 0,
             '--target-text-align': 'center',
             '--speed-font-size-vw': 3.3,
-            '--speed-x-offset-vw': 39.47,
-            '--speed-y-offset-vh': -14.85,
-            '--speed-letter-spacing-px': 0,
-            '--speed-text-align': 'center',
+            '--speed-x-offset-vw': 38.23,
+            '--speed-y-offset-vh': 42.65,
+            '--speed-letter-spacing-px': 6.5,
+            '--speed-text-align': 'right',
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 2,
-            '--ms-per-click-x-offset-vw': 40.2,
-            '--ms-per-click-y-offset-vh': -14.88,
-            '--ms-per-click-letter-spacing-px': 0,
+            '--ms-per-click-font-size-vw': 1.84,
+            '--ms-per-click-x-offset-vw': 40.48,
+            '--ms-per-click-y-offset-vh': -8.87,
+            '--ms-per-click-letter-spacing-px': -3.5,
             '--ms-per-click-text-align': 'center',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
@@ -5339,15 +5341,18 @@
                 // request - preventDefault suppresses the native context menu.
                 el.addEventListener('contextmenu', (e) => {
                     if (!textEditModeEnabled) return;
-                    if (el.querySelector('input.text-edit-input')) return; // already editing
+                    if (el.querySelector('.text-edit-input')) return; // already editing
                     e.stopPropagation();
                     e.preventDefault();
                     const slot = cfg.getSlot();
                     const prefix = cfg.getPrefix ? cfg.getPrefix() : null;
                     const originalHTML = el.innerHTML;
-                    const input = document.createElement('input');
-                    input.type = 'text';
+                    // <textarea>, not <input> - Shift+Enter needs to insert
+                    // an actual newline, which a single-line <input> can
+                    // never hold, per explicit request.
+                    const input = document.createElement('textarea');
                     input.className = 'text-edit-input';
+                    input.rows = 1;
                     input.value = overrideOr(slot);
                     el.innerHTML = '';
                     el.appendChild(input);
@@ -5368,7 +5373,10 @@
                     }
                     input.addEventListener('blur', commit);
                     input.addEventListener('keydown', (ev) => {
-                        if (ev.key === 'Enter') input.blur();
+                        // Plain Enter commits; Shift+Enter inserts a newline
+                        // (textarea's own default behavior - just don't
+                        // intercept it) - per explicit request.
+                        if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); input.blur(); }
                         else if (ev.key === 'Escape') cancel();
                     });
                     input.addEventListener('click', (ev) => ev.stopPropagation());
