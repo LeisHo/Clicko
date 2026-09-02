@@ -730,7 +730,7 @@
                extrusion trail, so this layer can never itself look like an
                independent glyph again. */
             color: transparent;
-            text-shadow: var(--try-again-extrusion-shadow);
+            text-shadow: var(--try-again-question-mark-extrusion-shadow);
         }
         #startButtonFlashCharGlyph {
             position: relative;
@@ -2839,6 +2839,20 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="0.05">
                     <span class="dev-value" id="valueTryAgainQuestionMarkY">0.05</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkExtrusionDepth" min="0" max="30" step="1" value="9">
+                    <span class="dev-value" id="valueTryAgainQuestionMarkExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkOverallBorderThickness" min="0" max="30" step="1" value="17">
+                    <span class="dev-value" id="valueTryAgainQuestionMarkOverallBorderThickness">17</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorTryAgainQuestionMarkOverallBorder" value="#59181b">
+                </div>
                 <!-- Checked (default): extrusion/border follows the glyph's
                      own scaleX exactly - the whole token transforms as one
                      unit. Unchecked: extrusion/border still tracks the
@@ -3746,6 +3760,20 @@
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="5.05">
                     <span class="dev-value" id="valueMobileTryAgainQuestionMarkY">5.05</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkExtrusionDepth" min="0" max="30" step="1" value="9">
+                    <span class="dev-value" id="valueMobileTryAgainQuestionMarkExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkOverallBorderThickness" min="0" max="30" step="1" value="5">
+                    <span class="dev-value" id="valueMobileTryAgainQuestionMarkOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileTryAgainQuestionMarkOverallBorder" value="#c41516">
+                </div>
             </div>
         </div>
 
@@ -4416,6 +4444,17 @@
             // question mark"). Starts matching tryAgainBorderColor above
             // until tuned, same convention as every other split.
             questionMarkFillColor: '#ffffff',
+            // The "?" glyph's own extrusion depth/border, independent from
+            // "Try again" text's roundDepth/roundOverallBorderThickness/
+            // tryAgainOverallBorderColor above - per explicit follow-up
+            // request ("also provde the question mark its own extrusion
+            // and border sliders"). questionMarkFillColor above doubles as
+            // the extrusion's own trail color, same one-picker-drives-both
+            // convention as every other element's "Text Color". Starts
+            // matching the shared values above until tuned.
+            questionMarkDepth: 9,
+            questionMarkOverallBorderThickness: 17,
+            questionMarkOverallBorderColor: '#59181b',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
             // BUTTON instead of Round Text - repurposed since Round Text no
@@ -4482,6 +4521,9 @@
             tryAgainBorderColor: '#c41516',
             tryAgainOverallBorderColor: '#c41516',
             questionMarkFillColor: '#c41516',
+            questionMarkDepth: 9,
+            questionMarkOverallBorderThickness: 5,
+            questionMarkOverallBorderColor: '#c41516',
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
             roundDockOverallBorderThickness: 5,
@@ -4639,6 +4681,9 @@
             // Try Again's own colors, same depth/thickness as Start (see
             // .start-button.try-again-state's CSS) - per explicit request.
             root.setProperty('--try-again-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.tryAgainBorderColor, ext.roundOverallBorderThickness, ext.tryAgainOverallBorderColor, ext.overallBorderEnabled));
+            // The "?" glyph's own extrusion/border, independent from the
+            // "Try again" text above - per explicit request.
+            root.setProperty('--try-again-question-mark-extrusion-shadow', buildCombinedShadow(ext.questionMarkDepth, ext.questionMarkFillColor, ext.questionMarkOverallBorderThickness, ext.questionMarkOverallBorderColor, ext.overallBorderEnabled));
             // Round Text's one permanent extrusion look - read directly by
             // .game-text's CSS, unconditionally.
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
@@ -6251,6 +6296,8 @@
             'sliderRoundOverallBorderThickness': 'roundOverallBorderThickness',
             'sliderRoundDockExtrusionDepth': 'roundDockDepth',
             'sliderRoundDockOverallBorderThickness': 'roundDockOverallBorderThickness',
+            'sliderTryAgainQuestionMarkExtrusionDepth': 'questionMarkDepth',
+            'sliderTryAgainQuestionMarkOverallBorderThickness': 'questionMarkOverallBorderThickness',
         };
 
         // Given any slider/color id (desktop OR its "Mobile"-infixed twin),
@@ -6774,6 +6821,7 @@
                 'colorTryAgainExtrusionBorder': 'tryAgainBorderColor',
                 'colorTryAgainOverallBorder': 'tryAgainOverallBorderColor',
                 'colorTryAgainQuestionMarkFill': 'questionMarkFillColor',
+                'colorTryAgainQuestionMarkOverallBorder': 'questionMarkOverallBorderColor',
                 'colorTargetExtrusionBorder': 'targetBorderColor',
                 'colorSpeedExtrusionBorder': 'speedBorderColor',
                 'colorMsPerClickExtrusionBorder': 'msPerClickBorderColor',
@@ -7712,7 +7760,22 @@
             // report that the reactive check above never fires at all if
             // the player simply stops tapping (there's no later tap to
             // react to). See armPerClickTimeout().
-            armPerClickTimeout();
+            //
+            // EXCEPT on the tap that reaches exactly targetCount: there is
+            // no further tap being waited for at that point (comment below
+            // - winning is intentionally decided by the round countdown,
+            // not this tap), so re-arming here was a real bug - the
+            // countdown's own win-check fires at maxTimeMs*targetCount from
+            // the FIRST tap, while this timer fires at (this tap's time) +
+            // maxTimeMs, which for any targetCount > 1 is essentially
+            // always EARLIER. That falsely declared "too-slow" and
+            // cancelled the round countdown before it ever got to check
+            // the win condition - reaching target correctly was silently
+            // turned into a loss almost every time. Found via direct
+            // report ("I click the correct times but it doesnt say i win").
+            if (gameState.currentTapCount < gameState.targetCount) {
+                armPerClickTimeout();
+            }
             // Reaching exact target does NOT win immediately - per explicit
             // bug report ("I win if I just keep clicking"): winning
             // instantly on the tap that reaches target meant rapid
@@ -7823,6 +7886,7 @@
             roundHistory.push({
                 round: gameState.currentRound,
                 target: gameState.targetCount,
+                clicks: currentRoundTaps.length,
                 avgGapMs: gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : null,
                 fastestGapMs: gaps.length ? Math.min(...gaps) : null,
                 slowestGapMs: gaps.length ? Math.max(...gaps) : null,
@@ -7894,6 +7958,7 @@
                 <div class="round-breakdown-row">
                     <div class="round-breakdown-row-title">Round ${r.round}${r.won ? ' (won)' : ' (lost)'}</div>
                     <div>Click Count Target: ${r.target}</div>
+                    <div>Clicks: ${r.clicks}</div>
                     <div>Average Click Speed: ${fmtMs(r.avgGapMs)}</div>
                     <div>Fastest Click: ${fmtMs(r.fastestGapMs)}</div>
                     <div>Slowest Click: ${fmtMs(r.slowestGapMs)}</div>
