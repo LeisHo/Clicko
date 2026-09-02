@@ -628,7 +628,7 @@
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
-            color: var(--extrusion-fill-color);
+            color: var(--round-fill-color);
             text-shadow: var(--round-extrusion-shadow);
             text-align: var(--start-text-align, center);
             white-space: pre-line;
@@ -655,6 +655,7 @@
             left: calc(50% + var(--try-again-text-x-offset-vw) * 1vw);
             top: calc(50% + var(--try-again-text-y-offset-vh) * 1vh);
             font-size: calc(var(--try-again-text-font-size-vw) * 1vw);
+            color: var(--try-again-fill-color);
             text-shadow: var(--try-again-extrusion-shadow);
         }
 
@@ -698,14 +699,14 @@
             top: 0;
             display: inline-block;
             transform-origin: center;
-            color: var(--extrusion-fill-color);
-            text-shadow: var(--round-extrusion-shadow);
+            color: var(--try-again-fill-color);
+            text-shadow: var(--try-again-extrusion-shadow);
         }
         #startButtonFlashCharGlyph {
             position: relative;
             display: inline-block;
             transform-origin: center;
-            color: var(--extrusion-fill-color);
+            color: var(--try-again-fill-color);
         }
 
         /* Text Edit Mode's inline input - sized to roughly match the huge
@@ -765,6 +766,8 @@
             opacity: 0.85;
             cursor: ew-resize;
             pointer-events: auto;
+            touch-action: none;
+            user-select: none;
             z-index: 1000;
         }
 
@@ -777,7 +780,7 @@
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
-            color: var(--extrusion-fill-color);
+            color: var(--round-dock-fill-color);
             text-shadow: var(--round-dock-extrusion-shadow);
             text-align: var(--round-text-align, center);
             white-space: pre-line;
@@ -891,7 +894,7 @@
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
-            color: var(--extrusion-fill-color);
+            color: var(--target-fill-color);
             text-shadow: var(--target-extrusion-shadow);
             text-align: var(--target-text-align, center);
             pointer-events: none;
@@ -913,7 +916,7 @@
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
-            color: var(--extrusion-fill-color);
+            color: var(--speed-fill-color);
             text-shadow: var(--speed-extrusion-shadow);
             text-align: var(--speed-text-align, center);
             pointer-events: none;
@@ -941,7 +944,7 @@
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             font-weight: 700;
             font-family: var(--extrusion-font);
-            color: var(--extrusion-fill-color);
+            color: var(--ms-per-click-fill-color);
             text-shadow: var(--ms-per-click-extrusion-shadow);
             text-align: var(--ms-per-click-text-align, center);
             pointer-events: none;
@@ -2570,17 +2573,9 @@
                     </select>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <span class="dev-label">Win/Lose Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueExtrusionDepth">4</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Fill Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorExtrusionFill" value="#ffffff">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border:</span>
@@ -2591,7 +2586,7 @@
                     <input type="color" class="dev-color-picker" id="colorOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderOverallBorderThickness" min="0" max="20" step="1" value="5">
                     <span class="dev-value" id="valueOverallBorderThickness">5</span>
                 </div>
@@ -2629,11 +2624,11 @@
                     <span class="dev-value" id="valueRoundExtrusionDepth">9</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Button Extrusion Color:</span>
+                    <span class="dev-label">Button Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Button Overall Border Thickness (px):</span>
+                    <span class="dev-label">Button Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="7">
                     <span class="dev-value" id="valueRoundOverallBorderThickness">7</span>
                 </div>
@@ -2673,7 +2668,7 @@
                     <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Extrusion Color:</span>
+                    <span class="dev-label">Try Again Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
@@ -2774,40 +2769,40 @@
                      text settings share one consistent order - the unique
                      blink-sequence fields stay grouped at the end. -->
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Font Size (vw):</span>
+                    <span class="dev-label">Text Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderRoundFontSize" min="1" max="20" step="0.01" value="3.3">
                     <span class="dev-value" id="valueRoundFontSize">3.3</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Extrusion Depth (px):</span>
+                    <span class="dev-label">Text Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Overall Border Thickness (px):</span>
+                    <span class="dev-label">Text Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Overall Border Color:</span>
+                    <span class="dev-label">Text Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorRoundDockOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text X Offset (vw):</span>
+                    <span class="dev-label">Text X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-43">
                     <span class="dev-value" id="valueRoundDockX">-43</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Y Offset (vh):</span>
+                    <span class="dev-label">Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
                     <span class="dev-value" id="valueRoundDockY">42.7</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Letter Spacing (px):</span>
+                    <span class="dev-label">Text Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueRoundLetterSpacing">0</span>
                 </div>
@@ -2939,11 +2934,11 @@
                     <span class="dev-value" id="valueTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorTargetExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueTargetOverallBorderThickness">4</span>
                 </div>
@@ -2992,11 +2987,11 @@
                     <span class="dev-value" id="valueSpeedExtrusionDepth">19</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorSpeedExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueSpeedOverallBorderThickness">1</span>
                 </div>
@@ -3047,11 +3042,11 @@
                     <span class="dev-value" id="valueMsPerClickExtrusionDepth">8</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMsPerClickExtrusionBorder" value="#ff0000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueMsPerClickOverallBorderThickness">1</span>
                 </div>
@@ -3446,17 +3441,9 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <span class="dev-label">Win/Lose Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileExtrusionDepth">4</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Fill Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileExtrusionFill" value="#ffffff">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Overall Border:</span>
@@ -3467,7 +3454,7 @@
                     <input type="color" class="dev-color-picker" id="colorMobileOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileOverallBorderThickness" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueMobileOverallBorderThickness">2</span>
                 </div>
@@ -3494,11 +3481,11 @@
                     <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Button Extrusion Color:</span>
+                    <span class="dev-label">Button Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Button Overall Border Thickness (px):</span>
+                    <span class="dev-label">Button Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundOverallBorderThickness" min="0" max="20" step="1" value="5">
                     <span class="dev-value" id="valueMobileRoundOverallBorderThickness">5</span>
                 </div>
@@ -3535,7 +3522,7 @@
                     <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Extrusion Color:</span>
+                    <span class="dev-label">Try Again Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileTryAgainExtrusionBorder" value="#c41516">
                 </div>
                 <div class="dev-row">
@@ -3565,40 +3552,40 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Font Size (vw):</span>
+                    <span class="dev-label">Text Font Size (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundFontSize" min="1" max="20" step="0.01" value="5.43">
                     <span class="dev-value" id="valueMobileRoundFontSize">5.43</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Extrusion Depth (px):</span>
+                    <span class="dev-label">Text Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
                     <span class="dev-value" id="valueMobileRoundDockExtrusionDepth">2</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundDockExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Overall Border Thickness (px):</span>
+                    <span class="dev-label">Text Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueMobileRoundDockOverallBorderThickness">1</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Overall Border Color:</span>
+                    <span class="dev-label">Text Overall Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileRoundDockOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text X Offset (vw):</span>
+                    <span class="dev-label">Text X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
                     <span class="dev-value" id="valueMobileRoundDockX">-30</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Y Offset (vh):</span>
+                    <span class="dev-label">Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
                     <span class="dev-value" id="valueMobileRoundDockY">35</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Round Text Letter Spacing (px):</span>
+                    <span class="dev-label">Text Letter Spacing (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
                     <span class="dev-value" id="valueMobileRoundLetterSpacing">0</span>
                 </div>
@@ -3683,11 +3670,11 @@
                     <span class="dev-value" id="valueMobileTargetExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileTargetExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueMobileTargetOverallBorderThickness">1</span>
                 </div>
@@ -3739,11 +3726,11 @@
                     <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileSpeedExtrusionBorder" value="#000000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueMobileSpeedOverallBorderThickness">1</span>
                 </div>
@@ -3795,11 +3782,11 @@
                     <span class="dev-value" id="valueMobileMsPerClickExtrusionDepth">9</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Extrusion Color:</span>
+                    <span class="dev-label">Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorMobileMsPerClickExtrusionBorder" value="#ff0000">
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <span class="dev-label">Border Thickness (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
                     <span class="dev-value" id="valueMobileMsPerClickOverallBorderThickness">1</span>
                 </div>
@@ -4288,8 +4275,6 @@
             const root = document.documentElement.style;
             const ext = isMobileActive() ? mobileExtrusionVars : extrusionVars;
             root.setProperty('--extrusion-font', extrusionVars.font);
-            root.setProperty('--extrusion-fill-color', ext.fillColor);
-            root.setProperty('--extrusion-shadow', buildCombinedShadow(ext.depth, ext.borderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
@@ -4306,6 +4291,21 @@
             root.setProperty('--result-win-shadow', buildCombinedShadow(ext.depth, ext.winBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-lose-fill-color', ext.loseFillColor);
             root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.depth, ext.loseBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
+            // Each element's own "Text Color" picker now IS its glyph's real
+            // fill, not just the extrusion/shadow layer's color - per direct
+            // report ("my text currently shows as white" - the glyph was
+            // always the single shared Fill Color above, never these
+            // per-element pickers, despite the "Text Color" label implying
+            // otherwise). Reuses the SAME already-editable *BorderColor
+            // field each picker already writes to, rather than adding new
+            // controls - one picker, one color, drives both the flat glyph
+            // and the extrusion/border effect behind it.
+            root.setProperty('--round-fill-color', ext.roundBorderColor);
+            root.setProperty('--try-again-fill-color', ext.tryAgainBorderColor);
+            root.setProperty('--round-dock-fill-color', ext.roundDockBorderColor);
+            root.setProperty('--target-fill-color', ext.targetBorderColor);
+            root.setProperty('--speed-fill-color', ext.speedBorderColor);
+            root.setProperty('--ms-per-click-fill-color', ext.msPerClickBorderColor);
         }
 
         // Mobile overrides - same shape as cssVars/colorVars, applied
@@ -5871,8 +5871,17 @@
                 // still renameable like every other text, per explicit
                 // follow-up request. Wording goes BEFORE the live number
                 // here, unlike Speed/Ms-per-click's suffix-after pattern.
+                // Reads the live number straight from gameState rather than
+                // regex-scraping it back out of the rendered textContent -
+                // the old regex (trailing digits) couldn't tell a numeric
+                // PREFIX apart from the live number once both were digits
+                // with no separator between them (e.g. prefix "5" + live "0"
+                // rendered as "50", and re-editing matched the whole "50" as
+                // if it were the live number) - confirmed via direct bug
+                // report ("edited it again and deleted all the text, but
+                // the old text still shows... new text just appends").
                 getSlot: () => 'targetPrefix',
-                getPrefix: () => (targetCount.textContent.match(/-?\d+$/) || [String(gameState.targetCount)])[0],
+                getPrefix: () => String(gameState.targetCount),
                 render: (slot, liveNumber) => { targetCount.textContent = overrideOr(slot) + (liveNumber != null ? liveNumber : String(gameState.targetCount)); },
             },
             msPerClickDisplay: {
@@ -6164,8 +6173,6 @@
             // straight into extrusionVars/mobileExtrusionVars (see
             // applyExtrusionStyles()).
             const EXTRUSION_COLOR_MAP = {
-                'colorExtrusionFill': 'fillColor',
-                'colorExtrusionBorder': 'borderColor',
                 'colorResultWinFill': 'winFillColor',
                 'colorResultWinBorder': 'winBorderColor',
                 'colorResultLoseFill': 'loseFillColor',
@@ -7360,10 +7367,19 @@
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Don't fire while the user is typing into a text field (Text
+            // Edit Mode's textarea, the Hide Shadow spec textbox, a
+            // click-to-type numeric readout, etc.) - "d"/"r" are ordinary
+            // letters that show up in normal typed text (e.g. "Round"),
+            // and without this guard typing them there used to blow away
+            // unsaved dev-panel settings via Reset.
+            const target = e.target;
+            const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+            if (isTyping) return;
             if (e.key.toLowerCase() === 'd' && isDevAllowed) {
                 devPanel.classList.toggle('hidden');
             }
-            if (e.key.toLowerCase() === 'r') {
+            if (e.key.toLowerCase() === 'r' && isDevAllowed) {
                 resetDevSettings();
             }
         });
