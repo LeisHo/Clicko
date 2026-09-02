@@ -725,6 +725,24 @@
             overflow: hidden;
         }
 
+        /* Text Edit Mode's bounding-box overlay - one per currently-visible
+           TEXT_EDIT_TARGETS element, per explicit request ("I should see
+           the bounding box of every text object"). pointer-events:none so
+           the box is purely visual and never steals the right-click meant
+           for the real element underneath it - see
+           updateTextEditBoundingBoxes(). Position/size are set directly as
+           inline styles (tracks the real element's live screen rect every
+           frame while the mode is on), so only the static look lives here. */
+        .text-edit-bbox {
+            position: fixed;
+            display: none;
+            box-sizing: border-box;
+            border: 2px dashed var(--dev-accent-color, #0f0);
+            background: color-mix(in srgb, var(--dev-accent-color, #0f0) 12%, transparent);
+            pointer-events: none;
+            z-index: 999;
+        }
+
         .game-text {
             position: absolute;
             left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
@@ -5857,6 +5875,62 @@
             Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
                 document.getElementById(elId).style.pointerEvents = enabled ? 'auto' : '';
             });
+            if (enabled) {
+                updateTextEditBoundingBoxes();
+            } else {
+                stopTextEditBoundingBoxes();
+            }
+        }
+
+        // Bounding-box overlay for every currently-visible TEXT_EDIT_TARGETS
+        // element, per explicit request ("I should see the bounding box of
+        // every text object"). Also makes an otherwise-invisible interaction
+        // gap obvious: some of these elements can overlap on screen (e.g.
+        // Win/Lose Text sits at the same position as the Start button
+        // whenever "Preview Win Text" forces it visible for tuning) - with
+        // pointer-events re-enabled by Text Edit Mode above, a right-click
+        // there resolves to whichever overlapping element is topmost in
+        // z-order, not necessarily the one the user meant. Seeing both boxes
+        // overlap makes that ambiguity visible instead of silently editing
+        // the wrong slot. One box element per target, reused/repositioned
+        // every frame rather than recreated - runs only while Text Edit Mode
+        // is on (dev-only), so the per-frame cost (6 getBoundingClientRect
+        // calls) is negligible.
+        const textEditBoxEls = {};
+        let textEditBoxesRafId = null;
+        function ensureTextEditBox(elId) {
+            let box = textEditBoxEls[elId];
+            if (!box) {
+                box = document.createElement('div');
+                box.className = 'text-edit-bbox';
+                document.body.appendChild(box);
+                textEditBoxEls[elId] = box;
+            }
+            return box;
+        }
+        function updateTextEditBoundingBoxes() {
+            Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
+                const el = document.getElementById(elId);
+                const box = ensureTextEditBox(elId);
+                if (!el || el.offsetParent === null) {
+                    box.style.display = 'none';
+                    return;
+                }
+                const rect = el.getBoundingClientRect();
+                box.style.display = 'block';
+                box.style.left = rect.left + 'px';
+                box.style.top = rect.top + 'px';
+                box.style.width = rect.width + 'px';
+                box.style.height = rect.height + 'px';
+            });
+            if (textEditModeEnabled) {
+                textEditBoxesRafId = requestAnimationFrame(updateTextEditBoundingBoxes);
+            }
+        }
+        function stopTextEditBoundingBoxes() {
+            if (textEditBoxesRafId !== null) cancelAnimationFrame(textEditBoxesRafId);
+            textEditBoxesRafId = null;
+            Object.values(textEditBoxEls).forEach(box => { box.style.display = 'none'; });
         }
 
         function setupTextEditMode() {
