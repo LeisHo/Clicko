@@ -3775,10 +3775,10 @@
         // fresh load is very slightly more opaque (1.0) than before (0.95)
         // until tuned - a disclosed, minor default difference, not a bug.
         const devPanelStyle = {
-            titleFontSize: 11,
+            titleFontSize: 22,
             tabFontSize: 12,
             groupTitleFontSize: 11,
-            settingTitleFontSize: 10,
+            settingTitleFontSize: 9,
             bodyFontSize: 11,
             opacity: 1,
             bgColor: '#000000',
@@ -3789,15 +3789,25 @@
             // Hide, tabs, sliders' value readout, color-picker/select/
             // text-input borders, etc. - per explicit request. Cyan
             // (header/section-title text) is a separate, unaffected choice.
-            accentColor: '#00ff00',
+            accentColor: '#8affe8',
             // Shared height for every dev-panel button (COPY/RESET/SAVE,
             // Collapse, Hide, Desktop/Mobile tabs, Trigger Round Number
             // Flash) - per explicit request. ~24px reproduces the previous
             // look closely (COPY/RESET/SAVE's implicit padding+line-height,
             // and Collapse/Hide's old fixed 22px, both landed close to this).
-            buttonHeight: 24,
+            buttonHeight: 21,
         };
+        // Mobile deliberately does NOT inherit the desktop tuning above via
+        // this clone - a "set defaults" dump had Mobile's own tab showing
+        // the ORIGINAL values (11/10/#00ff00/24) while Desktop got the new
+        // ones, so mobile's own defaults are restored explicitly after the
+        // clone rather than left to inherit whatever desktop's literal
+        // currently says.
         const mobileDevPanelStyle = { ...devPanelStyle };
+        mobileDevPanelStyle.titleFontSize = 11;
+        mobileDevPanelStyle.settingTitleFontSize = 10;
+        mobileDevPanelStyle.accentColor = '#00ff00';
+        mobileDevPanelStyle.buttonHeight = 24;
 
         const DEV_PANEL_STYLE_VAR_MAP = {
             titleFontSize: '--dev-panel-title-font-size-px',
@@ -3901,7 +3911,7 @@
             // CSS comment). Font-size now has its own independent slider
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
-            '--round-dock-x-offset-vw': -40.76,
+            '--round-dock-x-offset-vw': -42,
             '--round-dock-y-offset-vh': 42.65,
             '--round-font-size-vw': 3.3,
             '--round-letter-spacing-px': 6.5,
@@ -4008,7 +4018,7 @@
             // as before (unaffected).
             roundDepth: 9,
             roundBorderColor: '#c41516',
-            roundOverallBorderThickness: 7,
+            roundOverallBorderThickness: 11,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
@@ -4034,7 +4044,7 @@
             // are read directly by .game-text's CSS, unconditionally.
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 1,
+            roundDockOverallBorderThickness: 7,
             roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             // Target/Speed now also get their OWN border/extrusion color,
@@ -4065,9 +4075,9 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 5,
-            targetOverallBorderThickness: 4,
-            speedOverallBorderThickness: 1,
-            msPerClickOverallBorderThickness: 1,
+            targetOverallBorderThickness: 10,
+            speedOverallBorderThickness: 9,
+            msPerClickOverallBorderThickness: 5,
         };
 
         // Mobile counterpart to extrusionVars above - same shape, minus
@@ -4089,7 +4099,7 @@
             tryAgainOverallBorderColor: '#c41516',
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 1,
+            roundDockOverallBorderThickness: 5,
             roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             targetBorderColor: '#ff0000',
@@ -4107,9 +4117,9 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
-            targetOverallBorderThickness: 1,
-            speedOverallBorderThickness: 1,
-            msPerClickOverallBorderThickness: 1,
+            targetOverallBorderThickness: 10,
+            speedOverallBorderThickness: 9,
+            msPerClickOverallBorderThickness: 5,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
@@ -5037,6 +5047,21 @@
             document.documentElement.style.setProperty('--round-blink3-hide-ms', cssVars['--round-blink3-hide-ms']);
             document.documentElement.style.setProperty('--round-blink3-show-ms', cssVars['--round-blink3-show-ms']);
             document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
+            // Dev panel's own size/position - also single/shared (cssVars
+            // only, not mobile-split - see clampDevPanelPosition()'s own
+            // comment), so it needs the same unconditional push: the main
+            // loop above only pushes whichever set (desktop/mobile) is
+            // currently ACTIVE, and these keys only exist in cssVars, so on
+            // a mobile-width viewport they'd never reach the DOM at all -
+            // the panel would silently keep whatever stale position/size it
+            // had, ignoring a freshly loaded/restored value. Found while
+            // investigating "does Copy/Save record the panel's size and
+            // location" - the CAPTURE already worked, this was a RESTORE
+            // gap specific to mobile viewports.
+            document.documentElement.style.setProperty('--dev-panel-left-px', cssVars['--dev-panel-left-px']);
+            document.documentElement.style.setProperty('--dev-panel-top-px', cssVars['--dev-panel-top-px']);
+            document.documentElement.style.setProperty('--dev-panel-width-px', cssVars['--dev-panel-width-px']);
+            document.documentElement.style.setProperty('--dev-panel-height-px', cssVars['--dev-panel-height-px']);
             // The 8-bit extrusion system (color/depth/border) is mobile-
             // split too (see mobileExtrusionVars) - re-apply it here so a
             // breakpoint crossing repaints it correctly, same as everything
@@ -5636,6 +5661,22 @@
             Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
                 const el = document.getElementById(elId);
                 const cfg = TEXT_EDIT_TARGETS[elId];
+                // Text Edit Mode overrides any normal click/tap function on
+                // these elements while it's on - per explicit request, so
+                // editing wording on a real button (startButton, whose
+                // pointerdown/pointerup normally starts the game) doesn't
+                // also trigger gameplay. Capture phase + stopImmediate-
+                // Propagation() so this runs BEFORE and fully blocks the
+                // element's own bubble-phase gameplay listeners regardless
+                // of registration order.
+                ['pointerdown', 'pointerup', 'click'].forEach(evtName => {
+                    el.addEventListener(evtName, (e) => {
+                        if (!textEditModeEnabled) return;
+                        if (el.querySelector('.text-edit-input')) return; // actively editing - let the input handle its own clicks/cursor placement normally
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                    }, true);
+                });
                 // Right-click (contextmenu), not left-click, per explicit
                 // request - preventDefault suppresses the native context menu.
                 el.addEventListener('contextmenu', (e) => {
