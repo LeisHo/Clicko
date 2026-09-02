@@ -2811,7 +2811,7 @@
                      tickTryAgainRotate(). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
+                        <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" checked onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
                         <span class="dev-label" style="min-width:auto;">Extrusion/Border Scales/Mirrors With Text</span>
                     </label>
                 </div>
@@ -4221,7 +4221,7 @@
             '--try-again-rotate-speed-ms': 1500,
             '--try-again-rotate-tweening': 'linear',
             '--try-again-rotate-min-width-scale': 0,
-            '--try-again-rotate-extrusion-matches-glyph': 0,
+            '--try-again-rotate-extrusion-matches-glyph': 1,
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
