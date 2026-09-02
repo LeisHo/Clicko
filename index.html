@@ -1253,6 +1253,31 @@
             background: #0ff;
         }
 
+        /* Desktop/Mobile tabs - per CLAUDE.md Section 12f. */
+        .dev-tabs {
+            display: flex;
+            gap: 4px;
+            margin: 8px 0;
+        }
+
+        .dev-tab-btn {
+            flex: 1;
+            background: #222;
+            color: #0f0;
+            border: 1px solid #0f0;
+            border-radius: 3px;
+            padding: 6px 0;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .dev-tab-btn.active {
+            background: #0f0;
+            color: #000;
+        }
+
         /* Persistent reopen toggle - visible whenever the dev panel is allowed at
            all (gated by isDevAllowed in JS), regardless of the panel's own hidden
            state, so it can always be brought back without a keyboard on mobile. */
@@ -1965,6 +1990,22 @@
             <button onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
         </div>
 
+        <!-- Desktop/Mobile tabs - per CLAUDE.md Section 12f. Everything
+             below was previously one continuous scroll with a nested
+             "MOBILE OVERRIDES" collapsible mega-section; that inner content
+             is now its own top-level tab instead of a nested group. Every
+             existing setting keeps its already-established independent-per-
+             device status (these were all deliberately tuned differently
+             per device already, matching 12f's own "Claude judges it's
+             reasonably device-specific... especially size, position, and
+             speed-related settings" clause) - this restructuring changes
+             PRESENTATION only, not which settings are shared vs independent. -->
+        <div class="dev-tabs">
+            <button class="dev-tab-btn active" id="devTabDesktopBtn" onclick="switchDevPanelTab('desktop')">Desktop</button>
+            <button class="dev-tab-btn" id="devTabMobileBtn" onclick="switchDevPanelTab('mobile')">Mobile</button>
+        </div>
+
+        <div id="desktopTabContent">
         <!-- Main Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
@@ -2681,19 +2722,19 @@
                 </div>
             </div>
         </div>
+        </div>
+        <!-- ^ closes desktopTabContent. Game Mechanics/Background aren't
+             per-device (see the comment further down) so they only ever
+             appear under the Desktop tab, same as before this restructuring -
+             they were never duplicated into Mobile Overrides either. -->
 
-
-
-
-        <!-- ============ MOBILE OVERRIDES ============
-             Same controls as above, but only take effect on a mobile-width
-             viewport (auto-detected via matchMedia, live - resizing the
-             browser or rotating a phone switches automatically, no manual
-             toggle). Lets layout/appearance be tuned independently for
-             mobile without disturbing the desktop configuration above. -->
-        <div class="dev-section dev-section-mobile-group">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ 📱 MOBILE OVERRIDES (auto-applies below ~768px width)</div>
-            <div class="dev-section-content">
+        <div id="mobileTabContent" class="hidden">
+        <!-- Same controls as the Desktop tab, but only take effect on a
+             mobile-width viewport (auto-detected via matchMedia, live -
+             resizing the browser or rotating a phone switches
+             automatically, no manual toggle). Lets layout/appearance be
+             tuned independently for mobile without disturbing the desktop
+             configuration. -->
         <!-- Main Button Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
@@ -3181,12 +3222,10 @@
              above, they don't get a Mobile Overrides duplicate. See
              applyGameMechanicsSlider() and the unconditional --bg-color line
              in applyActiveVars(). -->
-
-
-
-            </div>
         </div>
+        <!-- ^ closes mobileTabContent -->
         </div>
+        <!-- ^ closes dev-panel-scroll-content -->
 
         <div class="dev-panel-resize-edge edge-top" id="devPanelResizeTop"></div>
         <div class="dev-panel-resize-edge edge-bottom" id="devPanelResizeBottom"></div>
@@ -5726,6 +5765,21 @@
         function toggleDevPanelCollapsed() {
             const collapsed = devPanel.classList.toggle('panel-collapsed');
             document.getElementById('devCollapseBtn').textContent = collapsed ? '▢' : '▁';
+        }
+
+        // Desktop/Mobile dev-panel tabs - per CLAUDE.md Section 12f. Purely
+        // a PRESENTATION change: which tab is showing doesn't affect which
+        // device's actual game rendering is active (that's still
+        // isMobileActive(), driven by the real viewport width) - both tabs'
+        // sliders remain live-editable regardless of which one you're
+        // currently looking at, same as before this restructuring when both
+        // were simultaneously visible in one long scroll.
+        function switchDevPanelTab(tab) {
+            const isDesktop = tab === 'desktop';
+            document.getElementById('desktopTabContent').classList.toggle('hidden', !isDesktop);
+            document.getElementById('mobileTabContent').classList.toggle('hidden', isDesktop);
+            document.getElementById('devTabDesktopBtn').classList.toggle('active', isDesktop);
+            document.getElementById('devTabMobileBtn').classList.toggle('active', !isDesktop);
         }
 
         // Keyboard shortcuts
