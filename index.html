@@ -5119,14 +5119,14 @@
             resultText.classList.add('hidden');
             targetCount.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
-            // Countdown's total budget, per explicit request - not rounded,
-            // shown with real decimal precision (see startRoundCountdown()/
+            // Countdown's total budget, rounded to a whole number per
+            // explicit follow-up request (see startRoundCountdown()/
             // tickRoundCountdown() for the live ticking display, which only
             // begins on the round's first tap; until then this just shows
             // the static starting value, exactly like this did before).
             gameState.roundTotalTimeMs = gameState.maxTimeMs * gameState.targetCount;
             gameState.countdownStartTime = null;
-            speedDisplay.textContent = gameState.roundTotalTimeMs.toFixed(1) + ' ms';
+            speedDisplay.textContent = gameState.roundTotalTimeMs.toFixed(0) + ' ms';
             speedDisplay.classList.remove('hidden');
 
             // Reset button color
@@ -5316,9 +5316,9 @@
         function tickRoundCountdown() {
             const elapsed = Date.now() - gameState.countdownStartTime;
             const remaining = Math.max(0, gameState.roundTotalTimeMs - elapsed);
-            // Not rounded to a whole number - per explicit request ("the
-            // timer does not need to be rounded").
-            speedDisplay.textContent = remaining.toFixed(1) + ' ms';
+            // Rounded to a whole number - per explicit follow-up request
+            // (reversing the initial "doesn't need to be rounded" ask).
+            speedDisplay.textContent = remaining.toFixed(0) + ' ms';
             if (remaining > 0 && gameState.isCountingTaps) {
                 gameState.countdownRafId = requestAnimationFrame(tickRoundCountdown);
             }
