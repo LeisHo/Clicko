@@ -787,6 +787,32 @@
             display: none !important;
         }
 
+        /* Shows the raw per-click time setting (gameState.maxTimeMs) as
+           "___ms / click", positioned above the countdown timer - per
+           explicit request. The countdown (.speed-display) shows the TOTAL
+           round budget (maxTimeMs * targetCount) and no longer displays the
+           underlying per-click rate itself, so this brings that number back
+           as its own small label. Same shape/pattern as every other
+           extruded text display (own font-size/position/extrusion). */
+        .ms-per-click-display {
+            position: absolute;
+            left: calc(50% + var(--ms-per-click-x-offset-vw) * 1vw);
+            top: calc(50% + var(--ms-per-click-y-offset-vh) * 1vh);
+            transform: translate(-50%, -50%);
+            font-size: calc(var(--ms-per-click-font-size-vw) * 1vw);
+            font-weight: 700;
+            font-family: var(--extrusion-font);
+            color: var(--extrusion-fill-color);
+            text-shadow: var(--ms-per-click-extrusion-shadow);
+            pointer-events: none;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        .ms-per-click-display.hidden {
+            display: none !important;
+        }
+
         /* Click Counter - debug display next to the button, toggled from dev panel */
         .click-counter {
             position: absolute;
@@ -1820,6 +1846,7 @@
         <div class="game-text" id="gameText"><span id="gameTextLabel"></span><span id="gameTextNumber"></span></div>
         <div class="result-text hidden" id="resultText"></div>
         <div class="target-count" id="targetCount"></div>
+        <div class="ms-per-click-display" id="msPerClickDisplay"></div>
         <div class="speed-display" id="speedDisplay"></div>
         <div class="click-counter hidden" id="clickCounter">0</div>
         <div class="tap-diagnostic-panel hidden" id="tapDiagnosticPanel">
@@ -1868,6 +1895,31 @@
                 <input type="checkbox" id="checkboxFlipButtonSvg" onchange="updateFlipButtonSvg()" checked>
                 <span class="dev-label" style="min-width:auto;">Flip Normal/Pressed SVG</span>
             </label>
+        </div>
+
+        <!-- Live-preview toggles for text that's normally only visible at a
+             specific moment in a real game (round announcement, a win) - per
+             explicit request ("when I change any sliders for the round
+             text, I want to see that change immediately instead of having
+             to trigger it"). Forces the element visible with sample/last
+             content so its position/size/extrusion sliders can be tuned
+             freely without playing through a round. Dev-tool-only, doesn't
+             coordinate with real gameplay's own show/hide calls - not meant
+             to be left checked during actual play. -->
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxPreviewRoundText">
+                <span class="dev-label" style="min-width:auto;">Preview Round Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxPreviewWinText">
+                <span class="dev-label" style="min-width:auto;">Preview Win Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <button onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
         </div>
 
         <!-- Main Button Section -->
@@ -2207,6 +2259,21 @@
                     <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
                     <span class="dev-value" id="valueRoundDockY">42.7</span>
                 </div>
+                <!-- The "?" in "Try again?" blinks while that text is on
+                     screen - per explicit request. Shared/single, not
+                     mobile-split, like every other timing-only slider (Game
+                     Mechanics durations, the blink-sequence sliders below) -
+                     see startTryAgainFlash(). -->
+                <div class="dev-row">
+                    <span class="dev-label">Try Again "?" Flash Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainFlashDuration" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueTryAgainFlashDuration">250</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again "?" Hold Duration (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainHoldDuration" min="0" max="3000" step="10" value="1000">
+                    <span class="dev-value" id="valueTryAgainHoldDuration">1000</span>
+                </div>
                 <!-- Round-change blink sequence: the number blinks 3 times
                      (hides, shows the OLD number, hides, shows the OLD
                      number, hides) before the NEW number appears - each
@@ -2394,6 +2461,48 @@
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.01" value="-14.85">
                     <span class="dev-value" id="valueSpeedY">-14.85</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ms Per Click Display Section - shows the raw per-click time
+             setting ("___ms / click") above the countdown, per explicit
+             request. Same shape as every other text display section. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Ms/Click Display</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="1" max="25" step="0.01" value="2.2">
+                    <span class="dev-value" id="valueMsPerClickFontSize">2.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueMsPerClickExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMsPerClickExtrusionBorder" value="#ff0000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueMsPerClickOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMsPerClickOverallBorder" value="#cc1b20">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickX" min="-50" max="50" step="0.01" value="39.47">
+                    <span class="dev-value" id="valueMsPerClickX">39.47</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickY" min="-50" max="50" step="0.01" value="-19.85">
+                    <span class="dev-value" id="valueMsPerClickY">-19.85</span>
                 </div>
             </div>
         </div>
@@ -2612,13 +2721,13 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Animation Speed (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstSpeed" min="80" max="1000" step="10" value="260">
-                    <span class="dev-value" id="valueMobileClickBurstSpeed">260</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstSpeed" min="80" max="1000" step="10" value="180">
+                    <span class="dev-value" id="valueMobileClickBurstSpeed">180</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Frame Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstScale" min="0" max="1" step="0.01" value="0.19">
-                    <span class="dev-value" id="valueMobileClickBurstScale">0.19</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstScale" min="0" max="1" step="0.01" value="0.14">
+                    <span class="dev-value" id="valueMobileClickBurstScale">0.14</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Distance Out (vw):</span>
@@ -2627,8 +2736,8 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Height / Lift (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileClickBurstHeight" min="0" max="50" step="0.5" value="0">
-                    <span class="dev-value" id="valueMobileClickBurstHeight">0</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstHeight" min="0" max="50" step="0.5" value="1">
+                    <span class="dev-value" id="valueMobileClickBurstHeight">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Curve Offset (vw):</span>
@@ -2910,6 +3019,46 @@
             </div>
         </div>
 
+        <!-- Ms Per Click Display Section (Mobile) -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Ms/Click Display</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickFontSize" min="1" max="25" step="0.01" value="3.6">
+                    <span class="dev-value" id="valueMobileMsPerClickFontSize">3.6</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickX" min="-50" max="50" step="0.01" value="24.76">
+                    <span class="dev-value" id="valueMobileMsPerClickX">24.76</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickY" min="-50" max="50" step="0.01" value="-26.84">
+                    <span class="dev-value" id="valueMobileMsPerClickY">-26.84</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueMobileMsPerClickExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileMsPerClickExtrusionBorder" value="#ff0000">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueMobileMsPerClickOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorMobileMsPerClickOverallBorder" value="#cc1b20">
+                </div>
+            </div>
+        </div>
+
         <!-- Game Mechanics and Background Color are NOT per-device settings -
              there's only one game in progress and one page background, not a
              separate one per breakpoint - so unlike every visual section
@@ -3011,6 +3160,12 @@
             // not an independent value.
             '--round-dock-x-offset-vw': -43,
             '--round-dock-y-offset-vh': 42.7,
+            // The "?" in "Try again?" blinks while that text is shown - per
+            // explicit request. Flash = how long it's HIDDEN; Hold = how
+            // long it's VISIBLE before the next flash - see
+            // startTryAgainFlash().
+            '--try-again-flash-duration-ms': 250,
+            '--try-again-hold-duration-ms': 1000,
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
@@ -3029,6 +3184,14 @@
             '--speed-font-size-vw': 3.3,
             '--speed-x-offset-vw': 39.47,
             '--speed-y-offset-vh': -14.85,
+            // Shows gameState.maxTimeMs as "___ms / click", above the
+            // countdown timer - per explicit request, since the countdown
+            // display shows the TOTAL round budget and no longer shows the
+            // underlying per-click rate itself. Default position sits just
+            // above --speed-y-offset-vh at a smaller font, until tuned.
+            '--ms-per-click-font-size-vw': 2.2,
+            '--ms-per-click-x-offset-vw': 39.47,
+            '--ms-per-click-y-offset-vh': -19.85,
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
@@ -3115,6 +3278,11 @@
             speedDepth: 19,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
+            // "___ms / click" label above the countdown - own extrusion
+            // group, same shape as Target/Speed's own copies above.
+            msPerClickDepth: 9,
+            msPerClickBorderColor: '#ff0000',
+            msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#f0fff4',
             winBorderColor: '#22dd44',
             loseFillColor: '#d3a7a7',
@@ -3131,6 +3299,7 @@
             overallBorderThickness: 5,
             targetOverallBorderThickness: 10,
             speedOverallBorderThickness: 9,
+            msPerClickOverallBorderThickness: 5,
         };
 
         // Mobile counterpart to extrusionVars above - same shape, minus
@@ -3158,6 +3327,9 @@
             speedDepth: 9,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
+            msPerClickDepth: 9,
+            msPerClickBorderColor: '#ff0000',
+            msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#ffffff',
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
@@ -3167,6 +3339,7 @@
             overallBorderThickness: 3,
             targetOverallBorderThickness: 10,
             speedOverallBorderThickness: 9,
+            msPerClickOverallBorderThickness: 5,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
@@ -3251,6 +3424,7 @@
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--target-extrusion-shadow', buildCombinedShadow(ext.targetDepth, ext.targetBorderColor, ext.targetOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-win-fill-color', ext.winFillColor);
             root.setProperty('--result-win-shadow', buildCombinedShadow(ext.depth, ext.winBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-lose-fill-color', ext.loseFillColor);
@@ -3277,8 +3451,8 @@
             '--button-x-offset-vw': -2.32,
             '--button-y-offset-vh': 16,
             '--button-release-ms': 0,
-            '--click-burst-speed-ms': 260,
-            '--click-burst-scale': 0.19,
+            '--click-burst-speed-ms': 180,
+            '--click-burst-scale': 0.14,
             // These 5 keys (through --shadow-y-offset below) hold a VW
             // number on MOBILE despite their "-px"/plain names - per
             // explicit request that mobile's spatial/motion values scale
@@ -3293,7 +3467,7 @@
             // from matching the Pixel 9's confirmed 412x915 CSS-pixel
             // viewport - not a Pixel-9a-specific measurement).
             '--click-burst-distance-px': 8,
-            '--click-burst-height-px': 0,
+            '--click-burst-height-px': 1,
             '--click-burst-curve-offset-px': 6.5,
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
@@ -3317,6 +3491,9 @@
             '--speed-font-size-vw': 5.43,
             '--speed-x-offset-vw': 24.76,
             '--speed-y-offset-vh': -21.84,
+            '--ms-per-click-font-size-vw': 3.6,
+            '--ms-per-click-x-offset-vw': 24.76,
+            '--ms-per-click-y-offset-vh': -26.84,
             '--result-font-size-vw': 15.94,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': 1.46,
@@ -3426,6 +3603,9 @@
         let roundHistory = [];
         let currentRoundTaps = [];
         let roundStartTime = 0;
+        // The "Try again?" button's flashing "?" - see startTryAgainFlash()/
+        // stopTryAgainFlash().
+        let tryAgainFlashTimeoutId = null;
 
         // Messages
         const tooManyMessages = ['TOO MANY!', 'OVERSHOT!', 'ONE TOO FAR!', 'TOO FAR!'];
@@ -3473,6 +3653,7 @@
         const resultText = document.getElementById('resultText');
         const targetCount = document.getElementById('targetCount');
         const speedDisplay = document.getElementById('speedDisplay');
+        const msPerClickDisplay = document.getElementById('msPerClickDisplay');
         const roundBreakdownPanel = document.getElementById('roundBreakdownPanel');
         const roundBreakdownTable = document.getElementById('roundBreakdownTable');
         const devPanel = document.getElementById('devPanel');
@@ -4013,11 +4194,12 @@
             // above - always the single shared colorVars value, regardless
             // of which breakpoint is active.
             document.documentElement.style.setProperty('--bg-color', colorVars['--bg-color']);
-            // Round Text's shrink/dock animation timing (duration/easing/
-            // flash) - also not device-split, same reasoning as the
-            // existing Game Mechanics timing sliders. Dock POSITION
-            // (--round-dock-x/y-offset) stays in the normal mobile-split
-            // loop above since it's spatial, not timing.
+            // Round-text/Try-Again blink timing - also not device-split,
+            // same reasoning as the existing Game Mechanics timing sliders.
+            // Dock POSITION (--round-dock-x/y-offset) stays in the normal
+            // mobile-split loop above since it's spatial, not timing.
+            document.documentElement.style.setProperty('--try-again-flash-duration-ms', cssVars['--try-again-flash-duration-ms']);
+            document.documentElement.style.setProperty('--try-again-hold-duration-ms', cssVars['--try-again-hold-duration-ms']);
             document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
             document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
@@ -4216,6 +4398,8 @@
             'sliderTextY': '--text-y-offset-vh',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
+            'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
+            'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
             'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
             'sliderRoundBlink1Show': '--round-blink1-show-ms',
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
@@ -4229,6 +4413,9 @@
             'sliderSpeedFontSize': '--speed-font-size-vw',
             'sliderSpeedX': '--speed-x-offset-vw',
             'sliderSpeedY': '--speed-y-offset-vh',
+            'sliderMsPerClickFontSize': '--ms-per-click-font-size-vw',
+            'sliderMsPerClickX': '--ms-per-click-x-offset-vw',
+            'sliderMsPerClickY': '--ms-per-click-y-offset-vh',
             'sliderResultFontSize': '--result-font-size-vw',
             'sliderResultX': '--result-x-offset-vw',
             'sliderResultY': '--result-y-offset-vh',
@@ -4242,9 +4429,11 @@
             'sliderExtrusionDepth': 'depth',
             'sliderTargetExtrusionDepth': 'targetDepth',
             'sliderSpeedExtrusionDepth': 'speedDepth',
+            'sliderMsPerClickExtrusionDepth': 'msPerClickDepth',
             'sliderOverallBorderThickness': 'overallBorderThickness',
             'sliderTargetOverallBorderThickness': 'targetOverallBorderThickness',
             'sliderSpeedOverallBorderThickness': 'speedOverallBorderThickness',
+            'sliderMsPerClickOverallBorderThickness': 'msPerClickOverallBorderThickness',
             'sliderRoundExtrusionDepth': 'roundDepth',
             'sliderRoundOverallBorderThickness': 'roundOverallBorderThickness',
             'sliderRoundDockExtrusionDepth': 'roundDockDepth',
@@ -4343,11 +4532,13 @@
                 'colorRoundExtrusionBorder': 'roundBorderColor',
                 'colorTargetExtrusionBorder': 'targetBorderColor',
                 'colorSpeedExtrusionBorder': 'speedBorderColor',
+                'colorMsPerClickExtrusionBorder': 'msPerClickBorderColor',
                 'colorRoundOverallBorder': 'roundOverallBorderColor',
                 'colorRoundDockExtrusionBorder': 'roundDockBorderColor',
                 'colorRoundDockOverallBorder': 'roundDockOverallBorderColor',
                 'colorTargetOverallBorder': 'targetOverallBorderColor',
                 'colorSpeedOverallBorder': 'speedOverallBorderColor',
+                'colorMsPerClickOverallBorder': 'msPerClickOverallBorderColor',
             };
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
@@ -4813,6 +5004,7 @@
             resultText.classList.add('hidden');
             targetCount.classList.add('hidden');
             speedDisplay.classList.add('hidden');
+            msPerClickDisplay.classList.add('hidden');
 
             // "Round" is always this - it's a separate element from the
             // number specifically so it never has to move or re-render
@@ -4876,6 +5068,26 @@
                 setTimeout(step, phase.ms);
             }
             step();
+        }
+
+        // Blinks the "?" in "Try again?" - per explicit request. Hold
+        // (visible) then Flash (hidden) then repeat, for as long as the
+        // Try Again state is on screen - stopped via stopTryAgainFlash()
+        // whenever that state ends (a new game starts, or an R-key reset).
+        function startTryAgainFlash() {
+            stopTryAgainFlash();
+            function cycle(visible) {
+                const charEl = document.getElementById('startButtonFlashChar');
+                if (!charEl) return; // button content changed since this was scheduled
+                charEl.style.visibility = visible ? 'visible' : 'hidden';
+                const delay = visible ? cssVars['--try-again-hold-duration-ms'] : cssVars['--try-again-flash-duration-ms'];
+                tryAgainFlashTimeoutId = setTimeout(() => cycle(!visible), delay);
+            }
+            cycle(true);
+        }
+
+        function stopTryAgainFlash() {
+            if (tryAgainFlashTimeoutId) { clearTimeout(tryAgainFlashTimeoutId); tryAgainFlashTimeoutId = null; }
         }
 
         function showTargetAndSpeed() {
@@ -4967,6 +5179,11 @@
             gameState.countdownStartTime = null;
             speedDisplay.textContent = gameState.roundTotalTimeMs.toFixed(0) + ' ms';
             speedDisplay.classList.remove('hidden');
+            // The raw per-click rate, shown above the countdown - per
+            // explicit request, since the countdown itself only shows the
+            // TOTAL round budget now.
+            msPerClickDisplay.textContent = gameState.maxTimeMs.toFixed(0) + 'ms / click';
+            msPerClickDisplay.classList.remove('hidden');
 
             // Reset button color
             refreshButtonHue();
@@ -5218,6 +5435,7 @@
                 resultText.classList.remove('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
+                msPerClickDisplay.classList.add('hidden');
 
                 setTimeout(() => {
                     gameState.currentRound++;
@@ -5236,15 +5454,18 @@
                 targetCount.classList.add('hidden');
                 renderRoundBreakdown();
                 speedDisplay.classList.add('hidden');
+                msPerClickDisplay.classList.add('hidden');
 
                 setTimeout(() => {
                     // Fixed literal text, not the randomized tryAgainMessages
                     // pool (left declared but unused, same as winMessages/
                     // tooManyMessages/notEnoughMessages) and no "ROUND X ·"
                     // prefix - per explicit request, this button says only
-                    // "Try again?" and nothing else.
-                    startButton.textContent = 'Try again?';
+                    // "Try again?" and nothing else. The "?" is its own span
+                    // so it can blink independently - see startTryAgainFlash().
+                    startButton.innerHTML = 'Try again<span id="startButtonFlashChar">?</span>';
                     startButton.classList.remove('hidden');
+                    startTryAgainFlash();
                     resultText.classList.add('hidden');
                     gameState.isPlaying = false;
                     gameState.currentRound = 0;
@@ -5289,6 +5510,7 @@
         gameButton.addEventListener('pointerleave', handleGameButtonRelease);
 
         function startGame() {
+            stopTryAgainFlash();
             gameState.isPlaying = true;
             gameState.currentRound = 1;
             gameState.maxTimeMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
@@ -5339,12 +5561,14 @@
                 gameState.isCountingTaps = false;
                 gameState.currentRound = 0;
                 stopRoundCountdown();
+                stopTryAgainFlash();
                 startButton.classList.remove('hidden');
                 startButton.textContent = 'START';
                 gameText.classList.add('hidden');
                 resultText.classList.add('hidden');
                 targetCount.classList.add('hidden');
                 speedDisplay.classList.add('hidden');
+                msPerClickDisplay.classList.add('hidden');
                 refreshButtonHue();
                 totalClickCount = 0;
                 clickCounter.textContent = totalClickCount;
@@ -5361,6 +5585,73 @@
             // of needing to check/rebuild itself.
             if (e.target.checked) { rebuildTapDiagnosticDisplay(); }
         });
+
+        // Preview Round Text checkbox - forces gameText visible with
+        // sample/last content so its position/size/extrusion sliders can be
+        // tuned live without playing through a round (see the dev-panel row's
+        // own comment). Unchecking just re-hides it - doesn't try to restore
+        // whatever real gameplay state was showing before.
+        document.getElementById('checkboxPreviewRoundText').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                gameTextLabel.textContent = 'ROUND';
+                if (!gameTextNumber.textContent) gameTextNumber.textContent = '1';
+                gameTextNumber.style.visibility = 'visible';
+                gameText.classList.remove('hidden');
+            } else {
+                gameText.classList.add('hidden');
+            }
+        });
+
+        // Preview Win Text checkbox - same idea, forces resultText visible
+        // in its WIN look (fixed ':)' text, per its own comment in endGame()).
+        document.getElementById('checkboxPreviewWinText').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                resultText.textContent = ':)';
+                resultText.classList.remove('result-lose');
+                resultText.classList.add('result-win');
+                resultText.classList.remove('hidden');
+            } else {
+                resultText.classList.add('hidden');
+            }
+        });
+
+        // Manually replays the round-change blink sequence (see
+        // runRoundBlinkSequence()) without needing to actually play through
+        // a round - per explicit request for a dedicated trigger button.
+        // Advances to the next number each press (wrapping isn't needed -
+        // this is a dev-only demo, not real round state) so repeated presses
+        // give a natural incrementing preview.
+        // Deliberately NOT a call to the real runRoundBlinkSequence() -
+        // that function ends by calling showTargetAndSpeed(), which would
+        // roll a real target/speed and unhide the gameplay HUD as a side
+        // effect of what's meant to be a pure visual preview. This replays
+        // the exact same phase list standalone, with no gameplay effects.
+        function triggerRoundTextFlash() {
+            gameTextLabel.textContent = 'ROUND';
+            gameText.classList.remove('hidden');
+            const current = parseInt(gameTextNumber.textContent, 10) || 0;
+            const nextNum = current + 1;
+            const phases = [
+                { visible: false, ms: cssVars['--round-blink1-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink1-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink2-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink2-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink3-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink3-show-ms'] },
+            ];
+            let i = 0;
+            function step() {
+                if (i >= phases.length) {
+                    gameTextNumber.textContent = nextNum;
+                    gameTextNumber.style.visibility = 'visible';
+                    return;
+                }
+                const phase = phases[i++];
+                gameTextNumber.style.visibility = phase.visible ? 'visible' : 'hidden';
+                setTimeout(step, phase.ms);
+            }
+            step();
+        }
 
         // Initialize
         loadSettings();
