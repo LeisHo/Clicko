@@ -1496,8 +1496,19 @@
 
         .dev-buttons {
             display: flex;
+            align-items: center;
             gap: 5px;
             margin-bottom: 10px;
+        }
+
+        /* Status readout for the repo sync kicked off by Save Settings
+           (CLAUDE.md Section 12l) - not part of the flex-1 button row, just
+           a small trailing label so a failed/skipped sync (e.g. the backend
+           env vars aren't set up yet) doesn't look like a broken Save. */
+        .dev-save-sync-status {
+            font-size: calc(var(--dev-body-font-size-px) * 1px);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .dev-buttons button {
@@ -3128,8 +3139,8 @@
                      max-time value, not the live display. 1 = no rounding. -->
                 <div class="dev-row">
                     <span class="dev-label">Countdown Display Rounding (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderCountdownRounding" min="1" max="100" step="1" value="1">
-                    <span class="dev-value" id="valueCountdownRounding">1</span>
+                    <input type="range" class="dev-slider" id="sliderCountdownRounding" min="1" max="100" step="1" value="100">
+                    <span class="dev-value" id="valueCountdownRounding">100</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Debounce Window (ms, same pos only):</span>
@@ -3994,8 +4005,8 @@
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
             '--round-dock-x-offset-vw': -47.33,
-            '--round-dock-y-offset-vh': 42,
-            '--round-font-size-vw': 7.76,
+            '--round-dock-y-offset-vh': 41.37,
+            '--round-font-size-vw': 7.51,
             '--round-letter-spacing-px': 1,
             '--round-text-align': 'left',
             // The "?" in "Try again?" blinks while that text is shown - per
@@ -4024,25 +4035,25 @@
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
-            '--target-font-size-vw': 22.71,
-            '--target-x-offset-vw': 47.11,
-            '--target-y-offset-vh': -33.11,
+            '--target-font-size-vw': 24.2,
+            '--target-x-offset-vw': 47.78,
+            '--target-y-offset-vh': -32.89,
             '--target-letter-spacing-px': 0,
             '--target-text-align': 'right',
-            '--speed-font-size-vw': 7.76,
+            '--speed-font-size-vw': 7.51,
             '--speed-x-offset-vw': 38.23,
             '--speed-y-offset-vh': 42.65,
-            '--speed-letter-spacing-px': 1,
+            '--speed-letter-spacing-px': 6.5,
             '--speed-text-align': 'right',
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 3.88,
-            '--ms-per-click-x-offset-vw': 40.48,
-            '--ms-per-click-y-offset-vh': -8.87,
-            '--ms-per-click-letter-spacing-px': 2.5,
+            '--ms-per-click-font-size-vw': 4.47,
+            '--ms-per-click-x-offset-vw': 47.72,
+            '--ms-per-click-y-offset-vh': -1.78,
+            '--ms-per-click-letter-spacing-px': 1,
             '--ms-per-click-text-align': 'right',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
@@ -4126,21 +4137,21 @@
             // are read directly by .game-text's CSS, unconditionally.
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 7,
+            roundDockOverallBorderThickness: 8,
             roundDockOverallBorderColor: '#c41516',
-            targetDepth: 31,
+            targetDepth: 26,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
-            targetBorderColor: '#313030',
-            targetOverallBorderColor: '#bd0d07',
+            targetBorderColor: '#e03e3e',
+            targetOverallBorderColor: '#c41516',
             speedDepth: 19,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
             // "___ms / click" label above the countdown - own extrusion
             // group, same shape as Target/Speed's own copies above.
-            msPerClickDepth: 7,
+            msPerClickDepth: 12,
             msPerClickBorderColor: '#ff0000',
             msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#f0fff4',
@@ -4157,9 +4168,9 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 5,
-            targetOverallBorderThickness: 13,
-            speedOverallBorderThickness: 9,
-            msPerClickOverallBorderThickness: 5,
+            targetOverallBorderThickness: 8,
+            speedOverallBorderThickness: 8,
+            msPerClickOverallBorderThickness: 8,
         };
 
         // Mobile counterpart to extrusionVars above - same shape, minus
@@ -5226,6 +5237,46 @@
             window.prompt('Clipboard access unavailable. Copy manually:', text);
         }
 
+        // Shared anti-abuse token for /api/save-settings (CLAUDE.md Section
+        // 12l) - NOT a real secret (it ships in this public page's source,
+        // same as every other client-side value here), just enough to keep
+        // a random visitor from spamming commits to the repo. Must match
+        // the DEV_PANEL_SAVE_SECRET env var set on the Vercel project - see
+        // README.md for setup.
+        const DEV_PANEL_SAVE_SECRET = 'PkrbMti03M6xm3FEThYXa8gGW_08BOGj';
+
+        // Best-effort push of a Save Settings dump to the git-tracked
+        // settings log (data/processed/dev-panel-settings.json) via the
+        // /api/save-settings serverless function, so a desktop Claude Code
+        // session working on this repo can see what was last saved from
+        // ANY device/browser - not just this one's own localStorage, which
+        // is what the pre-existing save below already covers on its own.
+        // Never throws / never blocks the local save - a missing backend,
+        // no network, or the endpoint not being configured yet all just
+        // show as a skipped/failed sync, never a broken Save button.
+        function syncSettingsToRepo(settings) {
+            const statusEl = document.getElementById('saveSyncStatus');
+            if (statusEl) { statusEl.textContent = 'Syncing...'; statusEl.style.color = ''; }
+            fetch('/api/save-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Dev-Panel-Secret': DEV_PANEL_SAVE_SECRET },
+                body: JSON.stringify(settings),
+            }).then(async (resp) => {
+                const data = await resp.json().catch(() => ({}));
+                if (statusEl) {
+                    if (resp.ok && data.ok) {
+                        statusEl.textContent = 'Synced to repo';
+                        statusEl.style.color = 'var(--dev-accent-color)';
+                    } else {
+                        statusEl.textContent = 'Sync failed: ' + (data.error || resp.status);
+                        statusEl.style.color = '#ff4444';
+                    }
+                }
+            }).catch((err) => {
+                if (statusEl) { statusEl.textContent = 'Sync unavailable (offline?)'; statusEl.style.color = '#ff4444'; }
+            });
+        }
+
         // Save settings to localStorage
         function saveSettings() {
             const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
@@ -5234,6 +5285,9 @@
                 alert('Settings saved!');
             } catch (e) {
                 alert('Local storage unavailable in this context (e.g. data: URL preview). Use COPY instead.');
+            }
+            if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
+                syncSettingsToRepo(settings);
             }
         }
 
@@ -5884,7 +5938,7 @@
         };
         const TEXT_OVERRIDE_DEFAULTS = {
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
-            winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / click',
+            winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / CLICK',
             targetPrefix: '',
         };
         function overrideOr(slot) {
