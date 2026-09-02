@@ -3929,11 +3929,11 @@
             // CSS comment). Font-size now has its own independent slider
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
-            '--round-dock-x-offset-vw': -42,
-            '--round-dock-y-offset-vh': 42.65,
-            '--round-font-size-vw': 3.3,
-            '--round-letter-spacing-px': 6.5,
-            '--round-text-align': 'center',
+            '--round-dock-x-offset-vw': -47.33,
+            '--round-dock-y-offset-vh': 42,
+            '--round-font-size-vw': 7.76,
+            '--round-letter-spacing-px': 1,
+            '--round-text-align': 'left',
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
@@ -3960,26 +3960,26 @@
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
-            '--target-font-size-vw': 18.33,
-            '--target-x-offset-vw': 41.15,
-            '--target-y-offset-vh': -32.71,
+            '--target-font-size-vw': 22.71,
+            '--target-x-offset-vw': 47.11,
+            '--target-y-offset-vh': -33.11,
             '--target-letter-spacing-px': 0,
-            '--target-text-align': 'center',
-            '--speed-font-size-vw': 3.3,
+            '--target-text-align': 'right',
+            '--speed-font-size-vw': 7.76,
             '--speed-x-offset-vw': 38.23,
             '--speed-y-offset-vh': 42.65,
-            '--speed-letter-spacing-px': 6.5,
+            '--speed-letter-spacing-px': 1,
             '--speed-text-align': 'right',
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 1.84,
+            '--ms-per-click-font-size-vw': 3.88,
             '--ms-per-click-x-offset-vw': 40.48,
             '--ms-per-click-y-offset-vh': -8.87,
-            '--ms-per-click-letter-spacing-px': -3.5,
-            '--ms-per-click-text-align': 'center',
+            '--ms-per-click-letter-spacing-px': 2.5,
+            '--ms-per-click-text-align': 'right',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-y-offset-vh': -13,
@@ -4025,7 +4025,7 @@
         // colors); Round/Target/Speed each have their own depth and colors;
         // win*/lose* are Win/Lose's own separate color pair.
         const extrusionVars = {
-            font: '"Pixelify Sans", monospace',
+            font: '"Micro 5", monospace',
             depth: 5,
             fillColor: '#ffffff',
             borderColor: '#000000',
@@ -4064,19 +4064,19 @@
             roundDockBorderColor: '#c41516',
             roundDockOverallBorderThickness: 7,
             roundDockOverallBorderColor: '#c41516',
-            targetDepth: 20,
+            targetDepth: 31,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
-            targetBorderColor: '#ff0000',
-            targetOverallBorderColor: '#cc1b20',
+            targetBorderColor: '#313030',
+            targetOverallBorderColor: '#bd0d07',
             speedDepth: 19,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
             // "___ms / click" label above the countdown - own extrusion
             // group, same shape as Target/Speed's own copies above.
-            msPerClickDepth: 8,
+            msPerClickDepth: 7,
             msPerClickBorderColor: '#ff0000',
             msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#f0fff4',
@@ -4093,7 +4093,7 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 5,
-            targetOverallBorderThickness: 10,
+            targetOverallBorderThickness: 13,
             speedOverallBorderThickness: 9,
             msPerClickOverallBorderThickness: 5,
         };
