@@ -729,16 +729,21 @@
            TEXT_EDIT_TARGETS element, per explicit request ("I should see
            the bounding box of every text object"). pointer-events:none so
            the box is purely visual and never steals the right-click meant
-           for the real element underneath it - see
-           updateTextEditBoundingBoxes(). Position/size are set directly as
-           inline styles (tracks the real element's live screen rect every
-           frame while the mode is on), so only the static look lives here. */
+           for the real element underneath it - confirmed via
+           elementFromPoint() that a click at the box's own center resolves
+           straight through to the real element beneath, not the box - see
+           updateTextEditBoundingBoxes(). No fill (outline only), per
+           explicit follow-up request, so the box never visually reads as
+           "in the way" even though it was never actually blocking clicks.
+           Position/size are set directly as inline styles (tracks the real
+           element's live screen rect every frame while the mode is on), so
+           only the static look lives here. */
         .text-edit-bbox {
             position: fixed;
             display: none;
             box-sizing: border-box;
             border: 2px dashed var(--dev-accent-color, #0f0);
-            background: color-mix(in srgb, var(--dev-accent-color, #0f0) 12%, transparent);
+            background: none;
             pointer-events: none;
             z-index: 999;
         }
