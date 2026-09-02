@@ -748,6 +748,26 @@
             z-index: 999;
         }
 
+        /* Left/right resize handles on the bounding box - drag to set that
+           element's wrap width (when the text needs more room than the
+           handle allows, it wraps to a new line instead of growing wider),
+           per explicit request. Unlike the box itself, these ARE
+           pointer-events:auto - they're deliberately narrow (10px) so they
+           don't meaningfully compete with the right-click area in the box's
+           own middle. Positioned/sized every frame alongside the box in
+           updateTextEditBoundingBoxes(). */
+        .text-edit-bbox-handle {
+            position: fixed;
+            display: none;
+            width: 10px;
+            box-sizing: border-box;
+            background: var(--dev-accent-color, #0f0);
+            opacity: 0.85;
+            cursor: ew-resize;
+            pointer-events: auto;
+            z-index: 1000;
+        }
+
         .game-text {
             position: absolute;
             left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
@@ -5188,7 +5208,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -5207,7 +5227,7 @@
 
         // Save settings to localStorage
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             try {
                 localStorage.setItem('clickoSettings', JSON.stringify(settings));
                 alert('Settings saved!');
@@ -5283,6 +5303,10 @@
                     if (settings.textOverrides) {
                         Object.assign(textOverrides, settings.textOverrides);
                         refreshAllTextOverrides();
+                    }
+                    if (settings.textEditWrapWidths) {
+                        Object.assign(textEditWrapWidths, settings.textEditWrapWidths);
+                        applyAllTextEditWrapWidths();
                     }
                     // Click Burst per-frame-set memory - restore all 4
                     // frame sets' remembered values, sync the Frame Set
@@ -5902,6 +5926,7 @@
         // is on (dev-only), so the per-frame cost (6 getBoundingClientRect
         // calls) is negligible.
         const textEditBoxEls = {};
+        const textEditHandleEls = {};
         let textEditBoxesRafId = null;
         function ensureTextEditBox(elId) {
             let box = textEditBoxEls[elId];
@@ -5910,15 +5935,39 @@
                 box.className = 'text-edit-bbox';
                 document.body.appendChild(box);
                 textEditBoxEls[elId] = box;
+
+                const left = document.createElement('div');
+                left.className = 'text-edit-bbox-handle';
+                setupTextEditResizeHandle(left, elId, 'left');
+                document.body.appendChild(left);
+
+                const right = document.createElement('div');
+                right.className = 'text-edit-bbox-handle';
+                setupTextEditResizeHandle(right, elId, 'right');
+                document.body.appendChild(right);
+
+                textEditHandleEls[elId] = { left, right };
             }
             return box;
         }
+        // resizeDrag is non-null only while a handle is actively being
+        // dragged - updateTextEditBoundingBoxes() skips repositioning that
+        // one element's box/handles from the live DOM rect while dragging
+        // (the drag handler itself is what's actively changing the width,
+        // so re-measuring from the DOM every frame would just echo back the
+        // same value 1 frame late - no functional difference, but skipping
+        // it avoids fighting the drag with redundant writes).
+        let textEditResizeDrag = null;
         function updateTextEditBoundingBoxes() {
             Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
+                if (textEditResizeDrag && textEditResizeDrag.elId === elId) return;
                 const el = document.getElementById(elId);
                 const box = ensureTextEditBox(elId);
+                const handles = textEditHandleEls[elId];
                 if (!el || el.offsetParent === null) {
                     box.style.display = 'none';
+                    handles.left.style.display = 'none';
+                    handles.right.style.display = 'none';
                     return;
                 }
                 const rect = el.getBoundingClientRect();
@@ -5927,15 +5976,108 @@
                 box.style.top = rect.top + 'px';
                 box.style.width = rect.width + 'px';
                 box.style.height = rect.height + 'px';
+                positionTextEditHandles(elId, rect);
             });
             if (textEditModeEnabled) {
                 textEditBoxesRafId = requestAnimationFrame(updateTextEditBoundingBoxes);
             }
         }
+        function positionTextEditHandles(elId, rect) {
+            const handles = textEditHandleEls[elId];
+            if (!handles) return;
+            handles.left.style.display = 'block';
+            handles.left.style.left = (rect.left - 5) + 'px';
+            handles.left.style.top = rect.top + 'px';
+            handles.left.style.height = rect.height + 'px';
+            handles.right.style.display = 'block';
+            handles.right.style.left = (rect.right - 5) + 'px';
+            handles.right.style.top = rect.top + 'px';
+            handles.right.style.height = rect.height + 'px';
+        }
         function stopTextEditBoundingBoxes() {
             if (textEditBoxesRafId !== null) cancelAnimationFrame(textEditBoxesRafId);
             textEditBoxesRafId = null;
             Object.values(textEditBoxEls).forEach(box => { box.style.display = 'none'; });
+            Object.values(textEditHandleEls).forEach(h => { h.left.style.display = 'none'; h.right.style.display = 'none'; });
+        }
+
+        // Per-element wrap width - drag a bounding-box edge to set how wide
+        // that text element may grow before wrapping to a new line, per
+        // explicit request ("resize text boxes in text edit mode... control
+        // when the text goes to the next line"). null (default) means no
+        // override - the element keeps its normal shrink-to-fit auto width,
+        // identical to today's behavior. white-space:pre-line (added
+        // earlier for Shift+Enter) already wraps at a constrained width on
+        // its own, so applying this is just a max-width - no white-space
+        // change needed.
+        const textEditWrapWidths = {
+            startButton: null, gameTextLabel: null, resultText: null,
+            speedDisplay: null, targetCount: null, msPerClickDisplay: null,
+        };
+        const TEXT_EDIT_WRAP_MIN_PX = 20;
+        function applyTextEditWrapWidth(elId) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            const w = textEditWrapWidths[elId];
+            el.style.maxWidth = (w !== null && w !== undefined) ? w + 'px' : '';
+        }
+        function applyAllTextEditWrapWidths() {
+            Object.keys(textEditWrapWidths).forEach(applyTextEditWrapWidth);
+        }
+        // anchorSide: which edge of THIS element is fixed by its current
+        // text-align anchor (see the .align-left/.align-right CSS and
+        // applyTextAlignAnchors()) - 'left' means the left edge is pinned
+        // (translate(0%,...)), so only the RIGHT handle can actually move
+        // that edge; 'right' mirrors it (only LEFT handle moves); center
+        // (default) grows/shrinks symmetrically around the anchor, so
+        // either handle works but the dragged edge itself moves at half the
+        // pointer's speed (the opposite edge mirrors it) - an accepted
+        // dev-tool tradeoff rather than doubling the delta, since getting
+        // that fully 1:1 for every anchor mode is a much larger lift for a
+        // dev-only control.
+        function getTextEditAnchorSide(el) {
+            if (el.classList.contains('align-left')) return 'left';
+            if (el.classList.contains('align-right')) return 'right';
+            return 'center';
+        }
+        function setupTextEditResizeHandle(handleEl, elId, side) {
+            handleEl.addEventListener('pointerdown', (e) => {
+                if (!textEditModeEnabled) return;
+                const el = document.getElementById(elId);
+                if (!el) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const rect = el.getBoundingClientRect();
+                const anchorSide = getTextEditAnchorSide(el);
+                // Dragging the edge that IS the anchor's own fixed side
+                // can't move that edge (it's pinned by CSS) - no-op rather
+                // than silently doing the wrong thing.
+                if ((side === 'left' && anchorSide === 'left') || (side === 'right' && anchorSide === 'right')) return;
+                textEditResizeDrag = {
+                    elId, side, anchorSide,
+                    startX: e.clientX,
+                    startWidth: rect.width,
+                };
+                handleEl.setPointerCapture(e.pointerId);
+            });
+            handleEl.addEventListener('pointermove', (e) => {
+                if (!textEditResizeDrag || textEditResizeDrag.elId !== elId) return;
+                const dx = e.clientX - textEditResizeDrag.startX;
+                const signed = (textEditResizeDrag.side === 'right') ? dx : -dx;
+                const speed = (textEditResizeDrag.anchorSide === 'center') ? 2 : 1;
+                const newWidth = Math.max(TEXT_EDIT_WRAP_MIN_PX, textEditResizeDrag.startWidth + signed * speed);
+                textEditWrapWidths[elId] = newWidth;
+                applyTextEditWrapWidth(elId);
+                const el = document.getElementById(elId);
+                if (el) positionTextEditHandles(elId, el.getBoundingClientRect());
+            });
+            ['pointerup', 'pointercancel'].forEach(evt => {
+                handleEl.addEventListener(evt, (e) => {
+                    if (!textEditResizeDrag || textEditResizeDrag.elId !== elId) return;
+                    textEditResizeDrag = null;
+                    try { handleEl.releasePointerCapture(e.pointerId); } catch (err) {}
+                });
+            });
         }
 
         function setupTextEditMode() {
