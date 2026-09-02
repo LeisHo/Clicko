@@ -1220,6 +1220,27 @@
         }
 
         .dev-header {
+            /* Drag handle for moving the panel - see JS. The whole header
+               bar is the hit-target, not just the "DEV" text - that text is
+               only ~18px wide (its own intrinsic size), while this bar
+               visually spans the panel's full width via
+               justify-content:space-between; a drag listener on the text
+               alone left most of that visible bar as dead space that
+               silently swallowed any drag starting there (reported as
+               "can't move it left" - a real drag attempt landing a few px
+               off the tiny text glyphs simply never started). The buttons
+               still get their own click handling via the pointerdown
+               listener's own button guard (see JS), so this doesn't
+               interfere with Collapse/Hide.
+               touch-action:none (missing until reported as "dev panel
+               moving isn't working in mobile") - without it, a touch-drag
+               here gets interpreted as the browser's own page-scroll/pan
+               gesture instead of delivering continuous pointermove events
+               to the drag handler, same reason the resize handles already
+               needed it. */
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
             margin-bottom: 10px;
             color: #0ff;
             font-weight: bold;
@@ -1232,24 +1253,13 @@
             align-items: flex-start;
         }
 
-        .dev-panel-title {
-            /* Drag handle for moving the panel - see JS. Only this inner
-               text block (not the hide button beside it) triggers a drag.
-               touch-action:none (missing until reported as "dev panel
-               moving isn't working in mobile") - without it, a touch-drag
-               here gets interpreted as the browser's own page-scroll/pan
-               gesture instead of delivering continuous pointermove events
-               to the drag handler, same reason the resize handles already
-               needed it. */
-            cursor: grab;
-            user-select: none;
-            touch-action: none;
-            font-size: calc(var(--dev-panel-title-font-size-px) * 1px);
-            color: var(--dev-panel-title-text-color);
+        .dev-header.dragging {
+            cursor: grabbing;
         }
 
-        .dev-panel-title.dragging {
-            cursor: grabbing;
+        .dev-panel-title {
+            font-size: calc(var(--dev-panel-title-font-size-px) * 1px);
+            color: var(--dev-panel-title-text-color);
         }
 
         .dev-hide-btn {
@@ -5441,17 +5451,25 @@
         // Dev panel drag - same pattern as the round-breakdown panel's own
         // title-bar drag (see there for the setPointerCapture-ordering note).
         // A single shared position/size (cssVars only, not mobile-split),
-        // matching --dev-panel-width-px's existing convention.
-        const devPanelTitle = document.querySelector('.dev-panel-title');
+        // matching --dev-panel-width-px's existing convention. Hooked to the
+        // whole .dev-header bar, not just the "DEV" text inside it - the
+        // text is only ~18px wide (its own intrinsic size) while the header
+        // visually spans the panel's full width, so a listener on the text
+        // alone left most of that visible bar as dead space that silently
+        // swallowed real drag attempts (reported as "can't move it left" -
+        // confirmed via elementFromPoint() that a drag starting anywhere in
+        // that dead space simply never reached this handler at all).
+        const devPanelHeader = document.querySelector('.dev-header');
         let isDraggingDevPanel = false;
         let devPanelDragStart = { pointerX: 0, pointerY: 0, panelLeft: 0, panelTop: 0 };
 
-        devPanelTitle.addEventListener('pointerdown', (e) => {
+        devPanelHeader.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('button')) return; // Collapse/Hide keep their own click behavior
             const rect = devPanel.getBoundingClientRect();
             devPanelDragStart = { pointerX: e.clientX, pointerY: e.clientY, panelLeft: rect.left, panelTop: rect.top };
             isDraggingDevPanel = true;
-            devPanelTitle.classList.add('dragging');
-            try { devPanelTitle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
+            devPanelHeader.classList.add('dragging');
+            try { devPanelHeader.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
         });
 
         document.addEventListener('pointermove', (e) => {
@@ -5482,9 +5500,9 @@
         function endDevPanelDrag(e) {
             if (!isDraggingDevPanel) return;
             isDraggingDevPanel = false;
-            devPanelTitle.classList.remove('dragging');
-            if (e && e.pointerId !== undefined && devPanelTitle.hasPointerCapture(e.pointerId)) {
-                devPanelTitle.releasePointerCapture(e.pointerId);
+            devPanelHeader.classList.remove('dragging');
+            if (e && e.pointerId !== undefined && devPanelHeader.hasPointerCapture(e.pointerId)) {
+                devPanelHeader.releasePointerCapture(e.pointerId);
             }
         }
         document.addEventListener('pointerup', endDevPanelDrag);
