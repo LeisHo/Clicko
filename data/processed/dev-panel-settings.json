@@ -761,11 +761,6 @@
           "sliderMobileDevGroupTitleFontSize",
           "sliderMobileDevSettingTitleFontSize",
           "sliderMobileDevBodyFontSize",
-          "sliderMobileDevPanelOpacity",
-          "colorMobileDevPanelBg",
-          "colorMobileDevPanelTitleText",
-          "colorMobileDevPanelNonTitleText",
-          "colorMobileDevPanelAccent",
           "sliderMobileDevButtonHeight"
         ]
       },
