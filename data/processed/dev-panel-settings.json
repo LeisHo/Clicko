@@ -86,10 +86,10 @@
     "--result-y-offset-vh": -13,
     "--result-text-align": "center",
     "--result-text-valign": "center",
-    "--dev-panel-width-px": 455,
+    "--dev-panel-width-px": 337,
     "--dev-panel-left-px": 6,
     "--dev-panel-top-px": 6,
-    "--dev-panel-height-px": 717,
+    "--dev-panel-height-px": 343,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
@@ -136,13 +136,13 @@
     "--try-again-question-mark-font-size-vw": 20,
     "--try-again-question-mark-x-offset-vw": 20,
     "--try-again-question-mark-y-offset-vh": 5.05,
-    "--round-dock-x-offset-vw": -36.41,
-    "--round-dock-y-offset-vh": 46.12,
-    "--round-font-size-vw": 5.43,
+    "--round-dock-x-offset-vw": -40,
+    "--round-dock-y-offset-vh": 46,
+    "--round-font-size-vw": 17.51,
     "--round-letter-spacing-px": 0,
     "--round-line-height": 1.2,
-    "--round-text-align": "center",
-    "--round-text-valign": "center",
+    "--round-text-align": "left",
+    "--round-text-valign": "bottom",
     "--target-font-size-vw": 14.75,
     "--target-x-offset-vw": 23.79,
     "--target-y-offset-vh": -34.47,
@@ -164,7 +164,7 @@
     "--ms-per-click-line-height": 1.2,
     "--ms-per-click-text-align": "center",
     "--ms-per-click-text-valign": "center",
-    "--result-font-size-vw": 15.94,
+    "--result-font-size-vw": 4.77,
     "--result-x-offset-vw": 0,
     "--result-line-height": 1.2,
     "--result-y-offset-vh": 1.46,
@@ -190,6 +190,9 @@
     "tryAgainBorderColor": "#ffffff",
     "tryAgainOverallBorderColor": "#431114",
     "questionMarkFillColor": "#ffffff",
+    "questionMarkDepth": 9,
+    "questionMarkOverallBorderThickness": 17,
+    "questionMarkOverallBorderColor": "#59181b",
     "roundDockDepth": 9,
     "roundDockBorderColor": "#ffffff",
     "roundDockOverallBorderThickness": 8,
@@ -225,6 +228,9 @@
     "tryAgainBorderColor": "#c41516",
     "tryAgainOverallBorderColor": "#c41516",
     "questionMarkFillColor": "#c41516",
+    "questionMarkDepth": 23,
+    "questionMarkOverallBorderThickness": 5,
+    "questionMarkOverallBorderColor": "#c41516",
     "roundDockDepth": 9,
     "roundDockBorderColor": "#c41516",
     "roundDockOverallBorderThickness": 5,
@@ -424,14 +430,14 @@
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
     "mobile:Rotation Animation": false,
-    "mobile:Dev Panel": false,
-    "mobile:Main Button": false,
-    "mobile:Shadow": false,
-    "mobile:Click Burst": false,
-    "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
-    "mobile:Start/Try Again Button": false,
-    "mobile:Round Text": false,
+    "mobile:Click Burst": true,
+    "mobile:Shadow": true,
     "mobile:Win/Lose Text": false,
+    "mobile:Round Text": true,
+    "mobile:Start/Try Again Button": false,
+    "mobile:Dev Panel": true,
+    "mobile:Main Button": true,
+    "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
     "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": false,
     "mobile:Ms/Click Display": false
@@ -537,6 +543,9 @@
       {
         "key": "desktop:Rotation Animation",
         "rowKeys": [
+          "sliderTryAgainQuestionMarkExtrusionDepth",
+          "sliderTryAgainQuestionMarkOverallBorderThickness",
+          "colorTryAgainQuestionMarkOverallBorder",
           "sliderTryAgainQuestionMarkFontSize",
           "colorTryAgainQuestionMarkFill",
           "sliderTryAgainQuestionMarkX",
@@ -663,10 +672,85 @@
       {
         "key": "mobile:Rotation Animation",
         "rowKeys": [
+          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
+          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
           "sliderMobileTryAgainQuestionMarkFontSize",
-          "colorMobileTryAgainQuestionMarkFill",
           "sliderMobileTryAgainQuestionMarkX",
           "sliderMobileTryAgainQuestionMarkY"
+        ]
+      },
+      {
+        "key": "mobile:Click Burst",
+        "rowKeys": [
+          "sliderMobileClickBurstSpeed",
+          "sliderMobileClickBurstScale",
+          "sliderMobileClickBurstDistance",
+          "sliderMobileClickBurstHeight",
+          "sliderMobileClickBurstCurveOffset",
+          "sliderMobileClickBurstCurveAmount",
+          "sliderMobileClickBurstCountMin",
+          "sliderMobileClickBurstCountMax",
+          "inputMobileClickBurstHideShadowIndexA",
+          "inputMobileClickBurstHideShadowIndexB",
+          "inputMobileClickBurstRightFloorDeg",
+          "inputMobileClickBurstRightCeilingDeg",
+          "inputMobileClickBurstLeftFloorDeg",
+          "inputMobileClickBurstLeftCeilingDeg"
+        ]
+      },
+      {
+        "key": "mobile:Shadow",
+        "rowKeys": [
+          "sliderMobileShadowX",
+          "sliderMobileShadowY",
+          "sliderMobileShadowBlur",
+          "sliderMobileShadowScale",
+          "sliderMobileShadowSkew",
+          "sliderMobileShadowElongationIntensity",
+          "sliderMobileShadowElongationAngle",
+          "sliderMobileShadowRotate"
+        ]
+      },
+      {
+        "key": "mobile:Win/Lose Text",
+        "rowKeys": [
+          "sliderMobileResultFontSize",
+          "sliderMobileResultX",
+          "sliderMobileResultY",
+          "sliderMobileResultLineHeight",
+          "selectMobileResultTextAlign",
+          "selectMobileResultTextValign"
+        ]
+      },
+      {
+        "key": "mobile:Round Text",
+        "rowKeys": [
+          "sliderMobileRoundFontSize",
+          "sliderMobileRoundDockExtrusionDepth",
+          "sliderMobileRoundDockOverallBorderThickness",
+          "sliderMobileRoundDockX",
+          "sliderMobileRoundDockY",
+          "sliderMobileRoundLetterSpacing",
+          "sliderMobileRoundLineHeight",
+          "selectMobileRoundTextAlign",
+          "selectMobileRoundTextValign"
+        ]
+      },
+      {
+        "key": "mobile:Start/Try Again Button",
+        "rowKeys": [
+          "sliderMobileTextFontSize",
+          "sliderMobileRoundExtrusionDepth",
+          "sliderMobileRoundOverallBorderThickness",
+          "sliderMobileTextX",
+          "sliderMobileTextY",
+          "sliderMobileTextLetterSpacing",
+          "sliderMobileTextLineHeight",
+          "selectMobileStartTextAlign",
+          "selectMobileStartTextValign",
+          "sliderMobileTryAgainTextFontSize",
+          "sliderMobileTryAgainTextX",
+          "sliderMobileTryAgainTextY"
         ]
       },
       {
@@ -693,42 +777,8 @@
           "sliderMobileButtonHeight",
           "sliderMobileButtonPressIntensity",
           "sliderMobileButtonReleaseMs",
-          "colorMobileButton",
-          "colorMobileBase",
           "sliderMobileButtonX",
           "sliderMobileButtonY"
-        ]
-      },
-      {
-        "key": "mobile:Shadow",
-        "rowKeys": [
-          "sliderMobileShadowX",
-          "sliderMobileShadowY",
-          "sliderMobileShadowBlur",
-          "sliderMobileShadowScale",
-          "sliderMobileShadowSkew",
-          "sliderMobileShadowElongationIntensity",
-          "sliderMobileShadowElongationAngle",
-          "sliderMobileShadowRotate"
-        ]
-      },
-      {
-        "key": "mobile:Click Burst",
-        "rowKeys": [
-          "sliderMobileClickBurstSpeed",
-          "sliderMobileClickBurstScale",
-          "sliderMobileClickBurstDistance",
-          "sliderMobileClickBurstHeight",
-          "sliderMobileClickBurstCurveOffset",
-          "sliderMobileClickBurstCurveAmount",
-          "sliderMobileClickBurstCountMin",
-          "sliderMobileClickBurstCountMax",
-          "inputMobileClickBurstHideShadowIndexA",
-          "inputMobileClickBurstHideShadowIndexB",
-          "inputMobileClickBurstRightFloorDeg",
-          "inputMobileClickBurstRightCeilingDeg",
-          "inputMobileClickBurstLeftFloorDeg",
-          "inputMobileClickBurstLeftCeilingDeg"
         ]
       },
       {
@@ -736,60 +786,7 @@
         "rowKeys": [
           "sliderMobileExtrusionDepth",
           "checkboxMobileOverallBorder",
-          "colorMobileOverallBorder",
           "sliderMobileOverallBorderThickness"
-        ]
-      },
-      {
-        "key": "mobile:Start/Try Again Button",
-        "rowKeys": [
-          "sliderMobileTextFontSize",
-          "sliderMobileRoundExtrusionDepth",
-          "colorMobileRoundExtrusionBorder",
-          "sliderMobileRoundOverallBorderThickness",
-          "colorMobileRoundOverallBorder",
-          "sliderMobileTextX",
-          "sliderMobileTextY",
-          "sliderMobileTextLetterSpacing",
-          "sliderMobileTextLineHeight",
-          "selectMobileStartTextAlign",
-          "selectMobileStartTextValign",
-          "sliderMobileTryAgainTextFontSize",
-          "colorMobileTryAgainExtrusionBorder",
-          "colorMobileTryAgainOverallBorder",
-          "sliderMobileTryAgainTextX",
-          "sliderMobileTryAgainTextY"
-        ]
-      },
-      {
-        "key": "mobile:Round Text",
-        "rowKeys": [
-          "sliderMobileRoundFontSize",
-          "sliderMobileRoundDockExtrusionDepth",
-          "colorMobileRoundDockExtrusionBorder",
-          "sliderMobileRoundDockOverallBorderThickness",
-          "colorMobileRoundDockOverallBorder",
-          "sliderMobileRoundDockX",
-          "sliderMobileRoundDockY",
-          "sliderMobileRoundLetterSpacing",
-          "sliderMobileRoundLineHeight",
-          "selectMobileRoundTextAlign",
-          "selectMobileRoundTextValign"
-        ]
-      },
-      {
-        "key": "mobile:Win/Lose Text",
-        "rowKeys": [
-          "sliderMobileResultFontSize",
-          "sliderMobileResultX",
-          "sliderMobileResultY",
-          "sliderMobileResultLineHeight",
-          "selectMobileResultTextAlign",
-          "selectMobileResultTextValign",
-          "colorMobileResultWinFill",
-          "colorMobileResultWinBorder",
-          "colorMobileResultLoseFill",
-          "colorMobileResultLoseBorder"
         ]
       },
       {
@@ -797,9 +794,7 @@
         "rowKeys": [
           "sliderMobileTargetFontSize",
           "sliderMobileTargetExtrusionDepth",
-          "colorMobileTargetExtrusionBorder",
           "sliderMobileTargetOverallBorderThickness",
-          "colorMobileTargetOverallBorder",
           "sliderMobileTargetX",
           "sliderMobileTargetY",
           "sliderMobileTargetLetterSpacing",
@@ -813,9 +808,7 @@
         "rowKeys": [
           "sliderMobileSpeedFontSize",
           "sliderMobileSpeedExtrusionDepth",
-          "colorMobileSpeedExtrusionBorder",
           "sliderMobileSpeedOverallBorderThickness",
-          "colorMobileSpeedOverallBorder",
           "sliderMobileSpeedX",
           "sliderMobileSpeedY",
           "sliderMobileSpeedLetterSpacing",
@@ -829,9 +822,7 @@
         "rowKeys": [
           "sliderMobileMsPerClickFontSize",
           "sliderMobileMsPerClickExtrusionDepth",
-          "colorMobileMsPerClickExtrusionBorder",
           "sliderMobileMsPerClickOverallBorderThickness",
-          "colorMobileMsPerClickOverallBorder",
           "sliderMobileMsPerClickX",
           "sliderMobileMsPerClickY",
           "sliderMobileMsPerClickLetterSpacing",
