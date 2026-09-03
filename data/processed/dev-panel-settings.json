@@ -93,8 +93,7 @@
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
-    "--round-breakdown-top-px": 54,
-    "--persistence-check-marker": "checked-1788421786872"
+    "--round-breakdown-top-px": 54
   },
   "colorVars": {
     "--button-color": "#ff3333",
