@@ -6034,17 +6034,75 @@
             let moved = false;
             const THRESHOLD = 8;
 
+            // Touch needs a hold-to-arm gate that mouse doesn't: the handles
+            // no longer have touch-action:none (see the "cant scroll the Dev
+            // panel in mobile browser" fix) so a normal swipe reaches native
+            // scroll untouched - but that means a touch drag can't be
+            // recognized by movement alone the way a mouse drag is (any
+            // early movement has to be assumed to be a scroll, not a drag
+            // attempt). Per explicit request/clarification ("click and hold
+            // for more than a second... versus scrolling which i would
+            // start scrolling faster than a second"): a touch only commits
+            // to drag mode after being held still past TOUCH_HOLD_MS: real
+            // movement before that fires cancels the hold and falls through
+            // to the browser's own scroll, untouched. Mouse/pen keep the
+            // original immediate, movement-threshold-based behavior below -
+            // touch-action never governs them, so nothing was ever broken
+            // there.
+            const TOUCH_HOLD_MS = 1000;
+            const TOUCH_HOLD_MOVE_TOLERANCE = 10;
+            let pendingTouch = null; // { item, startX, startY, pointerId, timerId }
+
+            function cancelPendingTouch() {
+                if (pendingTouch) {
+                    clearTimeout(pendingTouch.timerId);
+                    pendingTouch = null;
+                }
+            }
+
             document.addEventListener('pointerdown', (e) => {
                 const handle = e.target.closest(handleSelector);
                 if (!handle) return;
                 const item = handle.closest(itemSelector);
                 if (!item) return;
+
+                if (e.pointerType === 'touch') {
+                    const startX0 = e.clientX, startY0 = e.clientY, pointerId = e.pointerId;
+                    cancelPendingTouch();
+                    pendingTouch = {
+                        item, startX: startX0, startY: startY0, pointerId,
+                        timerId: setTimeout(() => {
+                            if (!pendingTouch || pendingTouch.pointerId !== pointerId) return;
+                            pendingTouch = null;
+                            dragging = item;
+                            startY = startY0;
+                            // Already committed via the hold, not a fresh
+                            // movement-threshold crossing - start reordering
+                            // on the very next move, same as a mouse drag
+                            // that's already past THRESHOLD.
+                            moved = true;
+                            dragging.classList.add('dev-reorder-dragging');
+                        }, TOUCH_HOLD_MS),
+                    };
+                    return;
+                }
+
                 dragging = item;
                 startY = e.clientY;
                 moved = false;
             });
 
             document.addEventListener('pointermove', (e) => {
+                if (pendingTouch && e.pointerId === pendingTouch.pointerId) {
+                    const dist = Math.hypot(e.clientX - pendingTouch.startX, e.clientY - pendingTouch.startY);
+                    if (dist > TOUCH_HOLD_MOVE_TOLERANCE) {
+                        // Moved before the hold committed - a real scroll
+                        // attempt, not a drag. Let native scrolling handle
+                        // it; never preventDefault a gesture we didn't arm.
+                        cancelPendingTouch();
+                    }
+                    return;
+                }
                 if (!dragging) return;
                 if (!moved && Math.abs(e.clientY - startY) > THRESHOLD) {
                     moved = true;
@@ -6065,15 +6123,23 @@
                         break;
                     }
                 }
-            });
+            }, { passive: false });
 
-            document.addEventListener('pointerup', () => {
+            document.addEventListener('pointerup', (e) => {
+                if (pendingTouch && e.pointerId === pendingTouch.pointerId) cancelPendingTouch();
                 if (!dragging) return;
                 dragging.classList.remove('dev-reorder-dragging');
                 if (moved) {
                     sectionJustDragged = true; // harmless no-op for the settings-row case, where nothing reads this flag
                     if (onDrop) onDrop();
                 }
+                dragging = null;
+                moved = false;
+            });
+            document.addEventListener('pointercancel', (e) => {
+                if (pendingTouch && e.pointerId === pendingTouch.pointerId) cancelPendingTouch();
+                if (!dragging) return;
+                dragging.classList.remove('dev-reorder-dragging');
                 dragging = null;
                 moved = false;
             });
