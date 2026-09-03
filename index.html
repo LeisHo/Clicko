@@ -3457,27 +3457,6 @@
                     <span class="dev-value" id="valueMobileDevBodyFontSize">11</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Opacity:</span>
-                    <input type="range" class="dev-slider" id="sliderMobileDevPanelOpacity" min="0.1" max="1" step="0.01" value="1">
-                    <span class="dev-value" id="valueMobileDevPanelOpacity">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Background Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelBg" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Title Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelTitleText" value="#ffffff">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Non-Title Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelNonTitleText" value="#ffffff">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Accent Color (Buttons/UI):</span>
-                    <input type="color" class="dev-color-picker" id="colorMobileDevPanelAccent" value="#00ff00">
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">Button Height (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileDevButtonHeight" min="12" max="60" step="1" value="24">
                     <span class="dev-value" id="valueMobileDevButtonHeight">24</span>
@@ -4166,10 +4145,17 @@
             buttonHeight: '--dev-button-height-px',
         };
 
+        // Opacity + all 4 colors are desktop-only now - per explicit
+        // request ("Dev Panel colors is dictated by desktop settings.
+        // remove from mobile. same for opacity"), always resolve from
+        // devPanelStyle regardless of which tab is active. Every other
+        // field (font sizes, button height) stays genuinely per-tab.
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor'];
         function applyDevPanelOwnStyling(isDesktopTab) {
             const style = isDesktopTab ? devPanelStyle : mobileDevPanelStyle;
             for (const [key, varName] of Object.entries(DEV_PANEL_STYLE_VAR_MAP)) {
-                document.documentElement.style.setProperty(varName, style[key]);
+                const value = DEV_PANEL_STYLE_SHARED_KEYS.includes(key) ? devPanelStyle[key] : style[key];
+                document.documentElement.style.setProperty(varName, value);
             }
         }
 
@@ -5789,26 +5775,30 @@
                     // tab is currently active.
                     if (settings.devPanelStyle) Object.assign(devPanelStyle, settings.devPanelStyle);
                     if (settings.mobileDevPanelStyle) Object.assign(mobileDevPanelStyle, settings.mobileDevPanelStyle);
+                    // opacity/bgColor/titleTextColor/nonTitleTextColor/
+                    // accentColor have no Mobile id (null) - desktop-only
+                    // now, see DEV_PANEL_STYLE_SHARED_KEYS.
                     const DEV_PANEL_STYLE_CONTROL_IDS = {
                         titleFontSize: ['sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize'],
                         tabFontSize: ['sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
                         groupTitleFontSize: ['sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
                         settingTitleFontSize: ['sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
                         bodyFontSize: ['sliderDevBodyFontSize', 'sliderMobileDevBodyFontSize'],
-                        opacity: ['sliderDevPanelOpacity', 'sliderMobileDevPanelOpacity'],
-                        bgColor: ['colorDevPanelBg', 'colorMobileDevPanelBg'],
-                        titleTextColor: ['colorDevPanelTitleText', 'colorMobileDevPanelTitleText'],
-                        nonTitleTextColor: ['colorDevPanelNonTitleText', 'colorMobileDevPanelNonTitleText'],
-                        accentColor: ['colorDevPanelAccent', 'colorMobileDevPanelAccent'],
+                        opacity: ['sliderDevPanelOpacity', null],
+                        bgColor: ['colorDevPanelBg', null],
+                        titleTextColor: ['colorDevPanelTitleText', null],
+                        nonTitleTextColor: ['colorDevPanelNonTitleText', null],
+                        accentColor: ['colorDevPanelAccent', null],
                         buttonHeight: ['sliderDevButtonHeight', 'sliderMobileDevButtonHeight'],
                     };
                     Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId]]) => {
                         const deskEl = document.getElementById(deskId);
                         if (deskEl) deskEl.value = devPanelStyle[key];
-                        const mobEl = document.getElementById(mobId);
-                        if (mobEl) mobEl.value = mobileDevPanelStyle[key];
                         const deskValEl = document.getElementById(deskId.replace(/^(slider|color)/, 'value'));
                         if (deskValEl) deskValEl.textContent = devPanelStyle[key];
+                        if (!mobId) return;
+                        const mobEl = document.getElementById(mobId);
+                        if (mobEl) mobEl.value = mobileDevPanelStyle[key];
                         const mobValEl = document.getElementById(mobId.replace(/^(slider|color)/, 'value'));
                         if (mobValEl) mobValEl.textContent = mobileDevPanelStyle[key];
                     });
@@ -8255,11 +8245,14 @@
             step();
         }
 
-        // Wires the 22 built-in "Dev Panel" panel-styling controls (11
-        // desktop + 11 mobile) - bypasses the generic cssVars/CSS_VAR_SLIDER_MAP
-        // mechanism deliberately, since these are keyed by which TAB is
-        // being viewed, not by isMobileActive() like everything that
-        // mechanism otherwise handles.
+        // Wires the built-in "Dev Panel" panel-styling controls - bypasses
+        // the generic cssVars/CSS_VAR_SLIDER_MAP mechanism deliberately,
+        // since these are keyed by which TAB is being viewed, not by
+        // isMobileActive() like everything that mechanism otherwise
+        // handles. Opacity + the 4 colors are desktop-only (see
+        // DEV_PANEL_STYLE_SHARED_KEYS/applyDevPanelOwnStyling) - no Mobile
+        // id to wire for those, unlike the per-tab font-size/button-height
+        // controls below.
         function setupDevPanelStyleControls() {
             const sliderKeys = [
                 ['titleFontSize', 'sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize'],
@@ -8267,7 +8260,6 @@
                 ['groupTitleFontSize', 'sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
                 ['settingTitleFontSize', 'sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
                 ['bodyFontSize', 'sliderDevBodyFontSize', 'sliderMobileDevBodyFontSize'],
-                ['opacity', 'sliderDevPanelOpacity', 'sliderMobileDevPanelOpacity'],
                 ['buttonHeight', 'sliderDevButtonHeight', 'sliderMobileDevButtonHeight'],
             ];
             sliderKeys.forEach(([key, deskId, mobId]) => {
@@ -8287,22 +8279,25 @@
                 });
             });
 
+            const deskOnlySliderEl = document.getElementById('sliderDevPanelOpacity');
+            if (deskOnlySliderEl) deskOnlySliderEl.addEventListener('input', (e) => {
+                devPanelStyle.opacity = parseFloat(e.target.value);
+                applyDevPanelOwnStyling(true);
+                const valEl = document.getElementById('valueDevPanelOpacity');
+                if (valEl) valEl.textContent = e.target.value;
+            });
+
             const colorKeys = [
-                ['bgColor', 'colorDevPanelBg', 'colorMobileDevPanelBg'],
-                ['titleTextColor', 'colorDevPanelTitleText', 'colorMobileDevPanelTitleText'],
-                ['nonTitleTextColor', 'colorDevPanelNonTitleText', 'colorMobileDevPanelNonTitleText'],
-                ['accentColor', 'colorDevPanelAccent', 'colorMobileDevPanelAccent'],
+                ['bgColor', 'colorDevPanelBg'],
+                ['titleTextColor', 'colorDevPanelTitleText'],
+                ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
+                ['accentColor', 'colorDevPanelAccent'],
             ];
-            colorKeys.forEach(([key, deskId, mobId]) => {
+            colorKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
                 if (deskEl) deskEl.addEventListener('input', (e) => {
                     devPanelStyle[key] = e.target.value;
                     applyDevPanelOwnStyling(true);
-                });
-                const mobEl = document.getElementById(mobId);
-                if (mobEl) mobEl.addEventListener('input', (e) => {
-                    mobileDevPanelStyle[key] = e.target.value;
-                    applyDevPanelOwnStyling(false);
                 });
             });
         }
