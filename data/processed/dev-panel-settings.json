@@ -15,6 +15,7 @@
     "--click-burst-count-min": 3,
     "--click-burst-count-max": 5,
     "--click-burst-curve-amount": 0,
+    "--click-burst-shadow-final-scale": 1,
     "--click-frame-set": "CLICK3",
     "--flip-button-svg": 1,
     "--shadow-x-offset": 198,
@@ -35,6 +36,8 @@
     "--try-again-text-font-size-vw": 12.94,
     "--try-again-text-x-offset-vw": -0.16,
     "--try-again-text-y-offset-vh": -13.75,
+    "--try-again-text-letter-spacing-px": 10,
+    "--try-again-text-line-height": 1.2,
     "--try-again-question-mark-font-size-vw": 20.09,
     "--try-again-question-mark-x-offset-vw": 0.47,
     "--try-again-question-mark-y-offset-vh": 35.27,
@@ -52,6 +55,7 @@
     "--try-again-rotate-tweening": "easeOut",
     "--try-again-rotate-min-width-scale": 0.13,
     "--try-again-rotate-extrusion-matches-glyph": 1,
+    "--try-again-rotate-axis-offset-percent": 0,
     "--round-blink1-hide-ms": 250,
     "--round-blink1-show-ms": 250,
     "--round-blink2-hide-ms": 250,
@@ -74,8 +78,8 @@
     "--speed-text-align": "right",
     "--speed-text-valign": "bottom",
     "--ms-per-click-font-size-vw": 5.46,
-    "--ms-per-click-x-offset-vw": 46.95,
-    "--ms-per-click-y-offset-vh": -15.22,
+    "--ms-per-click-x-offset-vw": 47.2,
+    "--ms-per-click-y-offset-vh": -13.2,
     "--ms-per-click-letter-spacing-px": 1,
     "--ms-per-click-line-height": 0.65,
     "--ms-per-click-text-align": "right",
@@ -88,7 +92,7 @@
     "--result-text-valign": "center",
     "--dev-panel-width-px": 241,
     "--dev-panel-left-px": 6,
-    "--dev-panel-top-px": 372,
+    "--dev-panel-top-px": 93,
     "--dev-panel-height-px": 411,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
@@ -115,6 +119,7 @@
     "--click-burst-count-min": 3,
     "--click-burst-count-max": 5,
     "--click-burst-curve-amount": 0.2,
+    "--click-burst-shadow-final-scale": 1,
     "--shadow-x-offset": 21.12,
     "--shadow-y-offset": 14,
     "--shadow-blur": 0,
@@ -133,6 +138,8 @@
     "--try-again-text-font-size-vw": 20,
     "--try-again-text-x-offset-vw": 0,
     "--try-again-text-y-offset-vh": -0.49,
+    "--try-again-text-letter-spacing-px": 0,
+    "--try-again-text-line-height": 1.2,
     "--try-again-question-mark-font-size-vw": 20,
     "--try-again-question-mark-x-offset-vw": 20,
     "--try-again-question-mark-y-offset-vh": 5.05,
@@ -426,7 +433,7 @@
     "desktop:Win/Lose Text": true,
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
-    "desktop:Ms/Click Display": true,
+    "desktop:Ms/Click Display": false,
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
     "mobile:Rotation Animation": true,
@@ -490,6 +497,7 @@
       {
         "key": "desktop:Click Burst",
         "rowKeys": [
+          "sliderClickBurstShadowFinalScale",
           "selectClickFrameSet",
           "sliderClickBurstSpeed",
           "sliderClickBurstScale",
@@ -520,6 +528,8 @@
       {
         "key": "desktop:Start/Try Again Button",
         "rowKeys": [
+          "sliderTryAgainTextLetterSpacing",
+          "sliderTryAgainTextLineHeight",
           "sliderTextFontSize",
           "sliderRoundExtrusionDepth",
           "colorRoundExtrusionBorder",
@@ -543,6 +553,7 @@
       {
         "key": "desktop:Rotation Animation",
         "rowKeys": [
+          "sliderTryAgainRotateAxisOffset",
           "sliderTryAgainQuestionMarkExtrusionDepth",
           "sliderTryAgainQuestionMarkOverallBorderThickness",
           "colorTryAgainQuestionMarkOverallBorder",
@@ -682,6 +693,7 @@
       {
         "key": "mobile:Click Burst",
         "rowKeys": [
+          "sliderMobileClickBurstShadowFinalScale",
           "sliderMobileClickBurstSpeed",
           "sliderMobileClickBurstScale",
           "sliderMobileClickBurstDistance",
@@ -739,6 +751,8 @@
       {
         "key": "mobile:Start/Try Again Button",
         "rowKeys": [
+          "sliderMobileTryAgainTextLetterSpacing",
+          "sliderMobileTryAgainTextLineHeight",
           "sliderMobileTextFontSize",
           "sliderMobileRoundExtrusionDepth",
           "sliderMobileRoundOverallBorderThickness",
