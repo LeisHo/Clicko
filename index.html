@@ -1693,7 +1693,23 @@
 
         .dev-slider {
             flex: 1;
-            min-width: 80px;
+            /* Raised from 80px - per direct request that a too-narrow panel
+               push the slider onto its own line below the label ("under
+               the title") instead of squeezing it thin next to the label
+               ("on the right side"). .dev-row already has flex-wrap:wrap,
+               so this WAS already wrapping - but only once the panel got
+               narrow enough to force the slider all the way down near its
+               old 80px floor, meaning it spent a wide range of intermediate
+               panel widths as an uncomfortably thin, hard-to-grab sliver
+               sharing the label's line rather than actually being hidden -
+               confirmed via direct measurement (152px wide at a 400px
+               panel, shrinking to 85px by 280px, only wrapping to its own
+               full-width line below 260px). A higher floor makes the wrap
+               happen sooner (a wider panel threshold), so whenever the
+               slider IS sharing the label's line it stays a reasonably
+               sized, easy-to-grab touch target, and drops to its own line
+               well before it would otherwise have gotten too thin. */
+            min-width: 130px;
             height: 18px;
             cursor: pointer;
         }
