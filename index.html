@@ -674,6 +674,8 @@
             left: calc(50% + var(--try-again-text-x-offset-vw) * 1vw);
             top: calc(50% + var(--try-again-text-y-offset-vh) * 1vh);
             font-size: calc(var(--try-again-text-font-size-vw) * 1vw);
+            letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
+            line-height: var(--try-again-text-line-height, 1.2);
             color: var(--try-again-fill-color);
             text-shadow: var(--try-again-extrusion-shadow);
         }
@@ -728,7 +730,12 @@
             left: 0;
             top: 0;
             display: inline-block;
-            transform-origin: center;
+            /* X shiftable off-center via --try-again-rotate-axis-offset-
+               percent (0 = center, today's unchanged default) - per
+               explicit request for a slider offsetting the rotation axis
+               left/right. Y stays fixed at center - only asked for
+               horizontal. */
+            transform-origin: calc(50% + var(--try-again-rotate-axis-offset-percent, 0) * 1%) center;
             /* Transparent, not the fill color - this layer exists ONLY to
                cast its own text-shadow (the real extrusion/border pixels);
                its own glyph shape was never meant to be independently
@@ -753,7 +760,12 @@
         #startButtonFlashCharGlyph {
             position: relative;
             display: inline-block;
-            transform-origin: center;
+            /* X shiftable off-center via --try-again-rotate-axis-offset-
+               percent (0 = center, today's unchanged default) - per
+               explicit request for a slider offsetting the rotation axis
+               left/right. Y stays fixed at center - only asked for
+               horizontal. */
+            transform-origin: calc(50% + var(--try-again-rotate-axis-offset-percent, 0) * 1%) center;
             color: var(--try-again-question-mark-fill-color);
         }
 
@@ -2687,6 +2699,28 @@
                     <span class="dev-label">Left Ceiling Angle (deg):</span>
                     <input type="number" class="dev-text-input" id="inputClickBurstLeftCeilingDeg" step="1" value="340">
                 </div>
+                <!-- Final scale-down applied to the click-burst shadow
+                     containers (clickBurstShadowContainerRight/Left), AFTER
+                     every existing modifier in buildTransform() - the
+                     shared Shadow group's own X/Y/Rotate/Scale/Skew/
+                     Elongation sliders (which this ALSO affects, being the
+                     same containers) still run first and are completely
+                     unaffected; this just uniformly shrinks the end
+                     result. Per explicit request ("a scaling modifier
+                     after all the skewing/elongation/rotation modifiers...
+                     will come last and just make the shadow frames look
+                     smaller. The flight path etc will still be determined
+                     as they are now") - deliberately NOT part of the
+                     per-frame-set memory (CLICK_BURST_SCOPED_KEYS) since
+                     it's a shadow-LOOK setting, same category as the
+                     Shadow group's own sliders it's chained after, not a
+                     per-sprite-style tuning value like Frame Size/Distance/
+                     etc. above. Default 1 = no change from today's look. -->
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Final Scale:</span>
+                    <input type="range" class="dev-slider" id="sliderClickBurstShadowFinalScale" min="0" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueClickBurstShadowFinalScale">1</span>
+                </div>
             </div>
         </div>
 
@@ -2850,6 +2884,16 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextLetterSpacing" min="-10" max="20" step="0.5" value="10">
+                    <span class="dev-value" id="valueTryAgainTextLetterSpacing">10</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Line Height:</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueTryAgainTextLineHeight">1.2</span>
+                </div>
                 <!-- The "?" in "Try again?" blinks while that text is on
                      screen - per explicit request. Shared/single, not
                      mobile-split, like every other timing-only slider (Game
@@ -2954,6 +2998,11 @@
                         <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" checked onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
                         <span class="dev-label" style="min-width:auto;">Extrusion/Border Scales/Mirrors With Text</span>
                     </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Rotation Axis Offset (% of width):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainRotateAxisOffset" min="-50" max="50" step="1" value="0">
+                    <span class="dev-value" id="valueTryAgainRotateAxisOffset">0</span>
                 </div>
             </div>
         </div>
@@ -3668,6 +3717,11 @@
                     <span class="dev-label">Left Ceiling Angle (deg):</span>
                     <input type="number" class="dev-text-input" id="inputMobileClickBurstLeftCeilingDeg" step="1" value="340">
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Final Scale:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileClickBurstShadowFinalScale" min="0" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueMobileClickBurstShadowFinalScale">1</span>
+                </div>
             </div>
         </div>
 
@@ -3769,6 +3823,16 @@
                     <span class="dev-label">Try Again Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextY" min="-50" max="50" step="0.01" value="-0.49">
                     <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileTryAgainTextLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Line Height:</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueMobileTryAgainTextLineHeight">1.2</span>
                 </div>
             </div>
         </div>
@@ -4225,6 +4289,11 @@
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
             '--click-burst-curve-amount': 0,
+            // Final scale-down for the click-burst SHADOW containers only
+            // (buildTransform() in JS), applied after every other shadow
+            // modifier - see the dev-panel HTML comment for the full
+            // reasoning. 1 = no change from the pre-existing look.
+            '--click-burst-shadow-final-scale': 1,
             // Not truly a CSS var (nothing reads it via var()) - piggybacking
             // on this object purely so the frame-set choice is included in
             // copySettings()/saveSettings() for free, matching every other
@@ -4279,6 +4348,13 @@
             '--try-again-text-font-size-vw': 12.94,
             '--try-again-text-x-offset-vw': -0.16,
             '--try-again-text-y-offset-vh': -13.75,
+            // Try Again's own letter/line spacing, independent from
+            // Start's above - per explicit request ("also give me letter
+            // spacing and line spacing for the Try again text"). Starts
+            // matching Start's own values until tuned, same convention as
+            // the font-size/position split above.
+            '--try-again-text-letter-spacing-px': 10,
+            '--try-again-text-line-height': 1.2,
             // The "?" glyph's own font-size/position, independent from the
             // "Try again" text above - per explicit request. Was inline
             // text before (flowed right after "Try again", no independent
@@ -4318,6 +4394,14 @@
             '--try-again-rotate-tweening': 'linear',
             '--try-again-rotate-min-width-scale': 0,
             '--try-again-rotate-extrusion-matches-glyph': 1,
+            // Shifts the rotation's own pivot point left/right within the
+            // glyph, instead of always pivoting exactly on its horizontal
+            // center - per explicit request. 0 = center (today's default,
+            // unchanged look); negative shifts the pivot left, positive
+            // right - percent of the glyph's own width, same convention as
+            // CSS transform-origin itself. Shared/single like every other
+            // rotation-behavior control above, not mobile-split.
+            '--try-again-rotate-axis-offset-percent': 0,
             '--round-blink1-hide-ms': 250,
             '--round-blink1-show-ms': 250,
             '--round-blink2-hide-ms': 250,
@@ -4761,6 +4845,7 @@
             '--click-burst-count-min': 3,
             '--click-burst-count-max': 5,
             '--click-burst-curve-amount': 0.2,
+            '--click-burst-shadow-final-scale': 1,
             '--shadow-x-offset': 21.12,
             '--shadow-y-offset': 14,
             '--shadow-blur': 0,
@@ -4779,6 +4864,8 @@
             '--try-again-text-font-size-vw': 20,
             '--try-again-text-x-offset-vw': 0,
             '--try-again-text-y-offset-vh': -0.49,
+            '--try-again-text-letter-spacing-px': 0,
+            '--try-again-text-line-height': 1.2,
             // See the desktop cssVars' own comment - same live-measured-
             // default reasoning, mobile viewport.
             '--try-again-question-mark-font-size-vw': 20,
@@ -5426,7 +5513,13 @@
             // resolveSpatialPx() - see its own comment - resolves the
             // shadow x/y offset to actual current-viewport px on mobile
             // (stored as vw there) and is a no-op on desktop.
-            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) rotate(${activeVars['--shadow-elongation-angle']}deg) scaleY(${activeVars['--shadow-elongation-intensity']}) rotate(${-activeVars['--shadow-elongation-angle']}deg)`;
+            // Final scale(...) appended last - applied AFTER every existing
+            // modifier above (skew/elongation/rotate), so it just shrinks
+            // the already-shaped shadow frame in place rather than changing
+            // any of its skew/elongation/rotation math; the flight path
+            // (translate/spawnClickBurstSide's own positioning) is computed
+            // independently of this container transform and is unaffected.
+            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) rotate(${activeVars['--shadow-elongation-angle']}deg) scaleY(${activeVars['--shadow-elongation-intensity']}) rotate(${-activeVars['--shadow-elongation-angle']}deg) scale(${activeVars['--click-burst-shadow-final-scale']})`;
             clickBurstShadowContainerRight.style.transformOrigin = originStr;
             clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
@@ -5575,6 +5668,7 @@
             document.documentElement.style.setProperty('--try-again-rotate-tweening', cssVars['--try-again-rotate-tweening']);
             document.documentElement.style.setProperty('--try-again-rotate-min-width-scale', cssVars['--try-again-rotate-min-width-scale']);
             document.documentElement.style.setProperty('--try-again-rotate-extrusion-matches-glyph', cssVars['--try-again-rotate-extrusion-matches-glyph']);
+            document.documentElement.style.setProperty('--try-again-rotate-axis-offset-percent', cssVars['--try-again-rotate-axis-offset-percent']);
             document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
             document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
@@ -5897,6 +5991,55 @@
                     applyClickBurstTextInputs();
                     applySectionOrder(settings.sectionOrder);
                     applySectionCollapseState(settings.sectionCollapseState);
+                    // Generic slider display-sync-after-load - every
+                    // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP-driven slider's
+                    // underlying value already restores correctly via the
+                    // Object.assign calls above (and gets visibly applied via
+                    // applyActiveVars()/applyExtrusionStyles() right after
+                    // loadSettings() resolves), but the <input type="range">
+                    // element's own handle position/readout was never synced
+                    // to match - the same class of gap as the align/valign
+                    // dropdown fix above, generalized to every slider instead
+                    // of one control type (this file's own startup-IIFE
+                    // comment already flagged it as "a pre-existing gap
+                    // affecting every dev-panel control"). Runs last, after
+                    // every other restore step above (including the
+                    // click-burst frame-set re-derivation), so it reads
+                    // final, settled values.
+                    [CSS_VAR_SLIDER_MAP, EXTRUSION_SLIDER_MAP].forEach(map => {
+                        const isExtrusionMap = map === EXTRUSION_SLIDER_MAP;
+                        Object.keys(map).forEach(desktopId => {
+                            const key = map[desktopId];
+                            [desktopId, desktopId.replace(/^(slider|color|select|checkbox)/, '$1Mobile')].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (!el) return;
+                                const { isMobile } = resolveDevControlId(id);
+                                const source = isExtrusionMap
+                                    ? (isMobile ? mobileExtrusionVars : extrusionVars)
+                                    : (isMobile ? mobileCssVars : cssVars);
+                                const value = source[key];
+                                if (value === undefined) return;
+                                // Auto-expand whichever bound a restored
+                                // out-of-range value crosses, same rule and
+                                // same +/-20% margin as the click-to-type
+                                // commit path above (CLAUDE.md Section 12h) -
+                                // otherwise a restored value past the
+                                // slider's hardcoded min/max pins the handle
+                                // at that extreme, and dragging further in
+                                // that direction visibly does nothing (a
+                                // concrete way "the slider does nothing"
+                                // could actually happen).
+                                if (typeof value === 'number') {
+                                    const min = parseFloat(el.min);
+                                    const max = parseFloat(el.max);
+                                    if (!isNaN(max) && value > max) el.max = String(value + Math.abs(value) * 0.2);
+                                    if (!isNaN(min) && value < min) el.min = String(value - Math.abs(value) * 0.2);
+                                }
+                                el.value = value;
+                                applySliderValue(el, value);
+                            });
+                        });
+                    });
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -6317,6 +6460,7 @@
             'sliderClickBurstCountMin': '--click-burst-count-min',
             'sliderClickBurstCountMax': '--click-burst-count-max',
             'sliderClickBurstCurveAmount': '--click-burst-curve-amount',
+            'sliderClickBurstShadowFinalScale': '--click-burst-shadow-final-scale',
             'sliderShadowX': '--shadow-x-offset',
             'sliderShadowY': '--shadow-y-offset',
             'sliderShadowBlur': '--shadow-blur',
@@ -6337,6 +6481,8 @@
             'sliderTryAgainTextFontSize': '--try-again-text-font-size-vw',
             'sliderTryAgainTextX': '--try-again-text-x-offset-vw',
             'sliderTryAgainTextY': '--try-again-text-y-offset-vh',
+            'sliderTryAgainTextLetterSpacing': '--try-again-text-letter-spacing-px',
+            'sliderTryAgainTextLineHeight': '--try-again-text-line-height',
             'sliderTryAgainQuestionMarkFontSize': '--try-again-question-mark-font-size-vw',
             'sliderTryAgainQuestionMarkX': '--try-again-question-mark-x-offset-vw',
             'sliderTryAgainQuestionMarkY': '--try-again-question-mark-y-offset-vh',
@@ -6349,6 +6495,7 @@
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
             'sliderTryAgainRotateSpeed': '--try-again-rotate-speed-ms',
             'sliderTryAgainRotateMinWidth': '--try-again-rotate-min-width-scale',
+            'sliderTryAgainRotateAxisOffset': '--try-again-rotate-axis-offset-percent',
             'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
             'sliderRoundBlink1Show': '--round-blink1-show-ms',
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
@@ -7570,29 +7717,58 @@
 
             charEl.style.visibility = 'visible';
             glyphEl.style.transform = `scaleX(${glyphScaleX})`;
-            extrusionEl.style.transform = `scaleX(${extrusionScaleX})`;
 
             // Re-derive the extrusion layer's own text-shadow every frame,
-            // X-compensated for the SAME scaleX just applied above - per
-            // direct report that the depth/border reads as "too thick"
-            // once rotated past ~45deg. transform scales an element's
-            // text-shadow along with its glyph, but only on the axis being
-            // scaled (X here) - the shadow's fixed-pixel offsets built by
-            // the static (unscaled) buildCombinedShadow() would otherwise
-            // get non-uniformly squished, distorting the depth/border look
-            // as the angle increases. A hard floor well below the visual
-            // Minimum Width setting (which can legitimately be 0) keeps
-            // this compensation itself from dividing by zero/blowing up at
-            // the exact edge-on instant - a single-frame extreme value
-            // there is imperceptible either way.
+            // X-compensated for the SAME scaleX just applied to the
+            // element - per direct report that the depth/border reads as
+            // "too thick" once rotated past ~45deg. transform scales an
+            // element's text-shadow along with its glyph, but only on the
+            // axis being scaled (X here) - the shadow's fixed-pixel
+            // offsets built by the static (unscaled) buildCombinedShadow()
+            // would otherwise get non-uniformly squished, distorting the
+            // depth/border look as the angle increases. A hard floor well
+            // below the visual Minimum Width setting (which can
+            // legitimately be 0) keeps this compensation from dividing by
+            // zero/blowing up at the exact edge-on instant.
+            //
+            // The floored shadowXScale below is now ALSO what actually
+            // gets applied to the element's own transform, not just the
+            // shadow math - per a second direct report ("i see gaps
+            // through the extrusion and border" right at the 90deg
+            // edge-on point). Root cause: the shadow offsets were
+            // pre-compensated for this floored (min 0.05) scale, but the
+            // element's REAL applied scaleX could still go all the way to
+            // the true (near-)zero raw value whenever it was smaller than
+            // the floor - so right at edge-on, the compensation and the
+            // actual transform stopped agreeing, and the shadow trail
+            // rendered visibly smaller than its own compensation math
+            // assumed, opening a gap between it and the glyph. Flooring
+            // BOTH consistently (same value, same moment) keeps them
+            // permanently in sync - the tiny (5% width) floor itself was
+            // already judged imperceptible when this was written the first
+            // time, so applying it to the visible glyph a few frames near
+            // edge-on isn't a new visual cost, just a consistently-shared
+            // one instead of a silently-diverging one.
+            const shadowXScale = Math.max(Math.abs(extrusionScaleX), 0.05);
+            const extrusionAppliedScaleX = (extrusionScaleX < 0 ? -1 : 1) * shadowXScale;
+            extrusionEl.style.transform = `scaleX(${extrusionAppliedScaleX})`;
             // Colors always desktop (see EXTRUSION_COLOR_FIELD_NAMES/
             // applyExtrusionStyles()) - depth/thickness/enabled stay
-            // per-device.
+            // per-device. Uses the "?" glyph's OWN questionMark* fields,
+            // NOT the shared tryAgain* ones - this function runs every
+            // single animation frame and was overwriting whatever the "?"
+            // Extrusion Depth/Border sliders set on every frame with the
+            // wrong (shared Try Again) values, making those sliders look
+            // completely broken (visually correct for an instant, then
+            // stomped by the next frame) - per direct report ("the
+            // extrusion and border sliders for the question mark does
+            // nothing"). Flagged as a known issue 2 rounds ago when this
+            // function was first found to reference the wrong fields, now
+            // actually fixed since it has a real reported symptom.
             const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
-            const shadowXScale = Math.max(Math.abs(extrusionScaleX), 0.05);
             extrusionEl.style.textShadow = buildCombinedShadowXComp(
-                deviceExt.roundDepth, extrusionVars.tryAgainBorderColor, deviceExt.roundOverallBorderThickness,
-                extrusionVars.tryAgainOverallBorderColor, deviceExt.overallBorderEnabled, shadowXScale
+                deviceExt.questionMarkDepth, extrusionVars.questionMarkFillColor, deviceExt.questionMarkOverallBorderThickness,
+                extrusionVars.questionMarkOverallBorderColor, deviceExt.overallBorderEnabled, shadowXScale
             );
 
             tryAgainRotateRafId = requestAnimationFrame(tickTryAgainRotate);
