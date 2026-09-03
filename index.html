@@ -7968,7 +7968,23 @@
                 gameState.perClickTimeoutId = null;
                 if (!gameState.isPlaying || !gameState.canTap) return;
                 stopRoundCountdown();
-                endGame(false, 'too-slow');
+                // Exactly at target when this fires means the player
+                // reached the goal and simply stopped tapping - win
+                // immediately rather than waiting for the aggregate round
+                // countdown to separately expire. Per explicit request:
+                // "player clicks the right amount of times... timer counts
+                // to see if player clicks again within the minimum time
+                // duration per click... if [it] passes, immediately trigger
+                // win". Below target still means genuinely too slow (the
+                // pre-existing behavior, unchanged) - and above target can
+                // never reach this point at all, since the overshoot check
+                // in handleGameButtonPress() already ends the round the
+                // instant a tap pushes the count past target.
+                if (gameState.currentTapCount === gameState.targetCount) {
+                    endGame(true);
+                } else {
+                    endGame(false, 'too-slow');
+                }
             }, gameState.maxTimeMs);
         }
 
