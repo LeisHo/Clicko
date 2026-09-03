@@ -17,6 +17,17 @@
             height: 100%;
             margin: 0;
             padding: 0;
+            /* Suppresses the browser's own pull-to-refresh/rubber-band
+               gesture - per direct report that dev-panel drags on mobile
+               (both resizing and moving) cut out after a small amount of
+               movement, most reproducible dragging the TOP edge, exactly
+               where that native gesture engages. This operates at the
+               browser-chrome level, above the DOM, so an individual
+               element's own touch-action:none (already present on the
+               panel's drag/resize handles) doesn't fully rule it out on
+               every mobile browser - body already has overflow:hidden, but
+               that's a different property and doesn't cover this. */
+            overscroll-behavior: none;
         }
 
         body {
@@ -1341,10 +1352,21 @@
             z-index: 2;
             touch-action: none;
         }
+        /* Widened from 12px to 20px (matching the corner handles' own
+           existing size) - per direct report that resize drags on mobile
+           only move ~5-10px before stopping, requiring repeated re-drags.
+           A real fingertip's contact area is much larger than 12px, well
+           under the ~44px minimum touch target both major mobile platforms
+           recommend - an imprecise touch easily straddled outside the old
+           strip, which can cause a browser/OS touch-gesture recognizer to
+           treat the drag as ambiguous and cut it short even with
+           touch-action:none and setPointerCapture() already in place (both
+           already present here - this widening addresses a DIFFERENT
+           contributing cause, not a duplicate of that earlier fix). */
         .dev-panel-resize-edge.edge-top, .dev-panel-resize-edge.edge-bottom {
             left: 16px;
             right: 16px;
-            height: 12px;
+            height: 20px;
             cursor: ns-resize;
         }
         .dev-panel-resize-edge.edge-top { top: -6px; }
@@ -1352,7 +1374,7 @@
         .dev-panel-resize-edge.edge-left, .dev-panel-resize-edge.edge-right {
             top: 16px;
             bottom: 16px;
-            width: 12px;
+            width: 20px;
             cursor: ew-resize;
         }
         .dev-panel-resize-edge.edge-left { left: -6px; }
@@ -6965,6 +6987,10 @@
 
         devPanelHeader.addEventListener('pointerdown', (e) => {
             if (e.target.closest('button')) return; // Collapse/Hide keep their own click behavior
+            // Same explicit preventDefault as the resize handles just got -
+            // per the same mobile "drag cuts out early" report, which named
+            // both dragging and resizing.
+            e.preventDefault();
             const rect = devPanel.getBoundingClientRect();
             devPanelDragStart = { pointerX: e.clientX, pointerY: e.clientY, panelLeft: rect.left, panelTop: rect.top };
             isDraggingDevPanel = true;
@@ -7032,6 +7058,14 @@
             let start = { pointerX: 0, pointerY: 0, left: 0, top: 0, width: 0, height: 0 };
 
             handle.addEventListener('pointerdown', (e) => {
+                // Explicit preventDefault, on top of the CSS touch-action:none
+                // already on this element - per direct report that resize
+                // drags on mobile were still cutting out after ~5-10px.
+                // touch-action:none alone doesn't guarantee every mobile
+                // browser suppresses its own default touch handling (long-
+                // press/callout, momentum-scroll priming, etc.) the instant
+                // a touch starts; calling this directly removes any doubt.
+                e.preventDefault();
                 const rect = panel.getBoundingClientRect();
                 start = { pointerX: e.clientX, pointerY: e.clientY, left: rect.left, top: rect.top, width: rect.width, height: rect.height };
                 dragging = true;
