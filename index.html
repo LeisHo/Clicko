@@ -643,7 +643,14 @@
             color: var(--round-fill-color);
             text-shadow: var(--round-extrusion-shadow);
             text-align: var(--start-text-align, center);
-            white-space: pre-line;
+            /* pre-wrap, not pre-line - per explicit request, repeated
+               spaces need to each take up their own horizontal space (e.g.
+               pushing right-aligned text further left per space typed),
+               which pre-line's normal whitespace-collapsing didn't allow.
+               Still preserves newlines (Shift+Enter multi-line editing)
+               and still wraps at a constrained width, same as pre-line
+               did - pre-wrap is a strict superset of what was needed here. */
+            white-space: pre-wrap;
             background: none;
             border: none;
             box-shadow: none;
@@ -825,7 +832,14 @@
             color: var(--round-dock-fill-color);
             text-shadow: var(--round-dock-extrusion-shadow);
             text-align: var(--round-text-align, center);
-            white-space: pre-line;
+            /* pre-wrap, not pre-line - per explicit request, repeated
+               spaces need to each take up their own horizontal space (e.g.
+               pushing right-aligned text further left per space typed),
+               which pre-line's normal whitespace-collapsing didn't allow.
+               Still preserves newlines (Shift+Enter multi-line editing)
+               and still wraps at a constrained width, same as pre-line
+               did - pre-wrap is a strict superset of what was needed here. */
+            white-space: pre-wrap;
             pointer-events: none;
             z-index: 10;
         }
@@ -882,7 +896,14 @@
             font-weight: 700;
             font-family: var(--extrusion-font);
             text-align: var(--result-text-align, center);
-            white-space: pre-line;
+            /* pre-wrap, not pre-line - per explicit request, repeated
+               spaces need to each take up their own horizontal space (e.g.
+               pushing right-aligned text further left per space typed),
+               which pre-line's normal whitespace-collapsing didn't allow.
+               Still preserves newlines (Shift+Enter multi-line editing)
+               and still wraps at a constrained width, same as pre-line
+               did - pre-wrap is a strict superset of what was needed here. */
+            white-space: pre-wrap;
             pointer-events: none;
             z-index: 10;
         }
@@ -943,7 +964,14 @@
             text-align: var(--target-text-align, center);
             pointer-events: none;
             z-index: 10;
-            white-space: pre-line;
+            /* pre-wrap, not pre-line - per explicit request, repeated
+               spaces need to each take up their own horizontal space (e.g.
+               pushing right-aligned text further left per space typed),
+               which pre-line's normal whitespace-collapsing didn't allow.
+               Still preserves newlines (Shift+Enter multi-line editing)
+               and still wraps at a constrained width, same as pre-line
+               did - pre-wrap is a strict superset of what was needed here. */
+            white-space: pre-wrap;
         }
 
         .target-count.hidden {
@@ -966,7 +994,14 @@
             text-align: var(--speed-text-align, center);
             pointer-events: none;
             z-index: 10;
-            white-space: pre-line;
+            /* pre-wrap, not pre-line - per explicit request, repeated
+               spaces need to each take up their own horizontal space (e.g.
+               pushing right-aligned text further left per space typed),
+               which pre-line's normal whitespace-collapsing didn't allow.
+               Still preserves newlines (Shift+Enter multi-line editing)
+               and still wraps at a constrained width, same as pre-line
+               did - pre-wrap is a strict superset of what was needed here. */
+            white-space: pre-wrap;
         }
 
         .speed-display.hidden {
@@ -995,7 +1030,14 @@
             text-align: var(--ms-per-click-text-align, center);
             pointer-events: none;
             z-index: 10;
-            white-space: pre-line;
+            /* pre-wrap, not pre-line - per explicit request, repeated
+               spaces need to each take up their own horizontal space (e.g.
+               pushing right-aligned text further left per space typed),
+               which pre-line's normal whitespace-collapsing didn't allow.
+               Still preserves newlines (Shift+Enter multi-line editing)
+               and still wraps at a constrained width, same as pre-line
+               did - pre-wrap is a strict superset of what was needed here. */
+            white-space: pre-wrap;
         }
 
         .ms-per-click-display.hidden {
@@ -4224,9 +4266,9 @@
             // since Round Text no longer has a big state at all and the
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
-            '--text-font-size-vw': 16.87,
-            '--text-x-offset-vw': -0.16,
-            '--text-y-offset-vh': -13.75,
+            '--text-font-size-vw': 15.42,
+            '--text-x-offset-vw': 0.21,
+            '--text-y-offset-vh': -11.26,
             '--text-letter-spacing-px': 10,
             '--text-line-height': 1.2,
             '--start-text-align': 'center',
@@ -4247,21 +4289,21 @@
             // this causes no visual jump - not the same numbers as Try
             // Again's own X/Y above, since those position the whole button/
             // text box, not this glyph's rendered center.
-            '--try-again-question-mark-font-size-vw': 12.94,
-            '--try-again-question-mark-x-offset-vw': -0.16,
-            '--try-again-question-mark-y-offset-vh': 0.05,
+            '--try-again-question-mark-font-size-vw': 19.68,
+            '--try-again-question-mark-x-offset-vw': -0.26,
+            '--try-again-question-mark-y-offset-vh': 29.06,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
             '--round-dock-x-offset-vw': -47.33,
-            '--round-dock-y-offset-vh': 41.37,
-            '--round-font-size-vw': 7.51,
-            '--round-letter-spacing-px': 1,
+            '--round-dock-y-offset-vh': 50,
+            '--round-font-size-vw': 6.98,
+            '--round-letter-spacing-px': 4,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
-            '--round-text-valign': 'center',
+            '--round-text-valign': 'bottom',
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
@@ -4295,42 +4337,42 @@
             '--target-line-height': 1.2,
             '--target-text-align': 'right',
             '--target-text-valign': 'center',
-            '--speed-font-size-vw': 7.51,
-            '--speed-x-offset-vw': 46.95,
-            '--speed-y-offset-vh': 41.62,
+            '--speed-font-size-vw': 6.98,
+            '--speed-x-offset-vw': 47.67,
+            '--speed-y-offset-vh': 49.79,
             '--speed-letter-spacing-px': 6.5,
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
-            '--speed-text-valign': 'center',
+            '--speed-text-valign': 'bottom',
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 3.01,
+            '--ms-per-click-font-size-vw': 5.46,
             '--ms-per-click-x-offset-vw': 46.95,
-            '--ms-per-click-y-offset-vh': -8.38,
+            '--ms-per-click-y-offset-vh': -15.22,
             '--ms-per-click-letter-spacing-px': 1,
-            '--ms-per-click-line-height': 1,
+            '--ms-per-click-line-height': 0.65,
             '--ms-per-click-text-align': 'right',
-            '--ms-per-click-text-valign': 'center',
+            '--ms-per-click-text-valign': 'top',
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-line-height': 1.2,
             '--result-y-offset-vh': -13,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
-            '--dev-panel-width-px': 455,
+            '--dev-panel-width-px': 1233,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
             // with real viewport-computed values at load time, see below.
-            '--dev-panel-left-px': -1,
-            '--dev-panel-top-px': -1,
-            '--dev-panel-height-px': -1,
+            '--dev-panel-left-px': 6,
+            '--dev-panel-top-px': 6,
+            '--dev-panel-height-px': 431,
             '--round-breakdown-width-px': 320,
             '--round-breakdown-height-px': 450,
-            '--round-breakdown-left-px': 1200,
-            '--round-breakdown-top-px': 140,
+            '--round-breakdown-left-px': 1562,
+            '--round-breakdown-top-px': 54,
         };
 
         // Color variables
@@ -4378,14 +4420,14 @@
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
-            roundOverallBorderColor: '#b60300',
+            roundOverallBorderColor: '#431114',
             // Try Again's own border/extrusion colors, independent from
             // Start's above - per explicit request. Depth/thickness stay
             // shared (roundDepth/roundOverallBorderThickness) since only
             // color was asked for; starts matching Start's own colors
             // until tuned, same convention as the font-size/position split.
             tryAgainBorderColor: '#ffffff',
-            tryAgainOverallBorderColor: '#59181b',
+            tryAgainOverallBorderColor: '#431114',
             // The "?" glyph's own fill color, independent from the "Try
             // again" text's own color above - per explicit request ("I
             // dont see separate size, color, and x y sliders for the
@@ -4423,15 +4465,15 @@
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
             targetBorderColor: '#ffffff',
-            targetOverallBorderColor: '#b50300',
-            speedDepth: 19,
+            targetOverallBorderColor: '#b60300',
+            speedDepth: 11,
             speedBorderColor: '#ffffff',
-            speedOverallBorderColor: '#ae0000',
+            speedOverallBorderColor: '#b60300',
             // "___ms / click" label above the countdown - own extrusion
             // group, same shape as Target/Speed's own copies above.
             msPerClickDepth: 12,
             msPerClickBorderColor: '#ffffff',
-            msPerClickOverallBorderColor: '#ad0000',
+            msPerClickOverallBorderColor: '#b60300',
             winFillColor: '#f0fff4',
             winBorderColor: '#22dd44',
             loseFillColor: '#d3a7a7',
@@ -4469,7 +4511,7 @@
             tryAgainBorderColor: '#c41516',
             tryAgainOverallBorderColor: '#c41516',
             questionMarkFillColor: '#c41516',
-            questionMarkDepth: 9,
+            questionMarkDepth: 23,
             questionMarkOverallBorderThickness: 5,
             questionMarkOverallBorderColor: '#c41516',
             roundDockDepth: 9,
@@ -4742,13 +4784,13 @@
             '--try-again-question-mark-font-size-vw': 20,
             '--try-again-question-mark-x-offset-vw': 20,
             '--try-again-question-mark-y-offset-vh': 5.05,
-            '--round-dock-x-offset-vw': -36.41,
-            '--round-dock-y-offset-vh': 46.12,
-            '--round-font-size-vw': 5.43,
+            '--round-dock-x-offset-vw': -40,
+            '--round-dock-y-offset-vh': 46,
+            '--round-font-size-vw': 17.51,
             '--round-letter-spacing-px': 0,
             '--round-line-height': 1.2,
-            '--round-text-align': 'center',
-            '--round-text-valign': 'center',
+            '--round-text-align': 'left',
+            '--round-text-valign': 'bottom',
             '--target-font-size-vw': 14.75,
             '--target-x-offset-vw': 23.79,
             '--target-y-offset-vh': -34.47,
@@ -4770,7 +4812,7 @@
             '--ms-per-click-line-height': 1.2,
             '--ms-per-click-text-align': 'center',
             '--ms-per-click-text-valign': 'center',
-            '--result-font-size-vw': 15.94,
+            '--result-font-size-vw': 4.77,
             '--result-x-offset-vw': 0,
             '--result-line-height': 1.2,
             '--result-y-offset-vh': 1.46,
@@ -5756,6 +5798,24 @@
                     Object.assign(colorVars, settings.colorVars);
                     Object.assign(mobileCssVars, settings.mobileCssVars);
                     Object.assign(mobileColorVars, settings.mobileColorVars);
+                    // Text-align/valign dropdowns (setupTextAlignSelects())
+                    // write into cssVars/mobileCssVars on change, same as
+                    // every other cssVar-backed control - the underlying
+                    // VALUE was always captured/restored correctly via the
+                    // Object.assign above. What was missing: the <select>
+                    // elements' own displayed option never got synced to
+                    // match, so a genuinely-restored alignment still showed
+                    // the dropdown's default choice after a reload/RESET -
+                    // looked exactly like "not saved" even though the game
+                    // itself rendered correctly. Per direct report ("the
+                    // save button isnt savingg the dropdowns for lettte
+                    // alignment") - confirmed via the actual git-tracked
+                    // settings log that the data was there all along.
+                    document.querySelectorAll('.dev-align-select, .dev-valign-select').forEach(select => {
+                        const { isMobile } = resolveDevControlId(select.id);
+                        const value = (isMobile ? mobileCssVars : cssVars)[select.dataset.var];
+                        if (value !== undefined) select.value = value;
+                    });
                     Object.assign(extrusionVars, settings.extrusionVars);
                     Object.assign(mobileExtrusionVars, settings.mobileExtrusionVars);
                     if (settings.gameMechanics) {
