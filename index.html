@@ -4303,11 +4303,11 @@
             // Also not a true CSS var, same reasoning - piggybacks on this
             // object purely for free persistence via copySettings().
             '--flip-button-svg': 1,
-            '--shadow-x-offset': 212,
-            '--shadow-y-offset': 46,
+            '--shadow-x-offset': 198,
+            '--shadow-y-offset': 136,
             '--shadow-blur': 0,
-            '--shadow-scale': 0.6,
-            '--shadow-skew': -22,
+            '--shadow-scale': 0.55,
+            '--shadow-skew': -8,
             // Replaces the previous 3 separate axis-locked stretch vars
             // (--shadow-stretch/-x/-45, one fixed direction each) with a
             // single continuous elongation - per explicit request ("replace
@@ -4327,9 +4327,9 @@
             // formula collapses to a plain scaleY(intensity) - identical to
             // the old Y-only --shadow-stretch (X/45 were both already
             // inactive at 1, i.e. no stretch on those axes).
-            '--shadow-elongation-intensity': 2,
-            '--shadow-elongation-angle': 0,
-            '--shadow-rotate': 41,
+            '--shadow-elongation-intensity': 2.2,
+            '--shadow-elongation-angle': 76,
+            '--shadow-rotate': 0,
             // Formerly Round Text's big-state position/size - repurposed to
             // drive the Start/Try Again BUTTON's position/size instead,
             // since Round Text no longer has a big state at all and the
@@ -4365,9 +4365,9 @@
             // this causes no visual jump - not the same numbers as Try
             // Again's own X/Y above, since those position the whole button/
             // text box, not this glyph's rendered center.
-            '--try-again-question-mark-font-size-vw': 19.68,
-            '--try-again-question-mark-x-offset-vw': -0.26,
-            '--try-again-question-mark-y-offset-vh': 29.06,
+            '--try-again-question-mark-font-size-vw': 20.09,
+            '--try-again-question-mark-x-offset-vw': 0.47,
+            '--try-again-question-mark-y-offset-vh': 35.27,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
@@ -4390,9 +4390,9 @@
             // 'rotate' (2D scaleX flip - see tickTryAgainRotate()). Shared/
             // single like the flash/hold durations above, not mobile-split.
             '--try-again-question-mark-mode': 'rotate',
-            '--try-again-rotate-speed-ms': 1500,
-            '--try-again-rotate-tweening': 'linear',
-            '--try-again-rotate-min-width-scale': 0,
+            '--try-again-rotate-speed-ms': 5000,
+            '--try-again-rotate-tweening': 'easeOut',
+            '--try-again-rotate-min-width-scale': 0.13,
             '--try-again-rotate-extrusion-matches-glyph': 1,
             // Shifts the rotation's own pivot point left/right within the
             // glyph, instead of always pivoting exactly on its horizontal
@@ -4446,13 +4446,13 @@
             '--result-y-offset-vh': -13,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
-            '--dev-panel-width-px': 1233,
+            '--dev-panel-width-px': 241,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
             // with real viewport-computed values at load time, see below.
             '--dev-panel-left-px': 6,
-            '--dev-panel-top-px': 6,
-            '--dev-panel-height-px': 431,
+            '--dev-panel-top-px': 372,
+            '--dev-panel-height-px': 411,
             '--round-breakdown-width-px': 320,
             '--round-breakdown-height-px': 450,
             '--round-breakdown-left-px': 1562,
@@ -4526,8 +4526,8 @@
             // the extrusion's own trail color, same one-picker-drives-both
             // convention as every other element's "Text Color". Starts
             // matching the shared values above until tuned.
-            questionMarkDepth: 9,
-            questionMarkOverallBorderThickness: 17,
+            questionMarkDepth: 23,
+            questionMarkOverallBorderThickness: 24,
             questionMarkOverallBorderColor: '#59181b',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
@@ -4570,7 +4570,7 @@
             // their own thickness slider - see roundOverallBorderColor/
             // targetOverallBorderColor/speedOverallBorderColor above).
             overallBorderEnabled: true,
-            overallBorderColor: '#000000',
+            overallBorderColor: '#401013',
             overallBorderThickness: 5,
             targetOverallBorderThickness: 8,
             speedOverallBorderThickness: 8,
@@ -4605,10 +4605,10 @@
             targetDepth: 20,
             targetBorderColor: '#ff0000',
             targetOverallBorderColor: '#cc1b20',
-            speedDepth: 9,
+            speedDepth: 8,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
-            msPerClickDepth: 9,
+            msPerClickDepth: 8,
             msPerClickBorderColor: '#ff0000',
             msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#ffffff',
@@ -4618,9 +4618,9 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
-            targetOverallBorderThickness: 10,
-            speedOverallBorderThickness: 9,
-            msPerClickOverallBorderThickness: 5,
+            targetOverallBorderThickness: 12,
+            speedOverallBorderThickness: 8,
+            msPerClickOverallBorderThickness: 8,
         };
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
@@ -4871,32 +4871,32 @@
             '--try-again-question-mark-font-size-vw': 20,
             '--try-again-question-mark-x-offset-vw': 20,
             '--try-again-question-mark-y-offset-vh': 5.05,
-            '--round-dock-x-offset-vw': -40,
-            '--round-dock-y-offset-vh': 46,
-            '--round-font-size-vw': 17.51,
+            '--round-dock-x-offset-vw': -43,
+            '--round-dock-y-offset-vh': 50,
+            '--round-font-size-vw': 20,
             '--round-letter-spacing-px': 0,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'bottom',
-            '--target-font-size-vw': 14.75,
+            '--target-font-size-vw': 50,
             '--target-x-offset-vw': 23.79,
-            '--target-y-offset-vh': -34.47,
+            '--target-y-offset-vh': -38.01,
             '--target-letter-spacing-px': 0,
             '--target-line-height': 1.2,
             '--target-text-align': 'center',
             '--target-text-valign': 'center',
-            '--speed-font-size-vw': 5.43,
-            '--speed-x-offset-vw': 24.76,
-            '--speed-y-offset-vh': -21.84,
-            '--speed-letter-spacing-px': 0,
+            '--speed-font-size-vw': 13.85,
+            '--speed-x-offset-vw': 23.2,
+            '--speed-y-offset-vh': -23.63,
+            '--speed-letter-spacing-px': -1.5,
             '--speed-line-height': 1.2,
             '--speed-text-align': 'center',
             '--speed-text-valign': 'center',
-            '--ms-per-click-font-size-vw': 3.6,
+            '--ms-per-click-font-size-vw': 13.2,
             '--ms-per-click-x-offset-vw': 24.76,
-            '--ms-per-click-y-offset-vh': -26.84,
+            '--ms-per-click-y-offset-vh': -1.25,
             '--ms-per-click-letter-spacing-px': 0,
-            '--ms-per-click-line-height': 1.2,
+            '--ms-per-click-line-height': 0.65,
             '--ms-per-click-text-align': 'center',
             '--ms-per-click-text-valign': 'center',
             '--result-font-size-vw': 4.77,
@@ -4906,7 +4906,7 @@
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
             '--round-breakdown-width-px': 280,
-            '--round-breakdown-height-px': 350,
+            '--round-breakdown-height-px': 320,
             '--round-breakdown-left-px': 1240,
             '--round-breakdown-top-px': 190,
         };
