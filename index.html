@@ -7869,46 +7869,32 @@
                 startRoundCountdown();
             }
             // (Re)arm the per-click ceiling's own ACTIVE timer on every
-            // accepted tap, including the first - per direct follow-up
-            // report that the reactive check above never fires at all if
-            // the player simply stops tapping (there's no later tap to
-            // react to). See armPerClickTimeout().
+            // accepted tap, including the tap that reaches exactly
+            // targetCount - per direct follow-up report that the reactive
+            // check above never fires at all if the player simply stops
+            // tapping (there's no later tap to react to), AND per a later,
+            // separate direct request describing the intended win sequence
+            // exactly: reach target -> this same per-click timer counts
+            // down -> if it elapses with no further tap, win immediately.
+            // See armPerClickTimeout() for the win-vs-lose branch this
+            // timer takes when it actually fires.
             //
-            // EXCEPT on the tap that reaches exactly targetCount: there is
-            // no further tap being waited for at that point (comment below
-            // - winning is intentionally decided by the round countdown,
-            // not this tap), so re-arming here was a real bug - the
-            // countdown's own win-check fires at maxTimeMs*targetCount from
-            // the FIRST tap, while this timer fires at (this tap's time) +
-            // maxTimeMs, which for any targetCount > 1 is essentially
-            // always EARLIER. That falsely declared "too-slow" and
-            // cancelled the round countdown before it ever got to check
-            // the win condition - reaching target correctly was silently
-            // turned into a loss almost every time. Found via direct
-            // report ("I click the correct times but it doesnt say i win").
-            //
-            // Skipping the re-arm alone wasn't enough - confirmed via a
-            // live instrumented test that the PREVIOUS tap's still-pending
-            // timer (armed one tap ago, before target was reached) fires on
-            // its own regardless, since nothing was cancelling it. Must
-            // explicitly clear it too once target is reached, not just
-            // decline to renew it.
-            if (gameState.currentTapCount < gameState.targetCount) {
-                armPerClickTimeout();
-            } else if (gameState.perClickTimeoutId) {
-                clearTimeout(gameState.perClickTimeoutId);
-                gameState.perClickTimeoutId = null;
-            }
-            // Reaching exact target does NOT win immediately - per explicit
-            // bug report ("I win if I just keep clicking"): winning
-            // instantly on the tap that reaches target meant rapid
-            // clicking always won, since count increments by exactly 1 and
-            // is guaranteed to pass through targetCount if you just keep
-            // tapping, bypassing any real timing pressure. The round now
-            // only resolves when the countdown naturally expires (see
-            // startRoundCountdown()'s timeout) - win if still at exactly
-            // targetCount at that moment, lose otherwise. Overshoot above
-            // still ends the round immediately either way.
+            // An EARLIER version of this project skipped arming (and
+            // explicitly cleared) this timer once target was reached,
+            // because at the time armPerClickTimeout()'s own fire handler
+            // always resolved as a loss unconditionally - re-arming at
+            // target meant this timer fired (falsely declaring "too-slow")
+            // well before the aggregate round countdown got a chance to
+            // declare the correct win, since maxTimeMs*targetCount is
+            // essentially always later than (this tap's time)+maxTimeMs
+            // for any targetCount > 1. That was real, but skipping the arm
+            // was the wrong fix for it - it just made reaching target wait
+            // out the much slower aggregate countdown instead. The actual
+            // fix belongs in armPerClickTimeout() itself (checking
+            // currentTapCount === targetCount when it fires), which is
+            // already in place below - so arming unconditionally here, on
+            // every accepted tap with no exception, is correct once again.
+            armPerClickTimeout();
         }
 
         // Countdown timer replacing the old per-tap re-armed ceiling - per
