@@ -71,7 +71,7 @@
     "--speed-y-offset-vh": 49.79,
     "--speed-letter-spacing-px": 6.5,
     "--speed-line-height": 1.2,
-    "--speed-text-align": "left",
+    "--speed-text-align": "right",
     "--speed-text-valign": "bottom",
     "--ms-per-click-font-size-vw": 5.46,
     "--ms-per-click-x-offset-vw": 46.95,
