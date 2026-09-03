@@ -73,11 +73,11 @@
     "--speed-line-height": 1.2,
     "--speed-text-align": "right",
     "--speed-text-valign": "bottom",
-    "--ms-per-click-font-size-vw": 3.01,
+    "--ms-per-click-font-size-vw": 5.46,
     "--ms-per-click-x-offset-vw": 46.95,
-    "--ms-per-click-y-offset-vh": -8.38,
+    "--ms-per-click-y-offset-vh": -15.22,
     "--ms-per-click-letter-spacing-px": 1,
-    "--ms-per-click-line-height": 1,
+    "--ms-per-click-line-height": 0.65,
     "--ms-per-click-text-align": "right",
     "--ms-per-click-text-valign": "top",
     "--result-font-size-vw": 13.5,
@@ -199,13 +199,13 @@
     "roundDockOverallBorderColor": "#bd0d07",
     "targetDepth": 26,
     "targetBorderColor": "#ffffff",
-    "targetOverallBorderColor": "#b50300",
+    "targetOverallBorderColor": "#b60300",
     "speedDepth": 11,
     "speedBorderColor": "#ffffff",
     "speedOverallBorderColor": "#b60300",
     "msPerClickDepth": 12,
     "msPerClickBorderColor": "#ffffff",
-    "msPerClickOverallBorderColor": "#ad0000",
+    "msPerClickOverallBorderColor": "#b60300",
     "winFillColor": "#f0fff4",
     "winBorderColor": "#22dd44",
     "loseFillColor": "#d3a7a7",
@@ -303,7 +303,7 @@
     "winSymbol": null,
     "loseSymbol": null,
     "speedSuffix": null,
-    "msPerClickSuffix": null,
+    "msPerClickSuffix": " ms \n/       \nCLICK",
     "targetPrefix": null
   },
   "textEditWrapWidths": {
@@ -312,7 +312,7 @@
     "resultText": null,
     "speedDisplay": 540.1875,
     "targetCount": null,
-    "msPerClickDisplay": 188.640625
+    "msPerClickDisplay": 290.640625
   },
   "clickBurstFrameVars": {
     "CLICK1": {
