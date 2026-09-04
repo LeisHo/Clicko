@@ -1426,6 +1426,34 @@
                against the "equal space above and below" ask. Centered here,
                collapsed-state only, so both share the row equally. */
             align-items: center;
+            position: static;
+        }
+        /* Found live while re-verifying the spacing fix above, and took 2
+           attempts to actually pin down: an auto-height flex column whose
+           ONLY visible child is position:sticky computes to 0 real height
+           (confirmed via getComputedStyle at every step: flex-basis:auto
+           didn't fix it, THEN overflow:visible on the scroll-content
+           didn't either - scrollHeight kept reporting the real 26px
+           content height while offsetHeight/getBoundingClientRect stayed
+           0). Root cause is specifically position:sticky on .dev-header,
+           not the scroll-content's own flex/overflow properties: sticky
+           positioning needs to know its scrolling ancestor's size to
+           compute how far it can stick, but that same ancestor's auto
+           height is supposed to be computed FROM its sticky child's size -
+           a genuine circular dependency, which this browser (like others)
+           resolves by treating the sticky child as contributing 0 to the
+           auto-height calculation. Fixed at the actual source: .dev-header
+           doesn't need to stick to anything when collapsed anyway (nothing
+           scrolls below it - every other child is display:none), so
+           position:static here removes the sticky positioning that was
+           triggering the circular quirk in the first place; the column
+           sizes from its one real, now-normal-flow child exactly as
+           expected once this is in place (overflow:visible above turned
+           out to be unnecessary once this was found, kept anyway as it's
+           harmless and correctly reflects "nothing scrolls here"). */
+        .dev-panel.panel-collapsed .dev-panel-scroll-content {
+            flex: 0 1 auto;
+            overflow: visible;
         }
         .dev-panel.panel-collapsed .dev-panel-scroll-content > *:not(.dev-header),
         .dev-panel.panel-collapsed .dev-panel-resize-edge,
@@ -5832,6 +5860,12 @@
             refreshBaseHue();
             clampDevPanelPosition();
             applyTextAlignAnchors();
+            // Text Edit Mode overrides are mobile-split too (see
+            // mobileTextOverrides) - re-render every editable slot here so
+            // a breakpoint crossing immediately shows whichever device's
+            // own wording is now active, same as everything else in this
+            // function.
+            refreshAllTextOverrides();
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
@@ -5873,7 +5907,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -5936,7 +5970,7 @@
         // own exception), so this falls back to localStorage instead. See
         // acquireSavedSettings() for the matching read-back side.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder() };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -6093,6 +6127,10 @@
                     // per-text override).
                     if (settings.textOverrides) {
                         Object.assign(textOverrides, settings.textOverrides);
+                        refreshAllTextOverrides();
+                    }
+                    if (settings.mobileTextOverrides) {
+                        Object.assign(mobileTextOverrides, settings.mobileTextOverrides);
                         refreshAllTextOverrides();
                     }
                     if (settings.textEditWrapWidths) {
@@ -6840,7 +6878,21 @@
         // all (just the bare number) so it has no edit slot here - it still
         // gets its own Text Align dropdown above, a separate concern.
         let textEditModeEnabled = false;
+        // Desktop and Mobile now have their own independent text overrides
+        // - per explicit request ("if i edit text for desktop, it wont edit
+        // automatically for mobile. If I dont edit it, then they stay the
+        // same"). Same shape, same convention as every other per-device
+        // dev-panel setting in this project (CLAUDE.md Section 12f): both
+        // start out all-null (meaning "use TEXT_OVERRIDE_DEFAULTS"), so an
+        // untouched slot reads identically on both until one is actually
+        // edited - editing one device's slot only ever writes to that
+        // device's own object, never the other's.
         const textOverrides = {
+            startLabel: null, tryAgainLabel: null, roundLabel: null,
+            winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: null,
+            targetPrefix: null,
+        };
+        const mobileTextOverrides = {
             startLabel: null, tryAgainLabel: null, roundLabel: null,
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: null,
             targetPrefix: null,
@@ -6850,8 +6902,15 @@
             winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / \nCLICK',
             targetPrefix: '',
         };
+        // The currently-ACTIVE override object - same isMobileActive()
+        // viewport check every other per-device value in this file reads
+        // from (see applyExtrusionStyles()'s own ext = isMobileActive() ?
+        // ... pattern), not a separate/independent notion of "mobile".
+        function activeTextOverrides() {
+            return isMobileActive() ? mobileTextOverrides : textOverrides;
+        }
         function overrideOr(slot) {
-            const v = textOverrides[slot];
+            const v = activeTextOverrides()[slot];
             return (v !== null && v !== undefined) ? v : TEXT_OVERRIDE_DEFAULTS[slot];
         }
 
@@ -7166,7 +7225,10 @@
                         if (settled) return;
                         settled = true;
                         const typed = input.value;
-                        textOverrides[slot] = (typed === '' || typed === TEXT_OVERRIDE_DEFAULTS[slot]) ? null : typed;
+                        // Writes to whichever device is ACTIVE right now
+                        // (viewport width at commit time), never both - see
+                        // activeTextOverrides().
+                        activeTextOverrides()[slot] = (typed === '' || typed === TEXT_OVERRIDE_DEFAULTS[slot]) ? null : typed;
                         cfg.render(slot, prefix);
                     }
                     function cancel() {
