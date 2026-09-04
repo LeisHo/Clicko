@@ -102,7 +102,7 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 0,
     "--result-text-valign-edge-lock": 0,
-    "--dev-panel-width-px": 407,
+    "--dev-panel-width-px": 255,
     "--dev-panel-left-px": 6,
     "--dev-panel-top-px": 252,
     "--dev-panel-height-px": 544,
@@ -165,7 +165,7 @@
     "--try-again-question-mark-font-size-px": 78,
     "--try-again-question-mark-x-offset-vw": 20,
     "--try-again-question-mark-y-offset-vh": 5.05,
-    "--round-dock-x-offset-vw": -43,
+    "--round-dock-x-offset-vw": -44.24,
     "--round-dock-y-offset-vh": 50,
     "--round-font-size-px": 78,
     "--round-letter-spacing-px": 0,
@@ -174,9 +174,9 @@
     "--round-text-valign": "bottom",
     "--round-text-align-edge-lock": 0,
     "--round-text-valign-edge-lock": 0,
-    "--target-font-size-px": 195,
-    "--target-x-offset-vw": 50,
-    "--target-y-offset-vh": -45.418,
+    "--target-font-size-px": 263.81,
+    "--target-x-offset-vw": 44.96,
+    "--target-y-offset-vh": -33.45,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 1.2,
     "--target-text-align": "left",
@@ -194,7 +194,7 @@
     "--speed-text-valign-edge-lock": 1,
     "--ms-per-click-font-size-px": 38.73,
     "--ms-per-click-x-offset-vw": 40.91,
-    "--ms-per-click-y-offset-vh": 50,
+    "--ms-per-click-y-offset-vh": 57.55,
     "--ms-per-click-letter-spacing-px": 0,
     "--ms-per-click-line-height": 0.65,
     "--ms-per-click-text-align": "right",
@@ -490,14 +490,14 @@
     "mobile:Click Burst": true,
     "mobile:Shadow": true,
     "mobile:Win/Lose Text": true,
-    "mobile:Round Text": true,
     "mobile:Start/Try Again Button": true,
     "mobile:Dev Panel": true,
     "mobile:Main Button": true,
-    "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
-    "mobile:Target Count Display": true,
+    "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
+    "mobile:Target Count Display": false,
+    "mobile:Round Text": true,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": false
+    "mobile:Ms/Click Display": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -785,20 +785,6 @@
         ]
       },
       {
-        "key": "mobile:Round Text",
-        "rowKeys": [
-          "sliderMobileRoundFontSize",
-          "sliderMobileRoundDockExtrusionDepth",
-          "sliderMobileRoundDockOverallBorderThickness",
-          "sliderMobileRoundDockX",
-          "sliderMobileRoundDockY",
-          "sliderMobileRoundLetterSpacing",
-          "sliderMobileRoundLineHeight",
-          "selectMobileRoundTextAlign",
-          "selectMobileRoundTextValign"
-        ]
-      },
-      {
         "key": "mobile:Start/Try Again Button",
         "rowKeys": [
           "sliderMobileTryAgainTextLetterSpacing",
@@ -860,6 +846,20 @@
           "sliderMobileTargetLineHeight",
           "selectMobileTargetTextAlign",
           "selectMobileTargetTextValign"
+        ]
+      },
+      {
+        "key": "mobile:Round Text",
+        "rowKeys": [
+          "sliderMobileRoundFontSize",
+          "sliderMobileRoundDockExtrusionDepth",
+          "sliderMobileRoundDockOverallBorderThickness",
+          "sliderMobileRoundDockX",
+          "sliderMobileRoundDockY",
+          "sliderMobileRoundLetterSpacing",
+          "sliderMobileRoundLineHeight",
+          "selectMobileRoundTextAlign",
+          "selectMobileRoundTextValign"
         ]
       },
       {
