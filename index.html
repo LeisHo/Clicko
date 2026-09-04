@@ -1405,6 +1405,11 @@
             position: absolute;
             z-index: 2;
             touch-action: none;
+            /* Same -webkit-touch-callout addition as .dev-header, same
+               reasoning (see its own comment) - applied here too since this
+               handle is directly implicated in the same "still buggy on
+               mobile" report. */
+            -webkit-touch-callout: none;
         }
         /* Widened from 12px to 20px (matching the corner handles' own
            existing size) - per direct report that resize drags on mobile
@@ -1443,6 +1448,7 @@
             width: 20px;
             height: 20px;
             touch-action: none;
+            -webkit-touch-callout: none;
         }
         .dev-panel-resize-corner.corner-tl { top: -6px; left: -6px; cursor: nwse-resize; }
         .dev-panel-resize-corner.corner-tr { top: -6px; right: -6px; cursor: nesw-resize; }
@@ -1501,9 +1507,29 @@
                here gets interpreted as the browser's own page-scroll/pan
                gesture instead of delivering continuous pointermove events
                to the drag handler, same reason the resize handles already
-               needed it. */
+               needed it.
+               -webkit-user-select/-webkit-touch-callout added per a
+               follow-up "still buggy on mobile" report - found via direct
+               comparison against this file's own established convention
+               (every other draggable/tap element pairs the unprefixed
+               user-select:none with its -webkit- form; this element was the
+               one exception, plain user-select:none only). On iOS Safari
+               specifically, dragging text content (the literal "DEV" label
+               lives directly in this bar) without BOTH the -webkit- prefixed
+               select-suppression AND -webkit-touch-callout:none can still
+               let the OS's own text-selection/magnifier gesture engage
+               mid-drag even with touch-action:none already present - a
+               plausible, concrete explanation for a drag that starts moving
+               and then stops, matching this exact symptom class. Could not
+               be confirmed on a real device (none available in this
+               environment) - a synthetic pointer-event replay of the drag
+               logic itself was already confirmed mathematically correct
+               (smooth, proportional, no snap-back), so this addresses a
+               gesture-recognition-level cause, not a JS logic bug. */
             cursor: grab;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             touch-action: none;
             margin-bottom: 10px;
             color: #0ff;
@@ -8591,6 +8617,22 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
+        // Idle/landing-screen state - resetGameplayState() was defined but
+        // never actually called anywhere (confirmed via a full-file grep),
+        // so gameText/targetCount/speedDisplay/msPerClickDisplay - none of
+        // which carry a `hidden` class in their static HTML - were visible
+        // from the very first paint, showing stale/placeholder content
+        // ("ROUND", "0", "0 ms", "500 ms / CLICK") that visually clutters
+        // and, on mobile specifically, partially overlaps the START button
+        // itself (confirmed via direct getBoundingClientRect() overlap on
+        // both the local build and the deployed site) - a plausible real
+        // contributor to a report of the start button "appearing and
+        // disappearing", even though no code was found that hides START
+        // itself on any kind of timer. Calling it once here establishes the
+        // correct idle state (only START visible) before the user ever
+        // interacts, matching what resetGameplayState() already does
+        // correctly for the RESET button/R-key mid-game.
+        resetGameplayState();
         if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
 
         // Restore a saved setup on top of the above, once the fetch
