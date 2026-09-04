@@ -650,8 +650,30 @@
            used before). */
         .start-button {
             position: absolute;
-            left: calc(50% + var(--text-x-offset-vw) * 1vw);
-            top: calc(50% + var(--text-y-offset-vh) * 1vh);
+            /* Edge Lock (--start-x-unit/-y-unit, --start-x-base/-y-base,
+               --start-x-sign/-y-sign) - per explicit request/correction: when
+               checked, that axis's offset becomes a constant PX distance from
+               whichever anchor the align/valign dropdown currently selects -
+               an EDGE (left/right/top/bottom) or the CENTERLINE - instead of
+               scaling proportionally with the viewport. -unit swaps 1vw/1vh
+               for 1px; -base/-sign pick which point in the viewport the
+               offset is actually measured FROM (0%/50%/100%, +1/-1) - this
+               is the part a pure unit swap alone can't do: 50%-of-viewport
+               is itself a moving target as the viewport resizes, so an
+               edge-aligned element locked only via -unit still drifted (the
+               50% term never stopped scaling) - confirmed by direct
+               measurement before fixing (a 380px viewport-width change moved
+               a right-locked element by 190px, exactly half - the surviving
+               50% term). Locking a LEFT/TOP anchor re-bases to that edge
+               (0%, sign +1); RIGHT/BOTTOM re-bases to the far edge (100%,
+               sign -1, since translate(-100%)/(-100%) already lands the
+               box's own far edge there); CENTER keeps 50%/+1, matching the
+               explicit "distance from the centerline is retained" case.
+               Unlocked (defaults) is untouched - always 50%/+1/1vw or 1vh,
+               identical to this element's behavior before Edge Lock existed.
+               Computed in applyTextAlignAnchors(). */
+            left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--text-x-offset-vw) * var(--start-x-unit, 1vw));
+            top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
             padding: 0;
             font-size: calc(var(--text-font-size-vw) * 1vw);
@@ -690,8 +712,13 @@
            overriding left/top/font-size here is simpler than duplicating
            the whole button. */
         .start-button.try-again-state {
-            left: calc(50% + var(--try-again-text-x-offset-vw) * 1vw);
-            top: calc(50% + var(--try-again-text-y-offset-vh) * 1vh);
+            /* Reuses --start-x-unit/--start-y-unit (not its own) - Try
+               Again shares Start's own Text Align/Valign dropdowns and Edge
+               Lock checkboxes (see .start-button's own comment above), it
+               only has its own independent offset NUMBER, not its own
+               anchor/lock mechanism. */
+            left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--start-x-unit, 1vw));
+            top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--start-y-unit, 1vh));
             font-size: calc(var(--try-again-text-font-size-vw) * 1vw);
             letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
             line-height: var(--try-again-text-line-height, 1.2);
@@ -852,8 +879,8 @@
 
         .game-text {
             position: absolute;
-            left: calc(50% + var(--round-dock-x-offset-vw) * 1vw);
-            top: calc(50% + var(--round-dock-y-offset-vh) * 1vh);
+            left: calc(var(--round-x-base, 50%) + var(--round-x-sign, 1) * var(--round-dock-x-offset-vw) * var(--round-x-unit, 1vw));
+            top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--round-font-size-vw) * 1vw);
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
@@ -915,8 +942,8 @@
            win can read differently from a loss. */
         .result-text {
             position: absolute;
-            left: calc(50% + var(--result-x-offset-vw) * 1vw);
-            top: calc(50% + var(--result-y-offset-vh) * 1vh);
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-x-offset-vw) * var(--result-x-unit, 1vw));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-y-offset-vh) * var(--result-y-unit, 1vh));
             /* Rotated 90deg on top of the usual centering translate - the
                ":)"/":(" glyphs in the pixel font used here render in a way
                that only reads as a correct smiley face once turned on its
@@ -982,8 +1009,8 @@
            its OWN extrusion depth/shadow. */
         .target-count {
             position: absolute;
-            left: calc(50% + var(--target-x-offset-vw) * 1vw);
-            top: calc(50% + var(--target-y-offset-vh) * 1vh);
+            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, 1vw));
+            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--target-font-size-vw) * 1vw);
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
@@ -1012,8 +1039,8 @@
         /* Speed Display - same pattern as Target Count above. */
         .speed-display {
             position: absolute;
-            left: calc(50% + var(--speed-x-offset-vw) * 1vw);
-            top: calc(50% + var(--speed-y-offset-vh) * 1vh);
+            left: calc(var(--speed-x-base, 50%) + var(--speed-x-sign, 1) * var(--speed-x-offset-vw) * var(--speed-x-unit, 1vw));
+            top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--speed-font-size-vw) * 1vw);
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
@@ -1048,8 +1075,8 @@
            extruded text display (own font-size/position/extrusion). */
         .ms-per-click-display {
             position: absolute;
-            left: calc(50% + var(--ms-per-click-x-offset-vw) * 1vw);
-            top: calc(50% + var(--ms-per-click-y-offset-vh) * 1vh);
+            left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, 1vw));
+            top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
             font-size: calc(var(--ms-per-click-font-size-vw) * 1vw);
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
@@ -1923,6 +1950,21 @@
             height: 30px;
             border: 1px solid var(--dev-accent-color);
             border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* Edge Lock checkbox, sits right of each align/valign <select> in
+           the same .dev-row - per explicit request. Its own small label
+           text, not a separate .dev-label row, since the row's existing
+           label already names the setting (e.g. "Text Align:") - this is
+           just a modifier on it. */
+        .dev-edge-lock-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #aaa;
+            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+            white-space: nowrap;
             cursor: pointer;
         }
 
@@ -2949,6 +2991,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxStartTextAlignEdgeLock" data-var="--start-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -2957,6 +3000,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxStartTextValignEdgeLock" data-var="--start-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <!-- Try Again's own font-size/position/colors - independent
                      from Start's above, per explicit request. Depth/
@@ -3171,6 +3215,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxRoundTextAlignEdgeLock" data-var="--round-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -3179,6 +3224,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxRoundTextValignEdgeLock" data-var="--round-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <!-- Round-change blink sequence: the number blinks 3 times
                      (hides, shows the OLD number, hides, shows the OLD
@@ -3266,6 +3312,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxResultTextAlignEdgeLock" data-var="--result-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -3274,6 +3321,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxResultTextValignEdgeLock" data-var="--result-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Fill Color:</span>
@@ -3352,6 +3400,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTargetTextAlignEdgeLock" data-var="--target-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -3360,6 +3409,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTargetTextValignEdgeLock" data-var="--target-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -3418,6 +3468,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxSpeedTextAlignEdgeLock" data-var="--speed-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -3426,6 +3477,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxSpeedTextValignEdgeLock" data-var="--speed-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -3486,6 +3538,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMsPerClickTextAlignEdgeLock" data-var="--ms-per-click-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -3494,6 +3547,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMsPerClickTextValignEdgeLock" data-var="--ms-per-click-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -3900,6 +3954,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileStartTextAlignEdgeLock" data-var="--start-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -3908,6 +3963,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileStartTextValignEdgeLock" data-var="--start-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Font Size (vw):</span>
@@ -4023,6 +4079,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileRoundTextAlignEdgeLock" data-var="--round-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -4031,6 +4088,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileRoundTextValignEdgeLock" data-var="--round-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -4069,6 +4127,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileResultTextAlignEdgeLock" data-var="--result-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -4077,6 +4136,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileResultTextValignEdgeLock" data-var="--result-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -4133,6 +4193,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileTargetTextAlignEdgeLock" data-var="--target-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -4141,6 +4202,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileTargetTextValignEdgeLock" data-var="--target-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -4194,6 +4256,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileSpeedTextAlignEdgeLock" data-var="--speed-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -4202,6 +4265,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileSpeedTextValignEdgeLock" data-var="--speed-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -4255,6 +4319,7 @@
                         <option value="center" selected>Center</option>
                         <option value="right">Right</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileMsPerClickTextAlignEdgeLock" data-var="--ms-per-click-text-align-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Vertical Align:</span>
@@ -4263,6 +4328,7 @@
                         <option value="center" selected>Center</option>
                         <option value="bottom">Bottom</option>
                     </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileMsPerClickTextValignEdgeLock" data-var="--ms-per-click-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -4450,6 +4516,11 @@
             '--text-line-height': 1.2,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
+            // Edge Lock checkboxes (Desktop) - see applyTextAlignAnchors()'s
+            // own comment. 0/1, not boolean, matching every other flag var
+            // in this object.
+            '--start-text-align-edge-lock': 0,
+            '--start-text-valign-edge-lock': 0,
             // Try Again's own font-size/position, independent from Start's -
             // per explicit request. Starts matching Start's own values until
             // tuned - see .start-button.try-again-state's CSS.
@@ -4488,6 +4559,8 @@
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'bottom',
+            '--round-text-align-edge-lock': 0,
+            '--round-text-valign-edge-lock': 0,
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
@@ -4529,6 +4602,8 @@
             '--target-line-height': 1.2,
             '--target-text-align': 'right',
             '--target-text-valign': 'top',
+            '--target-text-align-edge-lock': 0,
+            '--target-text-valign-edge-lock': 0,
             '--speed-font-size-vw': 6.98,
             '--speed-x-offset-vw': 47.67,
             '--speed-y-offset-vh': 51,
@@ -4536,6 +4611,8 @@
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
             '--speed-text-valign': 'bottom',
+            '--speed-text-align-edge-lock': 0,
+            '--speed-text-valign-edge-lock': 0,
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
@@ -4548,12 +4625,16 @@
             '--ms-per-click-line-height': 0.65,
             '--ms-per-click-text-align': 'right',
             '--ms-per-click-text-valign': 'top',
+            '--ms-per-click-text-align-edge-lock': 0,
+            '--ms-per-click-text-valign-edge-lock': 0,
             '--result-font-size-vw': 13.5,
             '--result-x-offset-vw': 0,
             '--result-line-height': 1.2,
             '--result-y-offset-vh': -13,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
+            '--result-text-align-edge-lock': 0,
+            '--result-text-valign-edge-lock': 0,
             '--dev-panel-width-px': 241,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
@@ -4974,6 +5055,8 @@
             '--text-line-height': 1.2,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
+            '--start-text-align-edge-lock': 0,
+            '--start-text-valign-edge-lock': 0,
             '--try-again-text-font-size-vw': 20,
             '--try-again-text-x-offset-vw': 0,
             '--try-again-text-y-offset-vh': -0.49,
@@ -4991,6 +5074,8 @@
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'bottom',
+            '--round-text-align-edge-lock': 0,
+            '--round-text-valign-edge-lock': 0,
             '--target-font-size-vw': 50,
             '--target-x-offset-vw': -40.7,
             '--target-y-offset-vh': -53.09,
@@ -4998,6 +5083,8 @@
             '--target-line-height': 1.2,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
+            '--target-text-align-edge-lock': 0,
+            '--target-text-valign-edge-lock': 0,
             '--speed-font-size-vw': 9.93,
             '--speed-x-offset-vw': 42,
             '--speed-y-offset-vh': -33,
@@ -5005,6 +5092,8 @@
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
             '--speed-text-valign': 'top',
+            '--speed-text-align-edge-lock': 0,
+            '--speed-text-valign-edge-lock': 0,
             '--ms-per-click-font-size-vw': 13.2,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -1.25,
@@ -5012,12 +5101,16 @@
             '--ms-per-click-line-height': 0.65,
             '--ms-per-click-text-align': 'center',
             '--ms-per-click-text-valign': 'center',
+            '--ms-per-click-text-align-edge-lock': 0,
+            '--ms-per-click-text-valign-edge-lock': 0,
             '--result-font-size-vw': 4.77,
             '--result-x-offset-vw': 0,
             '--result-line-height': 1.2,
             '--result-y-offset-vh': 1.46,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
+            '--result-text-align-edge-lock': 0,
+            '--result-text-valign-edge-lock': 0,
             '--round-breakdown-width-px': 280,
             '--round-breakdown-height-px': 320,
             '--round-breakdown-left-px': 1240,
@@ -6068,6 +6161,13 @@
                         const value = (isMobile ? mobileCssVars : cssVars)[select.dataset.var];
                         if (value !== undefined) select.value = value;
                     });
+                    // Same restore-gap as the align/valign selects just
+                    // above, for the Edge Lock checkboxes beside them.
+                    document.querySelectorAll('.dev-edge-lock-checkbox').forEach(checkbox => {
+                        const { isMobile } = resolveDevControlId(checkbox.id);
+                        const value = (isMobile ? mobileCssVars : cssVars)[checkbox.dataset.var];
+                        if (value !== undefined) checkbox.checked = !!value;
+                    });
                     Object.assign(extrusionVars, settings.extrusionVars);
                     Object.assign(mobileExtrusionVars, settings.mobileExtrusionVars);
                     if (settings.gameMechanics) {
@@ -6815,6 +6915,23 @@
             });
         }
 
+        // Edge Lock checkboxes - one beside each align/valign dropdown
+        // above, per explicit request. When checked, that axis's offset
+        // stops scaling with the viewport and holds a constant px distance
+        // from whichever anchor (edge OR center) the align/valign dropdown
+        // currently selects - see applyTextAlignAnchors()'s own comment for
+        // the full mechanism. Same generic data-var + resolveDevControlId
+        // pattern as setupTextAlignSelects() above.
+        function setupTextEdgeLockCheckboxes() {
+            document.querySelectorAll('.dev-edge-lock-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const { isMobile } = resolveDevControlId(checkbox.id);
+                    (isMobile ? mobileCssVars : cssVars)[checkbox.dataset.var] = checkbox.checked ? 1 : 0;
+                    applyActiveVars();
+                });
+            });
+        }
+
         // Alignment also sets the position ANCHOR point - see the
         // .align-left/.align-right CSS (horizontal) and the --anchor-ty
         // custom property (vertical, set per-element below since multiple
@@ -6847,6 +6964,29 @@
             '--result-text-valign': 'resultText',
         };
         const VALIGN_TY = { top: '0%', center: '-50%', bottom: '-100%' };
+        // Edge Lock checkboxes - per explicit request/clarification: when
+        // checked, that AXIS's offset becomes a constant PX distance from
+        // whichever anchor point the align/valign dropdown currently
+        // selects (an edge OR the centerline - the checkbox doesn't care
+        // which), instead of scaling proportionally with the viewport.
+        // Stored as a plain boolean per align/valign var (e.g.
+        // --start-text-align-edge-lock), resolved here into 3 CSS custom
+        // properties per axis that each element's own left/top: calc(...)
+        // combines - see each element's own CSS comment for why BOTH the
+        // unit AND the base/sign have to change, not just the unit: 50%-
+        // of-viewport is itself a moving target as the viewport resizes, so
+        // an edge-aligned element locked via a unit swap alone still
+        // drifted (confirmed by direct measurement - a 380px viewport-width
+        // change moved a right-locked element by 190px, exactly half, i.e.
+        // the un-fixed 50% term). *-x-base/*-y-base: which point the offset
+        // is measured FROM (0%/50%/100%, matching left/center/right or
+        // top/center/bottom). *-x-sign/*-y-sign: whether increasing the
+        // offset moves the element away from that point (+1) or back
+        // toward center (-1, needed for right/bottom since their base is
+        // already the FAR edge). *-x-unit/*-y-unit: 1px (locked) vs the
+        // original 1vw/1vh (unlocked, proportional - unchanged default).
+        const EDGE_LOCK_BASE = { left: '0%', top: '0%', center: '50%', right: '100%', bottom: '100%' };
+        const EDGE_LOCK_SIGN = { left: 1, top: 1, center: 1, right: -1, bottom: -1 };
         function applyTextAlignAnchors() {
             const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
@@ -6854,11 +6994,21 @@
                 const align = activeCssVars[varName] || 'center';
                 el.classList.remove('align-left', 'align-center', 'align-right');
                 el.classList.add('align-' + align);
+                const xLocked = !!activeCssVars[varName + '-edge-lock'];
+                const xPrefix = varName.replace('-text-align', '');
+                el.style.setProperty(xPrefix + '-x-unit', xLocked ? '1px' : '1vw');
+                el.style.setProperty(xPrefix + '-x-base', xLocked ? EDGE_LOCK_BASE[align] : '50%');
+                el.style.setProperty(xPrefix + '-x-sign', xLocked ? EDGE_LOCK_SIGN[align] : 1);
             });
             Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
                 const el = document.getElementById(elId);
                 const valign = activeCssVars[varName] || 'center';
                 el.style.setProperty('--anchor-ty', VALIGN_TY[valign] || VALIGN_TY.center);
+                const yLocked = !!activeCssVars[varName + '-edge-lock'];
+                const yPrefix = varName.replace('-text-valign', '');
+                el.style.setProperty(yPrefix + '-y-unit', yLocked ? '1px' : '1vh');
+                el.style.setProperty(yPrefix + '-y-base', yLocked ? EDGE_LOCK_BASE[valign] : '50%');
+                el.style.setProperty(yPrefix + '-y-sign', yLocked ? EDGE_LOCK_SIGN[valign] : 1);
             });
         }
 
@@ -8844,6 +8994,7 @@
         // below, once (if) it actually has something to restore.
         setupDevSliders();
         setupTextAlignSelects();
+        setupTextEdgeLockCheckboxes();
         setupTextEditMode();
         setupClickBurstTextInputs();
         // No onDrop action needed - the DOM order itself IS the live state;
