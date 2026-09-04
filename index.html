@@ -7811,13 +7811,23 @@
             const hadPreviousRound = !!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum);
             if (!hadPreviousRound) {
                 // Nothing to blink away from (very first round of a game,
-                // or already showing this exact round) - just show it, hold,
-                // then start gameplay.
+                // or already showing this exact round) - just show it and
+                // start gameplay immediately, no held announcement delay.
+                // Per direct request ("the Round Text should appear the
+                // same time as the other text when i click start") -
+                // Target/Speed/Ms-per-click were only hidden a moment
+                // earlier in THIS function specifically so Round Text could
+                // have its own brief solo announcement before gameplay
+                // began; calling showTargetAndSpeed() synchronously right
+                // back removes that stagger entirely for the very first
+                // round of a game, so everything appears together in the
+                // same paint. Round transitions AFTER a win (the blink-
+                // sequence branch below) are unaffected - not what was
+                // asked here, and that hold has a real purpose (showing the
+                // OLD number before it blinks away).
                 gameTextNumber.textContent = roundNum;
                 gameTextNumber.style.visibility = 'visible';
-                setTimeout(() => {
-                    showTargetAndSpeed();
-                }, gameState.roundDuration);
+                showTargetAndSpeed();
                 return;
             }
 
