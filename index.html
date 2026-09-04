@@ -676,7 +676,23 @@
             top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
             padding: 0;
-            font-size: calc(var(--text-font-size-vw) * 1vw);
+            /* Font size is always px, never vw - per explicit request ("text
+               should never scale with browser size"), a permanent default
+               change, not a toggle like Edge Lock above (font size has no
+               "unlocked" mode to preserve). Every text element's own
+               --X-font-size-vw was renamed to --X-font-size-px and its
+               stored NUMBER converted from a vw percentage to an actual px
+               value, at a chosen reference width per device (1280px
+               desktop, 390px mobile - documented here since there's no
+               single "correct" reference, only a reasonable starting point;
+               retune via the slider if it looks off) - so this ships
+               visually unchanged at that reference width and then simply
+               stops scaling at any other width, rather than jumping to a
+               tiny/huge size (reinterpreting the old vw NUMBER directly as
+               px, the way Edge Lock's offsets could, would have done here -
+               font-size values are a fundamentally different scale, so this
+               needed an actual unit conversion, not just a reinterpretation). */
+            font-size: calc(var(--text-font-size-px) * 1px);
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
             line-height: var(--text-line-height, 1.2);
             font-weight: 700;
@@ -719,7 +735,7 @@
                anchor/lock mechanism. */
             left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--start-x-unit, 1vw));
             top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--start-y-unit, 1vh));
-            font-size: calc(var(--try-again-text-font-size-vw) * 1vw);
+            font-size: calc(var(--try-again-text-font-size-px) * 1px);
             letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
             line-height: var(--try-again-text-line-height, 1.2);
             color: var(--try-again-fill-color);
@@ -767,7 +783,7 @@
             position: fixed;
             left: calc(50% + var(--try-again-question-mark-x-offset-vw) * 1vw);
             top: calc(50% + var(--try-again-question-mark-y-offset-vh) * 1vh);
-            font-size: calc(var(--try-again-question-mark-font-size-vw) * 1vw);
+            font-size: calc(var(--try-again-question-mark-font-size-px) * 1px);
             transform: translate(-50%, -50%);
             display: inline-block;
         }
@@ -882,7 +898,7 @@
             left: calc(var(--round-x-base, 50%) + var(--round-x-sign, 1) * var(--round-dock-x-offset-vw) * var(--round-x-unit, 1vw));
             top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--round-font-size-vw) * 1vw);
+            font-size: calc(var(--round-font-size-px) * 1px);
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             line-height: var(--round-line-height, 1.2);
             font-weight: 700;
@@ -949,7 +965,7 @@
                that only reads as a correct smiley face once turned on its
                side, per direct visual confirmation. */
             transform: translate(-50%, var(--anchor-ty, -50%)) rotate(90deg);
-            font-size: calc(var(--result-font-size-vw) * 1vw);
+            font-size: calc(var(--result-font-size-px) * 1px);
             line-height: var(--result-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
@@ -1012,7 +1028,7 @@
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, 1vw));
             top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--target-font-size-vw) * 1vw);
+            font-size: calc(var(--target-font-size-px) * 1px);
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
             line-height: var(--target-line-height, 1.2);
             font-weight: 700;
@@ -1042,7 +1058,7 @@
             left: calc(var(--speed-x-base, 50%) + var(--speed-x-sign, 1) * var(--speed-x-offset-vw) * var(--speed-x-unit, 1vw));
             top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--speed-font-size-vw) * 1vw);
+            font-size: calc(var(--speed-font-size-px) * 1px);
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             line-height: var(--speed-line-height, 1.2);
             font-weight: 700;
@@ -1078,7 +1094,7 @@
             left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, 1vw));
             top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--ms-per-click-font-size-vw) * 1vw);
+            font-size: calc(var(--ms-per-click-font-size-px) * 1px);
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             line-height: var(--ms-per-click-line-height, 1.2);
             font-weight: 700;
@@ -2942,8 +2958,8 @@
                      the same relative pattern, then the "?" flash timing
                      last. -->
                 <div class="dev-row">
-                    <span class="dev-label">Button Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="1" max="20" step="0.01" value="12.94">
+                    <span class="dev-label">Button Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="10" max="400" step="0.01" value="197.38">
                     <span class="dev-value" id="valueTextFontSize">12.94</span>
                 </div>
                 <div class="dev-row">
@@ -3006,8 +3022,8 @@
                      from Start's above, per explicit request. Depth/
                      thickness stay shared (only color was asked for). -->
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="1" max="20" step="0.01" value="12.94">
+                    <span class="dev-label">Try Again Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="10" max="400" step="0.01" value="165.63">
                     <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
                 </div>
                 <div class="dev-row">
@@ -3099,8 +3115,8 @@
                      of just these 4, further down) - Mode/Speed/Tweening/
                      Min Width above stay single/shared. -->
                 <div class="dev-row">
-                    <span class="dev-label">"?" Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkFontSize" min="1" max="30" step="0.01" value="12.94">
+                    <span class="dev-label">"?" Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkFontSize" min="10" max="500" step="0.01" value="257.15">
                     <span class="dev-value" id="valueTryAgainQuestionMarkFontSize">12.94</span>
                 </div>
                 <div class="dev-row">
@@ -3166,8 +3182,8 @@
                      text settings share one consistent order - the unique
                      blink-sequence fields stay grouped at the end. -->
                 <div class="dev-row">
-                    <span class="dev-label">Text Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundFontSize" min="1" max="20" step="0.01" value="3.3">
+                    <span class="dev-label">Text Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundFontSize" min="5" max="200" step="0.01" value="89.34">
                     <span class="dev-value" id="valueRoundFontSize">3.3</span>
                 </div>
                 <div class="dev-row">
@@ -3286,8 +3302,8 @@
                      then the unique Win/Lose colors) per explicit request
                      that all text settings share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderResultFontSize" min="1" max="20" step="0.01" value="8">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultFontSize" min="5" max="300" step="0.01" value="172.8">
                     <span class="dev-value" id="valueResultFontSize">8</span>
                 </div>
                 <div class="dev-row">
@@ -3347,8 +3363,8 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="1" max="25" step="0.01" value="11.74">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="10" max="500" step="0.01" value="309.76">
                     <span class="dev-value" id="valueTargetFontSize">11.74</span>
                 </div>
                 <!-- Font dropdown removed - Target now shares the ONE
@@ -3419,8 +3435,8 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedFontSize" min="1" max="25" step="0.01" value="3.3">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedFontSize" min="5" max="300" step="0.01" value="89.34">
                     <span class="dev-value" id="valueSpeedFontSize">3.3</span>
                 </div>
                 <div class="dev-row">
@@ -3489,8 +3505,8 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Ms/Click Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="1" max="25" step="0.01" value="2">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="5" max="300" step="0.01" value="69.89">
                     <span class="dev-value" id="valueMsPerClickFontSize">2</span>
                 </div>
                 <div class="dev-row">
@@ -3913,8 +3929,8 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Button Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="1" max="20" step="0.01" value="8">
+                    <span class="dev-label">Button Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextFontSize" min="10" max="400" step="0.01" value="78">
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
                 </div>
                 <div class="dev-row">
@@ -3966,8 +3982,8 @@
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileStartTextValignEdgeLock" data-var="--start-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSize" min="1" max="20" step="0.01" value="20">
+                    <span class="dev-label">Try Again Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSize" min="10" max="400" step="0.01" value="78">
                     <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
                 </div>
                 <div class="dev-row">
@@ -4001,8 +4017,8 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Rotation Animation</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">"?" Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkFontSize" min="1" max="30" step="0.01" value="20">
+                    <span class="dev-label">"?" Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkFontSize" min="10" max="500" step="0.01" value="78">
                     <span class="dev-value" id="valueMobileTryAgainQuestionMarkFontSize">20</span>
                 </div>
                 <div class="dev-row">
@@ -4038,8 +4054,8 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Text Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileRoundFontSize" min="1" max="20" step="0.01" value="5.43">
+                    <span class="dev-label">Text Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundFontSize" min="5" max="200" step="0.01" value="78">
                     <span class="dev-value" id="valueMobileRoundFontSize">5.43</span>
                 </div>
                 <div class="dev-row">
@@ -4101,8 +4117,8 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultFontSize" min="1" max="20" step="0.01" value="11.4">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultFontSize" min="5" max="300" step="0.01" value="18.6">
                     <span class="dev-value" id="valueMobileResultFontSize">11.4</span>
                 </div>
                 <div class="dev-row">
@@ -4149,8 +4165,8 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="1" max="25" step="0.01" value="25">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="10" max="500" step="0.01" value="195">
                     <span class="dev-value" id="valueMobileTargetFontSize">25</span>
                 </div>
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
@@ -4215,8 +4231,8 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="1" max="25" step="0.01" value="9">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedFontSize" min="5" max="300" step="0.01" value="38.73">
                     <span class="dev-value" id="valueMobileSpeedFontSize">9</span>
                 </div>
                 <div class="dev-row">
@@ -4278,8 +4294,8 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickFontSize" min="1" max="25" step="0.01" value="3.6">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickFontSize" min="5" max="300" step="0.01" value="38.73">
                     <span class="dev-value" id="valueMobileMsPerClickFontSize">3.6</span>
                 </div>
                 <div class="dev-row">
@@ -4509,7 +4525,7 @@
             // since Round Text no longer has a big state at all and the
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
-            '--text-font-size-vw': 15.42,
+            '--text-font-size-px': 197.38,
             '--text-x-offset-vw': 0.21,
             '--text-y-offset-vh': -11.26,
             '--text-letter-spacing-px': 10,
@@ -4524,7 +4540,7 @@
             // Try Again's own font-size/position, independent from Start's -
             // per explicit request. Starts matching Start's own values until
             // tuned - see .start-button.try-again-state's CSS.
-            '--try-again-text-font-size-vw': 12.94,
+            '--try-again-text-font-size-px': 165.63,
             '--try-again-text-x-offset-vw': -0.16,
             '--try-again-text-y-offset-vh': -13.75,
             // Try Again's own letter/line spacing, independent from
@@ -4544,7 +4560,7 @@
             // this causes no visual jump - not the same numbers as Try
             // Again's own X/Y above, since those position the whole button/
             // text box, not this glyph's rendered center.
-            '--try-again-question-mark-font-size-vw': 20.09,
+            '--try-again-question-mark-font-size-px': 257.15,
             '--try-again-question-mark-x-offset-vw': 0.47,
             '--try-again-question-mark-y-offset-vh': 35.27,
             // Round Text's ONE permanent position - it no longer has a
@@ -4554,7 +4570,7 @@
             // always MATCH --speed-font-size-vw, no longer does.
             '--round-dock-x-offset-vw': -47.33,
             '--round-dock-y-offset-vh': 51,
-            '--round-font-size-vw': 6.98,
+            '--round-font-size-px': 89.34,
             '--round-letter-spacing-px': 4,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
@@ -4595,7 +4611,7 @@
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
-            '--target-font-size-vw': 24.2,
+            '--target-font-size-px': 309.76,
             '--target-x-offset-vw': 47.78,
             '--target-y-offset-vh': -59.12,
             '--target-letter-spacing-px': 0,
@@ -4604,7 +4620,7 @@
             '--target-text-valign': 'top',
             '--target-text-align-edge-lock': 0,
             '--target-text-valign-edge-lock': 0,
-            '--speed-font-size-vw': 6.98,
+            '--speed-font-size-px': 89.34,
             '--speed-x-offset-vw': 47.67,
             '--speed-y-offset-vh': 51,
             '--speed-letter-spacing-px': 6.5,
@@ -4618,7 +4634,7 @@
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-vw': 5.46,
+            '--ms-per-click-font-size-px': 69.89,
             '--ms-per-click-x-offset-vw': 46.95,
             '--ms-per-click-y-offset-vh': -15.22,
             '--ms-per-click-letter-spacing-px': 1,
@@ -4627,7 +4643,7 @@
             '--ms-per-click-text-valign': 'top',
             '--ms-per-click-text-align-edge-lock': 0,
             '--ms-per-click-text-valign-edge-lock': 0,
-            '--result-font-size-vw': 13.5,
+            '--result-font-size-px': 172.8,
             '--result-x-offset-vw': 0,
             '--result-line-height': 1.2,
             '--result-y-offset-vh': -13,
@@ -5048,7 +5064,7 @@
             '--shadow-elongation-intensity': 1,
             '--shadow-elongation-angle': 0,
             '--shadow-rotate': 11,
-            '--text-font-size-vw': 20,
+            '--text-font-size-px': 78,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -0.49,
             '--text-letter-spacing-px': 0,
@@ -5057,26 +5073,26 @@
             '--start-text-valign': 'center',
             '--start-text-align-edge-lock': 0,
             '--start-text-valign-edge-lock': 0,
-            '--try-again-text-font-size-vw': 20,
+            '--try-again-text-font-size-px': 78,
             '--try-again-text-x-offset-vw': 0,
             '--try-again-text-y-offset-vh': -0.49,
             '--try-again-text-letter-spacing-px': 0,
             '--try-again-text-line-height': 1.2,
             // See the desktop cssVars' own comment - same live-measured-
             // default reasoning, mobile viewport.
-            '--try-again-question-mark-font-size-vw': 20,
+            '--try-again-question-mark-font-size-px': 78,
             '--try-again-question-mark-x-offset-vw': 20,
             '--try-again-question-mark-y-offset-vh': 5.05,
             '--round-dock-x-offset-vw': -43,
             '--round-dock-y-offset-vh': 50,
-            '--round-font-size-vw': 20,
+            '--round-font-size-px': 78,
             '--round-letter-spacing-px': 0,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'bottom',
             '--round-text-align-edge-lock': 0,
             '--round-text-valign-edge-lock': 0,
-            '--target-font-size-vw': 50,
+            '--target-font-size-px': 195,
             '--target-x-offset-vw': -40.7,
             '--target-y-offset-vh': -53.09,
             '--target-letter-spacing-px': 0,
@@ -5085,7 +5101,7 @@
             '--target-text-valign': 'top',
             '--target-text-align-edge-lock': 0,
             '--target-text-valign-edge-lock': 0,
-            '--speed-font-size-vw': 9.93,
+            '--speed-font-size-px': 38.73,
             '--speed-x-offset-vw': 42,
             '--speed-y-offset-vh': -33,
             '--speed-letter-spacing-px': 0,
@@ -5094,7 +5110,7 @@
             '--speed-text-valign': 'top',
             '--speed-text-align-edge-lock': 0,
             '--speed-text-valign-edge-lock': 0,
-            '--ms-per-click-font-size-vw': 13.2,
+            '--ms-per-click-font-size-px': 38.73,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -1.25,
             '--ms-per-click-letter-spacing-px': 0,
@@ -5103,7 +5119,7 @@
             '--ms-per-click-text-valign': 'center',
             '--ms-per-click-text-align-edge-lock': 0,
             '--ms-per-click-text-valign-edge-lock': 0,
-            '--result-font-size-vw': 4.77,
+            '--result-font-size-px': 18.6,
             '--result-x-offset-vw': 0,
             '--result-line-height': 1.2,
             '--result-y-offset-vh': 1.46,
@@ -6753,22 +6769,22 @@
             // Again BUTTON (formerly Round Text's big-state position/size,
             // repurposed since Round Text no longer has a big state - see
             // the dev-panel section comment above .start-button's CSS).
-            'sliderTextFontSize': '--text-font-size-vw',
+            'sliderTextFontSize': '--text-font-size-px',
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
             'sliderTextLetterSpacing': '--text-letter-spacing-px',
             'sliderTextLineHeight': '--text-line-height',
-            'sliderTryAgainTextFontSize': '--try-again-text-font-size-vw',
+            'sliderTryAgainTextFontSize': '--try-again-text-font-size-px',
             'sliderTryAgainTextX': '--try-again-text-x-offset-vw',
             'sliderTryAgainTextY': '--try-again-text-y-offset-vh',
             'sliderTryAgainTextLetterSpacing': '--try-again-text-letter-spacing-px',
             'sliderTryAgainTextLineHeight': '--try-again-text-line-height',
-            'sliderTryAgainQuestionMarkFontSize': '--try-again-question-mark-font-size-vw',
+            'sliderTryAgainQuestionMarkFontSize': '--try-again-question-mark-font-size-px',
             'sliderTryAgainQuestionMarkX': '--try-again-question-mark-x-offset-vw',
             'sliderTryAgainQuestionMarkY': '--try-again-question-mark-y-offset-vh',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
-            'sliderRoundFontSize': '--round-font-size-vw',
+            'sliderRoundFontSize': '--round-font-size-px',
             'sliderRoundLetterSpacing': '--round-letter-spacing-px',
             'sliderRoundLineHeight': '--round-line-height',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
@@ -6783,22 +6799,22 @@
             'sliderRoundBlink3Hide': '--round-blink3-hide-ms',
             'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
-            'sliderTargetFontSize': '--target-font-size-vw',
+            'sliderTargetFontSize': '--target-font-size-px',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
             'sliderTargetLetterSpacing': '--target-letter-spacing-px',
             'sliderTargetLineHeight': '--target-line-height',
-            'sliderSpeedFontSize': '--speed-font-size-vw',
+            'sliderSpeedFontSize': '--speed-font-size-px',
             'sliderSpeedX': '--speed-x-offset-vw',
             'sliderSpeedY': '--speed-y-offset-vh',
             'sliderSpeedLetterSpacing': '--speed-letter-spacing-px',
             'sliderSpeedLineHeight': '--speed-line-height',
-            'sliderMsPerClickFontSize': '--ms-per-click-font-size-vw',
+            'sliderMsPerClickFontSize': '--ms-per-click-font-size-px',
             'sliderMsPerClickX': '--ms-per-click-x-offset-vw',
             'sliderMsPerClickY': '--ms-per-click-y-offset-vh',
             'sliderMsPerClickLetterSpacing': '--ms-per-click-letter-spacing-px',
             'sliderMsPerClickLineHeight': '--ms-per-click-line-height',
-            'sliderResultFontSize': '--result-font-size-vw',
+            'sliderResultFontSize': '--result-font-size-px',
             'sliderResultX': '--result-x-offset-vw',
             'sliderResultY': '--result-y-offset-vh',
             'sliderResultLineHeight': '--result-line-height',
