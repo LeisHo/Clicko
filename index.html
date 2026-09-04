@@ -1404,6 +1404,29 @@
                height should just be whatever the header needs. */
             min-height: 0;
         }
+        /* .dev-header's own padding-bottom:10px + margin-bottom:10px (both
+           BELOW-only - see its own rule, sized for the EXPANDED state where
+           settings/handles follow it) left the collapsed panel with 35px of
+           space below the title/buttons row vs only 15px (the panel's own
+           padding) above it - confirmed via direct measurement, per direct
+           report ("the buttons and the title should have the same amount
+           of space above and below"). Zeroed both here, collapsed-state
+           only, so the header's own bottom edge sits flush against the
+           panel's bottom padding exactly like its top edge sits against
+           the top padding - expanded state (where this spacing separates
+           the header from the settings list beneath it) is untouched. */
+        .dev-panel.panel-collapsed .dev-header {
+            padding-bottom: 0;
+            margin-bottom: 0;
+            /* Title (26px) and the button pair (21px) don't share a height,
+               and the base rule's align-items:flex-start top-aligns both -
+               fine when settings/handles follow below (the expanded state),
+               but in the collapsed state that left the shorter buttons
+               with a hair more space below them than the title, working
+               against the "equal space above and below" ask. Centered here,
+               collapsed-state only, so both share the row equally. */
+            align-items: center;
+        }
         .dev-panel.panel-collapsed .dev-panel-scroll-content > *:not(.dev-header),
         .dev-panel.panel-collapsed .dev-panel-resize-edge,
         .dev-panel.panel-collapsed .dev-panel-resize-corner {
