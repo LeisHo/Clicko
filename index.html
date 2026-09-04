@@ -152,7 +152,26 @@
         .shadow-caster-layer {
             position: absolute;
             inset: 0;
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
+            /* --shadow-x/y-offset used to be applied as flat, fixed px
+               (`* 1px`) - completely disconnected from the button's own
+               size, which is entirely vw-driven (.button-assembly's width/
+               height, above). Per direct report ("the shadows arent
+               anchored the button base... when i resize browser, the
+               shadow should transform the same as the base") - confirmed
+               live that resizing the browser resizes the button (vw-based)
+               while the shadow's own offset stayed frozen at its tuned px
+               value, visibly drifting out of alignment. Fixed using the
+               SAME established pattern already used elsewhere in this file
+               for exactly this kind of value (see .game-button's own
+               translateY, which scales var(--button-height-offset-px) by
+               var(--button-diameter-vw)/100 the same way) - multiplying by
+               the button's own diameter setting and expressing the result
+               in real vw keeps this offset proportional to the button's
+               actual rendered size on any resize, live, via pure CSS (no
+               JS/resize-listener involved). Existing stored default values
+               rescaled to preserve today's exact rendered offset - see
+               cssVars'/mobileCssVars' own comments on these keys. */
+            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vw), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vw)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
             /* brightness(0) flattens the artwork to solid black (alpha
                unchanged - the silhouette shape stays fully opaque wherever
                the source art itself was opaque); invert(0.5) then partially
@@ -318,7 +337,7 @@
            out-of-sync shadow during an eased release is a minor cosmetic
            cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * 1px), calc(var(--shadow-y-offset) * 1px)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vw), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vw)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Background fill - sits BEHIND both the base and button layers, purely
@@ -1375,6 +1394,15 @@
            content's children EXCEPT .dev-header, not the wrapper itself. */
         .dev-panel.panel-collapsed {
             height: auto !important;
+            /* The base .dev-panel rule's own min-height:120px (a floor
+               sized for the EXPANDED state's usability - see its own
+               comment) was never overridden here, so it still forced the
+               collapsed panel to be at least 120px tall even though its
+               only visible content (the header) is far shorter - the extra
+               black space below the header a direct report ("it is too
+               tall") confirmed with a screenshot/reference line. Collapsed
+               height should just be whatever the header needs. */
+            min-height: 0;
         }
         .dev-panel.panel-collapsed .dev-panel-scroll-content > *:not(.dev-header),
         .dev-panel.panel-collapsed .dev-panel-resize-edge,
@@ -2571,14 +2599,14 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Shadow X (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowX" min="-300" max="700" step="1" value="212">
-                    <span class="dev-value" id="valueShadowX">212</span>
+                    <span class="dev-label">Shadow X (% of button width):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowX" min="-55.15" max="128.68" step="0.1" value="32.5368">
+                    <span class="dev-value" id="valueShadowX">32.5368</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Y (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowY" min="-400" max="200" step="1" value="46">
-                    <span class="dev-value" id="valueShadowY">46</span>
+                    <span class="dev-label">Shadow Y (% of button width):</span>
+                    <input type="range" class="dev-slider" id="sliderShadowY" min="-73.53" max="36.76" step="0.1" value="20.7721">
+                    <span class="dev-value" id="valueShadowY">20.7721</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
@@ -3628,14 +3656,14 @@
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Shadow X (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-75" max="170" step="0.5" value="21.12">
-                    <span class="dev-value" id="valueMobileShadowX">21.12</span>
+                    <span class="dev-label">Shadow X (% of button width):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowX" min="-97.4" max="220.78" step="0.1" value="27.4286">
+                    <span class="dev-value" id="valueMobileShadowX">27.4286</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Shadow Y (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-100" max="50" step="0.5" value="14">
-                    <span class="dev-value" id="valueMobileShadowY">14</span>
+                    <span class="dev-label">Shadow Y (% of button width):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileShadowY" min="-129.87" max="64.94" step="0.1" value="18.1818">
+                    <span class="dev-value" id="valueMobileShadowY">18.1818</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Shadow Blur (px):</span>
@@ -4329,8 +4357,16 @@
             // Also not a true CSS var, same reasoning - piggybacks on this
             // object purely for free persistence via copySettings().
             '--flip-button-svg': 1,
-            '--shadow-x-offset': 198,
-            '--shadow-y-offset': 136,
+            // Rescaled from raw px (177, 113 - the live git-tracked
+            // settings log's current values at the time of this fix, more
+            // current than this file's own stale 198/136) to % of the
+            // button's own rendered width, preserving today's exact
+            // appearance at this session's 1280px test width (button
+            // rendered at 544px wide: 177/544*100, 113/544*100) - see
+            // .shadow-caster-layer's own CSS comment for why the unit
+            // changed.
+            '--shadow-x-offset': 32.5368,
+            '--shadow-y-offset': 20.7721,
             '--shadow-blur': 0,
             '--shadow-scale': 0.55,
             '--shadow-skew': -8,
@@ -4872,8 +4908,13 @@
             '--click-burst-count-max': 5,
             '--click-burst-curve-amount': 0.2,
             '--click-burst-shadow-final-scale': 1,
-            '--shadow-x-offset': 21.12,
-            '--shadow-y-offset': 14,
+            // Rescaled from "% of viewport width" (the old resolveSpatialPx
+            // semantics: 21.12, 14) to "% of the button's own rendered
+            // width" - a deterministic conversion since button width was
+            // already button-diameter-vw% of viewport width: 21.12*100/77,
+            // 14*100/77. Same reasoning as the desktop object above.
+            '--shadow-x-offset': 27.4286,
+            '--shadow-y-offset': 18.1818,
             '--shadow-blur': 0,
             '--shadow-scale': 0.65,
             '--shadow-skew': -37,
@@ -5057,6 +5098,11 @@
         let tryAgainFlashTimeoutId = null;
         let tryAgainRotateRafId = null;
         let tryAgainRotateStartTime = null;
+        // Throttles tickTryAgainRotate()'s own text-shadow rebuild (see its
+        // own comment) - reset to 0 each time the rotate loop (re)starts so
+        // the very first frame always paints immediately, not after a
+        // stale wait.
+        let tryAgainRotateShadowLastUpdate = 0;
 
         // Messages
         const tooManyMessages = ['TOO MANY!', 'OVERSHOT!', 'ONE TOO FAR!', 'TOO FAR!'];
@@ -5508,7 +5554,19 @@
                     shadow.style.left = originX + 'px';
                     shadow.style.top = originY + 'px';
                     shadow.style.offsetPath = offsetPath;
-                    if (mirror) shadow.style.transform = 'scaleX(-1)';
+                    // Final scale applied HERE, per-frame, not on the
+                    // shared shadow container - see buildTransform()'s own
+                    // comment in spawnClickBurst(). Each <img>'s own
+                    // transform-origin defaults to its own 50%/50% (its
+                    // own centroid), independent of the container's
+                    // button-centered transform-origin, so this shrinks the
+                    // frame in place without shifting its flight-path
+                    // position at all. scaleX(-1) and scale() are both pure
+                    // diagonal scale matrices, so their order doesn't
+                    // matter mathematically - kept as one combined string
+                    // either way.
+                    const finalScale = activeVars['--click-burst-shadow-final-scale'];
+                    shadow.style.transform = mirror ? `scaleX(-1) scale(${finalScale})` : `scale(${finalScale})`;
                     shadow.addEventListener('animationend', () => shadow.remove());
                     shadowContainer.appendChild(shadow);
                 }
@@ -5536,16 +5594,31 @@
             const buttonCenterX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
             const buttonCenterY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
             const originStr = `${buttonCenterX}px ${buttonCenterY}px`;
-            // resolveSpatialPx() - see its own comment - resolves the
-            // shadow x/y offset to actual current-viewport px on mobile
-            // (stored as vw there) and is a no-op on desktop.
-            // Final scale(...) appended last - applied AFTER every existing
-            // modifier above (skew/elongation/rotate), so it just shrinks
-            // the already-shaped shadow frame in place rather than changing
-            // any of its skew/elongation/rotation math; the flight path
-            // (translate/spawnClickBurstSide's own positioning) is computed
-            // independently of this container transform and is unaffected.
-            const buildTransform = (skewDeg) => `translate(${resolveSpatialPx(activeVars['--shadow-x-offset'])}px, ${resolveSpatialPx(activeVars['--shadow-y-offset'])}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) rotate(${activeVars['--shadow-elongation-angle']}deg) scaleY(${activeVars['--shadow-elongation-intensity']}) rotate(${-activeVars['--shadow-elongation-angle']}deg) scale(${activeVars['--click-burst-shadow-final-scale']})`;
+            // Shadow x/y offset is now a percentage of the BUTTON's own
+            // rendered width (matching .shadow-caster-layer's own CSS
+            // formula - see its comment), not a flat px number - computed
+            // directly from the already-measured buttonRect.width here
+            // rather than re-deriving it from --button-diameter-vw/
+            // window.innerWidth, which also correctly handles the rare case
+            // where --button-min-diameter-px's floor is clamping the
+            // button's actual rendered size below what vw alone would give.
+            const shadowOffsetX = activeVars['--shadow-x-offset'] / 100 * buttonRect.width;
+            const shadowOffsetY = activeVars['--shadow-y-offset'] / 100 * buttonRect.width;
+            // --click-burst-shadow-final-scale is deliberately NOT part of
+            // this container-level transform, even though it's the "final"
+            // step conceptually - this transform's own transform-origin is
+            // the BUTTON's center (set below), shared by every frame
+            // currently flying in this container. A scale() here would
+            // shrink every frame toward that ONE shared point, dragging
+            // each frame's position toward the button center as it shrinks
+            // - not what "make the shadow frames look smaller" means. Per
+            // explicit follow-up clarification ("i want it to be scale by
+            // their own centroid, not some other origin"), each frame needs
+            // its OWN scale, pivoted at ITS OWN center (an element's
+            // transform-origin defaults to its own 50%/50%, independent of
+            // any parent's) - applied per-frame in spawnClickBurstSide()
+            // instead, on the shadow <img> itself.
+            const buildTransform = (skewDeg) => `translate(${shadowOffsetX}px, ${shadowOffsetY}px) rotate(${activeVars['--shadow-rotate']}deg) scale(${activeVars['--shadow-scale']}) skewX(${skewDeg}deg) rotate(${activeVars['--shadow-elongation-angle']}deg) scaleY(${activeVars['--shadow-elongation-intensity']}) rotate(${-activeVars['--shadow-elongation-angle']}deg)`;
             clickBurstShadowContainerRight.style.transformOrigin = originStr;
             clickBurstShadowContainerRight.style.transform = buildTransform(activeVars['--shadow-skew']);
             clickBurstShadowContainerLeft.style.transformOrigin = originStr;
@@ -5658,9 +5731,16 @@
         // Keys resolveSpatialPx() applies to - kept in one place so
         // applyActiveVars()'s push-to-root loop and every other read site
         // stay in sync about which 5 keys are vw-on-mobile.
+        // --shadow-x-offset/-y-offset removed from this set - they're no
+        // longer resolved through resolveSpatialPx() at all (which only
+        // ever scaled with raw viewport width, and was a no-op on desktop
+        // entirely). .shadow-caster-layer's own CSS now scales them
+        // directly via var(--button-diameter-vw), in pure CSS, for both
+        // devices uniformly - see that rule's own comment. Leaving them in
+        // this set would have DOUBLE-scaled the mobile value (once here,
+        // again in the CSS formula).
         const SPATIAL_VW_ON_MOBILE_KEYS = new Set([
             '--click-burst-distance-px', '--click-burst-height-px', '--click-burst-curve-offset-px',
-            '--shadow-x-offset', '--shadow-y-offset',
         ]);
 
         function applyActiveVars() {
@@ -6329,15 +6409,33 @@
                 }
                 if (!moved) return;
                 e.preventDefault();
+                // BUG (found live, per direct report "reordering doesn't
+                // work"): draggingIsBefore's sense was backwards in both
+                // branches below. dragging.compareDocumentPosition(sib) &
+                // DOCUMENT_POSITION_FOLLOWING means "sib follows dragging",
+                // i.e. draggingIsBefore=true means dragging is CURRENTLY
+                // before sib - the natural "drag it further down, past a
+                // LATER sibling" case. That case needs draggingIsBefore to
+                // be TRUE to swap past it (moving it after), but the old
+                // code required `!draggingIsBefore` for the downward branch
+                // and `draggingIsBefore` for the upward one - exactly
+                // inverted, so neither branch could ever fire for the two
+                // directions a real drag actually needs (dragging an item
+                // down past a later sibling, or up past an earlier one) -
+                // only the already-correctly-positioned (no-op) cases
+                // matched. Confirmed via a live synthetic-drag test: the
+                // dev-reorder-dragging class engaged correctly, but the DOM
+                // order never changed regardless of direction, for either
+                // group or setting drag-reorder (same shared function).
                 const siblings = Array.from(dragging.parentElement.querySelectorAll(':scope > ' + itemSelector)).filter(el => el !== dragging);
                 for (const sib of siblings) {
                     const rect = sib.getBoundingClientRect();
                     const mid = rect.top + rect.height / 2;
                     const draggingIsBefore = !!(dragging.compareDocumentPosition(sib) & Node.DOCUMENT_POSITION_FOLLOWING);
-                    if (e.clientY < mid && draggingIsBefore) {
+                    if (e.clientY < mid && !draggingIsBefore) {
                         sib.parentElement.insertBefore(dragging, sib);
                         break;
-                    } else if (e.clientY >= mid && !draggingIsBefore) {
+                    } else if (e.clientY >= mid && draggingIsBefore) {
                         sib.parentElement.insertBefore(dragging, sib.nextSibling);
                         break;
                     }
@@ -7675,6 +7773,7 @@
             stopTryAgainFlash();
             if ((cssVars['--try-again-question-mark-mode'] || 'flash') === 'rotate') {
                 tryAgainRotateStartTime = Date.now();
+                tryAgainRotateShadowLastUpdate = 0;
                 tickTryAgainRotate();
                 return;
             }
@@ -7791,11 +7890,38 @@
             // nothing"). Flagged as a known issue 2 rounds ago when this
             // function was first found to reference the wrong fields, now
             // actually fixed since it has a real reported symptom.
-            const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
-            extrusionEl.style.textShadow = buildCombinedShadowXComp(
-                deviceExt.questionMarkDepth, extrusionVars.questionMarkFillColor, deviceExt.questionMarkOverallBorderThickness,
-                extrusionVars.questionMarkOverallBorderColor, deviceExt.overallBorderEnabled, shadowXScale
-            );
+            // Throttled to ~20fps (every >=50ms), not every rAF frame (up to
+            // 60+/sec) - per direct report ("the rotating question mark
+            // animation slows down the project a lot... everything is
+            // laggier"). Root cause: buildCombinedShadowXComp() builds one
+            // `text-shadow` layer per unit of depth/border-ring direction -
+            // at this element's own typical depth/thickness (23/24 at time
+            // of writing), that's (23+1)*8 ring layers + 23 extrusion
+            // layers = ~215 individual shadow layers, REBUILT AS A NEW
+            // STRING AND REPAINTED every single animation frame. A
+            // multi-hundred-layer text-shadow is one of the most expensive
+            // things a browser can repaint (each layer is effectively a
+            // full extra render of the glyph's alpha mask) - doing that at
+            // 60fps is real, substantial, continuous cost for as long as
+            // this element is on screen, independent of anything else
+            // happening in the game. The glyph/extrusion scaleX transforms
+            // above stay at full rAF rate (cheap, GPU-composited, and what
+            // actually needs to look smooth for the rotation itself) -
+            // only this specific repaint-heavy shadow rebuild is throttled.
+            // At the default ~5000ms full-rotation speed the thickness-
+            // compensation shifts far too slowly per frame for a 20fps
+            // update rate to read as stepped/janky; even at the fastest
+            // allowed speed (--try-again-rotate-speed-ms floor is 50ms) the
+            // shadow is still fully in sync at least once per 50ms.
+            const now = Date.now();
+            if (now - tryAgainRotateShadowLastUpdate >= 50) {
+                tryAgainRotateShadowLastUpdate = now;
+                const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
+                extrusionEl.style.textShadow = buildCombinedShadowXComp(
+                    deviceExt.questionMarkDepth, extrusionVars.questionMarkFillColor, deviceExt.questionMarkOverallBorderThickness,
+                    extrusionVars.questionMarkOverallBorderColor, deviceExt.overallBorderEnabled, shadowXScale
+                );
+            }
 
             tryAgainRotateRafId = requestAnimationFrame(tickTryAgainRotate);
         }
