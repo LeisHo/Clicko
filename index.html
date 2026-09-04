@@ -2957,7 +2957,7 @@
              than duplicating a parallel set. Split into its own group,
              separate from Round Text, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
                 <!-- Reordered to match Target/Speed/Ms-per-click's own
                      established field order (Font Size, Extrusion Depth,
@@ -3186,7 +3186,7 @@
              used to always match --speed-font-size-vw; now has its own
              independent slider, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
                 <!-- Reordered to match Target/Speed/Ms-per-click's own
                      established field order, per explicit request that all
@@ -3306,7 +3306,7 @@
              2-panel colors every other extruded text uses - explicit
              request so a win can read differently from a loss. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Win/Lose Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
                 <!-- Reordered (Font Size, X/Y Offset, Text Align first,
                      matching every other text section's own field order,
@@ -3371,7 +3371,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="targetCount">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (px):</span>
@@ -3443,7 +3443,7 @@
 
         <!-- Speed Display Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (max ms between taps)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (px):</span>
@@ -3513,7 +3513,7 @@
              setting ("___ms / click") above the countdown, per explicit
              request. Same shape as every other text display section. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Ms/Click Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (px):</span>
@@ -3939,7 +3939,7 @@
              section's own comment for the full explanation. Split into its
              own group, separate from Round Text, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Start/Try Again Button</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
                 <!-- Reordered to match the desktop section's own established
                      field order per explicit request that all text settings
@@ -4064,7 +4064,7 @@
              explicit request. Font size used to always match
              --speed-font-size-vw; now has its own independent slider. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Round Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
                 <!-- Reordered to match the desktop section's own established
                      field order per explicit request that all text settings
@@ -4127,7 +4127,7 @@
 
         <!-- Win/Lose Text Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Win/Lose Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
                 <!-- Reordered to match the desktop section's own established
                      field order per explicit request that all text settings
@@ -4175,7 +4175,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="targetCount">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -4241,7 +4241,7 @@
 
         <!-- Speed Display Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Speed Display (max ms between taps)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -4304,7 +4304,7 @@
 
         <!-- Ms Per Click Display Section (Mobile) -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Ms/Click Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -7359,10 +7359,70 @@
             });
         }
 
+        // Opens the actual inline-textarea edit UI for one TEXT_EDIT_TARGETS
+        // element - factored out of the game-canvas contextmenu handler
+        // below so the dev-panel section-title right-click (see
+        // setupTextEditPanelTriggers()) can trigger the exact same edit,
+        // not a separate reimplementation. If the element isn't currently
+        // visible in-game (e.g. Win/Lose Text before a round ends, or the
+        // dev panel is simply covering it) there'd otherwise be nothing to
+        // see/type into once triggered from the panel - temporarily clears
+        // its `hidden` class for the duration of the edit and restores
+        // whatever hidden state it actually had on commit/cancel, per
+        // explicit follow-up request ("also allow me to right click to
+        // change the text in the dev panel").
+        function openTextEditFor(elId) {
+            const el = document.getElementById(elId);
+            const cfg = TEXT_EDIT_TARGETS[elId];
+            if (el.querySelector('.text-edit-input')) return; // already editing
+            const wasHidden = el.classList.contains('hidden');
+            if (wasHidden) el.classList.remove('hidden');
+            const slot = cfg.getSlot();
+            const prefix = cfg.getPrefix ? cfg.getPrefix() : null;
+            const originalHTML = el.innerHTML;
+            // <textarea>, not <input> - Shift+Enter needs to insert
+            // an actual newline, which a single-line <input> can
+            // never hold, per explicit request.
+            const input = document.createElement('textarea');
+            input.className = 'text-edit-input';
+            input.rows = 1;
+            input.value = overrideOr(slot);
+            el.innerHTML = '';
+            el.appendChild(input);
+            input.focus();
+            input.select();
+            let settled = false;
+            function commit() {
+                if (settled) return;
+                settled = true;
+                const typed = input.value;
+                // Writes to whichever device is ACTIVE right now
+                // (viewport width at commit time), never both - see
+                // activeTextOverrides().
+                activeTextOverrides()[slot] = (typed === '' || typed === TEXT_OVERRIDE_DEFAULTS[slot]) ? null : typed;
+                cfg.render(slot, prefix);
+                if (wasHidden) el.classList.add('hidden');
+            }
+            function cancel() {
+                if (settled) return;
+                settled = true;
+                el.innerHTML = originalHTML;
+                if (wasHidden) el.classList.add('hidden');
+            }
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', (ev) => {
+                // Plain Enter commits; Shift+Enter inserts a newline
+                // (textarea's own default behavior - just don't
+                // intercept it) - per explicit request.
+                if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); input.blur(); }
+                else if (ev.key === 'Escape') cancel();
+            });
+            input.addEventListener('click', (ev) => ev.stopPropagation());
+        }
+
         function setupTextEditMode() {
             Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
                 const el = document.getElementById(elId);
-                const cfg = TEXT_EDIT_TARGETS[elId];
                 // Text Edit Mode overrides any normal click/tap function on
                 // these elements while it's on - per explicit request, so
                 // editing wording on a real button (startButton, whose
@@ -7383,48 +7443,27 @@
                 // request - preventDefault suppresses the native context menu.
                 el.addEventListener('contextmenu', (e) => {
                     if (!textEditModeEnabled) return;
-                    if (el.querySelector('.text-edit-input')) return; // already editing
                     e.stopPropagation();
                     e.preventDefault();
-                    const slot = cfg.getSlot();
-                    const prefix = cfg.getPrefix ? cfg.getPrefix() : null;
-                    const originalHTML = el.innerHTML;
-                    // <textarea>, not <input> - Shift+Enter needs to insert
-                    // an actual newline, which a single-line <input> can
-                    // never hold, per explicit request.
-                    const input = document.createElement('textarea');
-                    input.className = 'text-edit-input';
-                    input.rows = 1;
-                    input.value = overrideOr(slot);
-                    el.innerHTML = '';
-                    el.appendChild(input);
-                    input.focus();
-                    input.select();
-                    let settled = false;
-                    function commit() {
-                        if (settled) return;
-                        settled = true;
-                        const typed = input.value;
-                        // Writes to whichever device is ACTIVE right now
-                        // (viewport width at commit time), never both - see
-                        // activeTextOverrides().
-                        activeTextOverrides()[slot] = (typed === '' || typed === TEXT_OVERRIDE_DEFAULTS[slot]) ? null : typed;
-                        cfg.render(slot, prefix);
-                    }
-                    function cancel() {
-                        if (settled) return;
-                        settled = true;
-                        el.innerHTML = originalHTML;
-                    }
-                    input.addEventListener('blur', commit);
-                    input.addEventListener('keydown', (ev) => {
-                        // Plain Enter commits; Shift+Enter inserts a newline
-                        // (textarea's own default behavior - just don't
-                        // intercept it) - per explicit request.
-                        if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); input.blur(); }
-                        else if (ev.key === 'Escape') cancel();
-                    });
-                    input.addEventListener('click', (ev) => ev.stopPropagation());
+                    openTextEditFor(elId);
+                });
+            });
+        }
+
+        // Right-click a relevant dev-panel section title (Desktop or Mobile
+        // tab, either works - openTextEditFor()/activeTextOverrides() write
+        // to whichever DEVICE is actually rendering, same as the canvas
+        // right-click already does, regardless of which tab is open) to
+        // edit that element's wording too - per explicit follow-up request.
+        // Each relevant title carries data-text-edit-target="<elId>" (see
+        // the HTML) naming which TEXT_EDIT_TARGETS key it maps to.
+        function setupTextEditPanelTriggers() {
+            document.querySelectorAll('[data-text-edit-target]').forEach(titleEl => {
+                titleEl.addEventListener('contextmenu', (e) => {
+                    if (!textEditModeEnabled) return;
+                    e.stopPropagation();
+                    e.preventDefault();
+                    openTextEditFor(titleEl.dataset.textEditTarget);
                 });
             });
         }
@@ -9039,6 +9078,7 @@
         setupTextAlignSelects();
         setupTextEdgeLockCheckboxes();
         setupTextEditMode();
+        setupTextEditPanelTriggers();
         setupClickBurstTextInputs();
         // No onDrop action needed - the DOM order itself IS the live state;
         // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
