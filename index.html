@@ -446,17 +446,23 @@
                press/release fires, so the visible up/down movement falls
                behind and stops reflecting each individual click even though
                the underlying .pressed class (and the game logic) toggles
-               correctly every time. --button-release-ms (a dev-panel slider,
-               default 0) exists for deliberately choosing a non-zero value
-               anyway - a real tradeoff: above 0, rapid taps CAN interrupt a
-               still-easing release, reintroducing the exact lag this was
-               originally kept at 0 to avoid. Only the release (going back to
-               resting position) eases via this - the press itself has no
-               separate control and shares the same duration going down, since
-               a one-directional transition (release only) isn't expressible
-               without either JS-toggled inline styles or two duplicate
-               classes; simplest to keep both directions symmetric. */
-            transition: transform calc(var(--button-release-ms) * 1ms) ease-out;
+               correctly every time. --button-release-ms and --button-press-ms
+               (both dev-panel sliders, default per their own cssVars) exist
+               for deliberately choosing non-zero values anyway - a real
+               tradeoff: above 0, rapid taps CAN interrupt a still-easing
+               transition, reintroducing the exact lag this was originally
+               kept at 0 to avoid. Press and release now have fully
+               independent durations - per explicit request ("provide me a
+               slider for press speed, which is how fast the button goes
+               down"). A one-directional CSS transition (only easing one of
+               the two directions) isn't expressible with a single static
+               rule, so this reads --button-active-transition-ms instead of
+               either duration var directly - handleGameButtonPress()/
+               handleGameButtonRelease() set it to --button-press-ms/
+               --button-release-ms respectively, immediately before toggling
+               the .pressed class each time, so the transition already in
+               progress for THIS state change uses the right duration. */
+            transition: transform calc(var(--button-active-transition-ms, 0) * 1ms) ease-out;
             /* Only the SVG's actual painted pixels are clickable, not this element's
                full rectangular box - the child svg below opts back into hit-testing
                and browsers only hit-test an SVG's visible painted area by default. */
@@ -2671,6 +2677,11 @@
                     <span class="dev-value" id="valueButtonPressIntensity">8</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Press Speed (ms, 0=instant):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonPressMs" min="0" max="200" step="5" value="10">
+                    <span class="dev-value" id="valueButtonPressMs">10</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Release Speed (ms, 0=instant):</span>
                     <input type="range" class="dev-slider" id="sliderButtonReleaseMs" min="0" max="200" step="5" value="10">
                     <span class="dev-value" id="valueButtonReleaseMs">10</span>
@@ -3750,6 +3761,11 @@
                     <span class="dev-value" id="valueMobileButtonPressIntensity">8.5</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Press Speed (ms, 0=instant):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonPressMs" min="0" max="200" step="5" value="0">
+                    <span class="dev-value" id="valueMobileButtonPressMs">0</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Release Speed (ms, 0=instant):</span>
                     <input type="range" class="dev-slider" id="sliderMobileButtonReleaseMs" min="0" max="200" step="5" value="0">
                     <span class="dev-value" id="valueMobileButtonReleaseMs">0</span>
@@ -4463,6 +4479,7 @@
             '--button-x-offset-vw': -1,
             '--button-y-offset-vh': 6.76,
             '--button-release-ms': 10,
+            '--button-press-ms': 10,
             '--click-burst-speed-ms': 150,
             '--click-burst-scale': 0.32,
             '--click-burst-distance-px': 115,
@@ -5029,6 +5046,7 @@
             '--button-x-offset-vw': -2.32,
             '--button-y-offset-vh': 16,
             '--button-release-ms': 0,
+            '--button-press-ms': 0,
             '--click-burst-speed-ms': 180,
             '--click-burst-scale': 0.14,
             // These 5 keys (through --shadow-y-offset below) hold a VW
@@ -6748,6 +6766,7 @@
             'sliderButtonX': '--button-x-offset-vw',
             'sliderButtonY': '--button-y-offset-vh',
             'sliderButtonReleaseMs': '--button-release-ms',
+            'sliderButtonPressMs': '--button-press-ms',
             'sliderClickBurstSpeed': '--click-burst-speed-ms',
             'sliderClickBurstScale': '--click-burst-scale',
             'sliderClickBurstDistance': '--click-burst-distance-px',
@@ -8394,6 +8413,12 @@
             // work regardless of game state - responsive on the landing page too.
             // The counter resets at the start of every round (see showTargetAndSpeed);
             // it isn't gated to "after Round 1 starts" the way actual gameplay is.
+            // Press gets its own independent transition duration, set right
+            // before the class that actually triggers the transition - see
+            // .game-button's own CSS comment for why this can't just be a
+            // second static CSS rule.
+            const activeCssVarsForPress = isMobileActive() ? mobileCssVars : cssVars;
+            gameButton.style.setProperty('--button-active-transition-ms', activeCssVarsForPress['--button-press-ms']);
             gameButton.classList.add('pressed');
             shadowCasterButtonLayer.classList.add('pressed');
             setShadowButtonPressed(true);
@@ -8586,6 +8611,8 @@
         }
 
         function handleGameButtonRelease() {
+            const activeCssVarsForRelease = isMobileActive() ? mobileCssVars : cssVars;
+            gameButton.style.setProperty('--button-active-transition-ms', activeCssVarsForRelease['--button-release-ms']);
             gameButton.classList.remove('pressed');
             shadowCasterButtonLayer.classList.remove('pressed');
             setShadowButtonPressed(false);
