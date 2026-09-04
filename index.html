@@ -1426,31 +1426,26 @@
                against the "equal space above and below" ask. Centered here,
                collapsed-state only, so both share the row equally. */
             align-items: center;
+            /* Sticky positioning exists to keep the header pinned while
+               settings scroll past it below - nothing scrolls in the
+               collapsed state (see .dev-panel-scroll-content's own
+               comment), so there's nothing left for it to do here. */
             position: static;
         }
-        /* Found live while re-verifying the spacing fix above, and took 2
-           attempts to actually pin down: an auto-height flex column whose
-           ONLY visible child is position:sticky computes to 0 real height
-           (confirmed via getComputedStyle at every step: flex-basis:auto
-           didn't fix it, THEN overflow:visible on the scroll-content
-           didn't either - scrollHeight kept reporting the real 26px
-           content height while offsetHeight/getBoundingClientRect stayed
-           0). Root cause is specifically position:sticky on .dev-header,
-           not the scroll-content's own flex/overflow properties: sticky
-           positioning needs to know its scrolling ancestor's size to
-           compute how far it can stick, but that same ancestor's auto
-           height is supposed to be computed FROM its sticky child's size -
-           a genuine circular dependency, which this browser (like others)
-           resolves by treating the sticky child as contributing 0 to the
-           auto-height calculation. Fixed at the actual source: .dev-header
-           doesn't need to stick to anything when collapsed anyway (nothing
-           scrolls below it - every other child is display:none), so
-           position:static here removes the sticky positioning that was
-           triggering the circular quirk in the first place; the column
-           sizes from its one real, now-normal-flow child exactly as
-           expected once this is in place (overflow:visible above turned
-           out to be unnecessary once this was found, kept anyway as it's
-           harmless and correctly reflects "nothing scrolls here"). */
+        /* Neither of these was strictly necessary in the end (see
+           toggleDevPanelCollapsed()'s own comment - a live JS measurement
+           ended up doing the actual work of sizing the collapsed panel,
+           after a long, ultimately-mistaken chase down what looked like a
+           flex/sticky auto-height bug but turned out to be this test
+           environment's own recurring 0-width/0-height viewport artifact
+           on a fresh tab, not a real browser quirk), but both are still
+           correct, harmless simplifications for the collapsed state on
+           their own merits: nothing scrolls when only the header is
+           showing (every other child is display:none), so there's no
+           reason for this to still behave as a scroll container, and
+           flex-basis:auto is the more honest sizing intent for a row whose
+           real content should just be shown as-is. Kept for that reason,
+           not because they were proven load-bearing. */
         .dev-panel.panel-collapsed .dev-panel-scroll-content {
             flex: 0 1 auto;
             overflow: visible;
@@ -7525,6 +7520,27 @@
         function toggleDevPanelCollapsed() {
             const collapsed = devPanel.classList.toggle('panel-collapsed');
             document.getElementById('devCollapseBtn').textContent = collapsed ? '▢' : '▁';
+            // .panel-collapsed's own height:auto!important was initially
+            // trusted to size the panel from its one real visible child
+            // (.dev-header) via ordinary flex auto-sizing - live-testing
+            // that assumption turned out to be misleading for a while (a
+            // long chase through flex-basis/overflow/position tweaks that
+            // never moved the computed height) before the actual cause
+            // surfaced: max-height was computing to 0px, because the test
+            // tab's own viewport was reporting 0x0 (this environment's own
+            // recurring fresh-tab artifact, not a real browser bug or
+            // anything about this panel's CSS). Left as a direct JS
+            // measurement anyway rather than reverting back to relying on
+            // auto-sizing alone - explicit and easy to verify at a glance,
+            // and avoids re-depending on flex behavior across however many
+            // children happen to be hidden in any future collapsed layout.
+            if (collapsed) {
+                const headerHeight = devPanelHeader.getBoundingClientRect().height;
+                const panelPadding = parseFloat(getComputedStyle(devPanel).paddingTop) + parseFloat(getComputedStyle(devPanel).paddingBottom);
+                devPanel.style.setProperty('height', (headerHeight + panelPadding) + 'px', 'important');
+            } else {
+                devPanel.style.removeProperty('height');
+            }
         }
 
         // Custom resize handles (native CSS `resize` isn't touch-draggable on
