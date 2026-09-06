@@ -9063,7 +9063,17 @@
                 document.fonts.ready.then(() => correctValignLeading(el, valign));
             }
             const boxRect = el.getBoundingClientRect();
-            if (boxRect.height === 0) return;
+            // Guards against dividing by a near-zero (not just exactly-0)
+            // height below - a real, observed failure mode when this
+            // fires a 2nd time in quick succession (e.g. the deferred
+            // font.ready re-run above, right as a font swap is still
+            // settling): produced a nonsensical -909044% on one measured
+            // occurrence instead of erroring or silently no-op'ing on a
+            // genuinely tiny/transitional box size. 1px is comfortably
+            // below any real rendered text line's height at any font-size
+            // this project uses, so this never rejects a legitimate
+            // measurement.
+            if (boxRect.height < 1) return;
             const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
             const firstText = walker.nextNode();
             if (!firstText || !firstText.textContent.trim()) return;
@@ -9074,7 +9084,15 @@
             const gapPx = glyphRect.top - boxRect.top;
             if (Math.abs(gapPx) < 0.05) return;
             const currentTyPercent = parseFloat(el.style.getPropertyValue('--anchor-ty')) || 0;
-            el.style.setProperty('--anchor-ty', (currentTyPercent - (gapPx / boxRect.height) * 100) + '%');
+            const correctionPercent = (gapPx / boxRect.height) * 100;
+            // A real leading-vs-box-height ratio can never exceed roughly
+            // +/-100% (the gap can't be bigger than the box itself) - a
+            // computed correction far outside that range means something
+            // was measured wrong (see the near-zero-height note above),
+            // not a real leading gap. Reject rather than apply a
+            // corrupting value.
+            if (Math.abs(correctionPercent) > 100) return;
+            el.style.setProperty('--anchor-ty', (currentTyPercent - correctionPercent) + '%');
         }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
