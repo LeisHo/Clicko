@@ -1119,6 +1119,7 @@
             font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * 1vw);
             color: var(--result-win-fill-color);
             text-shadow: var(--result-win-shadow);
+            letter-spacing: calc(var(--result-win-letter-spacing-px) * 1px);
         }
 
         .result-text.result-lose {
@@ -1128,6 +1129,7 @@
             font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * 1vw);
             color: var(--result-lose-fill-color);
             text-shadow: var(--result-lose-shadow);
+            letter-spacing: calc(var(--result-lose-letter-spacing-px) * 1px);
         }
 
         .result-text.hidden {
@@ -4006,14 +4008,14 @@
                     <span class="dev-value" id="valueRoundBlink3Show">250</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Blink 4 - Disappear (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink4Hide" min="0" max="1500" step="10" value="250">
+                    <span class="dev-value" id="valueRoundBlink4Hide">250</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">New Number Hold (ms):</span>
                     <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="1300">
                     <span class="dev-value" id="valueRoundPostBlinkHold">1300</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">New Number Disappear After (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink3DisappearAfter" min="0" max="2000" step="10" value="1300">
-                    <span class="dev-value" id="valueRoundBlink3DisappearAfter">1300</span>
                 </div>
             </div>
         </div>
@@ -4058,6 +4060,11 @@
                     <span class="dev-value" id="valueResultWinY">-13</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Win Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultWinLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueResultWinLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Lose Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderResultLoseFontSize" min="5" max="300" step="0.01" value="172.8">
                     <span class="dev-value" id="valueResultLoseFontSize">172.8</span>
@@ -4082,6 +4089,11 @@
                     <span class="dev-label">Lose Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderResultLoseY" min="-50" max="50" step="0.01" value="-13">
                     <span class="dev-value" id="valueResultLoseY">-13</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultLoseLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueResultLoseLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -5047,6 +5059,11 @@
                     <span class="dev-value" id="valueMobileResultWinY">1.46</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Win Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultWinLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileResultWinLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Lose Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLoseFontSize" min="5" max="300" step="0.01" value="18.6">
                     <span class="dev-value" id="valueMobileResultLoseFontSize">18.6</span>
@@ -5071,6 +5088,11 @@
                     <span class="dev-label">Lose Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLoseY" min="-50" max="50" step="0.01" value="1.46">
                     <span class="dev-value" id="valueMobileResultLoseY">1.46</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultLoseLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueMobileResultLoseLetterSpacing">0</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -5735,21 +5757,16 @@
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
-            // Per direct follow-up request ("there should be a disappear
-            // after Blink 3"): the NEW number now hides again this many ms
-            // after it first appears (a real 4th hide step, independent of
-            // --round-post-blink-hold-ms above). Runs as its own parallel
-            // timer rather than being chained after the hold, so the two
-            // are genuinely independent knobs; defaulted equal to the hold
-            // (1300) so out of the box the number disappears at the exact
-            // instant gameplay starts (seamless, no visible blackout gap)
-            // - shorten this below the hold's value to create a visible
-            // gap before gameplay text appears. runRoundBlinkSequence()
-            // force-reveals the number again right as gameplay starts
-            // (showTargetAndSpeed() fires), so it can never get stuck
-            // hidden regardless of how these 2 sliders are tuned relative
-            // to each other.
-            '--round-blink3-disappear-after-ms': 1300,
+            // Per direct follow-up request ("add a Blink 4 - Disappear
+            // slider, after which the new round number shows") - a genuine
+            // 4th sequential blink phase (hide only, still showing the OLD
+            // number), run in the SAME phases chain as Blink 1-3. The new
+            // number is only revealed once this phase elapses, so there's
+            // no separate "hide it again after showing it" step and no
+            // same-tick-race risk the way an earlier parallel-timer design
+            // of this feature had. Defaulted to 250, matching Blink 1-3's
+            // own hide-phase default.
+            '--round-blink4-hide-ms': 250,
             '--target-font-size-px': 309.76,
             '--target-font-size-vw': 24.2,
             '--target-scale-with-browser': 0,
@@ -5793,11 +5810,13 @@
             '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
             '--result-win-y-offset-vh': -13,
+            '--result-win-letter-spacing-px': 0,
             '--result-lose-font-size-px': 172.8,
             '--result-lose-font-size-vw': 13.5,
             '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
             '--result-lose-y-offset-vh': -13,
+            '--result-lose-letter-spacing-px': 0,
             '--result-line-height': 1.2,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
@@ -6356,11 +6375,13 @@
             '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
             '--result-win-y-offset-vh': 1.46,
+            '--result-win-letter-spacing-px': 0,
             '--result-lose-font-size-px': 18.6,
             '--result-lose-font-size-vw': 4.77,
             '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
             '--result-lose-y-offset-vh': 1.46,
+            '--result-lose-letter-spacing-px': 0,
             '--result-line-height': 1.2,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
@@ -7217,7 +7238,7 @@
             document.documentElement.style.setProperty('--round-blink3-hide-ms', cssVars['--round-blink3-hide-ms']);
             document.documentElement.style.setProperty('--round-blink3-show-ms', cssVars['--round-blink3-show-ms']);
             document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
-            document.documentElement.style.setProperty('--round-blink3-disappear-after-ms', cssVars['--round-blink3-disappear-after-ms']);
+            document.documentElement.style.setProperty('--round-blink4-hide-ms', cssVars['--round-blink4-hide-ms']);
             // Dev panel's own size/position - also single/shared (cssVars
             // only, not mobile-split - see clampDevPanelPosition()'s own
             // comment), so it needs the same unconditional push: the main
@@ -8361,7 +8382,7 @@
             'sliderRoundBlink3Hide': '--round-blink3-hide-ms',
             'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
-            'sliderRoundBlink3DisappearAfter': '--round-blink3-disappear-after-ms',
+            'sliderRoundBlink4Hide': '--round-blink4-hide-ms',
             'sliderTargetFontSize': '--target-font-size-px',
             'sliderTargetFontSizeVw': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
@@ -8384,10 +8405,12 @@
             'sliderResultWinFontSizeVw': '--result-win-font-size-vw',
             'sliderResultWinX': '--result-win-x-offset-vw',
             'sliderResultWinY': '--result-win-y-offset-vh',
+            'sliderResultWinLetterSpacing': '--result-win-letter-spacing-px',
             'sliderResultLoseFontSize': '--result-lose-font-size-px',
             'sliderResultLoseFontSizeVw': '--result-lose-font-size-vw',
             'sliderResultLoseX': '--result-lose-x-offset-vw',
             'sliderResultLoseY': '--result-lose-y-offset-vh',
+            'sliderResultLoseLetterSpacing': '--result-lose-letter-spacing-px',
             'sliderResultLineHeight': '--result-line-height',
         };
 
@@ -9965,29 +9988,23 @@
                 { visible: true, ms: cssVars['--round-blink2-show-ms'] },
                 { visible: false, ms: cssVars['--round-blink3-hide-ms'] },
                 { visible: true, ms: cssVars['--round-blink3-show-ms'] },
+                // Per direct follow-up request ("add a Blink 4 - Disappear
+                // slider, after which the new round number shows") -
+                // supersedes the earlier parallel-timer "disappear after"
+                // design (which showed the new number immediately then hid
+                // it again, and needed a same-tick-race fix). This is
+                // simpler and race-free by construction: a genuine 4th
+                // phase in the SAME sequential chain as Blink 1-3, still
+                // showing the OLD number, hidden for its own duration -
+                // ONLY once this phase elapses does the swap to the new
+                // number happen, below.
+                { visible: false, ms: cssVars['--round-blink4-hide-ms'] },
             ];
             let i = 0;
             function step() {
                 if (i >= phases.length) {
                     gameTextNumber.textContent = roundNum;
                     gameTextNumber.style.visibility = 'visible';
-                    // Per direct follow-up request ("there should be a
-                    // disappear after Blink 3, provide a slider for that")
-                    // - a genuine 4th hide step, independent of the hold
-                    // timer below (see --round-blink3-disappear-after-ms's
-                    // own cssVars comment for why it runs as its own
-                    // parallel timer rather than chained after the hold).
-                    // Registered BEFORE the hold timeout below on purpose:
-                    // at the shared 1300/1300 default the two timeouts fire
-                    // on the same tick, and same-delay setTimeouts run in
-                    // registration order - so this must lose that race
-                    // (fire first, then get force-revealed) rather than win
-                    // it (fire second and leave the number hidden through
-                    // gameplay), confirmed via a deterministic fake-clock
-                    // trace before landing on this ordering.
-                    setTimeout(() => {
-                        gameTextNumber.style.visibility = 'hidden';
-                    }, cssVars['--round-blink3-disappear-after-ms']);
                     // Holds the new number on screen for its own duration
                     // (--round-post-blink-hold-ms) before gameplay starts -
                     // per explicit request for a dedicated slider covering
@@ -9995,12 +10012,6 @@
                     // hold BEFORE the blink sequence starts, above).
                     setTimeout(() => {
                         showTargetAndSpeed();
-                        // Force-reveal regardless of the disappear timer
-                        // above, so the number can never get stuck hidden
-                        // no matter how the 2 sliders are tuned relative to
-                        // each other (see --round-blink3-disappear-after-ms
-                        // comment on its own cssVars default).
-                        gameTextNumber.style.visibility = 'visible';
                     }, cssVars['--round-post-blink-hold-ms']);
                     return;
                 }
@@ -10920,6 +10931,7 @@
                 { visible: true, ms: cssVars['--round-blink2-show-ms'] },
                 { visible: false, ms: cssVars['--round-blink3-hide-ms'] },
                 { visible: true, ms: cssVars['--round-blink3-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink4-hide-ms'] },
             ];
             let i = 0;
             function step() {
