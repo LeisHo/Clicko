@@ -523,7 +523,7 @@
     "desktop:Start/Try Again Button": true,
     "desktop:Rotation Animation": true,
     "desktop:Round Text": true,
-    "desktop:Win/Lose Text": false,
+    "desktop:Win/Lose Text": true,
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
