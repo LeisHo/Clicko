@@ -9039,29 +9039,6 @@
         // LAST text node's rect against the box's own bottom edge instead.
         function correctValignLeading(el, valign) {
             if (!el || valign !== 'top') return;
-            // Per direct report ("the larger the browser, the further down
-            // the target text shifts"), still reproducing on a real device
-            // after a hard refresh - the measurement this function relies
-            // on is only correct once the element's REAL webfont has
-            // actually finished loading; before that, the browser renders
-            // (and this measures) the generic fallback font instead, whose
-            // leading is a genuinely different ratio - confirmed directly:
-            // Target's real font measured a 17px leading gap vs the
-            // fallback's 2px, at the same size. document.fonts.ready runs
-            // at page load before there's any guarantee of that on a real,
-            // uncached connection - if this function computes its
-            // correction against the fallback's much smaller gap, that
-            // WRONG percentage gets baked into --anchor-ty and the browser
-            // keeps faithfully reapplying it once the real font takes
-            // over, producing a growing absolute-px error as font-size (and
-            // the box) grows - exactly matching the report. Re-measuring
-            // and re-correcting once fonts are confirmed ready fixes this
-            // regardless of which call site ran too early; harmless to
-            // schedule from multiple call sites since a correct
-            // measurement just no-ops below (gapPx already ~0).
-            if (document.fonts.status !== 'loaded') {
-                document.fonts.ready.then(() => correctValignLeading(el, valign));
-            }
             const boxRect = el.getBoundingClientRect();
             // Guards against dividing by a near-zero (not just exactly-0)
             // height below - a real, observed failure mode when this
@@ -11769,6 +11746,40 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
+        // Re-runs the line-height leading correction (see
+        // correctValignLeading()'s own comment) once every requested
+        // webfont has ACTUALLY finished loading - per direct report ("the
+        // larger the browser, the further down the target text shifts
+        // down"), still reproducing on a real device after a hard refresh.
+        // Root-caused by directly measuring the SAME element's leading gap
+        // under its real webfont vs the generic fallback: 17px real vs 2px
+        // fallback at the same size - a genuinely different ratio. The
+        // very first applyActiveVars() call above runs at page load,
+        // before there's any guarantee a real, uncached connection has
+        // finished downloading the custom font - a correction computed
+        // against the fallback's much smaller gap bakes a WRONG percentage
+        // into --anchor-ty that the browser then faithfully reapplies once
+        // the real font takes over, producing a growing absolute-px error
+        // as font-size (and the box) grows - exactly matching the report,
+        // and why this session's own earlier testing (fonts already cached
+        // from repeated same-session loads) never reproduced it.
+        // Deliberately a single top-level hook (not correctValignLeading()
+        // recursively re-scheduling itself via document.fonts.ready on
+        // every call while status isn't yet 'loaded') - an early version
+        // did that and, when tested against a mocked fonts object whose
+        // status never actually transitioned to 'loaded', cascaded into
+        // repeated corrections and corrupted --anchor-ty to a nonsensical
+        // value. This form can only ever run once. Target/Speed/Ms-per-
+        // click are still hidden at this point in a fresh page load (idle
+        // screen) - showTargetAndSpeed()'s own correction call covers them
+        // once they're first revealed, using whichever font is active at
+        // that (later, Start-click-gated) moment.
+        document.fonts.ready.then(() => {
+            Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
+                const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
+                correctValignLeading(document.getElementById(elId), activeCssVars[varName] || 'center');
+            });
+        });
         // Captures every dev-panel label/title's TRUE original text into
         // devTextOriginals (devTextOverrides is still empty at this point) -
         // re-run below once the settings fetch resolves to actually apply
