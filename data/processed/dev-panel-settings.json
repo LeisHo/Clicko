@@ -111,12 +111,12 @@
     "--result-line-height": 1.2,
     "--result-text-align": "center",
     "--result-text-valign": "center",
-    "--result-text-align-edge-lock": 0,
-    "--result-text-valign-edge-lock": 0,
+    "--result-text-align-edge-lock": 1,
+    "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 350,
-    "--dev-panel-left-px": 124,
-    "--dev-panel-top-px": 30,
-    "--dev-panel-height-px": 619,
+    "--dev-panel-left-px": 70,
+    "--dev-panel-top-px": 6,
+    "--dev-panel-height-px": 485,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
@@ -183,14 +183,14 @@
     "--try-again-question-mark-x-offset-vw": 1.63,
     "--try-again-question-mark-y-offset-vh": 36.04,
     "--round-dock-x-offset-vw": 37.77,
-    "--round-dock-y-offset-vh": 50,
-    "--round-font-size-px": 87.77,
+    "--round-dock-y-offset-vh": 1.08,
+    "--round-font-size-px": 80.76,
     "--round-letter-spacing-px": -1,
     "--round-line-height": 1.2,
     "--round-text-align": "left",
     "--round-text-valign": "bottom",
     "--round-text-align-edge-lock": 1,
-    "--round-text-valign-edge-lock": 0,
+    "--round-text-valign-edge-lock": 1,
     "--target-font-size-px": 292.01,
     "--target-x-offset-vw": 46.4,
     "--target-y-offset-vh": -60,
@@ -200,7 +200,7 @@
     "--target-text-valign": "top",
     "--target-text-align-edge-lock": 1,
     "--target-text-valign-edge-lock": 1,
-    "--speed-font-size-px": 60.18,
+    "--speed-font-size-px": 53.81,
     "--speed-x-offset-vw": 37.05,
     "--speed-y-offset-vh": 77.55,
     "--speed-letter-spacing-px": 7,
@@ -209,11 +209,11 @@
     "--speed-text-valign": "bottom",
     "--speed-text-align-edge-lock": 1,
     "--speed-text-valign-edge-lock": 1,
-    "--ms-per-click-font-size-px": 38.73,
-    "--ms-per-click-x-offset-vw": 34.63,
-    "--ms-per-click-y-offset-vh": 58.04,
+    "--ms-per-click-font-size-px": 81.4,
+    "--ms-per-click-x-offset-vw": 41.37,
+    "--ms-per-click-y-offset-vh": 60.18,
     "--ms-per-click-letter-spacing-px": 0.5,
-    "--ms-per-click-line-height": 0.65,
+    "--ms-per-click-line-height": 0.6,
     "--ms-per-click-text-align": "right",
     "--ms-per-click-text-valign": "top",
     "--ms-per-click-text-align-edge-lock": 1,
@@ -284,8 +284,8 @@
     "resultOverallBorderThickness": 5,
     "resultOverallBorderColor": "#401013",
     "overallBorderEnabled": true,
-    "overallBorderColor": "#401013",
-    "overallBorderThickness": 5,
+    "overallBorderColor": "#24f031",
+    "overallBorderThickness": 20,
     "targetOverallBorderThickness": 8,
     "speedOverallBorderThickness": 8,
     "msPerClickOverallBorderThickness": 8
@@ -530,26 +530,26 @@
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
-    "desktop:Start/Try Again Button": true,
+    "desktop:Start/Try Again Button": false,
     "desktop:Rotation Animation": true,
     "desktop:Round Text": false,
-    "desktop:Win/Lose Text": true,
+    "desktop:Win/Lose Text": false,
     "desktop:Target Count Display": true,
-    "desktop:Speed Display (max ms between taps)": true,
+    "desktop:Speed Display (max ms between taps)": false,
     "desktop:Ms/Click Display": true,
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
-    "mobile:Rotation Animation": true,
     "mobile:Dev Panel": true,
     "mobile:Main Button": true,
     "mobile:Click Burst": true,
     "mobile:Shadow": true,
+    "mobile:Rotation Animation": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
     "mobile:Win/Lose Text": true,
     "mobile:Start/Try Again Button": true,
     "mobile:Target Count Display": true,
-    "mobile:Round Text": false,
-    "mobile:Speed Display (max ms between taps)": false,
+    "mobile:Round Text": true,
+    "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": true
   },
   "sectionOrder": {
@@ -621,18 +621,18 @@
       {
         "key": "desktop:Click Burst",
         "rowKeys": [
-          "sliderClickBurstShadowFinalScale",
           "selectClickFrameSet",
           "sliderClickBurstSpeed",
           "sliderClickBurstScale",
+          "sliderClickBurstShadowFinalScale",
           "sliderClickBurstDistance",
           "sliderClickBurstHeight",
-          "sliderClickBurstCurveOffset",
           "sliderClickBurstCurveAmount",
           "sliderClickBurstCountMin",
           "sliderClickBurstCountMax",
           "inputClickBurstHideShadowIndexA",
           "inputClickBurstHideShadowIndexB",
+          "sliderClickBurstCurveOffset",
           "inputClickBurstRightFloorDeg",
           "inputClickBurstRightCeilingDeg",
           "inputClickBurstLeftFloorDeg",
@@ -669,21 +669,21 @@
           "sliderTryAgainTextLetterSpacing",
           "sliderTryAgainTextLineHeight",
           "sliderTryAgainTextX",
-          "sliderTryAgainTextY",
-          "sliderTryAgainHoldDuration",
-          "sliderTryAgainFlashDuration"
+          "sliderTryAgainTextY"
         ]
       },
       {
         "key": "desktop:Rotation Animation",
         "rowKeys": [
+          "sliderTryAgainHoldDuration",
+          "sliderTryAgainFlashDuration",
           "selectTryAgainMode",
           "sliderTryAgainQuestionMarkFontSize",
           "sliderTryAgainQuestionMarkExtrusionDepth",
           "sliderTryAgainQuestionMarkOverallBorderThickness",
           "sliderTryAgainRotateAxisOffset",
-          "colorTryAgainQuestionMarkOverallBorder",
           "colorTryAgainQuestionMarkFill",
+          "colorTryAgainQuestionMarkOverallBorder",
           "sliderTryAgainQuestionMarkX",
           "sliderTryAgainQuestionMarkY",
           "sliderTryAgainRotateSpeed",
@@ -718,9 +718,9 @@
       {
         "key": "desktop:Win/Lose Text",
         "rowKeys": [
+          "colorResultOverallBorder",
           "sliderResultExtrusionDepth",
           "sliderResultOverallBorderThickness",
-          "colorResultOverallBorder",
           "sliderResultWinFontSize",
           "sliderResultWinX",
           "sliderResultWinY",
@@ -757,13 +757,13 @@
         "rowKeys": [
           "sliderSpeedFontSize",
           "sliderSpeedExtrusionDepth",
-          "colorSpeedExtrusionBorder",
           "sliderSpeedOverallBorderThickness",
+          "sliderSpeedLetterSpacing",
+          "sliderSpeedLineHeight",
+          "colorSpeedExtrusionBorder",
           "colorSpeedOverallBorder",
           "sliderSpeedX",
           "sliderSpeedY",
-          "sliderSpeedLetterSpacing",
-          "sliderSpeedLineHeight",
           "selectSpeedTextAlign",
           "selectSpeedTextValign"
         ]
@@ -773,13 +773,13 @@
         "rowKeys": [
           "sliderMsPerClickFontSize",
           "sliderMsPerClickExtrusionDepth",
-          "colorMsPerClickExtrusionBorder",
           "sliderMsPerClickOverallBorderThickness",
+          "sliderMsPerClickLetterSpacing",
+          "sliderMsPerClickLineHeight",
+          "colorMsPerClickExtrusionBorder",
           "colorMsPerClickOverallBorder",
           "sliderMsPerClickX",
           "sliderMsPerClickY",
-          "sliderMsPerClickLetterSpacing",
-          "sliderMsPerClickLineHeight",
           "selectMsPerClickTextAlign",
           "selectMsPerClickTextValign"
         ]
@@ -810,16 +810,6 @@
       }
     ],
     "mobileTabContent": [
-      {
-        "key": "mobile:Rotation Animation",
-        "rowKeys": [
-          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
-          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
-          "sliderMobileTryAgainQuestionMarkFontSize",
-          "sliderMobileTryAgainQuestionMarkX",
-          "sliderMobileTryAgainQuestionMarkY"
-        ]
-      },
       {
         "key": "mobile:Dev Panel",
         "rowKeys": [
@@ -876,6 +866,16 @@
           "sliderMobileShadowElongationIntensity",
           "sliderMobileShadowElongationAngle",
           "sliderMobileShadowRotate"
+        ]
+      },
+      {
+        "key": "mobile:Rotation Animation",
+        "rowKeys": [
+          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
+          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
+          "sliderMobileTryAgainQuestionMarkFontSize",
+          "sliderMobileTryAgainQuestionMarkX",
+          "sliderMobileTryAgainQuestionMarkY"
         ]
       },
       {
@@ -969,17 +969,19 @@
           "sliderMobileMsPerClickFontSize",
           "sliderMobileMsPerClickExtrusionDepth",
           "sliderMobileMsPerClickOverallBorderThickness",
-          "sliderMobileMsPerClickX",
-          "sliderMobileMsPerClickY",
           "sliderMobileMsPerClickLetterSpacing",
           "sliderMobileMsPerClickLineHeight",
+          "sliderMobileMsPerClickX",
+          "sliderMobileMsPerClickY",
           "selectMobileMsPerClickTextAlign",
           "selectMobileMsPerClickTextValign"
         ]
       }
     ]
   },
-  "devTextOverrides": {},
+  "devTextOverrides": {
+    "checkboxTextEditMode": null
+  },
   "baseColor": "#009dff",
   "buttonColor": "#009dff",
   "buttonWinColor": "#27b942",
