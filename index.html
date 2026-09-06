@@ -11564,11 +11564,26 @@
                 labelMs.classList.add('hidden');
                 return;
             }
+            // el.getBoundingClientRect() alone (matching Text Edit Mode's
+            // own bounding box) is correct at line-height 0 - the user's
+            // own direct, empirical finding from adjusting the real slider
+            // and watching where the box lands - but at a real line-height
+            // like Ms-per-click's own (>0, needed for its 3-line layout),
+            // the BOX's own top sits ABOVE where the actual glyph ink
+            // starts, by (line-height * font-size) exactly - the user's own
+            // derived formula, confirmed by their own comparison of the
+            // debug line against the real text at multiple settings.
+            // getComputedStyle's own line-height is already resolved to px
+            // (lineHeightMultiplier * fontSize, exactly what's needed) so
+            // no separate font-size read/multiply is needed. Cosmetic only
+            // - this does NOT touch --anchor-ty or any actual game
+            // positioning, only where this debug line itself is drawn.
             function measureGlyphTop(el) {
                 if (!el || el.classList.contains('hidden')) return null;
                 const rect = el.getBoundingClientRect();
                 if (rect.width === 0 && rect.height === 0) return null;
-                return { top: rect.top, left: rect.left, width: rect.width };
+                const lineHeightPx = parseFloat(getComputedStyle(el).lineHeight) || 0;
+                return { top: rect.top + lineHeightPx, left: rect.left, width: rect.width };
             }
             function place(el, line, label, name) {
                 const m = measureGlyphTop(el);
