@@ -3647,9 +3647,9 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxStartTextValignEdgeLock" data-var="--start-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <!-- Try Again's own font-size/position/colors - independent
-                     from Start's above, per explicit request. Depth/
-                     thickness stay shared (only color was asked for). -->
+                <!-- Try Again's own font-size/position/colors/depth/
+                     thickness - independent from Start's above, per
+                     explicit request. -->
                 <div class="dev-row">
                     <span class="dev-label">Try Again Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="10" max="400" step="0.01" value="165.63">
@@ -3667,8 +3667,18 @@
                     <span class="dev-value" id="valueTryAgainTextFontSizeVw">12.94</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Try Again Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueTryAgainExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Try Again Text Color:</span>
                     <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainOverallBorderThickness" min="0" max="20" step="1" value="7">
+                    <span class="dev-value" id="valueTryAgainOverallBorderThickness">7</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Overall Border Color:</span>
@@ -4750,6 +4760,16 @@
                     <span class="dev-value" id="valueMobileTryAgainTextFontSizeVw">20</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Try Again Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueMobileTryAgainExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueMobileTryAgainOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Try Again X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTryAgainTextX">0</span>
@@ -5706,12 +5726,19 @@
             // thickness, I can select the border color").
             roundOverallBorderColor: '#431114',
             // Try Again's own border/extrusion colors, independent from
-            // Start's above - per explicit request. Depth/thickness stay
-            // shared (roundDepth/roundOverallBorderThickness) since only
-            // color was asked for; starts matching Start's own colors
-            // until tuned, same convention as the font-size/position split.
+            // Start's above - per explicit request; starts matching Start's
+            // own colors until tuned, same convention as the font-size/
+            // position split.
             tryAgainBorderColor: '#ffffff',
             tryAgainOverallBorderColor: '#431114',
+            // Depth/thickness, independent from Start/Round's own
+            // roundDepth/roundOverallBorderThickness - per direct follow-up
+            // request ("give me extrusion depth, border thickness sliders
+            // for Try Again"), completing the same independence color
+            // already had. Starts matching Start/Round's own current values
+            // until tuned.
+            tryAgainDepth: 9,
+            tryAgainOverallBorderThickness: 7,
             // The "?" glyph's own fill color, independent from the "Try
             // again" text's own color above - per explicit request ("I
             // dont see separate size, color, and x y sliders for the
@@ -5806,6 +5833,8 @@
             roundOverallBorderColor: '#c41516',
             tryAgainBorderColor: '#c41516',
             tryAgainOverallBorderColor: '#c41516',
+            tryAgainDepth: 9,
+            tryAgainOverallBorderThickness: 5,
             questionMarkFillColor: '#c41516',
             questionMarkDepth: 23,
             questionMarkOverallBorderThickness: 5,
@@ -5986,8 +6015,11 @@
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
             // Try Again's own colors, same depth/thickness as Start (see
-            // .start-button.try-again-state's CSS) - per explicit request.
-            root.setProperty('--try-again-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.tryAgainBorderColor, ext.roundOverallBorderThickness, ext.tryAgainOverallBorderColor, ext.overallBorderEnabled));
+            // .start-button.try-again-state's CSS). Depth/thickness now
+            // independent from Start/Round's own roundDepth/
+            // roundOverallBorderThickness too - per direct follow-up
+            // request, completing the same independence color already had.
+            root.setProperty('--try-again-extrusion-shadow', buildCombinedShadow(ext.tryAgainDepth, ext.tryAgainBorderColor, ext.tryAgainOverallBorderThickness, ext.tryAgainOverallBorderColor, ext.overallBorderEnabled));
             // The "?" glyph's own extrusion/border, independent from the
             // "Try again" text above - per explicit request.
             root.setProperty('--try-again-question-mark-extrusion-shadow', buildCombinedShadow(ext.questionMarkDepth, ext.questionMarkFillColor, ext.questionMarkOverallBorderThickness, ext.questionMarkOverallBorderColor, ext.overallBorderEnabled));
@@ -8197,6 +8229,8 @@
             'sliderMsPerClickOverallBorderThickness': 'msPerClickOverallBorderThickness',
             'sliderRoundExtrusionDepth': 'roundDepth',
             'sliderRoundOverallBorderThickness': 'roundOverallBorderThickness',
+            'sliderTryAgainExtrusionDepth': 'tryAgainDepth',
+            'sliderTryAgainOverallBorderThickness': 'tryAgainOverallBorderThickness',
             'sliderRoundDockExtrusionDepth': 'roundDockDepth',
             'sliderRoundDockOverallBorderThickness': 'roundDockOverallBorderThickness',
             'sliderTryAgainQuestionMarkExtrusionDepth': 'questionMarkDepth',
