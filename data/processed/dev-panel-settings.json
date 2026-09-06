@@ -43,11 +43,19 @@
     "--text-line-height": 1.4,
     "--start-text-align": "center",
     "--start-text-valign": "center",
+    "--try-again-text-align": "center",
+    "--try-again-text-valign": "center",
+    "--try-again-text-align-edge-lock": 0,
+    "--try-again-text-valign-edge-lock": 0,
+    "--try-again-question-mark-text-align": "center",
+    "--try-again-question-mark-text-valign": "center",
+    "--try-again-question-mark-text-align-edge-lock": 0,
+    "--try-again-question-mark-text-valign-edge-lock": 0,
     "--start-text-align-edge-lock": 0,
     "--start-text-valign-edge-lock": 0,
     "--try-again-text-font-size-px": 204.83,
     "--try-again-text-font-size-vw": 9.38,
-    "--try-again-text-scale-with-browser": 1,
+    "--try-again-text-scale-with-browser": 0,
     "--try-again-text-x-offset-vw": -0.16,
     "--try-again-text-y-offset-vh": -9.05,
     "--try-again-text-letter-spacing-px": 17.5,
@@ -187,6 +195,14 @@
     "--start-text-valign": "center",
     "--start-text-align-edge-lock": 0,
     "--start-text-valign-edge-lock": 0,
+    "--try-again-text-align": "center",
+    "--try-again-text-valign": "center",
+    "--try-again-text-align-edge-lock": 0,
+    "--try-again-text-valign-edge-lock": 0,
+    "--try-again-question-mark-text-align": "center",
+    "--try-again-question-mark-text-valign": "center",
+    "--try-again-question-mark-text-align-edge-lock": 0,
+    "--try-again-question-mark-text-valign-edge-lock": 0,
     "--try-again-text-font-size-px": 143.8,
     "--try-again-text-font-size-vw": 20,
     "--try-again-text-scale-with-browser": 1,
@@ -676,6 +692,8 @@
       {
         "key": "desktop:Start/Try Again Button",
         "rowKeys": [
+          "selectTryAgainTextAlign",
+          "selectTryAgainTextValign",
           "sliderTryAgainExtrusionDepth",
           "sliderTryAgainOverallBorderThickness",
           "checkboxTextScaleWithBrowser",
@@ -710,6 +728,8 @@
       {
         "key": "desktop:Rotation Animation",
         "rowKeys": [
+          "selectTryAgainQuestionMarkTextAlign",
+          "selectTryAgainQuestionMarkTextValign",
           "checkboxTryAgainQuestionMarkScaleWithBrowser",
           "sliderTryAgainQuestionMarkFontSizeVw",
           "sliderTryAgainHoldDuration",
@@ -924,6 +944,8 @@
       {
         "key": "mobile:Rotation Animation",
         "rowKeys": [
+          "selectMobileTryAgainQuestionMarkTextAlign",
+          "selectMobileTryAgainQuestionMarkTextValign",
           "checkboxMobileTryAgainQuestionMarkScaleWithBrowser",
           "sliderMobileTryAgainQuestionMarkFontSizeVw",
           "sliderMobileTryAgainQuestionMarkExtrusionDepth",
@@ -960,6 +982,8 @@
       {
         "key": "mobile:Start/Try Again Button",
         "rowKeys": [
+          "selectMobileTryAgainTextAlign",
+          "selectMobileTryAgainTextValign",
           "sliderMobileTryAgainExtrusionDepth",
           "sliderMobileTryAgainOverallBorderThickness",
           "checkboxMobileTextScaleWithBrowser",
