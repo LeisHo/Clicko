@@ -265,7 +265,7 @@
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
-    "--target-y-offset-vh": 14.71,
+    "--target-y-offset-vh": -13.97,
     "--target-y-offset-unit-is-px": 1,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 0.65,
@@ -291,7 +291,7 @@
     "--ms-per-click-scale-with-browser": 1,
     "--ms-per-click-x-offset-vw": 49.25,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-y-offset-vh": 14.71,
+    "--ms-per-click-y-offset-vh": 26.47,
     "--ms-per-click-y-offset-unit-is-px": 1,
     "--ms-per-click-letter-spacing-px": -0.5,
     "--ms-per-click-line-height": 0.65,
@@ -645,14 +645,14 @@
     "mobile:Click Burst": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
     "mobile:Start/Try Again Button": true,
-    "mobile:New Group": true,
     "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
     "mobile:Win/Lose Text": true,
     "mobile:New Group (2)": true,
     "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": false
+    "mobile:Ms/Click Display": false,
+    "mobile:New Group": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1034,17 +1034,6 @@
         ]
       },
       {
-        "key": "mobile:New Group",
-        "rowKeys": [
-          "checkboxMobileTryAgainTextScaleWithBrowser",
-          "sliderMobileTryAgainTextFontSize",
-          "sliderMobileTryAgainTextLetterSpacing",
-          "sliderMobileTryAgainTextLineHeight",
-          "sliderMobileTryAgainTextX",
-          "sliderMobileTryAgainTextY"
-        ]
-      },
-      {
         "key": "mobile:Rotation Animation",
         "rowKeys": [
           "selectMobileTryAgainQuestionMarkTextAlign",
@@ -1148,6 +1137,17 @@
           "sliderMobileMsPerClickY",
           "selectMobileMsPerClickTextAlign",
           "selectMobileMsPerClickTextValign"
+        ]
+      },
+      {
+        "key": "mobile:New Group",
+        "rowKeys": [
+          "checkboxMobileTryAgainTextScaleWithBrowser",
+          "sliderMobileTryAgainTextFontSize",
+          "sliderMobileTryAgainTextLetterSpacing",
+          "sliderMobileTryAgainTextLineHeight",
+          "sliderMobileTryAgainTextX",
+          "sliderMobileTryAgainTextY"
         ]
       }
     ]
