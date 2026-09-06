@@ -7719,8 +7719,12 @@
         // when opened directly as a local file with no server behind it
         // (location.protocol === 'file:') - there's nothing to write the
         // git-tracked log through in that mode (CLAUDE.md Section 12l's
-        // own exception), so this falls back to localStorage instead. See
-        // acquireSavedSettings() for the matching read-back side.
+        // own exception), so this falls back to localStorage instead.
+        // Read and write are NOT symmetric here, deliberately -
+        // acquireSavedSettings() reads live from GitHub even on file://
+        // (a public read needs no server/secret, unlike a write), only
+        // falling back to this same localStorage key when that's
+        // unreachable.
         function saveSettings() {
             const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
@@ -7788,6 +7792,42 @@
         // the read path; a failure here just falls back to defaults, same
         // as any other unreachable-source case.
         async function acquireSavedSettings() {
+            // Tries the live GitHub fetch FIRST regardless of protocol - a
+            // plain cross-origin HTTPS request to a public API, which
+            // works identically whether this page is served over http(s)
+            // or opened directly as a local file:// document. Per direct
+            // report ("when i open the html file locally, not in a
+            // server, everthing looks fucked") - root-caused to this
+            // function previously skipping the GitHub fetch ENTIRELY for
+            // file:// and relying on localStorage alone, which either has
+            // nothing (silently falls back to whatever the hardcoded JS
+            // defaults happen to currently say) or, worse, stale data left
+            // over from some earlier local test session, silently
+            // resurrected on every future local open with no way to tell
+            // it's stale. Only the SAVE path genuinely can't work from
+            // file:// (no server to hold the write-authorizing GitHub
+            // token, per CLAUDE.md Section 12l) - reading a public repo's
+            // public content needs no secret at all, so there was never a
+            // real reason to restrict the READ side too. localStorage
+            // stays as the fallback specifically for file:// with no
+            // network path to GitHub reachable at all (offline, or the
+            // unauthenticated rate limit hit).
+            try {
+                const resp = await fetch(SETTINGS_GITHUB_API_URL, {
+                    headers: { Accept: 'application/vnd.github+json' },
+                    cache: 'no-store',
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const base64 = (data.content || '').replace(/\s/g, '');
+                    const jsonText = decodeURIComponent(escape(atob(base64)));
+                    return JSON.parse(jsonText);
+                }
+            } catch (e) {
+                // network unavailable, rate-limited, malformed JSON, or (on
+                // file://) no CORS path to GitHub from this browser - fall
+                // through to the local fallback below.
+            }
             if (location.protocol === 'file:') {
                 try {
                     const saved = localStorage.getItem('clickoSettings');
@@ -7796,19 +7836,7 @@
                     return null;
                 }
             }
-            try {
-                const resp = await fetch(SETTINGS_GITHUB_API_URL, {
-                    headers: { Accept: 'application/vnd.github+json' },
-                    cache: 'no-store',
-                });
-                if (!resp.ok) return null; // e.g. 404 before the file exists, or rate-limited
-                const data = await resp.json();
-                const base64 = (data.content || '').replace(/\s/g, '');
-                const jsonText = decodeURIComponent(escape(atob(base64)));
-                return JSON.parse(jsonText);
-            } catch (e) {
-                return null; // network unavailable, rate-limited, or malformed JSON
-            }
+            return null;
         }
 
         function applyLoadedSettings(settings) {
