@@ -265,7 +265,7 @@
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
-    "--target-y-offset-vh": -13.17,
+    "--target-y-offset-vh": -11.42,
     "--target-y-offset-unit-is-px": 1,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 1.2,
