@@ -111,8 +111,8 @@
     "--result-line-height": 1.2,
     "--result-text-align": "center",
     "--result-text-valign": "center",
-    "--result-text-align-edge-lock": 0,
-    "--result-text-valign-edge-lock": 0,
+    "--result-text-align-edge-lock": 1,
+    "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 350,
     "--dev-panel-left-px": 70,
     "--dev-panel-top-px": 208,
@@ -535,7 +535,7 @@
     "desktop:Round Text": false,
     "desktop:Win/Lose Text": false,
     "desktop:Target Count Display": true,
-    "desktop:Speed Display (max ms between taps)": true,
+    "desktop:Speed Display (max ms between taps)": false,
     "desktop:Ms/Click Display": true,
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
@@ -757,13 +757,13 @@
         "rowKeys": [
           "sliderSpeedFontSize",
           "sliderSpeedExtrusionDepth",
-          "colorSpeedExtrusionBorder",
           "sliderSpeedOverallBorderThickness",
+          "sliderSpeedLetterSpacing",
+          "sliderSpeedLineHeight",
+          "colorSpeedExtrusionBorder",
           "colorSpeedOverallBorder",
           "sliderSpeedX",
           "sliderSpeedY",
-          "sliderSpeedLetterSpacing",
-          "sliderSpeedLineHeight",
           "selectSpeedTextAlign",
           "selectSpeedTextValign"
         ]
@@ -773,13 +773,13 @@
         "rowKeys": [
           "sliderMsPerClickFontSize",
           "sliderMsPerClickExtrusionDepth",
-          "colorMsPerClickExtrusionBorder",
           "sliderMsPerClickOverallBorderThickness",
+          "sliderMsPerClickLetterSpacing",
+          "sliderMsPerClickLineHeight",
+          "colorMsPerClickExtrusionBorder",
           "colorMsPerClickOverallBorder",
           "sliderMsPerClickX",
           "sliderMsPerClickY",
-          "sliderMsPerClickLetterSpacing",
-          "sliderMsPerClickLineHeight",
           "selectMsPerClickTextAlign",
           "selectMsPerClickTextValign"
         ]
