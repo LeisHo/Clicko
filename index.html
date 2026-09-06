@@ -835,19 +835,25 @@
            overriding left/top/font-size here is simpler than duplicating
            the whole button. */
         .start-button.try-again-state {
-            /* Reuses --start-x-unit/--start-y-unit (not its own) - Try
-               Again shares Start's own Text Align/Valign dropdowns and Edge
-               Lock checkboxes (see .start-button's own comment above), it
-               only has its own independent offset NUMBER, not its own
-               anchor/lock mechanism. */
-            left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--start-x-unit, 1vw));
-            top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--start-y-unit, 1vh));
+            /* Try Again now has its own independent Text Align/Valign/Edge
+               Lock (--try-again-x/-y-base/-sign/-unit) instead of reusing
+               Start's --start-x/-y-* - per direct follow-up request. Both
+               prefixes' custom properties are computed unconditionally onto
+               this same shared startButton element every time
+               applyTextAlignAnchors() runs (see its own comment) - only
+               whichever state is actually showing has its own CSS rule
+               (this one, vs .start-button's own base rule above) read the
+               matching prefix, so there's no conflict despite living on one
+               element. */
+            left: calc(var(--try-again-x-base, 50%) + var(--try-again-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--try-again-x-unit, 1vw));
+            top: calc(var(--try-again-y-base, 50%) + var(--try-again-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-y-unit, 1vh));
             /* See .start-button's own "Scale With Browser" comment above. */
             font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
             line-height: var(--try-again-text-line-height, 1.2);
             color: var(--try-again-fill-color);
             text-shadow: var(--try-again-extrusion-shadow);
+            text-align: var(--try-again-text-align, center);
         }
 
         .start-button.pressed {
@@ -889,13 +895,24 @@
            the same thing here as anywhere else. */
         #startButtonFlashChar {
             position: fixed;
-            left: calc(50% + var(--try-again-question-mark-x-offset-vw) * 1vw);
-            top: calc(50% + var(--try-again-question-mark-y-offset-vh) * 1vh);
+            /* Now uses the same base/sign/unit anchor system as every other
+               element (Target/Speed/etc.) instead of a hardcoded 50% origin
+               - per direct follow-up request for its own Text Align/Valign.
+               Falls back to plain 50%/1(sign)/1vw-1vh when
+               applyTextAlignAnchors() hasn't run yet (this element doesn't
+               exist in the DOM until Try Again first renders - see its own
+               null-guard comment there), reproducing the exact original
+               formula below as the default. */
+            left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, 1vw));
+            top: calc(var(--try-again-question-mark-y-base, 50%) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, 1vh));
+            text-align: var(--try-again-question-mark-text-align, center);
             /* See .start-button's own "Scale With Browser" comment. */
             font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * 1vw);
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, var(--anchor-ty, -50%));
             display: inline-block;
         }
+        #startButtonFlashChar.align-left { transform: translate(0%, var(--anchor-ty, -50%)); }
+        #startButtonFlashChar.align-right { transform: translate(-100%, var(--anchor-ty, -50%)); }
         #startButtonFlashCharExtrusion {
             position: absolute;
             left: 0;
@@ -3704,6 +3721,24 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
                     <span class="dev-value" id="valueTryAgainTextLineHeight">1.2</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectTryAgainTextAlign" data-var="--try-again-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainTextAlignEdgeLock" data-var="--try-again-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectTryAgainTextValign" data-var="--try-again-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainTextValignEdgeLock" data-var="--try-again-text-valign-edge-lock">Edge Lock</label>
+                </div>
                 <!-- The "?" in "Try again?" blinks while that text is on
                      screen - per explicit request. Shared/single, not
                      mobile-split, like every other timing-only slider (Game
@@ -3793,6 +3828,24 @@
                     <span class="dev-label">"?" Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="0.05">
                     <span class="dev-value" id="valueTryAgainQuestionMarkY">0.05</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectTryAgainQuestionMarkTextAlign" data-var="--try-again-question-mark-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainQuestionMarkTextAlignEdgeLock" data-var="--try-again-question-mark-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectTryAgainQuestionMarkTextValign" data-var="--try-again-question-mark-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainQuestionMarkTextValignEdgeLock" data-var="--try-again-question-mark-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" Extrusion Depth (px):</span>
@@ -4789,6 +4842,24 @@
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
                     <span class="dev-value" id="valueMobileTryAgainTextLineHeight">1.2</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileTryAgainTextAlign" data-var="--try-again-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileTryAgainTextAlignEdgeLock" data-var="--try-again-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileTryAgainTextValign" data-var="--try-again-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileTryAgainTextValignEdgeLock" data-var="--try-again-text-valign-edge-lock">Edge Lock</label>
+                </div>
             </div>
         </div>
 
@@ -4824,6 +4895,24 @@
                     <span class="dev-label">"?" Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="5.05">
                     <span class="dev-value" id="valueMobileTryAgainQuestionMarkY">5.05</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileTryAgainQuestionMarkTextAlign" data-var="--try-again-question-mark-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileTryAgainQuestionMarkTextAlignEdgeLock" data-var="--try-again-question-mark-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileTryAgainQuestionMarkTextValign" data-var="--try-again-question-mark-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileTryAgainQuestionMarkTextValignEdgeLock" data-var="--try-again-question-mark-text-valign-edge-lock">Edge Lock</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" Extrusion Depth (px):</span>
@@ -5528,6 +5617,24 @@
             '--text-line-height': 1.2,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
+            // Try Again's own alignment, independent from Start's above -
+            // per direct follow-up request. Try Again and Start share ONE
+            // DOM element (startButton), so applyTextAlignAnchors() special-
+            // cases it to pick whichever of these 2 var pairs matches the
+            // CURRENTLY DISPLAYED state for the shared align-CLASS (see its
+            // own comment) - the -x/-y-base/-sign/-unit custom properties
+            // computed from each pair still coexist independently either
+            // way, since they're distinctly prefixed.
+            '--try-again-text-align': 'center',
+            '--try-again-text-valign': 'center',
+            '--try-again-text-align-edge-lock': 0,
+            '--try-again-text-valign-edge-lock': 0,
+            // The "?" glyph's own alignment, independent from the "Try
+            // again" text above - per the same direct request.
+            '--try-again-question-mark-text-align': 'center',
+            '--try-again-question-mark-text-valign': 'center',
+            '--try-again-question-mark-text-align-edge-lock': 0,
+            '--try-again-question-mark-text-valign-edge-lock': 0,
             // Edge Lock checkboxes (Desktop) - see applyTextAlignAnchors()'s
             // own comment. 0/1, not boolean, matching every other flag var
             // in this object.
@@ -6118,6 +6225,14 @@
             '--start-text-valign': 'center',
             '--start-text-align-edge-lock': 0,
             '--start-text-valign-edge-lock': 0,
+            '--try-again-text-align': 'center',
+            '--try-again-text-valign': 'center',
+            '--try-again-text-align-edge-lock': 0,
+            '--try-again-text-valign-edge-lock': 0,
+            '--try-again-question-mark-text-align': 'center',
+            '--try-again-question-mark-text-valign': 'center',
+            '--try-again-question-mark-text-align-edge-lock': 0,
+            '--try-again-question-mark-text-valign-edge-lock': 0,
             '--try-again-text-font-size-px': 78,
             '--try-again-text-font-size-vw': 20,
             '--try-again-text-scale-with-browser': 0,
@@ -8374,6 +8489,13 @@
         // select itself changes.
         const TEXT_ALIGN_TARGET_ELEMENT_IDS = {
             '--start-text-align': 'startButton',
+            // Shares startButton with --start-text-align above (Start and
+            // Try Again are one DOM element, two states) - see
+            // applyTextAlignAnchors()'s own startButton-specific correction
+            // for how the shared align-CLASS resolves to whichever of the 2
+            // actually matches the state currently on screen.
+            '--try-again-text-align': 'startButton',
+            '--try-again-question-mark-text-align': 'startButtonFlashChar',
             '--round-text-align': 'gameText',
             '--target-text-align': 'targetCount',
             '--speed-text-align': 'speedDisplay',
@@ -8390,6 +8512,8 @@
         // combinatorial CSS rule matrix.
         const TEXT_VALIGN_TARGET_ELEMENT_IDS = {
             '--start-text-valign': 'startButton',
+            '--try-again-text-valign': 'startButton',
+            '--try-again-question-mark-text-valign': 'startButtonFlashChar',
             '--round-text-valign': 'gameText',
             '--target-text-valign': 'targetCount',
             '--speed-text-valign': 'speedDisplay',
@@ -8424,6 +8548,12 @@
             const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
                 const el = document.getElementById(elId);
+                // startButtonFlashChar (the "?" glyph) only exists in the DOM
+                // while Try Again is actually showing (rebuilt via innerHTML -
+                // see TEXT_EDIT_TARGETS.startButton's own render()) - skip
+                // rather than throw when it's absent; the correct anchors get
+                // (re)computed the next time this runs after it's rebuilt.
+                if (!el) return;
                 const align = activeCssVars[varName] || 'center';
                 el.classList.remove('align-left', 'align-center', 'align-right');
                 el.classList.add('align-' + align);
@@ -8433,8 +8563,24 @@
                 el.style.setProperty(xPrefix + '-x-base', xLocked ? EDGE_LOCK_BASE[align] : '50%');
                 el.style.setProperty(xPrefix + '-x-sign', xLocked ? EDGE_LOCK_SIGN[align] : 1);
             });
+            // startButton is shared by Start and Try Again (one DOM element,
+            // two states, see --try-again-text-align's own comment) - the
+            // loop above just set the align-CLASS from BOTH --start-text-align
+            // and --try-again-text-align in map order, so whichever ran LAST
+            // won regardless of which state is actually showing. Re-resolve
+            // it here from whichever one actually matches, so the class
+            // reflects the visible text, not iteration order. The per-prefix
+            // offset vars set above are unaffected either way - each has its
+            // own distinct custom property name and only the currently-
+            // displayed state's own CSS rule ever reads its own.
+            const startButtonEl = document.getElementById('startButton');
+            const startAlignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-align' : '--start-text-align';
+            const startAlign = activeCssVars[startAlignVarName] || 'center';
+            startButtonEl.classList.remove('align-left', 'align-center', 'align-right');
+            startButtonEl.classList.add('align-' + startAlign);
             Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
                 const el = document.getElementById(elId);
+                if (!el) return;
                 const valign = activeCssVars[varName] || 'center';
                 el.style.setProperty('--anchor-ty', VALIGN_TY[valign] || VALIGN_TY.center);
                 const yLocked = !!activeCssVars[varName + '-edge-lock'];
@@ -8443,6 +8589,12 @@
                 el.style.setProperty(yPrefix + '-y-base', yLocked ? EDGE_LOCK_BASE[valign] : '50%');
                 el.style.setProperty(yPrefix + '-y-sign', yLocked ? EDGE_LOCK_SIGN[valign] : 1);
             });
+            // Same startButton-is-shared correction as align above, for
+            // --anchor-ty specifically (also just fought over by --start-
+            // text-valign and --try-again-text-valign in map-iteration order).
+            const startValignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-valign' : '--start-text-valign';
+            const startValign = activeCssVars[startValignVarName] || 'center';
+            startButtonEl.style.setProperty('--anchor-ty', VALIGN_TY[startValign] || VALIGN_TY.center);
         }
 
         // Text Edit Mode - per explicit request ("I can click on any text
@@ -8510,6 +8662,12 @@
                         startButton.textContent = overrideOr('startLabel');
                         startButton.classList.remove('try-again-state');
                     }
+                    // See endGame()'s own comment on its matching call -
+                    // startButtonFlashChar may have just been created/
+                    // removed above, and startButton's own shared align-
+                    // class/--anchor-ty needs to track whichever state this
+                    // render() call just switched to.
+                    applyTextAlignAnchors();
                 },
             },
             gameTextLabel: {
@@ -10429,6 +10587,15 @@
                     startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>`;
                     startButton.classList.add('try-again-state');
                     startButton.classList.remove('hidden');
+                    // startButtonFlashChar (the "?" glyph) was just created
+                    // above and doesn't exist until this exact moment - its
+                    // own Text Align/Valign anchors (see
+                    // applyTextAlignAnchors()'s null-guard) need computing
+                    // now, not on whatever unrelated update happens to run
+                    // next; this also re-resolves startButton's own shared
+                    // align-class/--anchor-ty to the Try Again state that
+                    // just became current (see that function's own comment).
+                    applyTextAlignAnchors();
                     startTryAgainFlash();
                     resultText.classList.add('hidden');
                     gameState.isPlaying = false;
@@ -10535,6 +10702,10 @@
             startButton.classList.remove('hidden');
             startButton.textContent = overrideOr('startLabel');
             startButton.classList.remove('try-again-state');
+            // Re-resolves startButton's shared align-class/--anchor-ty back
+            // to the Start state's own vars - see applyTextAlignAnchors()'s
+            // own comment.
+            applyTextAlignAnchors();
             gameText.classList.add('hidden');
             resultText.classList.add('hidden');
             // Same reasoning as showRoundText()'s own comment - returning to
