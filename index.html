@@ -794,7 +794,12 @@
                px, the way Edge Lock's offsets could, would have done here -
                font-size values are a fundamentally different scale, so this
                needed an actual unit conversion, not just a reinterpretation). */
-            font-size: calc(var(--text-font-size-px) * 1px);
+            /* "Scale With Browser" checkbox blend (see updateScaleWithBrowser()'s
+               own comment) - a plain 0/1 toggle multiplied into each term
+               zeroes out whichever one isn't active, letting one CSS rule
+               express both a fixed-px AND a viewport-relative-vw mode
+               without JS having to swap the rule itself on every resize. */
+            font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
             line-height: var(--text-line-height, 1.2);
             font-weight: 700;
@@ -837,7 +842,8 @@
                anchor/lock mechanism. */
             left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--start-x-unit, 1vw));
             top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--start-y-unit, 1vh));
-            font-size: calc(var(--try-again-text-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment above. */
+            font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
             line-height: var(--try-again-text-line-height, 1.2);
             color: var(--try-again-fill-color);
@@ -885,7 +891,8 @@
             position: fixed;
             left: calc(50% + var(--try-again-question-mark-x-offset-vw) * 1vw);
             top: calc(50% + var(--try-again-question-mark-y-offset-vh) * 1vh);
-            font-size: calc(var(--try-again-question-mark-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * 1vw);
             transform: translate(-50%, -50%);
             display: inline-block;
         }
@@ -1000,7 +1007,8 @@
             left: calc(var(--round-x-base, 50%) + var(--round-x-sign, 1) * var(--round-dock-x-offset-vw) * var(--round-x-unit, 1vw));
             top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--round-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--round-scale-with-browser, 0)) * var(--round-font-size-px) * 1px + var(--round-scale-with-browser, 0) * var(--round-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             line-height: var(--round-line-height, 1.2);
             font-weight: 700;
@@ -1090,7 +1098,8 @@
         .result-text.result-win {
             left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-x-unit, 1vw));
             top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-y-unit, 1vh));
-            font-size: calc(var(--result-win-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * 1vw);
             color: var(--result-win-fill-color);
             text-shadow: var(--result-win-shadow);
         }
@@ -1098,7 +1107,8 @@
         .result-text.result-lose {
             left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-x-unit, 1vw));
             top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-y-unit, 1vh));
-            font-size: calc(var(--result-lose-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * 1vw);
             color: var(--result-lose-fill-color);
             text-shadow: var(--result-lose-shadow);
         }
@@ -1139,7 +1149,8 @@
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, 1vw));
             top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--target-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
             line-height: var(--target-line-height, 1.2);
             font-weight: 700;
@@ -1169,7 +1180,8 @@
             left: calc(var(--speed-x-base, 50%) + var(--speed-x-sign, 1) * var(--speed-x-offset-vw) * var(--speed-x-unit, 1vw));
             top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--speed-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--speed-scale-with-browser, 0)) * var(--speed-font-size-px) * 1px + var(--speed-scale-with-browser, 0) * var(--speed-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             line-height: var(--speed-line-height, 1.2);
             font-weight: 700;
@@ -1205,7 +1217,8 @@
             left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, 1vw));
             top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, 1vh));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            font-size: calc(var(--ms-per-click-font-size-px) * 1px);
+            /* See .start-button's own "Scale With Browser" comment. */
+            font-size: calc((1 - var(--ms-per-click-scale-with-browser, 0)) * var(--ms-per-click-font-size-px) * 1px + var(--ms-per-click-scale-with-browser, 0) * var(--ms-per-click-font-size-vw, 10) * 1vw);
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             line-height: var(--ms-per-click-line-height, 1.2);
             font-weight: 700;
@@ -3546,6 +3559,17 @@
                     <span class="dev-value" id="valueTextFontSize">12.94</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTextScaleWithBrowser', '--text-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTextFontSizeVw" min="1" max="60" step="0.01" value="15.42">
+                    <span class="dev-value" id="valueTextFontSizeVw">15.42</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="9">
                     <span class="dev-value" id="valueRoundExtrusionDepth">9</span>
@@ -3608,6 +3632,17 @@
                     <span class="dev-label">Try Again Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="10" max="400" step="0.01" value="165.63">
                     <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSizeVw" min="1" max="60" step="0.01" value="12.94">
+                    <span class="dev-value" id="valueTryAgainTextFontSizeVw">12.94</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Text Color:</span>
@@ -3703,6 +3738,17 @@
                     <span class="dev-value" id="valueTryAgainQuestionMarkFontSize">12.94</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkFontSizeVw" min="1" max="60" step="0.01" value="20.09">
+                    <span class="dev-value" id="valueTryAgainQuestionMarkFontSizeVw">20.09</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">"?" Color:</span>
                     <input type="color" class="dev-color-picker" id="colorTryAgainQuestionMarkFill" value="#ffffff">
                 </div>
@@ -3768,6 +3814,17 @@
                     <span class="dev-label">Text Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderRoundFontSize" min="5" max="200" step="0.01" value="89.34">
                     <span class="dev-value" id="valueRoundFontSize">3.3</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundScaleWithBrowser', '--round-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundFontSizeVw" min="1" max="60" step="0.01" value="6.98">
+                    <span class="dev-value" id="valueRoundFontSizeVw">6.98</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Extrusion Depth (px):</span>
@@ -3890,6 +3947,17 @@
                     <span class="dev-value" id="valueResultWinFontSize">172.8</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderResultWinFontSizeVw" min="1" max="60" step="0.01" value="13.5">
+                    <span class="dev-value" id="valueResultWinFontSizeVw">13.5</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Win X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderResultWinX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueResultWinX">0</span>
@@ -3903,6 +3971,17 @@
                     <span class="dev-label">Lose Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderResultLoseFontSize" min="5" max="300" step="0.01" value="172.8">
                     <span class="dev-value" id="valueResultLoseFontSize">172.8</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultLoseScaleWithBrowser" data-css-var="--result-lose-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultLoseScaleWithBrowser', '--result-lose-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderResultLoseFontSizeVw" min="1" max="60" step="0.01" value="13.5">
+                    <span class="dev-value" id="valueResultLoseFontSizeVw">13.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose X Offset (vw):</span>
@@ -3974,6 +4053,17 @@
                     <span class="dev-label">Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderTargetFontSize" min="10" max="500" step="0.01" value="309.76">
                     <span class="dev-value" id="valueTargetFontSize">11.74</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetScaleWithBrowser', '--target-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderTargetFontSizeVw" min="1" max="60" step="0.01" value="24.2">
+                    <span class="dev-value" id="valueTargetFontSizeVw">24.2</span>
                 </div>
                 <!-- Font dropdown removed - Target now shares the ONE
                      8-Bit Text Style font (select8BitFont), per explicit
@@ -4048,6 +4138,17 @@
                     <span class="dev-value" id="valueSpeedFontSize">3.3</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxSpeedScaleWithBrowser" data-css-var="--speed-scale-with-browser" onchange="updateScaleWithBrowser('checkboxSpeedScaleWithBrowser', '--speed-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderSpeedFontSizeVw" min="1" max="60" step="0.01" value="6.98">
+                    <span class="dev-value" id="valueSpeedFontSizeVw">6.98</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedExtrusionDepth" min="0" max="20" step="1" value="19">
                     <span class="dev-value" id="valueSpeedExtrusionDepth">19</span>
@@ -4116,6 +4217,17 @@
                     <span class="dev-label">Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="5" max="300" step="0.01" value="69.89">
                     <span class="dev-value" id="valueMsPerClickFontSize">2</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSizeVw" min="1" max="60" step="0.01" value="5.46">
+                    <span class="dev-value" id="valueMsPerClickFontSizeVw">5.46</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -4538,6 +4650,17 @@
                     <span class="dev-value" id="valueMobileTextFontSize">8</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTextScaleWithBrowser', '--text-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTextFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTextFontSizeVw">20</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileRoundExtrusionDepth">4</span>
@@ -4591,6 +4714,17 @@
                     <span class="dev-value" id="valueMobileTryAgainTextFontSize">20</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainTextFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTryAgainTextFontSizeVw">20</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Try Again X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTryAgainTextX">0</span>
@@ -4624,6 +4758,17 @@
                     <span class="dev-label">"?" Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkFontSize" min="10" max="500" step="0.01" value="78">
                     <span class="dev-value" id="valueMobileTryAgainQuestionMarkFontSize">20</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileTryAgainQuestionMarkFontSizeVw">20</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" X Offset (vw):</span>
@@ -4661,6 +4806,17 @@
                     <span class="dev-label">Text Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundFontSize" min="5" max="200" step="0.01" value="78">
                     <span class="dev-value" id="valueMobileRoundFontSize">5.43</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileRoundScaleWithBrowser', '--round-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileRoundFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueMobileRoundFontSizeVw">20</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Extrusion Depth (px):</span>
@@ -4726,6 +4882,17 @@
                     <span class="dev-value" id="valueMobileResultWinFontSize">18.6</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultWinFontSizeVw" min="1" max="60" step="0.01" value="4.77">
+                    <span class="dev-value" id="valueMobileResultWinFontSizeVw">4.77</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Win X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultWinX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileResultWinX">0</span>
@@ -4739,6 +4906,17 @@
                     <span class="dev-label">Lose Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLoseFontSize" min="5" max="300" step="0.01" value="18.6">
                     <span class="dev-value" id="valueMobileResultLoseFontSize">18.6</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileResultLoseScaleWithBrowser" data-css-var="--result-lose-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileResultLoseScaleWithBrowser', '--result-lose-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultLoseFontSizeVw" min="1" max="60" step="0.01" value="4.77">
+                    <span class="dev-value" id="valueMobileResultLoseFontSizeVw">4.77</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose X Offset (vw):</span>
@@ -4797,6 +4975,17 @@
                     <span class="dev-label">Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetFontSize" min="10" max="500" step="0.01" value="195">
                     <span class="dev-value" id="valueMobileTargetFontSize">25</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTargetScaleWithBrowser', '--target-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileTargetFontSizeVw" min="1" max="60" step="0.01" value="50">
+                    <span class="dev-value" id="valueMobileTargetFontSizeVw">50</span>
                 </div>
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not mobile-split), per
@@ -4865,6 +5054,17 @@
                     <span class="dev-value" id="valueMobileSpeedFontSize">9</span>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileSpeedScaleWithBrowser" data-css-var="--speed-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileSpeedScaleWithBrowser', '--speed-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileSpeedFontSizeVw" min="1" max="60" step="0.01" value="9.93">
+                    <span class="dev-value" id="valueMobileSpeedFontSizeVw">9.93</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
                     <span class="dev-value" id="valueMobileSpeedExtrusionDepth">4</span>
@@ -4926,6 +5126,17 @@
                     <span class="dev-label">Font Size (px):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickFontSize" min="5" max="300" step="0.01" value="38.73">
                     <span class="dev-value" id="valueMobileMsPerClickFontSize">3.6</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileMsPerClickFontSizeVw" min="1" max="60" step="0.01" value="9.93">
+                    <span class="dev-value" id="valueMobileMsPerClickFontSizeVw">9.93</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Extrusion Depth (px):</span>
@@ -5264,6 +5475,8 @@
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
             '--text-font-size-px': 197.38,
+            '--text-font-size-vw': 15.42,
+            '--text-scale-with-browser': 0,
             '--text-x-offset-vw': 0.21,
             '--text-y-offset-vh': -11.26,
             '--text-letter-spacing-px': 10,
@@ -5279,6 +5492,8 @@
             // per explicit request. Starts matching Start's own values until
             // tuned - see .start-button.try-again-state's CSS.
             '--try-again-text-font-size-px': 165.63,
+            '--try-again-text-font-size-vw': 12.94,
+            '--try-again-text-scale-with-browser': 0,
             '--try-again-text-x-offset-vw': -0.16,
             '--try-again-text-y-offset-vh': -13.75,
             // Try Again's own letter/line spacing, independent from
@@ -5299,6 +5514,8 @@
             // Again's own X/Y above, since those position the whole button/
             // text box, not this glyph's rendered center.
             '--try-again-question-mark-font-size-px': 257.15,
+            '--try-again-question-mark-font-size-vw': 20.09,
+            '--try-again-question-mark-scale-with-browser': 0,
             '--try-again-question-mark-x-offset-vw': 0.47,
             '--try-again-question-mark-y-offset-vh': 35.27,
             // Round Text's ONE permanent position - it no longer has a
@@ -5309,6 +5526,8 @@
             '--round-dock-x-offset-vw': -47.33,
             '--round-dock-y-offset-vh': 51,
             '--round-font-size-px': 89.34,
+            '--round-font-size-vw': 6.98,
+            '--round-scale-with-browser': 0,
             '--round-letter-spacing-px': 4,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
@@ -5350,6 +5569,8 @@
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
             '--target-font-size-px': 309.76,
+            '--target-font-size-vw': 24.2,
+            '--target-scale-with-browser': 0,
             '--target-x-offset-vw': 47.78,
             '--target-y-offset-vh': -59.12,
             '--target-letter-spacing-px': 0,
@@ -5359,6 +5580,8 @@
             '--target-text-align-edge-lock': 0,
             '--target-text-valign-edge-lock': 0,
             '--speed-font-size-px': 89.34,
+            '--speed-font-size-vw': 6.98,
+            '--speed-scale-with-browser': 0,
             '--speed-x-offset-vw': 47.67,
             '--speed-y-offset-vh': 51,
             '--speed-letter-spacing-px': 6.5,
@@ -5373,6 +5596,8 @@
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
             '--ms-per-click-font-size-px': 69.89,
+            '--ms-per-click-font-size-vw': 5.46,
+            '--ms-per-click-scale-with-browser': 0,
             '--ms-per-click-x-offset-vw': 46.95,
             '--ms-per-click-y-offset-vh': -15.22,
             '--ms-per-click-letter-spacing-px': 1,
@@ -5382,9 +5607,13 @@
             '--ms-per-click-text-align-edge-lock': 0,
             '--ms-per-click-text-valign-edge-lock': 0,
             '--result-win-font-size-px': 172.8,
+            '--result-win-font-size-vw': 13.5,
+            '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
             '--result-win-y-offset-vh': -13,
             '--result-lose-font-size-px': 172.8,
+            '--result-lose-font-size-vw': 13.5,
+            '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
             '--result-lose-y-offset-vh': -13,
             '--result-line-height': 1.2,
@@ -5822,6 +6051,8 @@
             '--shadow-elongation-angle': 0,
             '--shadow-rotate': 11,
             '--text-font-size-px': 78,
+            '--text-font-size-vw': 20,
+            '--text-scale-with-browser': 0,
             '--text-x-offset-vw': 0,
             '--text-y-offset-vh': -0.49,
             '--text-letter-spacing-px': 0,
@@ -5831,6 +6062,8 @@
             '--start-text-align-edge-lock': 0,
             '--start-text-valign-edge-lock': 0,
             '--try-again-text-font-size-px': 78,
+            '--try-again-text-font-size-vw': 20,
+            '--try-again-text-scale-with-browser': 0,
             '--try-again-text-x-offset-vw': 0,
             '--try-again-text-y-offset-vh': -0.49,
             '--try-again-text-letter-spacing-px': 0,
@@ -5838,11 +6071,15 @@
             // See the desktop cssVars' own comment - same live-measured-
             // default reasoning, mobile viewport.
             '--try-again-question-mark-font-size-px': 78,
+            '--try-again-question-mark-font-size-vw': 20,
+            '--try-again-question-mark-scale-with-browser': 0,
             '--try-again-question-mark-x-offset-vw': 20,
             '--try-again-question-mark-y-offset-vh': 5.05,
             '--round-dock-x-offset-vw': -43,
             '--round-dock-y-offset-vh': 50,
             '--round-font-size-px': 78,
+            '--round-font-size-vw': 20,
+            '--round-scale-with-browser': 0,
             '--round-letter-spacing-px': 0,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
@@ -5850,6 +6087,8 @@
             '--round-text-align-edge-lock': 0,
             '--round-text-valign-edge-lock': 0,
             '--target-font-size-px': 195,
+            '--target-font-size-vw': 50,
+            '--target-scale-with-browser': 0,
             '--target-x-offset-vw': -40.7,
             '--target-y-offset-vh': -53.09,
             '--target-letter-spacing-px': 0,
@@ -5859,6 +6098,8 @@
             '--target-text-align-edge-lock': 0,
             '--target-text-valign-edge-lock': 0,
             '--speed-font-size-px': 38.73,
+            '--speed-font-size-vw': 9.93,
+            '--speed-scale-with-browser': 0,
             '--speed-x-offset-vw': 42,
             '--speed-y-offset-vh': -33,
             '--speed-letter-spacing-px': 0,
@@ -5868,6 +6109,8 @@
             '--speed-text-align-edge-lock': 0,
             '--speed-text-valign-edge-lock': 0,
             '--ms-per-click-font-size-px': 38.73,
+            '--ms-per-click-font-size-vw': 9.93,
+            '--ms-per-click-scale-with-browser': 0,
             '--ms-per-click-x-offset-vw': 24.76,
             '--ms-per-click-y-offset-vh': -1.25,
             '--ms-per-click-letter-spacing-px': 0,
@@ -5877,9 +6120,13 @@
             '--ms-per-click-text-align-edge-lock': 0,
             '--ms-per-click-text-valign-edge-lock': 0,
             '--result-win-font-size-px': 18.6,
+            '--result-win-font-size-vw': 4.77,
+            '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
             '--result-win-y-offset-vh': 1.46,
             '--result-lose-font-size-px': 18.6,
+            '--result-lose-font-size-vw': 4.77,
+            '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
             '--result-lose-y-offset-vh': 1.46,
             '--result-line-height': 1.2,
@@ -7178,6 +7425,19 @@
                     // shape as the slider sync loop just above, see
                     // syncColorPickersFromState()'s own comment.
                     syncColorPickersFromState();
+                    // Same gap, for the "Scale With Browser" checkboxes -
+                    // the CSS var they drive already applies correctly via
+                    // applyActiveVars() regardless (the actual font-size
+                    // effect is never wrong), but without this the checkbox
+                    // itself stays visually unchecked after a restore even
+                    // when its cssVar is genuinely 1 - confirmed live via a
+                    // direct applyLoadedSettings() call before adding this.
+                    document.querySelectorAll('.dev-scale-with-browser-checkbox').forEach(cb => {
+                        const { isMobile, desktopId } = resolveDevControlId(cb.id);
+                        const varName = cb.getAttribute('data-css-var');
+                        if (!varName) return;
+                        cb.checked = !!(isMobile ? mobileCssVars : cssVars)[varName];
+                    });
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -7748,21 +8008,25 @@
             // repurposed since Round Text no longer has a big state - see
             // the dev-panel section comment above .start-button's CSS).
             'sliderTextFontSize': '--text-font-size-px',
+            'sliderTextFontSizeVw': '--text-font-size-vw',
             'sliderTextX': '--text-x-offset-vw',
             'sliderTextY': '--text-y-offset-vh',
             'sliderTextLetterSpacing': '--text-letter-spacing-px',
             'sliderTextLineHeight': '--text-line-height',
             'sliderTryAgainTextFontSize': '--try-again-text-font-size-px',
+            'sliderTryAgainTextFontSizeVw': '--try-again-text-font-size-vw',
             'sliderTryAgainTextX': '--try-again-text-x-offset-vw',
             'sliderTryAgainTextY': '--try-again-text-y-offset-vh',
             'sliderTryAgainTextLetterSpacing': '--try-again-text-letter-spacing-px',
             'sliderTryAgainTextLineHeight': '--try-again-text-line-height',
             'sliderTryAgainQuestionMarkFontSize': '--try-again-question-mark-font-size-px',
+            'sliderTryAgainQuestionMarkFontSizeVw': '--try-again-question-mark-font-size-vw',
             'sliderTryAgainQuestionMarkX': '--try-again-question-mark-x-offset-vw',
             'sliderTryAgainQuestionMarkY': '--try-again-question-mark-y-offset-vh',
             'sliderRoundDockX': '--round-dock-x-offset-vw',
             'sliderRoundDockY': '--round-dock-y-offset-vh',
             'sliderRoundFontSize': '--round-font-size-px',
+            'sliderRoundFontSizeVw': '--round-font-size-vw',
             'sliderRoundLetterSpacing': '--round-letter-spacing-px',
             'sliderRoundLineHeight': '--round-line-height',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
@@ -7778,24 +8042,29 @@
             'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
             'sliderTargetFontSize': '--target-font-size-px',
+            'sliderTargetFontSizeVw': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
             'sliderTargetLetterSpacing': '--target-letter-spacing-px',
             'sliderTargetLineHeight': '--target-line-height',
             'sliderSpeedFontSize': '--speed-font-size-px',
+            'sliderSpeedFontSizeVw': '--speed-font-size-vw',
             'sliderSpeedX': '--speed-x-offset-vw',
             'sliderSpeedY': '--speed-y-offset-vh',
             'sliderSpeedLetterSpacing': '--speed-letter-spacing-px',
             'sliderSpeedLineHeight': '--speed-line-height',
             'sliderMsPerClickFontSize': '--ms-per-click-font-size-px',
+            'sliderMsPerClickFontSizeVw': '--ms-per-click-font-size-vw',
             'sliderMsPerClickX': '--ms-per-click-x-offset-vw',
             'sliderMsPerClickY': '--ms-per-click-y-offset-vh',
             'sliderMsPerClickLetterSpacing': '--ms-per-click-letter-spacing-px',
             'sliderMsPerClickLineHeight': '--ms-per-click-line-height',
             'sliderResultWinFontSize': '--result-win-font-size-px',
+            'sliderResultWinFontSizeVw': '--result-win-font-size-vw',
             'sliderResultWinX': '--result-win-x-offset-vw',
             'sliderResultWinY': '--result-win-y-offset-vh',
             'sliderResultLoseFontSize': '--result-lose-font-size-px',
+            'sliderResultLoseFontSizeVw': '--result-lose-font-size-vw',
             'sliderResultLoseX': '--result-lose-x-offset-vw',
             'sliderResultLoseY': '--result-lose-y-offset-vh',
             'sliderResultLineHeight': '--result-line-height',
@@ -7834,6 +8103,25 @@
             const m = id.match(/^(slider|color|select|checkbox)Mobile(.+)$/);
             if (m) return { isMobile: true, desktopId: m[1] + m[2] };
             return { isMobile: false, desktopId: id };
+        }
+
+        // "Scale With Browser" checkboxes - per explicit request ("For each
+        // different text type, provide a checkbox to select if i want the
+        // text to scale with the browser"). Position (the X/Y offset
+        // sliders) already scales with viewport via vw/vh units; font-size
+        // was the one thing still fixed px. Each text type's checkbox
+        // toggles between its existing *-font-size-px value (unchanged
+        // behavior when off) and a separate *-font-size-vw value (see
+        // CSS_VAR_SLIDER_MAP's own *FontSizeVw entries and each font-size
+        // CSS rule's own blend-formula comment) - not a live px<->vw
+        // conversion, so switching modes can visibly jump if the two values
+        // haven't been tuned to look similar; that's an accepted tradeoff of
+        // keeping this a plain toggle instead of a resize-aware converter.
+        function updateScaleWithBrowser(checkboxId, cssVarName) {
+            const { isMobile } = resolveDevControlId(checkboxId);
+            const checked = document.getElementById(checkboxId).checked;
+            (isMobile ? mobileCssVars : cssVars)[cssVarName] = checked ? 1 : 0;
+            applyActiveVars();
         }
 
         // Gameplay-mechanics sliders (Starting Max Time, Speed Decrease, etc.)
