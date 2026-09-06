@@ -9039,6 +9039,29 @@
         // LAST text node's rect against the box's own bottom edge instead.
         function correctValignLeading(el, valign) {
             if (!el || valign !== 'top') return;
+            // Per direct report ("the larger the browser, the further down
+            // the target text shifts"), still reproducing on a real device
+            // after a hard refresh - the measurement this function relies
+            // on is only correct once the element's REAL webfont has
+            // actually finished loading; before that, the browser renders
+            // (and this measures) the generic fallback font instead, whose
+            // leading is a genuinely different ratio - confirmed directly:
+            // Target's real font measured a 17px leading gap vs the
+            // fallback's 2px, at the same size. document.fonts.ready runs
+            // at page load before there's any guarantee of that on a real,
+            // uncached connection - if this function computes its
+            // correction against the fallback's much smaller gap, that
+            // WRONG percentage gets baked into --anchor-ty and the browser
+            // keeps faithfully reapplying it once the real font takes
+            // over, producing a growing absolute-px error as font-size (and
+            // the box) grows - exactly matching the report. Re-measuring
+            // and re-correcting once fonts are confirmed ready fixes this
+            // regardless of which call site ran too early; harmless to
+            // schedule from multiple call sites since a correct
+            // measurement just no-ops below (gapPx already ~0).
+            if (document.fonts.status !== 'loaded') {
+                document.fonts.ready.then(() => correctValignLeading(el, valign));
+            }
             const boxRect = el.getBoundingClientRect();
             if (boxRect.height === 0) return;
             const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
