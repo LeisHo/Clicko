@@ -193,7 +193,7 @@
     "--round-text-valign-edge-lock": 0,
     "--target-font-size-px": 292.01,
     "--target-x-offset-vw": 46.4,
-    "--target-y-offset-vh": -50,
+    "--target-y-offset-vh": -60,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 1.2,
     "--target-text-align": "left",
