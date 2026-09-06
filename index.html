@@ -2054,6 +2054,18 @@
             display: block;
             margin-left: 5px;
         }
+        /* An empty group (a freshly added custom one, or every existing
+           setting dragged out of it) collapses to 0 height with nothing to
+           drop into, drag-target-wise - a real, generic-CSS-based problem
+           for setupDragReorder()'s crossContainerSelector hit-testing (it
+           can still fall back to nearest-by-distance, but a 0-height target
+           is effectively impossible to aim at directly). :empty only
+           matches when there are truly no child rows left. */
+        .dev-section-content:empty {
+            min-height: 24px;
+            border: 1px dashed var(--dev-accent-color, #0ff);
+            opacity: 0.5;
+        }
 
         .dev-section-content.collapsed {
             display: none;
@@ -3045,6 +3057,16 @@
         </div>
 
         <div id="desktopTabContent">
+        <!-- Add Group - per explicit request ("ALLOW ME TO ADD SETTING
+             GROUPS IN THE DEV PANEL. ONCE I MAKE AN EMPTY GROUP I WILL DRAG
+             SETTINGS INTO IT"). addDevGroup() creates a real, empty
+             .dev-section identical in structure to every built-in one -
+             draggable, collapsible, and renameable via Text Edit Mode (its
+             title's click handler is the same toggleSection() every other
+             title uses) with no special-casing needed anywhere else. -->
+        <div class="dev-buttons">
+            <button onclick="addDevGroup('desktop')">+ Add Group</button>
+        </div>
         <!-- Built-in "Dev Panel" settings group - CLAUDE.md Section 12i.
              Standing scaffolding, part of the panel itself, not per-project -
              independent per tab (this copy only affects the panel's look
@@ -4400,6 +4422,9 @@
              they were never duplicated into Mobile Overrides either. -->
 
         <div id="mobileTabContent" class="hidden">
+        <div class="dev-buttons">
+            <button onclick="addDevGroup('mobile')">+ Add Group</button>
+        </div>
         <!-- Same controls as the Desktop tab, but only take effect on a
              mobile-width viewport (auto-detected via matchMedia, live -
              resizing the browser or rotating a phone switches
@@ -7605,6 +7630,56 @@
             titleEl.textContent = content.classList.contains('collapsed') ? '▶ ' + titleEl.textContent.slice(2) : '▼ ' + titleEl.textContent.slice(2);
         }
 
+        // Adds a new, empty, user-created group - per explicit request
+        // ("ALLOW ME TO ADD SETTING GROUPS IN THE DEV PANEL. ONCE I MAKE AN
+        // EMPTY GROUP I WILL DRAG SETTINGS INTO IT"). Built from the exact
+        // same .dev-section/.dev-section-title/.dev-section-content shape
+        // every built-in group uses - toggleSection(), setupDragReorder(),
+        // and Text Edit Mode's title-rename all already work on ANY element
+        // matching that shape, generically, with no awareness of which
+        // groups are "built-in" vs custom, so nothing else needs touching
+        // for a freshly-added group to be draggable/collapsible/renameable
+        // immediately. Persistence needs no new storage either -
+        // captureSectionOrder() already walks whatever .dev-section elements
+        // currently exist in the DOM (not a fixed built-in list), so a
+        // custom group naturally gets swept into sectionOrder on the next
+        // Save; applySectionOrder() was updated (see its own comment) to
+        // CREATE a missing section instead of silently skipping one it
+        // doesn't recognize, which is what actually lets a custom group -
+        // and whatever was dragged into it - survive a reload.
+        // Builds one empty .dev-section/.dev-section-title/.dev-section-content
+        // - shared by addDevGroup() (a live, user-initiated add) and
+        // applySectionOrder() (recreating a custom group that was saved in a
+        // PREVIOUS session but doesn't exist in this page's static HTML).
+        function createDevGroupElement(name) {
+            const section = document.createElement('div');
+            section.className = 'dev-section';
+            const title = document.createElement('div');
+            title.className = 'dev-section-title';
+            title.setAttribute('onclick', 'toggleSection(this)');
+            title.dataset.sid = name;
+            title.textContent = '▼ ' + name;
+            const content = document.createElement('div');
+            content.className = 'dev-section-content';
+            section.appendChild(title);
+            section.appendChild(content);
+            return section;
+        }
+
+        function addDevGroup(tab) {
+            const tabEl = document.getElementById(tab + 'TabContent');
+            const existingNames = new Set(
+                Array.from(tabEl.querySelectorAll(':scope > .dev-section > .dev-section-title'))
+                    .map(t => t.dataset.sid)
+            );
+            let name = 'New Group';
+            let n = 2;
+            while (existingNames.has(name)) { name = 'New Group (' + n + ')'; n++; }
+            const section = createDevGroupElement(name);
+            tabEl.appendChild(section);
+            section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         // Generic pointer-based drag-to-reorder - per CLAUDE.md Section 12e
         // ("Both the collapsible groups themselves and the individual
         // settings within a group can be reordered by dragging them up/
@@ -7916,8 +7991,18 @@
                     rowsByKey[getRowKey(row, i)] = row;
                 });
                 savedSections.forEach(({ key, rowKeys }) => {
-                    const sec = sectionsByKey[key];
-                    if (!sec) return; // unknown group - leave wherever it already is
+                    let sec = sectionsByKey[key];
+                    if (!sec) {
+                        // Not a built-in group missing by mistake - this is
+                        // how a CUSTOM group (see addDevGroup()) survives a
+                        // reload: it doesn't exist in this page's static
+                        // HTML at all, only in the saved order, so it has to
+                        // be created fresh here rather than skipped. name is
+                        // key minus its "tab:" prefix (see getSectionKey()).
+                        const name = key.replace(/^(desktop|mobile):/, '');
+                        sec = createDevGroupElement(name);
+                        sectionsByKey[key] = sec;
+                    }
                     tabEl.appendChild(sec); // moves to the end, in saved order -> reproduces the full saved sequence
                     const content = sec.querySelector('.dev-section-content');
                     (rowKeys || []).forEach(rowKey => {
