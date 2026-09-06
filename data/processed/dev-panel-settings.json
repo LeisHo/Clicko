@@ -265,7 +265,7 @@
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
-    "--target-y-offset-vh": -26.33,
+    "--target-y-offset-vh": 14.71,
     "--target-y-offset-unit-is-px": 1,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 0.65,
@@ -291,7 +291,7 @@
     "--ms-per-click-scale-with-browser": 1,
     "--ms-per-click-x-offset-vw": 49.25,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-y-offset-vh": 16.91,
+    "--ms-per-click-y-offset-vh": 14.71,
     "--ms-per-click-y-offset-unit-is-px": 1,
     "--ms-per-click-letter-spacing-px": -0.5,
     "--ms-per-click-line-height": 0.65,
@@ -645,9 +645,11 @@
     "mobile:Click Burst": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
     "mobile:Start/Try Again Button": true,
+    "mobile:New Group": true,
     "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
     "mobile:Win/Lose Text": true,
+    "mobile:New Group (2)": true,
     "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": false
@@ -1028,11 +1030,16 @@
           "selectMobileStartTextAlign",
           "selectMobileStartTextValign",
           "sliderMobileTextX",
-          "sliderMobileTextY",
+          "sliderMobileTextY"
+        ]
+      },
+      {
+        "key": "mobile:New Group",
+        "rowKeys": [
           "checkboxMobileTryAgainTextScaleWithBrowser",
+          "sliderMobileTryAgainTextFontSize",
           "sliderMobileTryAgainTextLetterSpacing",
           "sliderMobileTryAgainTextLineHeight",
-          "sliderMobileTryAgainTextFontSize",
           "sliderMobileTryAgainTextX",
           "sliderMobileTryAgainTextY"
         ]
@@ -1084,7 +1091,12 @@
           "sliderMobileResultWinY",
           "sliderMobileResultLineHeight",
           "selectMobileResultTextAlign",
-          "selectMobileResultTextValign",
+          "selectMobileResultTextValign"
+        ]
+      },
+      {
+        "key": "mobile:New Group (2)",
+        "rowKeys": [
           "sliderMobileResultLoseFontSize",
           "sliderMobileResultLoseX",
           "sliderMobileResultLoseY"
@@ -1163,7 +1175,19 @@
     "desktop:Click Burst": "CLICK",
     "desktop:New Group": "TRY AGAIN",
     "desktop:Start/Try Again Button": "START",
-    "desktop:New Group (2)": "LOSE"
+    "desktop:New Group (2)": "LOSE",
+    "mobile:Main Button": "BUTTON",
+    "mobile:Click Burst": "CLICK",
+    "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": "8-BIT TEXT",
+    "mobile:Start/Try Again Button": "START",
+    "mobile:New Group": "TRY AGAIN",
+    "mobile:Rotation Animation": "\"?\"",
+    "mobile:Round Text": "Round COUNTER",
+    "mobile:Win/Lose Text": "WIN",
+    "mobile:New Group (2)": "LOSE",
+    "mobile:Target Count Display": "TARGET TEXT",
+    "mobile:Speed Display (max ms between taps)": "COUNTDOWN TIMER",
+    "mobile:Ms/Click Display": "Ms/Click TEXT"
   },
   "baseColor": "#009dff",
   "buttonColor": "#009dff",
