@@ -115,8 +115,8 @@
     "--result-text-valign-edge-lock": 0,
     "--dev-panel-width-px": 350,
     "--dev-panel-left-px": 55,
-    "--dev-panel-top-px": 37,
-    "--dev-panel-height-px": 843,
+    "--dev-panel-top-px": 257,
+    "--dev-panel-height-px": 443,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
@@ -182,7 +182,7 @@
     "--try-again-question-mark-font-size-px": 322.69,
     "--try-again-question-mark-x-offset-vw": 1.63,
     "--try-again-question-mark-y-offset-vh": 36.04,
-    "--round-dock-x-offset-vw": -44.24,
+    "--round-dock-x-offset-vw": -42.09,
     "--round-dock-y-offset-vh": 45.38,
     "--round-font-size-px": 78,
     "--round-letter-spacing-px": 0,
@@ -192,7 +192,7 @@
     "--round-text-align-edge-lock": 0,
     "--round-text-valign-edge-lock": 0,
     "--target-font-size-px": 263.81,
-    "--target-x-offset-vw": 33.99,
+    "--target-x-offset-vw": 49,
     "--target-y-offset-vh": -49.91,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 1.2,
@@ -530,9 +530,9 @@
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
-    "desktop:Start/Try Again Button": false,
-    "desktop:Rotation Animation": false,
-    "desktop:Round Text": true,
+    "desktop:Start/Try Again Button": true,
+    "desktop:Rotation Animation": true,
+    "desktop:Round Text": false,
     "desktop:Win/Lose Text": true,
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
@@ -540,15 +540,15 @@
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
     "mobile:Rotation Animation": true,
+    "mobile:Dev Panel": true,
+    "mobile:Main Button": true,
     "mobile:Click Burst": true,
     "mobile:Shadow": true,
-    "mobile:Win/Lose Text": true,
-    "mobile:Start/Try Again Button": false,
-    "mobile:Dev Panel": true,
-    "mobile:Main Button": false,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
-    "mobile:Target Count Display": true,
-    "mobile:Round Text": true,
+    "mobile:Win/Lose Text": true,
+    "mobile:Start/Try Again Button": true,
+    "mobile:Target Count Display": false,
+    "mobile:Round Text": false,
     "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": true
   },
@@ -670,8 +670,8 @@
           "sliderTryAgainTextLineHeight",
           "sliderTryAgainTextX",
           "sliderTryAgainTextY",
-          "sliderTryAgainFlashDuration",
-          "sliderTryAgainHoldDuration"
+          "sliderTryAgainHoldDuration",
+          "sliderTryAgainFlashDuration"
         ]
       },
       {
@@ -697,13 +697,13 @@
         "rowKeys": [
           "sliderRoundFontSize",
           "sliderRoundDockExtrusionDepth",
-          "colorRoundDockExtrusionBorder",
           "sliderRoundDockOverallBorderThickness",
+          "sliderRoundLetterSpacing",
+          "sliderRoundLineHeight",
+          "colorRoundDockExtrusionBorder",
           "colorRoundDockOverallBorder",
           "sliderRoundDockX",
           "sliderRoundDockY",
-          "sliderRoundLetterSpacing",
-          "sliderRoundLineHeight",
           "selectRoundTextAlign",
           "selectRoundTextValign",
           "sliderRoundBlink1Hide",
@@ -821,6 +821,31 @@
         ]
       },
       {
+        "key": "mobile:Dev Panel",
+        "rowKeys": [
+          "sliderMobileDevButtonTextBorder",
+          "sliderMobileDevScrollStrength",
+          "sliderMobileDevPanelTitleFontSize",
+          "sliderMobileDevTabFontSize",
+          "sliderMobileDevGroupTitleFontSize",
+          "sliderMobileDevSettingTitleFontSize",
+          "sliderMobileDevButtonHeight"
+        ]
+      },
+      {
+        "key": "mobile:Main Button",
+        "rowKeys": [
+          "sliderMobileButtonPressMs",
+          "sliderMobileButtonDiameter",
+          "sliderMobileButtonMinDiameter",
+          "sliderMobileButtonHeight",
+          "sliderMobileButtonPressIntensity",
+          "sliderMobileButtonReleaseMs",
+          "sliderMobileButtonX",
+          "sliderMobileButtonY"
+        ]
+      },
+      {
         "key": "mobile:Click Burst",
         "rowKeys": [
           "sliderMobileClickBurstShadowFinalScale",
@@ -851,6 +876,14 @@
           "sliderMobileShadowElongationIntensity",
           "sliderMobileShadowElongationAngle",
           "sliderMobileShadowRotate"
+        ]
+      },
+      {
+        "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
+        "rowKeys": [
+          "sliderMobileExtrusionDepth",
+          "checkboxMobileOverallBorder",
+          "sliderMobileOverallBorderThickness"
         ]
       },
       {
@@ -886,39 +919,6 @@
           "sliderMobileTryAgainTextFontSize",
           "sliderMobileTryAgainTextX",
           "sliderMobileTryAgainTextY"
-        ]
-      },
-      {
-        "key": "mobile:Dev Panel",
-        "rowKeys": [
-          "sliderMobileDevButtonTextBorder",
-          "sliderMobileDevScrollStrength",
-          "sliderMobileDevPanelTitleFontSize",
-          "sliderMobileDevTabFontSize",
-          "sliderMobileDevGroupTitleFontSize",
-          "sliderMobileDevSettingTitleFontSize",
-          "sliderMobileDevButtonHeight"
-        ]
-      },
-      {
-        "key": "mobile:Main Button",
-        "rowKeys": [
-          "sliderMobileButtonPressMs",
-          "sliderMobileButtonDiameter",
-          "sliderMobileButtonMinDiameter",
-          "sliderMobileButtonHeight",
-          "sliderMobileButtonPressIntensity",
-          "sliderMobileButtonReleaseMs",
-          "sliderMobileButtonX",
-          "sliderMobileButtonY"
-        ]
-      },
-      {
-        "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
-        "rowKeys": [
-          "sliderMobileExtrusionDepth",
-          "checkboxMobileOverallBorder",
-          "sliderMobileOverallBorderThickness"
         ]
       },
       {
