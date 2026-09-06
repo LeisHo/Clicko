@@ -163,10 +163,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 178,
+    "--dev-panel-width-px": 378,
     "--dev-panel-left-px": 26,
-    "--dev-panel-top-px": 6,
-    "--dev-panel-height-px": 120,
+    "--dev-panel-top-px": 284,
+    "--dev-panel-height-px": 283,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
@@ -265,10 +265,10 @@
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
-    "--target-y-offset-vh": 20,
+    "--target-y-offset-vh": 42.98,
     "--target-y-offset-unit-is-px": 1,
     "--target-letter-spacing-px": 0,
-    "--target-line-height": 0.65,
+    "--target-line-height": 0.5,
     "--target-text-align": "left",
     "--target-text-valign": "top",
     "--target-text-align-edge-lock": 1,
@@ -291,7 +291,7 @@
     "--ms-per-click-scale-with-browser": 1,
     "--ms-per-click-x-offset-vw": 49.25,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-y-offset-vh": 20,
+    "--ms-per-click-y-offset-vh": 29.82,
     "--ms-per-click-y-offset-unit-is-px": 1,
     "--ms-per-click-letter-spacing-px": -0.5,
     "--ms-per-click-line-height": 0.65,
@@ -648,11 +648,11 @@
     "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
     "mobile:Win/Lose Text": true,
-    "mobile:New Group (2)": true,
+    "mobile:New Group": true,
     "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": false,
-    "mobile:New Group": true
+    "mobile:New Group (2)": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1084,11 +1084,14 @@
         ]
       },
       {
-        "key": "mobile:New Group (2)",
+        "key": "mobile:New Group",
         "rowKeys": [
-          "sliderMobileResultLoseFontSize",
-          "sliderMobileResultLoseX",
-          "sliderMobileResultLoseY"
+          "checkboxMobileTryAgainTextScaleWithBrowser",
+          "sliderMobileTryAgainTextFontSize",
+          "sliderMobileTryAgainTextLetterSpacing",
+          "sliderMobileTryAgainTextLineHeight",
+          "sliderMobileTryAgainTextX",
+          "sliderMobileTryAgainTextY"
         ]
       },
       {
@@ -1140,14 +1143,11 @@
         ]
       },
       {
-        "key": "mobile:New Group",
+        "key": "mobile:New Group (2)",
         "rowKeys": [
-          "checkboxMobileTryAgainTextScaleWithBrowser",
-          "sliderMobileTryAgainTextFontSize",
-          "sliderMobileTryAgainTextLetterSpacing",
-          "sliderMobileTryAgainTextLineHeight",
-          "sliderMobileTryAgainTextX",
-          "sliderMobileTryAgainTextY"
+          "sliderMobileResultLoseFontSize",
+          "sliderMobileResultLoseX",
+          "sliderMobileResultLoseY"
         ]
       }
     ]
@@ -1187,7 +1187,8 @@
     "mobile:New Group (2)": "LOSE",
     "mobile:Target Count Display": "TARGET TEXT",
     "mobile:Speed Display (max ms between taps)": "COUNTDOWN TIMER",
-    "mobile:Ms/Click Display": "Ms/Click TEXT"
+    "mobile:Ms/Click Display": "Ms/Click TEXT",
+    "checkboxShowTopDebugLines": null
   },
   "baseColor": "#009dff",
   "buttonColor": "#009dff",
