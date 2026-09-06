@@ -7494,6 +7494,36 @@
         // though a real device rotation or window resize would - a plain
         // window resize listener re-applies too, redundantly but harmlessly.
         window.addEventListener('resize', applyActiveVars);
+        // Debounced final re-correction for the line-height leading fix -
+        // per direct report ("still not good... clearly not the same as I
+        // resize the browser"), confirmed via a screen recording analyzed
+        // frame-by-frame (pixel-measured, not eyeballed): Target's glyph
+        // position genuinely drifts during an ACTIVE, continuous mouse-drag
+        // resize and, critically, the wrong value PERSISTS even once the
+        // drag stops and the window sits still for many seconds - not a
+        // transient lag that self-corrects. Every attempt to reproduce this
+        // via discrete, fully-settled resize steps (even 14 small ~20-30px
+        // steps spanning the same width range, each with its own dispatched
+        // 'resize' event) found ZERO drift - correctValignLeading() gave
+        // the exact same correct answer every single time. The difference:
+        // a real continuous drag fires 'resize' events WHILE layout is
+        // actively still changing (mid-transition), not just once per
+        // settled size the way a discrete step-and-wait test does - if a
+        // resize handler happens to run during that transitional window, it
+        // can measure a momentarily-inconsistent glyph/box geometry, and
+        // since nothing re-runs once the drag stops and events stop firing,
+        // that one bad measurement's correction just stays applied
+        // indefinitely instead of self-correcting. Fixed by re-running the
+        // full correction pass again ~200ms after the LAST resize event in
+        // a burst (debounced, so it fires once per drag, not per event) -
+        // by then layout has genuinely settled, so this final pass is
+        // guaranteed to measure real, consistent geometry regardless of
+        // what any mid-drag measurement caught.
+        let resizeSettleTimeoutId = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeSettleTimeoutId);
+            resizeSettleTimeoutId = setTimeout(applyTextAlignAnchors, 200);
+        });
 
         // Reads the color picker for whichever mode (desktop/mobile) is
         // currently active and re-applies it - used both for live edits and
