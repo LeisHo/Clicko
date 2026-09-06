@@ -3039,8 +3039,26 @@
         </div>
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxPreviewStartText">
+                <span class="dev-label" style="min-width:auto;">Preview Start Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxPreviewTryAgainText">
+                <span class="dev-label" style="min-width:auto;">Preview Try Again Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                 <input type="checkbox" id="checkboxPreviewWinText">
                 <span class="dev-label" style="min-width:auto;">Preview Win Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxPreviewLoseText">
+                <span class="dev-label" style="min-width:auto;">Preview Lose Text</span>
             </label>
         </div>
         <div class="dev-row">
@@ -10905,6 +10923,56 @@
                 resultText.classList.remove('hidden');
             } else {
                 resultText.classList.add('hidden');
+            }
+        });
+
+        // Preview Lose Text checkbox - same idea, forces resultText visible
+        // in its LOSE look. A real loss shows a randomly-chosen tap-count
+        // message (e.g. "TOO FAR! (4/3)"), not reproducible here without a
+        // real round's count/target - uses loseSymbol (':(', TEXT_EDIT_
+        // TARGETS.resultText's own existing editable slot for the lose
+        // state, the same one Text Edit Mode already falls back to) as
+        // stand-in content, good enough for tuning position/size/extrusion/
+        // letter-spacing without playing a round.
+        document.getElementById('checkboxPreviewLoseText').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                resultText.textContent = overrideOr('loseSymbol');
+                resultText.classList.remove('result-win');
+                resultText.classList.add('result-lose');
+                resultText.classList.remove('hidden');
+            } else {
+                resultText.classList.add('hidden');
+            }
+        });
+
+        // Preview Start Text / Preview Try Again Text checkboxes - same
+        // idea, force startButton visible in each of its 2 states. Reuses
+        // TEXT_EDIT_TARGETS.startButton.render() (the exact same function a
+        // real state change or a Text Edit Mode commit uses) so the DOM
+        // content, try-again-state class, and text-align anchors all come
+        // out identical to the real thing - not a hand-rolled duplicate.
+        // The 2 checkboxes are mutually exclusive (startButton can only
+        // show one state at a time) - checking one unchecks the other
+        // rather than leaving a stale checked box next to the state it no
+        // longer reflects.
+        document.getElementById('checkboxPreviewStartText').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.getElementById('checkboxPreviewTryAgainText').checked = false;
+                TEXT_EDIT_TARGETS.startButton.render('startLabel');
+                startButton.classList.remove('hidden');
+            } else {
+                startButton.classList.add('hidden');
+            }
+        });
+        document.getElementById('checkboxPreviewTryAgainText').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.getElementById('checkboxPreviewStartText').checked = false;
+                TEXT_EDIT_TARGETS.startButton.render('tryAgainLabel');
+                startButton.classList.remove('hidden');
+                startTryAgainFlash();
+            } else {
+                startButton.classList.add('hidden');
+                stopTryAgainFlash();
             }
         });
 
