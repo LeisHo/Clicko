@@ -8,10 +8,13 @@
     "--button-y-offset-vh": 6,
     "--button-release-ms": 10,
     "--button-press-ms": 10,
-    "--light-levels-gain": 1.71,
+    "--light-levels": 0,
+    "--light-levels-contrast": 1.19,
     "--light-levels-floor": 0,
     "--light-levels-ceiling": 1,
-    "--thin-base-enabled": 1,
+    "--base-blend-mode": "color",
+    "--button-blend-mode": "color",
+    "--thin-base-enabled": 0,
     "--click-burst-speed-ms": 250,
     "--click-burst-scale": 0.32,
     "--click-burst-distance-px": 115,
@@ -110,7 +113,7 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 0,
     "--result-text-valign-edge-lock": 0,
-    "--dev-panel-width-px": 486,
+    "--dev-panel-width-px": 350,
     "--dev-panel-left-px": 55,
     "--dev-panel-top-px": 37,
     "--dev-panel-height-px": 843,
@@ -118,6 +121,7 @@
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
     "--round-breakdown-top-px": 54,
+    "--light-levels-gain": 1.71,
     "--base-tint-levels": 1,
     "--result-font-size-px": 172.8,
     "--result-x-offset-vw": 0,
@@ -252,7 +256,7 @@
     "roundDepth": 9,
     "roundBorderColor": "#ffffff",
     "roundOverallBorderThickness": 17,
-    "roundOverallBorderColor": "#431114",
+    "roundOverallBorderColor": "#09325d",
     "tryAgainBorderColor": "#ffffff",
     "tryAgainOverallBorderColor": "#431114",
     "questionMarkFillColor": "#ffffff",
@@ -276,6 +280,9 @@
     "winBorderColor": "#401013",
     "loseFillColor": "#ffffff",
     "loseBorderColor": "#401013",
+    "resultDepth": 5,
+    "resultOverallBorderThickness": 5,
+    "resultOverallBorderColor": "#401013",
     "overallBorderEnabled": true,
     "overallBorderColor": "#401013",
     "overallBorderThickness": 5,
@@ -314,6 +321,9 @@
     "winBorderColor": "#22dd44",
     "loseFillColor": "#ffffff",
     "loseBorderColor": "#dd3333",
+    "resultDepth": 5,
+    "resultOverallBorderThickness": 3,
+    "resultOverallBorderColor": "#000000",
     "overallBorderEnabled": true,
     "overallBorderColor": "#000000",
     "overallBorderThickness": 3,
@@ -516,11 +526,11 @@
   },
   "sectionCollapseState": {
     "desktop:Dev Panel": true,
-    "desktop:Main Button": true,
+    "desktop:Main Button": false,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
-    "desktop:Start/Try Again Button": true,
+    "desktop:Start/Try Again Button": false,
     "desktop:Rotation Animation": true,
     "desktop:Round Text": true,
     "desktop:Win/Lose Text": true,
@@ -574,6 +584,11 @@
       {
         "key": "desktop:Main Button",
         "rowKeys": [
+          "selectButtonBlendMode",
+          "colorButtonWin",
+          "colorButtonLose",
+          "selectBaseBlendMode",
+          "sliderLightLevelsContrast",
           "sliderLightLevels",
           "sliderLightLevelFloor",
           "sliderLightLevelCeiling",
@@ -703,6 +718,9 @@
       {
         "key": "desktop:Win/Lose Text",
         "rowKeys": [
+          "sliderResultExtrusionDepth",
+          "sliderResultOverallBorderThickness",
+          "colorResultOverallBorder",
           "sliderResultWinFontSize",
           "sliderResultWinX",
           "sliderResultWinY",
@@ -838,6 +856,8 @@
       {
         "key": "mobile:Win/Lose Text",
         "rowKeys": [
+          "sliderMobileResultExtrusionDepth",
+          "sliderMobileResultOverallBorderThickness",
           "sliderMobileResultWinFontSize",
           "sliderMobileResultWinX",
           "sliderMobileResultWinY",
@@ -959,6 +979,8 @@
       }
     ]
   },
-  "baseColor": "#145ad2",
-  "buttonColor": "#145dd2"
+  "baseColor": "#009dff",
+  "buttonColor": "#009dff",
+  "buttonWinColor": "#27b942",
+  "buttonLoseColor": "#dd2222"
 }
