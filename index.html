@@ -4089,6 +4089,11 @@
                     <span class="dev-value" id="valueResultOverallBorderThickness">5</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Extrusion Angle (Deg):</span>
+                    <input type="range" class="dev-slider" id="sliderResultExtrusionAngle" min="0" max="360" step="1" value="45">
+                    <span class="dev-value" id="valueResultExtrusionAngle">45</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Line Spacing:</span>
                     <input type="range" class="dev-slider" id="sliderResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
                     <span class="dev-value" id="valueResultLineHeight">1.2</span>
@@ -5073,6 +5078,11 @@
                     <span class="dev-value" id="valueMobileResultOverallBorderThickness">3</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Extrusion Angle (Deg):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultExtrusionAngle" min="0" max="360" step="1" value="45">
+                    <span class="dev-value" id="valueMobileResultExtrusionAngle">45</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Line Spacing:</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
                     <span class="dev-value" id="valueMobileResultLineHeight">1.2</span>
@@ -5907,6 +5917,13 @@
             // values below until tuned.
             resultDepth: 5,
             resultOverallBorderThickness: 5,
+            // Shared by Win and Lose (matching resultDepth/
+            // resultOverallBorderThickness above) - per direct follow-up
+            // request ("Provide me a slider to control the extrusion angle
+            // for both"). 45 reproduces the ORIGINAL fixed-diagonal look
+            // exactly (see buildExtrusionShadow()'s own comment on why 45
+            // is special-cased, not just the trig formula's own limit).
+            resultExtrusionAngle: 45,
             resultOverallBorderColor: '#401013',
             // Overall border/outline wrapping the combined text+extrusion
             // silhouette (not just the glyph) - one shared on/off toggle
@@ -5965,6 +5982,7 @@
             loseBorderColor: '#dd3333',
             resultDepth: 5,
             resultOverallBorderThickness: 3,
+            resultExtrusionAngle: 45,
             resultOverallBorderColor: '#000000',
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
@@ -5980,12 +5998,34 @@
         // CSS custom properties can't loop. Recomputed into a plain string
         // and stored in a --*-shadow custom property whenever depth/color
         // changes (see applyExtrusionStyles()).
-        function buildExtrusionShadow(depthPx, borderColor) {
+        // angleDeg is optional - omitted (or exactly 45) reproduces the
+        // ORIGINAL fixed-diagonal formula byte-for-byte (every element
+        // except Win/Lose never passes it at all), rather than computing
+        // 45 through the trig branch below, which would land at the same
+        // geometric point but as a floating-point value (e.g. 0.9999999999
+        // instead of exactly 1) due to sqrt(2)*cos(45deg) not being exactly
+        // 1 in IEEE 754 - a harmless sub-pixel difference in practice, but
+        // an avoidable one, so every untouched call site keeps its exact
+        // original output. Off-45 angles scale by sqrt(2) so the PER-STEP
+        // reach at any angle matches the original's own per-step reach at
+        // 45 (each step originally moved by sqrt(2) px of actual diagonal
+        // distance, despite reading "1px 1px" - see the geometry: an X,Y
+        // step of (1,1) has magnitude sqrt(1^2+1^2)=sqrt(2), not 1).
+        function buildExtrusionShadow(depthPx, borderColor, angleDeg) {
             const steps = Math.round(depthPx);
             if (steps <= 0) return 'none';
             const layers = [];
-            for (let i = 1; i <= steps; i++) {
-                layers.push(`${i}px ${i}px 0 ${borderColor}`);
+            if (angleDeg == null || angleDeg === 45) {
+                for (let i = 1; i <= steps; i++) {
+                    layers.push(`${i}px ${i}px 0 ${borderColor}`);
+                }
+            } else {
+                const rad = angleDeg * Math.PI / 180;
+                const dx = Math.SQRT2 * Math.cos(rad);
+                const dy = Math.SQRT2 * Math.sin(rad);
+                for (let i = 1; i <= steps; i++) {
+                    layers.push(`${(i * dx).toFixed(3)}px ${(i * dy).toFixed(3)}px 0 ${borderColor}`);
+                }
             }
             return layers.join(', ');
         }
@@ -6024,13 +6064,13 @@
         // outer edge - the visible "outline" effect) with the existing
         // extrusion stack, per element (each has its own depth and/or
         // thickness/color - see the comment on extrusionVars above).
-        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx, ringColor, enabled) {
+        function buildCombinedShadow(depthPx, extrusionColor, thicknessPx, ringColor, enabled, angleDeg) {
             const parts = [];
             if (enabled) {
                 const ring = buildBorderRingShadow(depthPx, thicknessPx, ringColor);
                 if (ring) parts.push(ring);
             }
-            const extrusion = buildExtrusionShadow(depthPx, extrusionColor);
+            const extrusion = buildExtrusionShadow(depthPx, extrusionColor, angleDeg);
             if (extrusion !== 'none') parts.push(extrusion);
             return parts.length ? parts.join(', ') : 'none';
         }
@@ -6137,9 +6177,9 @@
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-win-fill-color', ext.winFillColor);
-            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.resultDepth, ext.winBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.resultDepth, ext.winBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
             root.setProperty('--result-lose-fill-color', ext.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.resultDepth, ext.loseBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.resultDepth, ext.loseBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
             // Each element's own "Text Color" picker now IS its glyph's real
             // fill, not just the extrusion/shadow layer's color - per direct
             // report ("my text currently shows as white" - the glyph was
@@ -8352,6 +8392,7 @@
             'sliderTryAgainQuestionMarkOverallBorderThickness': 'questionMarkOverallBorderThickness',
             'sliderResultExtrusionDepth': 'resultDepth',
             'sliderResultOverallBorderThickness': 'resultOverallBorderThickness',
+            'sliderResultExtrusionAngle': 'resultExtrusionAngle',
         };
 
         // Given any slider/color id (desktop OR its "Mobile"-infixed twin),
