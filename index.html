@@ -8899,23 +8899,6 @@
             '--result-text-valign': 'resultText',
         };
         const VALIGN_TY = { top: '0%', center: '-50%', bottom: '-100%' };
-        // Maps each valign-loop yPrefix to that element's own line-height
-        // cssVar's prefix, wherever the 2 names diverge (same shape as
-        // OFFSET_UNIT_FLAG_PREFIX below, but NOT identical to it - "round"
-        // stays "round" here, unlike the offset var's "round-dock"). null
-        // for the "?" question mark, which has no line-height control at
-        // all (a single glyph, the concept doesn't apply) - computeAnchorTy()
-        // treats a missing prefix as line-height 1 (no compensation).
-        const VALIGN_LINE_HEIGHT_PREFIX = {
-            '--start': 'text',
-            '--try-again': 'try-again-text',
-            '--try-again-question-mark': null,
-            '--round': 'round',
-            '--target': 'target',
-            '--speed': 'speed',
-            '--ms-per-click': 'ms-per-click',
-            '--result': 'result',
-        };
         // Compensates --anchor-ty for CSS line-height's own "leading" -
         // per direct bug report ("I've set Target Text and Ms/Click text to
         // scale with browser and lined up their top edge to be equal, yet
@@ -8934,26 +8917,56 @@
         // 1.2) glyph moved from -24.75 to -17.75 (down 7px) as width went
         // 375->500 while its box stayed at a constant -46.75; Ms-per-click
         // (line-height 0.65) moved the opposite direction for the same
-        // reason. Only "top"/"center"/"bottom" are affected asymmetrically
-        // by "top"/"bottom" valign - "center" is unaffected since leading
-        // is symmetric (equal space above and below), so the glyph's own
-        // center always coincides with the box's center regardless of
-        // line-height. Fix: the leading-to-box-height RATIO is constant
-        // regardless of actual font-size (font-size cancels out of the
-        // ratio), so it only needs recomputing when line-height/valign
-        // actually change (this function's own normal call sites), not on
-        // every resize - shifting --anchor-ty (a %-of-the-element's-own-
-        // height transform, so this composes correctly) by that ratio
-        // exactly cancels the leading, keeping the GLYPH (not just the box)
-        // anchored at the intended point regardless of font-size.
-        function computeAnchorTy(valign, lineHeightPrefix, activeCssVars) {
-            if (valign === 'center' || !lineHeightPrefix) return VALIGN_TY[valign] || VALIGN_TY.center;
-            const lineHeight = activeCssVars['--' + lineHeightPrefix + '-line-height'];
-            if (typeof lineHeight !== 'number' || lineHeight <= 0) return VALIGN_TY[valign] || VALIGN_TY.center;
-            const leadingFraction = (lineHeight - 1) / (2 * lineHeight); // fraction of the box's OWN height
-            if (valign === 'top') return (-leadingFraction * 100) + '%';
-            if (valign === 'bottom') return (-100 + leadingFraction * 100) + '%';
+        // reason. Only "top"/"bottom" valign are affected - "center" is
+        // unaffected since leading is symmetric (equal space above and
+        // below), so the glyph's own center always coincides with the
+        // box's center regardless of line-height.
+        //
+        // computeAnchorTy() itself just returns the plain VALIGN_TY value -
+        // a first attempt tried to derive the correction from line-height
+        // alone (leading-fraction-of-box-height is font-size-independent,
+        // so it seemed like it'd only need recomputing on real settings
+        // changes, not every resize), but that assumed exactly 1 line of
+        // text. Ms-per-click is genuinely 3 lines (white-space: pre-wrap
+        // with real \n's in its suffix - confirmed via getComputedStyle
+        // before assuming), where the box height scales with line COUNT
+        // but the leading-above-the-first-line does not, breaking the
+        // formula (verified live: it fixed Target, which is 1 line, but
+        // left Ms-per-click still drifting ~5px per 125px of width).
+        // correctValignLeading() below fixes this properly by MEASURING
+        // the real glyph-vs-box gap after layout, rather than assuming a
+        // line count - correct for any content, any number of lines.
+        function computeAnchorTy(valign) {
             return VALIGN_TY[valign] || VALIGN_TY.center;
+        }
+        // Measures each top/bottom-valigned element's actual rendered
+        // glyph-to-box gap (a Range on its first real text node vs the
+        // element's own getBoundingClientRect()) and nudges --anchor-ty by
+        // that gap, expressed as a % of the element's own height (matching
+        // the transform's own basis) - so the correction is exact
+        // regardless of line-height, font-size, OR line count, without
+        // having to model any of them. Runs as a separate pass AFTER the
+        // main loop below has already set every element's base --anchor-ty
+        // and positioned it, since it needs the real post-layout geometry
+        // to measure against. "bottom" valign isn't used by any element in
+        // this project today, so only "top" is corrected - the same
+        // measurement approach would extend to "bottom" by comparing the
+        // LAST text node's rect against the box's own bottom edge instead.
+        function correctValignLeading(el, valign) {
+            if (!el || valign !== 'top') return;
+            const boxRect = el.getBoundingClientRect();
+            if (boxRect.height === 0) return;
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            const firstText = walker.nextNode();
+            if (!firstText || !firstText.textContent.trim()) return;
+            const range = document.createRange();
+            range.selectNodeContents(firstText);
+            const glyphRect = range.getBoundingClientRect();
+            if (glyphRect.height === 0) return;
+            const gapPx = glyphRect.top - boxRect.top;
+            if (Math.abs(gapPx) < 0.05) return;
+            const currentTyPercent = parseFloat(el.style.getPropertyValue('--anchor-ty')) || 0;
+            el.style.setProperty('--anchor-ty', (currentTyPercent - (gapPx / boxRect.height) * 100) + '%');
         }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
@@ -9061,7 +9074,7 @@
                 if (!el) return;
                 const valign = activeCssVars[varName] || 'center';
                 const yPrefix = varName.replace('-text-valign', '');
-                el.style.setProperty('--anchor-ty', computeAnchorTy(valign, VALIGN_LINE_HEIGHT_PREFIX[yPrefix], activeCssVars));
+                el.style.setProperty('--anchor-ty', computeAnchorTy(valign));
                 // See the X loop's own comment above - Result (Win/Lose)'s
                 // unit is handled separately below, not by the generic
                 // yUnit line further down.
@@ -9092,8 +9105,15 @@
             // text-valign and --try-again-text-valign in map-iteration order).
             const startValignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-valign' : '--start-text-valign';
             const startValign = activeCssVars[startValignVarName] || 'center';
-            const startLineHeightPrefix = VALIGN_LINE_HEIGHT_PREFIX[startValignVarName.replace('-text-valign', '')];
-            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign, startLineHeightPrefix, activeCssVars));
+            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign));
+            // Line-height leading correction (see correctValignLeading()'s
+            // own comment) - runs LAST, after every element above has its
+            // real base --anchor-ty and is laid out, since it needs actual
+            // post-layout geometry to measure against.
+            Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
+                correctValignLeading(document.getElementById(elId), activeCssVars[varName] || 'center');
+            });
+            correctValignLeading(startButtonEl, startValign);
         }
 
         // Text Edit Mode - per explicit request ("I can click on any text
