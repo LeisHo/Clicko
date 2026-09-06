@@ -8504,11 +8504,26 @@
         // rows (desktop-only fields correctly drop out, not force-
         // included); any Mobile-only row with no Desktop counterpart is
         // appended at the end of its group, preserving its prior relative
-        // position, so nothing existing gets silently lost. The 2 Desktop-
-        // only groups (Game Mechanics, Background) have no Mobile
-        // counterpart and are left alone (Mobile's own order for anything
-        // unmatched passes through untouched, appended after the
-        // translated groups).
+        // position, so nothing existing gets silently lost.
+        //
+        // A Desktop group with no title-matching Mobile group (e.g. a
+        // custom group created by dragging settings into their own group -
+        // see addDevGroup()) is now CREATED on Mobile too, per direct
+        // report ("the groups and settings order don't match... for
+        // example in Desktop settings I have a Win group and a Lose
+        // group. that doesn't exist in mobile tab" - Desktop's "Win/Lose
+        // Text" group renamed to "WIN" plus a custom group renamed to
+        // "LOSE" split Win/Lose apart, but Mobile still had them combined
+        // in one "Win/Lose Text" group with no matching split). Only
+        // created when the group actually has Mobile-translatable rows -
+        // a genuinely Desktop-only group with NO Mobile-relevant settings
+        // at all (Game Mechanics, Background) still correctly gets no
+        // Mobile counterpart, since there'd be nothing to put in it.
+        // Reuses the Desktop group's own rename (devTextOverrides), if it
+        // has one and Mobile's own copy doesn't already have an
+        // independent one, so a custom name like "LOSE" carries over
+        // instead of the newly-created group showing its raw internal
+        // name ("New Group (2)").
         function syncMobileOrderToDesktop() {
             const desktopOrder = captureSectionOrder().desktopTabContent;
             const mobileTabEl = document.getElementById('mobileTabContent');
@@ -8526,11 +8541,10 @@
             const placedRowIds = new Set();
 
             const newMobileOrder = [];
+            let overridesChanged = false;
             desktopOrder.forEach(({ key: desktopKey, rowKeys: desktopRowKeys }) => {
                 const desktopTitle = desktopKey.replace(/^desktop:/, '');
                 const mobileSec = mobileSectionsByNormTitle[stripParen(desktopTitle)];
-                if (!mobileSec) return; // Desktop-only group (Game Mechanics, Background) - no Mobile counterpart
-                const mobileKey = getSectionKey(mobileSec.querySelector('.dev-section-title'));
                 const mobileRowKeys = [];
                 desktopRowKeys.forEach(desktopRowId => {
                     const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1Mobile');
@@ -8539,7 +8553,27 @@
                         placedRowIds.add(mobileRowId);
                     }
                 });
+                if (!mobileSec) {
+                    if (mobileRowKeys.length === 0) return; // truly Desktop-only (Game Mechanics, Background) - nothing to mirror
+                    const newMobileKey = 'mobile:' + desktopTitle;
+                    newMobileOrder.push({ key: newMobileKey, rowKeys: mobileRowKeys });
+                    if (devTextOverrides[desktopKey] != null && devTextOverrides[newMobileKey] == null) {
+                        devTextOverrides[newMobileKey] = devTextOverrides[desktopKey];
+                    }
+                    overridesChanged = true;
+                    return;
+                }
+                const mobileKey = getSectionKey(mobileSec.querySelector('.dev-section-title'));
                 newMobileOrder.push({ key: mobileKey, rowKeys: mobileRowKeys });
+                // Same rename carry-over as the newly-created branch above,
+                // for an EXISTING title-matched Mobile group - e.g. Desktop's
+                // "Win/Lose Text" renamed to "WIN" should show "WIN" on
+                // Mobile too, not the raw original title, unless Mobile
+                // already has its own independent rename.
+                if (devTextOverrides[desktopKey] != null && devTextOverrides[mobileKey] == null) {
+                    devTextOverrides[mobileKey] = devTextOverrides[desktopKey];
+                    overridesChanged = true;
+                }
             });
             // Any Mobile group with no Desktop counterpart passes through
             // untouched, appended after the translated groups.
@@ -8565,6 +8599,12 @@
                 });
             });
             applySectionOrder({ mobileTabContent: newMobileOrder });
+            // A newly-created Mobile group (see above) is painted with its
+            // raw internal name by createDevGroupElement()/applySectionOrder()
+            // - re-run the override painter now that devTextOverrides may
+            // have gained a fresh entry for it, so a carried-over rename
+            // (e.g. "LOSE") actually shows instead of "New Group (2)".
+            if (overridesChanged) applyDevTextOverrides();
         }
 
         // Color pickers not otherwise special-cased (colorBase/colorButton/
