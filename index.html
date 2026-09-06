@@ -60,9 +60,19 @@
            so layout-dependent setup code that runs before the reveal
            (resolvePositionSentinels(), spawnClickBurst() geometry, etc.) still
            sees real, non-zero rects while hidden. Removed once the async
-           settings-load IIFE completes, success or failure alike. */
-        .game-container.settings-loading {
-            visibility: hidden;
+           settings-load IIFE completes, success or failure alike.
+           MUST also hit every descendant with !important - visibility,
+           unlike display, is only an inherited default: any descendant with
+           its OWN explicit visibility (e.g. .btn-normal-svg/.base-regular-
+           svg's unconditional `visibility: visible`, used throughout this
+           file for the regular/thin and normal/pressed SVG-swap convention)
+           overrides an ancestor's hidden value on its own, normal-specificity
+           terms - confirmed live: the red default button/base was still
+           visible through this rule before !important was added, exactly
+           because of that override. */
+        .game-container.settings-loading,
+        .game-container.settings-loading * {
+            visibility: hidden !important;
         }
 
         /* Button assembly - positions the base/button SVGs together as one unit. Both
