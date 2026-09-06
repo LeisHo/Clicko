@@ -8,8 +8,10 @@
     "--button-y-offset-vh": 6,
     "--button-release-ms": 10,
     "--button-press-ms": 10,
-    "--base-tint-levels": 1,
-    "--thin-base-enabled": 0,
+    "--light-levels-gain": 1.71,
+    "--light-levels-floor": 0,
+    "--light-levels-ceiling": 1,
+    "--thin-base-enabled": 1,
     "--click-burst-speed-ms": 250,
     "--click-burst-scale": 0.32,
     "--click-burst-distance-px": 115,
@@ -116,6 +118,7 @@
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
     "--round-breakdown-top-px": 54,
+    "--base-tint-levels": 1,
     "--result-font-size-px": 172.8,
     "--result-x-offset-vw": 0,
     "--result-y-offset-vh": -13,
@@ -351,6 +354,10 @@
     "capsTabText": true,
     "capsGroupNames": true,
     "capsSettingsText": false,
+    "buttonTextLetterSpacing": 0,
+    "tabTextLetterSpacing": 0,
+    "groupTextLetterSpacing": 0,
+    "settingsTextLetterSpacing": 0,
     "buttonHeight": 21,
     "bodyFontSize": 11
   },
@@ -372,6 +379,10 @@
     "capsTabText": false,
     "capsGroupNames": false,
     "capsSettingsText": false,
+    "buttonTextLetterSpacing": 0,
+    "tabTextLetterSpacing": 0,
+    "groupTextLetterSpacing": 0,
+    "settingsTextLetterSpacing": 0,
     "buttonHeight": 24,
     "bodyFontSize": 11
   },
@@ -504,7 +515,7 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": false,
+    "desktop:Dev Panel": true,
     "desktop:Main Button": false,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
@@ -536,6 +547,10 @@
       {
         "key": "desktop:Dev Panel",
         "rowKeys": [
+          "sliderDevButtonTextLetterSpacing",
+          "sliderDevTabTextLetterSpacing",
+          "sliderDevGroupTextLetterSpacing",
+          "sliderDevSettingsTextLetterSpacing",
           "sliderDevButtonTextBorder",
           "sliderDevScrollStrength",
           "selectDevPanelFontFamily",
@@ -559,7 +574,9 @@
       {
         "key": "desktop:Main Button",
         "rowKeys": [
-          "sliderBaseTintLevels",
+          "sliderLightLevels",
+          "sliderLightLevelFloor",
+          "sliderLightLevelCeiling",
           "checkboxThinBase",
           "sliderButtonPressMs",
           "sliderButtonDiameter",
@@ -942,5 +959,6 @@
       }
     ]
   },
-  "baseColor": "#eb2027"
+  "baseColor": "#145ad2",
+  "buttonColor": "#145dd2"
 }
