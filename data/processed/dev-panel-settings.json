@@ -163,7 +163,7 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 305,
+    "--dev-panel-width-px": 248,
     "--dev-panel-left-px": 26,
     "--dev-panel-top-px": 353,
     "--dev-panel-height-px": 373,
@@ -640,17 +640,17 @@
     "desktop:Game Mechanics": true,
     "desktop:Background": true,
     "mobile:Dev Panel": true,
-    "mobile:Main Button": false,
+    "mobile:Main Button": true,
     "mobile:Shadow": true,
     "mobile:Click Burst": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
-    "mobile:Start/Try Again Button": false,
+    "mobile:Start/Try Again Button": true,
     "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
-    "mobile:Win/Lose Text": false,
+    "mobile:Win/Lose Text": true,
     "mobile:Target Count Display": true,
-    "mobile:Speed Display (max ms between taps)": false,
-    "mobile:Ms/Click Display": false
+    "mobile:Speed Display (max ms between taps)": true,
+    "mobile:Ms/Click Display": true
   },
   "sectionOrder": {
     "desktopTabContent": [
