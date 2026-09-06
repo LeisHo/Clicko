@@ -4207,6 +4207,32 @@
                     <span class="dev-label">Lose Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#2c99dd">
                 </div>
+                <!-- Target/Speed/Ms-per-click no longer disappear on win/
+                     lose - they tint instead, per explicit request. Shared
+                     across all 3 elements (not per-element), matching
+                     "Provide me 4 sliders" (not 12). -->
+                <div class="dev-row">
+                    <span class="dev-label">Gameplay Win Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorGameplayWinText" value="#22dd44">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Gameplay Win Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorGameplayWinBorder" value="#22dd44">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Gameplay Lose Text Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorGameplayLoseText" value="#dd3333">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Gameplay Lose Border/Extrusion Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorGameplayLoseBorder" value="#dd3333">
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxGameplayResultFlashWithRound" onchange="cssVars['--gameplay-result-flash-with-round'] = this.checked ? 1 : 0">
+                        <span class="dev-label" style="min-width:auto;">Flash Target/Speed/Ms-per-click With Round Number</span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -5861,6 +5887,12 @@
             // of this feature had. Defaulted to 250, matching Blink 1-3's
             // own hide-phase default.
             '--round-blink4-hide-ms': 250,
+            // Per explicit request ("provide me a checkbox, when selected,
+            // all 3 of those texts will flash along with the round
+            // number") - shared/not device-split, same convention as the
+            // round-blink timings above. See runRoundBlinkSequence()'s and
+            // showRoundText()'s own comments for how this is consumed.
+            '--gameplay-result-flash-with-round': 0,
             '--target-font-size-px': 309.76,
             '--target-font-size-vw': 24.2,
             '--target-scale-with-browser': 0,
@@ -6049,6 +6081,17 @@
             winBorderColor: '#22dd44',
             loseFillColor: '#d3a7a7',
             loseBorderColor: '#2c99dd',
+            // Target/Speed(countdown)/Ms-per-click no longer disappear on
+            // win/lose - per explicit request ("I dont want the Target
+            // Text, MS/Click text, nor the countdown to dissappear. They
+            // will simply change color... then when the next round begins,
+            // it reverts back to original color"). One shared pair per
+            // state (not per-element) - applies uniformly to all 3, per
+            // "Provide me 4 sliders" (not 12). See applyGameplayResultColor().
+            gameplayWinTextColor: '#22dd44',
+            gameplayWinBorderColor: '#22dd44',
+            gameplayLoseTextColor: '#dd3333',
+            gameplayLoseBorderColor: '#dd3333',
             // Win/Lose's own extrusion depth/border thickness/border color -
             // per explicit request ("extrusion and border settings for the
             // Win/Lose text"), same independent-per-element pattern as
@@ -6123,6 +6166,10 @@
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
             loseBorderColor: '#dd3333',
+            gameplayWinTextColor: '#22dd44',
+            gameplayWinBorderColor: '#22dd44',
+            gameplayLoseTextColor: '#dd3333',
+            gameplayLoseBorderColor: '#dd3333',
             resultDepth: 5,
             resultOverallBorderThickness: 3,
             resultExtrusionAngle: 45,
@@ -6294,6 +6341,8 @@
             'targetBorderColor', 'targetOverallBorderColor', 'speedBorderColor', 'speedOverallBorderColor',
             'msPerClickBorderColor', 'msPerClickOverallBorderColor', 'winFillColor', 'winBorderColor',
             'loseFillColor', 'loseBorderColor', 'overallBorderColor',
+            'gameplayWinTextColor', 'gameplayWinBorderColor',
+            'gameplayLoseTextColor', 'gameplayLoseBorderColor',
         ];
         function applyExtrusionStyles() {
             const root = document.documentElement.style;
@@ -6339,6 +6388,36 @@
             root.setProperty('--target-fill-color', ext.targetBorderColor);
             root.setProperty('--speed-fill-color', ext.speedBorderColor);
             root.setProperty('--ms-per-click-fill-color', ext.msPerClickBorderColor);
+        }
+
+        // Tints Target/Speed(countdown)/Ms-per-click on win/lose without
+        // hiding them - per explicit request ("I dont want the Target
+        // Text, MS/Click text, nor the countdown to dissappear. They will
+        // simply change color... then when the next round begins, it
+        // reverts back to original color"). state: 'win'/'lose' overrides
+        // all 3 elements' own --*-fill-color/--*-extrusion-shadow CSS
+        // custom properties directly (the exact same properties their own
+        // normal CSS rules already read - see applyExtrusionStyles() above
+        // - so this needs no new CSS, just a temporary override written on
+        // top); state: null reverts by simply re-running
+        // applyExtrusionStyles(), which recomputes each element's own
+        // normal (untinted) values from scratch, overwriting this
+        // override with no separate "restore" data path needed.
+        function applyGameplayResultColor(state) {
+            if (!state) {
+                applyExtrusionStyles();
+                return;
+            }
+            const root = document.documentElement.style;
+            const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
+            const textColor = state === 'win' ? extrusionVars.gameplayWinTextColor : extrusionVars.gameplayLoseTextColor;
+            const borderColor = state === 'win' ? extrusionVars.gameplayWinBorderColor : extrusionVars.gameplayLoseBorderColor;
+            root.setProperty('--target-fill-color', textColor);
+            root.setProperty('--speed-fill-color', textColor);
+            root.setProperty('--ms-per-click-fill-color', textColor);
+            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(deviceExt.targetDepth, borderColor, deviceExt.targetOverallBorderThickness, deviceExt.targetOverallBorderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(deviceExt.speedDepth, borderColor, deviceExt.speedOverallBorderThickness, deviceExt.speedOverallBorderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(deviceExt.msPerClickDepth, borderColor, deviceExt.msPerClickOverallBorderThickness, deviceExt.msPerClickOverallBorderColor, deviceExt.overallBorderEnabled));
         }
 
         // Mobile overrides - same shape as cssVars/colorVars, applied
@@ -7853,6 +7932,8 @@
                     // Same gap, for the 40 offset-unit (px/vw-vh) checkboxes -
                     // see restoreOffsetUnitCheckboxes()'s own comment.
                     restoreOffsetUnitCheckboxes();
+                    // Same gap, for the Flash-With-Round checkbox.
+                    document.getElementById('checkboxGameplayResultFlashWithRound').checked = !!cssVars['--gameplay-result-flash-with-round'];
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -8507,6 +8588,10 @@
             'colorResultWinBorder': 'winBorderColor',
             'colorResultLoseFill': 'loseFillColor',
             'colorResultLoseBorder': 'loseBorderColor',
+            'colorGameplayWinText': 'gameplayWinTextColor',
+            'colorGameplayWinBorder': 'gameplayWinBorderColor',
+            'colorGameplayLoseText': 'gameplayLoseTextColor',
+            'colorGameplayLoseBorder': 'gameplayLoseBorderColor',
             'colorResultOverallBorder': 'resultOverallBorderColor',
             'colorOverallBorder': 'overallBorderColor',
             'colorRoundExtrusionBorder': 'roundBorderColor',
@@ -10366,9 +10451,19 @@
             // returning to the normal Color tint the moment new gameplay
             // starts - per direct report.
             resultText.classList.remove('result-win', 'result-lose');
-            targetCount.classList.add('hidden');
-            speedDisplay.classList.add('hidden');
-            msPerClickDisplay.classList.add('hidden');
+            // Per explicit request ("provide me a checkbox, when selected,
+            // all 3 of those texts will flash along with the round
+            // number") - when the flash checkbox is on, don't flatly hide
+            // them for the whole announcement; runRoundBlinkSequence()'s
+            // own step() toggles their visibility in lockstep with the
+            // round number's own blink phases instead. Default (off)
+            // behavior is completely unchanged - flat hide, same as
+            // always.
+            if (!cssVars['--gameplay-result-flash-with-round']) {
+                targetCount.classList.add('hidden');
+                speedDisplay.classList.add('hidden');
+                msPerClickDisplay.classList.add('hidden');
+            }
 
             // "Round" is always this - it's a separate element from the
             // number specifically so it never has to move or re-render
@@ -10450,6 +10545,16 @@
                 }
                 const phase = phases[i++];
                 gameTextNumber.style.visibility = phase.visible ? 'visible' : 'hidden';
+                // Per explicit request ("provide me a checkbox, when
+                // selected, all 3 of those texts will flash along with the
+                // round number") - see showRoundText()'s own comment for
+                // why they're not flatly hidden for the announcement when
+                // this is on.
+                if (cssVars['--gameplay-result-flash-with-round']) {
+                    [targetCount, speedDisplay, msPerClickDisplay].forEach(el => {
+                        el.classList.toggle('hidden', !phase.visible);
+                    });
+                }
                 setTimeout(step, phase.ms);
             }
             step();
@@ -10699,6 +10804,13 @@
             // showRoundText()'s own setTimeout (see there) and stays visible
             // throughout gameplay instead of disappearing.
             resultText.classList.add('hidden');
+            // The next round begins here - reverts Target/Speed/Ms-per-
+            // click back to their normal (untinted) color, per explicit
+            // request (any flash-with-round-number toggling started during
+            // the just-finished announcement is moot from here on, since
+            // every remove('hidden') below unconditionally makes them
+            // visible again anyway).
+            applyGameplayResultColor(null);
             targetCount.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
             // Countdown's total budget, rounded to a whole number per
@@ -11092,9 +11204,13 @@
                 resultText.classList.remove('result-lose');
                 resultText.classList.add('result-win');
                 resultText.classList.remove('hidden');
-                targetCount.classList.add('hidden');
-                speedDisplay.classList.add('hidden');
-                msPerClickDisplay.classList.add('hidden');
+                // Per explicit request, Target/Speed/Ms-per-click no longer
+                // disappear on win/lose - they just change color (reverted
+                // in showTargetAndSpeed(), once the next round begins - and
+                // if the flash checkbox is on, flashed in sync with the
+                // round number by runRoundBlinkSequence() itself once that
+                // starts). See applyGameplayResultColor()'s own comment.
+                applyGameplayResultColor('win');
 
                 setTimeout(() => {
                     gameState.currentRound++;
@@ -11110,10 +11226,9 @@
                 resultText.classList.remove('result-win');
                 resultText.classList.add('result-lose');
                 resultText.classList.remove('hidden');
-                targetCount.classList.add('hidden');
                 renderRoundBreakdown();
-                speedDisplay.classList.add('hidden');
-                msPerClickDisplay.classList.add('hidden');
+                // See the win branch's own comment above.
+                applyGameplayResultColor('lose');
 
                 setTimeout(() => {
                     // Fixed literal text, not the randomized tryAgainMessages
