@@ -10715,6 +10715,14 @@
             // TOTAL round budget now.
             msPerClickDisplay.textContent = gameState.maxTimeMs.toFixed(0) + overrideOr('msPerClickSuffix');
             msPerClickDisplay.classList.remove('hidden');
+            // Target/Speed/Ms-per-click were just revealed from hidden
+            // (height 0) - correctValignLeading()'s own measurement-based
+            // line-height correction (see its comment) skips a zero-height
+            // element, so whatever ran the last time applyTextAlignAnchors()
+            // fired (page load, before these were ever visible) couldn't
+            // measure or correct them. Re-run now that they have real
+            // layout to measure against.
+            applyTextAlignAnchors();
 
             // Reset button color
             refreshButtonHue();
