@@ -48,6 +48,22 @@
             align-items: center;
             perspective: 1200px;
         }
+        /* Hides the whole game behind a plain --bg-color screen (already correct
+           from the very first paint - see cssVars['--bg-color']'s own hardcoded
+           default) until the real saved settings (colors, font sizes, Thin
+           Base, etc.) have actually been fetched and applied - per direct
+           report, without this the page paints with hardcoded JS defaults
+           first (smaller text, red/untinted button) for as long as the
+           settings fetch takes (a previously-documented, deliberate trade-off
+           of going git-only - see loadSettings()'s own comment), then visibly
+           snaps to the real look once it resolves. visibility (not display)
+           so layout-dependent setup code that runs before the reveal
+           (resolvePositionSentinels(), spawnClickBurst() geometry, etc.) still
+           sees real, non-zero rects while hidden. Removed once the async
+           settings-load IIFE completes, success or failure alike. */
+        .game-container.settings-loading {
+            visibility: hidden;
+        }
 
         /* Button assembly - positions the base/button SVGs together as one unit. Both
            SVGs share the same 589.79x605.11 viewBox from the source artwork, so
@@ -2195,7 +2211,7 @@
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <div class="game-container settings-loading">
         <div class="button-assembly" id="buttonAssembly">
             <!-- Base/backing recolor filter - grayscale + adjustable levels
                  + multiply-tint, shared by both the base bezel and its
@@ -10222,17 +10238,25 @@
         // positions/colors before a saved setup applies - there's no local
         // copy left to paint instantly from.
         (async () => {
-            await loadSettings();
-            resolvePositionSentinels();
-            // Re-apply now that a restored setup (if any) is in cssVars/
-            // mobileCssVars - harmless no-op re-push if nothing changed.
-            applyActiveVars();
-            applyExtrusionStyles();
-            // Apply a restored --flip-button-svg even though the checkbox
-            // itself won't visually reflect it (loadSettings() doesn't sync any
-            // control's displayed value from a restored setting - a pre-existing
-            // gap affecting every dev-panel control, not specific to this one).
-            if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
+            try {
+                await loadSettings();
+                resolvePositionSentinels();
+                // Re-apply now that a restored setup (if any) is in cssVars/
+                // mobileCssVars - harmless no-op re-push if nothing changed.
+                applyActiveVars();
+                applyExtrusionStyles();
+                // Apply a restored --flip-button-svg even though the checkbox
+                // itself won't visually reflect it (loadSettings() doesn't sync any
+                // control's displayed value from a restored setting - a pre-existing
+                // gap affecting every dev-panel control, not specific to this one).
+                if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
+            } finally {
+                // Reveal even if loadSettings() itself somehow threw - staying
+                // hidden forever on a genuine failure would be far worse than
+                // the brief default-look flash this class exists to hide (see
+                // .game-container.settings-loading's own comment).
+                document.querySelector('.game-container').classList.remove('settings-loading');
+            }
         })();
     </script>
 </body>
