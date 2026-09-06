@@ -96,8 +96,8 @@
                that it has no effect until the window actually gets narrow. */
             width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vw));
             height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vw));
-            left: calc(50% + var(--button-x-offset-vw) * 1vw);
-            top: calc(50% + var(--button-y-offset-vh) * 1vh);
+            left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, 1vw));
+            top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, 1vh));
             transform: translate(-50%, -50%);
         }
 
@@ -1113,8 +1113,15 @@
            Lock mechanism) stay shared - only the tuned offset/size differ
            per state, not the alignment/anchor behavior. */
         .result-text.result-win {
-            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-x-unit, 1vw));
-            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-y-unit, 1vh));
+            /* -win-x-unit/-y-unit, not the shared -x-unit/-y-unit above -
+               per the px/vw-per-offset feature, Win's own unit choice must
+               stay independent of Lose's even though they still share the
+               same base/sign (anchor point/direction) per the comment
+               above. See applyTextAlignAnchors()'s own Result-specific
+               correction for how it's computed (edge lock OR'd with this
+               state's own px checkbox). */
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-win-x-unit, 1vw));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-win-y-unit, 1vh));
             /* See .start-button's own "Scale With Browser" comment. */
             font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * 1vw);
             color: var(--result-win-fill-color);
@@ -1123,8 +1130,10 @@
         }
 
         .result-text.result-lose {
-            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-x-unit, 1vw));
-            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-y-unit, 1vh));
+            /* See .result-text.result-win's own comment on -lose-x-unit/
+               -y-unit being independent of Win's, unlike base/sign. */
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-lose-x-unit, 1vw));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-lose-y-unit, 1vh));
             /* See .start-button's own "Scale With Browser" comment. */
             font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * 1vw);
             color: var(--result-lose-fill-color);
@@ -1266,8 +1275,8 @@
             position: absolute;
             /* Positioned to the LEFT of the button (not right) so it stays clear of
                the dev panel, which is fixed along the right edge of the screen. */
-            left: calc(50% + var(--button-x-offset-vw) * 1vw - var(--button-diameter-vw) * 0.52 * 1vw);
-            top: calc(50% + var(--button-y-offset-vh) * 1vh);
+            left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, 1vw) - var(--button-diameter-vw) * 0.52 * 1vw);
+            top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, 1vh));
             transform: translate(-100%, -50%);
             font-family: monospace;
             font-size: 1.5vw;
@@ -1291,8 +1300,8 @@
         .tap-diagnostic-panel {
             position: absolute;
             /* Positioned to the LEFT of the button, same reasoning as .click-counter. */
-            left: calc(50% + var(--button-x-offset-vw) * 1vw - var(--button-diameter-vw) * 0.52 * 1vw);
-            top: calc(50% + var(--button-y-offset-vh) * 1vh + 4vh);
+            left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, 1vw) - var(--button-diameter-vw) * 0.52 * 1vw);
+            top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, 1vh) + 4vh);
             transform: translate(-100%, 0);
             width: 22vw;
             min-width: 220px;
@@ -2229,6 +2238,23 @@
             font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
             white-space: nowrap;
             cursor: pointer;
+        }
+
+        /* Px/vw-vh unit toggle, sits at the end of every X/Y Offset row -
+           per explicit request ("next to every text setting for x offset/
+           y offset, add a checkbox... choose px or vw/vh as the units").
+           Same visual treatment as .dev-edge-lock-label above (a small
+           inline modifier, not its own .dev-label row) - see
+           setupOffsetUnitCheckboxes() for the actual unit-conversion logic. */
+        .dev-offset-unit-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #aaa;
+            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+            white-space: nowrap;
+            cursor: pointer;
+            margin-left: auto;
         }
 
         .dev-select {
@@ -3362,11 +3388,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderButtonX" min="-50" max="50" step="0.01" value="-1">
                     <span class="dev-value" id="valueButtonX">-1</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxButtonXOffsetUnitPx" data-slider="sliderButtonX" data-flag-var="--button-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderButtonY" min="-50" max="50" step="0.01" value="5">
                     <span class="dev-value" id="valueButtonY">5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxButtonYOffsetUnitPx" data-slider="sliderButtonY" data-flag-var="--button-y-offset-unit-is-px">Px</label>
                 </div>
             </div>
         </div>
@@ -3650,11 +3678,13 @@
                     <span class="dev-label">Button X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTextX" min="-40" max="40" step="0.01" value="-0.16">
                     <span class="dev-value" id="valueTextX">-0.16</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTextXOffsetUnitPx" data-slider="sliderTextX" data-flag-var="--text-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTextY">-13.75</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTextYOffsetUnitPx" data-slider="sliderTextY" data-flag-var="--text-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Letter Spacing (px):</span>
@@ -3725,11 +3755,13 @@
                     <span class="dev-label">Try Again X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainTextX" min="-40" max="40" step="0.01" value="-0.16">
                     <span class="dev-value" id="valueTryAgainTextX">-0.16</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTryAgainTextXOffsetUnitPx" data-slider="sliderTryAgainTextX" data-flag-var="--try-again-text-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTryAgainTextYOffsetUnitPx" data-slider="sliderTryAgainTextY" data-flag-var="--try-again-text-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Letter Spacing (px):</span>
@@ -3843,11 +3875,13 @@
                     <span class="dev-label">"?" X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkX" min="-50" max="50" step="0.01" value="-0.16">
                     <span class="dev-value" id="valueTryAgainQuestionMarkX">-0.16</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTryAgainQuestionMarkXOffsetUnitPx" data-slider="sliderTryAgainQuestionMarkX" data-flag-var="--try-again-question-mark-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="0.05">
                     <span class="dev-value" id="valueTryAgainQuestionMarkY">0.05</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTryAgainQuestionMarkYOffsetUnitPx" data-slider="sliderTryAgainQuestionMarkY" data-flag-var="--try-again-question-mark-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" Text Align:</span>
@@ -3953,11 +3987,13 @@
                     <span class="dev-label">Text X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockX" min="-50" max="50" step="0.01" value="-43">
                     <span class="dev-value" id="valueRoundDockX">-43</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxRoundDockXOffsetUnitPx" data-slider="sliderRoundDockX" data-flag-var="--round-dock-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
                     <span class="dev-value" id="valueRoundDockY">42.7</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxRoundDockYOffsetUnitPx" data-slider="sliderRoundDockY" data-flag-var="--round-dock-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Letter Spacing (px):</span>
@@ -4071,11 +4107,13 @@
                     <span class="dev-label">Win X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderResultWinX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueResultWinX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxResultWinXOffsetUnitPx" data-slider="sliderResultWinX" data-flag-var="--result-win-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderResultWinY" min="-50" max="50" step="0.01" value="-13">
                     <span class="dev-value" id="valueResultWinY">-13</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxResultWinYOffsetUnitPx" data-slider="sliderResultWinY" data-flag-var="--result-win-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Letter Spacing (px):</span>
@@ -4102,11 +4140,13 @@
                     <span class="dev-label">Lose X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderResultLoseX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueResultLoseX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxResultLoseXOffsetUnitPx" data-slider="sliderResultLoseX" data-flag-var="--result-lose-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderResultLoseY" min="-50" max="50" step="0.01" value="-13">
                     <span class="dev-value" id="valueResultLoseY">-13</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxResultLoseYOffsetUnitPx" data-slider="sliderResultLoseY" data-flag-var="--result-lose-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose Letter Spacing (px):</span>
@@ -4216,11 +4256,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.01" value="39.5">
                     <span class="dev-value" id="valueTargetX">39.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTargetXOffsetUnitPx" data-slider="sliderTargetX" data-flag-var="--target-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.01" value="-32.71">
                     <span class="dev-value" id="valueTargetY">-32.71</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTargetYOffsetUnitPx" data-slider="sliderTargetY" data-flag-var="--target-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Letter Spacing (px):</span>
@@ -4295,11 +4337,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedX" min="-50" max="50" step="0.01" value="39.47">
                     <span class="dev-value" id="valueSpeedX">39.47</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxSpeedXOffsetUnitPx" data-slider="sliderSpeedX" data-flag-var="--speed-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.01" value="-14.85">
                     <span class="dev-value" id="valueSpeedY">-14.85</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxSpeedYOffsetUnitPx" data-slider="sliderSpeedY" data-flag-var="--speed-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Letter Spacing (px):</span>
@@ -4376,11 +4420,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMsPerClickX" min="-50" max="50" step="0.01" value="40.2">
                     <span class="dev-value" id="valueMsPerClickX">40.2</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMsPerClickXOffsetUnitPx" data-slider="sliderMsPerClickX" data-flag-var="--ms-per-click-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMsPerClickY" min="-50" max="50" step="0.01" value="-14.88">
                     <span class="dev-value" id="valueMsPerClickY">-14.88</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMsPerClickYOffsetUnitPx" data-slider="sliderMsPerClickY" data-flag-var="--ms-per-click-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Letter Spacing (px):</span>
@@ -4616,11 +4662,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileButtonX" min="-50" max="50" step="0.01" value="-2.32">
                     <span class="dev-value" id="valueMobileButtonX">-2.32</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileButtonXOffsetUnitPx" data-slider="sliderMobileButtonX" data-flag-var="--button-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileButtonY" min="-50" max="50" step="0.01" value="16">
                     <span class="dev-value" id="valueMobileButtonY">16</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileButtonYOffsetUnitPx" data-slider="sliderMobileButtonY" data-flag-var="--button-y-offset-unit-is-px">Px</label>
                 </div>
             </div>
         </div>
@@ -4802,11 +4850,13 @@
                     <span class="dev-label">Button X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTextX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTextXOffsetUnitPx" data-slider="sliderMobileTextX" data-flag-var="--text-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTextY" min="-50" max="50" step="0.01" value="-16.5">
                     <span class="dev-value" id="valueMobileTextY">-16.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTextYOffsetUnitPx" data-slider="sliderMobileTextY" data-flag-var="--text-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Letter Spacing (px):</span>
@@ -4866,11 +4916,13 @@
                     <span class="dev-label">Try Again X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileTryAgainTextX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTryAgainTextXOffsetUnitPx" data-slider="sliderMobileTryAgainTextX" data-flag-var="--try-again-text-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainTextY" min="-50" max="50" step="0.01" value="-0.49">
                     <span class="dev-value" id="valueMobileTryAgainTextY">-0.49</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTryAgainTextYOffsetUnitPx" data-slider="sliderMobileTryAgainTextY" data-flag-var="--try-again-text-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Letter Spacing (px):</span>
@@ -4930,11 +4982,13 @@
                     <span class="dev-label">"?" X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkX" min="-50" max="50" step="0.01" value="20">
                     <span class="dev-value" id="valueMobileTryAgainQuestionMarkX">20</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTryAgainQuestionMarkXOffsetUnitPx" data-slider="sliderMobileTryAgainQuestionMarkX" data-flag-var="--try-again-question-mark-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="5.05">
                     <span class="dev-value" id="valueMobileTryAgainQuestionMarkY">5.05</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTryAgainQuestionMarkYOffsetUnitPx" data-slider="sliderMobileTryAgainQuestionMarkY" data-flag-var="--try-again-question-mark-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" Text Align:</span>
@@ -5006,11 +5060,13 @@
                     <span class="dev-label">Text X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockX" min="-50" max="50" step="0.01" value="-30">
                     <span class="dev-value" id="valueMobileRoundDockX">-30</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileRoundDockXOffsetUnitPx" data-slider="sliderMobileRoundDockX" data-flag-var="--round-dock-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileRoundDockY" min="-50" max="50" step="0.01" value="35">
                     <span class="dev-value" id="valueMobileRoundDockY">35</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileRoundDockYOffsetUnitPx" data-slider="sliderMobileRoundDockY" data-flag-var="--round-dock-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Letter Spacing (px):</span>
@@ -5070,11 +5126,13 @@
                     <span class="dev-label">Win X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultWinX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileResultWinX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileResultWinXOffsetUnitPx" data-slider="sliderMobileResultWinX" data-flag-var="--result-win-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultWinY" min="-50" max="50" step="0.01" value="1.46">
                     <span class="dev-value" id="valueMobileResultWinY">1.46</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileResultWinYOffsetUnitPx" data-slider="sliderMobileResultWinY" data-flag-var="--result-win-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win Letter Spacing (px):</span>
@@ -5101,11 +5159,13 @@
                     <span class="dev-label">Lose X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLoseX" min="-40" max="40" step="0.01" value="0">
                     <span class="dev-value" id="valueMobileResultLoseX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileResultLoseXOffsetUnitPx" data-slider="sliderMobileResultLoseX" data-flag-var="--result-lose-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLoseY" min="-50" max="50" step="0.01" value="1.46">
                     <span class="dev-value" id="valueMobileResultLoseY">1.46</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileResultLoseYOffsetUnitPx" data-slider="sliderMobileResultLoseY" data-flag-var="--result-lose-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose Letter Spacing (px):</span>
@@ -5193,11 +5253,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetX" min="-50" max="50" step="0.01" value="20">
                     <span class="dev-value" id="valueMobileTargetX">20</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTargetXOffsetUnitPx" data-slider="sliderMobileTargetX" data-flag-var="--target-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileTargetY" min="-50" max="50" step="0.01" value="-23.5">
                     <span class="dev-value" id="valueMobileTargetY">-23.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileTargetYOffsetUnitPx" data-slider="sliderMobileTargetY" data-flag-var="--target-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Letter Spacing (px):</span>
@@ -5267,11 +5329,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedX" min="-50" max="50" step="0.01" value="-23">
                     <span class="dev-value" id="valueMobileSpeedX">-23</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileSpeedXOffsetUnitPx" data-slider="sliderMobileSpeedX" data-flag-var="--speed-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileSpeedY" min="-50" max="50" step="0.01" value="-19.5">
                     <span class="dev-value" id="valueMobileSpeedY">-19.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileSpeedYOffsetUnitPx" data-slider="sliderMobileSpeedY" data-flag-var="--speed-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Letter Spacing (px):</span>
@@ -5341,11 +5405,13 @@
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickX" min="-50" max="50" step="0.01" value="24.76">
                     <span class="dev-value" id="valueMobileMsPerClickX">24.76</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileMsPerClickXOffsetUnitPx" data-slider="sliderMobileMsPerClickX" data-flag-var="--ms-per-click-x-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Y Offset (vh):</span>
                     <input type="range" class="dev-slider" id="sliderMobileMsPerClickY" min="-50" max="50" step="0.01" value="-26.84">
                     <span class="dev-value" id="valueMobileMsPerClickY">-26.84</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMobileMsPerClickYOffsetUnitPx" data-slider="sliderMobileMsPerClickY" data-flag-var="--ms-per-click-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Letter Spacing (px):</span>
@@ -5565,7 +5631,9 @@
             '--button-height-offset-px': -4.5,
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': -1,
+            '--button-x-offset-unit-is-px': 0,
             '--button-y-offset-vh': 6.76,
+            '--button-y-offset-unit-is-px': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
             // Base/backing recolor - grayscale+levels+multiply-tint (see
@@ -5667,7 +5735,9 @@
             '--text-font-size-vw': 15.42,
             '--text-scale-with-browser': 0,
             '--text-x-offset-vw': 0.21,
+            '--text-x-offset-unit-is-px': 0,
             '--text-y-offset-vh': -11.26,
+            '--text-y-offset-unit-is-px': 0,
             '--text-letter-spacing-px': 10,
             '--text-line-height': 1.2,
             '--start-text-align': 'center',
@@ -5702,7 +5772,9 @@
             '--try-again-text-font-size-vw': 12.94,
             '--try-again-text-scale-with-browser': 0,
             '--try-again-text-x-offset-vw': -0.16,
+            '--try-again-text-x-offset-unit-is-px': 0,
             '--try-again-text-y-offset-vh': -13.75,
+            '--try-again-text-y-offset-unit-is-px': 0,
             // Try Again's own letter/line spacing, independent from
             // Start's above - per explicit request ("also give me letter
             // spacing and line spacing for the Try again text"). Starts
@@ -5724,14 +5796,18 @@
             '--try-again-question-mark-font-size-vw': 20.09,
             '--try-again-question-mark-scale-with-browser': 0,
             '--try-again-question-mark-x-offset-vw': 0.47,
+            '--try-again-question-mark-x-offset-unit-is-px': 0,
             '--try-again-question-mark-y-offset-vh': 35.27,
+            '--try-again-question-mark-y-offset-unit-is-px': 0,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
             '--round-dock-x-offset-vw': -47.33,
+            '--round-dock-x-offset-unit-is-px': 0,
             '--round-dock-y-offset-vh': 51,
+            '--round-dock-y-offset-unit-is-px': 0,
             '--round-font-size-px': 89.34,
             '--round-font-size-vw': 6.98,
             '--round-scale-with-browser': 0,
@@ -5789,7 +5865,9 @@
             '--target-font-size-vw': 24.2,
             '--target-scale-with-browser': 0,
             '--target-x-offset-vw': 47.78,
+            '--target-x-offset-unit-is-px': 0,
             '--target-y-offset-vh': -59.12,
+            '--target-y-offset-unit-is-px': 0,
             '--target-letter-spacing-px': 0,
             '--target-line-height': 1.2,
             '--target-text-align': 'right',
@@ -5800,7 +5878,9 @@
             '--speed-font-size-vw': 6.98,
             '--speed-scale-with-browser': 0,
             '--speed-x-offset-vw': 47.67,
+            '--speed-x-offset-unit-is-px': 0,
             '--speed-y-offset-vh': 51,
+            '--speed-y-offset-unit-is-px': 0,
             '--speed-letter-spacing-px': 6.5,
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
@@ -5816,7 +5896,9 @@
             '--ms-per-click-font-size-vw': 5.46,
             '--ms-per-click-scale-with-browser': 0,
             '--ms-per-click-x-offset-vw': 46.95,
+            '--ms-per-click-x-offset-unit-is-px': 0,
             '--ms-per-click-y-offset-vh': -15.22,
+            '--ms-per-click-y-offset-unit-is-px': 0,
             '--ms-per-click-letter-spacing-px': 1,
             '--ms-per-click-line-height': 0.65,
             '--ms-per-click-text-align': 'right',
@@ -5827,13 +5909,17 @@
             '--result-win-font-size-vw': 13.5,
             '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
+            '--result-win-x-offset-unit-is-px': 0,
             '--result-win-y-offset-vh': -13,
+            '--result-win-y-offset-unit-is-px': 0,
             '--result-win-letter-spacing-px': 0,
             '--result-lose-font-size-px': 172.8,
             '--result-lose-font-size-vw': 13.5,
             '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
+            '--result-lose-x-offset-unit-is-px': 0,
             '--result-lose-y-offset-vh': -13,
+            '--result-lose-y-offset-unit-is-px': 0,
             '--result-lose-letter-spacing-px': 0,
             '--result-line-height': 1.2,
             '--result-text-align': 'center',
@@ -6273,7 +6359,9 @@
             '--button-height-offset-px': -3.5,
             '--button-press-intensity-px': 8.5,
             '--button-x-offset-vw': -2.32,
+            '--button-x-offset-unit-is-px': 0,
             '--button-y-offset-vh': 16,
+            '--button-y-offset-unit-is-px': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
             '--click-burst-speed-ms': 180,
@@ -6315,7 +6403,9 @@
             '--text-font-size-vw': 20,
             '--text-scale-with-browser': 0,
             '--text-x-offset-vw': 0,
+            '--text-x-offset-unit-is-px': 0,
             '--text-y-offset-vh': -0.49,
+            '--text-y-offset-unit-is-px': 0,
             '--text-letter-spacing-px': 0,
             '--text-line-height': 1.2,
             '--start-text-align': 'center',
@@ -6334,7 +6424,9 @@
             '--try-again-text-font-size-vw': 20,
             '--try-again-text-scale-with-browser': 0,
             '--try-again-text-x-offset-vw': 0,
+            '--try-again-text-x-offset-unit-is-px': 0,
             '--try-again-text-y-offset-vh': -0.49,
+            '--try-again-text-y-offset-unit-is-px': 0,
             '--try-again-text-letter-spacing-px': 0,
             '--try-again-text-line-height': 1.2,
             // See the desktop cssVars' own comment - same live-measured-
@@ -6343,9 +6435,13 @@
             '--try-again-question-mark-font-size-vw': 20,
             '--try-again-question-mark-scale-with-browser': 0,
             '--try-again-question-mark-x-offset-vw': 20,
+            '--try-again-question-mark-x-offset-unit-is-px': 0,
             '--try-again-question-mark-y-offset-vh': 5.05,
+            '--try-again-question-mark-y-offset-unit-is-px': 0,
             '--round-dock-x-offset-vw': -43,
+            '--round-dock-x-offset-unit-is-px': 0,
             '--round-dock-y-offset-vh': 50,
+            '--round-dock-y-offset-unit-is-px': 0,
             '--round-font-size-px': 78,
             '--round-font-size-vw': 20,
             '--round-scale-with-browser': 0,
@@ -6359,7 +6455,9 @@
             '--target-font-size-vw': 50,
             '--target-scale-with-browser': 0,
             '--target-x-offset-vw': -40.7,
+            '--target-x-offset-unit-is-px': 0,
             '--target-y-offset-vh': -53.09,
+            '--target-y-offset-unit-is-px': 0,
             '--target-letter-spacing-px': 0,
             '--target-line-height': 1.2,
             '--target-text-align': 'left',
@@ -6370,7 +6468,9 @@
             '--speed-font-size-vw': 9.93,
             '--speed-scale-with-browser': 0,
             '--speed-x-offset-vw': 42,
+            '--speed-x-offset-unit-is-px': 0,
             '--speed-y-offset-vh': -33,
+            '--speed-y-offset-unit-is-px': 0,
             '--speed-letter-spacing-px': 0,
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
@@ -6381,7 +6481,9 @@
             '--ms-per-click-font-size-vw': 9.93,
             '--ms-per-click-scale-with-browser': 0,
             '--ms-per-click-x-offset-vw': 24.76,
+            '--ms-per-click-x-offset-unit-is-px': 0,
             '--ms-per-click-y-offset-vh': -1.25,
+            '--ms-per-click-y-offset-unit-is-px': 0,
             '--ms-per-click-letter-spacing-px': 0,
             '--ms-per-click-line-height': 0.65,
             '--ms-per-click-text-align': 'center',
@@ -6392,13 +6494,17 @@
             '--result-win-font-size-vw': 4.77,
             '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
+            '--result-win-x-offset-unit-is-px': 0,
             '--result-win-y-offset-vh': 1.46,
+            '--result-win-y-offset-unit-is-px': 0,
             '--result-win-letter-spacing-px': 0,
             '--result-lose-font-size-px': 18.6,
             '--result-lose-font-size-vw': 4.77,
             '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
+            '--result-lose-x-offset-unit-is-px': 0,
             '--result-lose-y-offset-vh': 1.46,
+            '--result-lose-y-offset-unit-is-px': 0,
             '--result-lose-letter-spacing-px': 0,
             '--result-line-height': 1.2,
             '--result-text-align': 'center',
@@ -7237,6 +7343,13 @@
                 const resolved = SPATIAL_VW_ON_MOBILE_KEYS.has(key) ? resolveSpatialPx(value) : value;
                 document.documentElement.style.setProperty(key, resolved);
             }
+            // Main Button's own X/Y offset unit (px/vw toggle) - unlike the
+            // 9 text elements above, the button has no Text Align dropdown/
+            // Edge Lock system to fold this into (see applyTextAlignAnchors()
+            // for that side), so its unit is derived directly from its own
+            // px-checkbox flag here, with no lock state to OR against.
+            document.documentElement.style.setProperty('--button-x-unit', activeCssVars['--button-x-offset-unit-is-px'] ? '1px' : '1vw');
+            document.documentElement.style.setProperty('--button-y-unit', activeCssVars['--button-y-offset-unit-is-px'] ? '1px' : '1vh');
             // Round-text/Try-Again blink timing - also not device-split,
             // same reasoning as the existing Game Mechanics timing sliders.
             // Dock POSITION (--round-dock-x/y-offset) stays in the normal
@@ -7737,6 +7850,9 @@
                         if (!varName) return;
                         cb.checked = !!(isMobile ? mobileCssVars : cssVars)[varName];
                     });
+                    // Same gap, for the 40 offset-unit (px/vw-vh) checkboxes -
+                    // see restoreOffsetUnitCheckboxes()'s own comment.
+                    restoreOffsetUnitCheckboxes();
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -8489,6 +8605,91 @@
             applyActiveVars();
         }
 
+        // Px/vw-vh unit toggle for every X/Y Offset slider - per explicit
+        // request ("next to every text setting for x offset/y offset, add
+        // a checkbox... choose px or vw/vh as the units"). The offset's own
+        // stored cssVar (e.g. --target-x-offset-vw) always keeps holding
+        // whatever raw number the slider shows - only the UNIT that number
+        // gets multiplied by in the CSS formula changes (see
+        // applyTextAlignAnchors()'s Result-specific block and
+        // applyActiveVars()'s Button-specific lines for where that unit
+        // token is actually derived from this flag). Toggling the checkbox
+        // converts the slider's OWN current number to its equivalent under
+        // the new unit (using the current viewport as the vw/vh<->px
+        // reference) so the element doesn't visually jump - same on-screen
+        // position, different units to keep tuning in from there.
+        function setupOffsetUnitCheckboxes() {
+            document.querySelectorAll('.dev-offset-unit-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const sliderId = checkbox.dataset.slider;
+                    const flagVar = checkbox.dataset.flagVar;
+                    const slider = document.getElementById(sliderId);
+                    if (!slider) return;
+                    const { isMobile } = resolveDevControlId(sliderId);
+                    const activeCssVars = isMobile ? mobileCssVars : cssVars;
+                    const isX = flagVar.endsWith('-x-offset-unit-is-px');
+                    const refPx = isX ? window.innerWidth : window.innerHeight;
+                    const checkedNow = checkbox.checked;
+                    // vw/vh -> px when checking, px -> vw/vh when unchecking.
+                    const factor = checkedNow ? (refPx / 100) : (100 / refPx);
+                    const oldValue = parseFloat(slider.value);
+                    const oldMin = parseFloat(slider.min);
+                    const oldMax = parseFloat(slider.max);
+                    const newValue = oldValue * factor;
+                    slider.min = Math.min(oldMin * factor, oldMax * factor);
+                    slider.max = Math.max(oldMin * factor, oldMax * factor);
+                    slider.value = newValue;
+                    activeCssVars[flagVar] = checkedNow ? 1 : 0;
+                    // Pushes the converted number through the exact same
+                    // pipeline a real drag would use (also updates the
+                    // value-display span and re-applies live) - the flag
+                    // set just above is what makes the SAME cssVar now read
+                    // under the new unit once applyTextAlignAnchors()/
+                    // applyActiveVars() (called by applySliderValue via
+                    // applyActiveVars(), and again explicitly below for the
+                    // 9 anchored elements) recompute the unit token.
+                    applySliderValue(slider, newValue);
+                    applyTextAlignAnchors();
+                });
+            });
+        }
+
+        // Restores the 40 offset-unit checkboxes' own .checked state after
+        // a settings load - the underlying flag cssVars restore correctly
+        // via the normal Object.assign (same as every other cssVar), but
+        // the checkbox's own DOM .checked property needs an explicit sync
+        // step, same category of gap the Scale With Browser checkboxes'
+        // own restore fix closed earlier this session. If restoring into
+        // px mode, also widens the slider's min/max to comfortably fit the
+        // restored value (the HTML's own default min/max are vw/vh-shaped
+        // numbers, almost always too narrow for a meaningful px range) -
+        // same "expand to fit rather than clamp" philosophy this project's
+        // click-to-type numeric boxes already use elsewhere, applied here
+        // to a programmatic restore instead of a user keystroke.
+        function restoreOffsetUnitCheckboxes() {
+            document.querySelectorAll('.dev-offset-unit-checkbox').forEach(checkbox => {
+                const sliderId = checkbox.dataset.slider;
+                const flagVar = checkbox.dataset.flagVar;
+                const slider = document.getElementById(sliderId);
+                if (!slider) return;
+                const { isMobile } = resolveDevControlId(sliderId);
+                const activeCssVars = isMobile ? mobileCssVars : cssVars;
+                const checked = !!activeCssVars[flagVar];
+                checkbox.checked = checked;
+                if (checked) {
+                    const value = parseFloat(slider.value);
+                    let min = parseFloat(slider.min);
+                    let max = parseFloat(slider.max);
+                    if (value < min) min = value - Math.abs(value) * 0.2;
+                    if (value > max) max = value + Math.abs(value) * 0.2;
+                    slider.min = min;
+                    slider.max = max;
+                }
+            });
+            applyTextAlignAnchors();
+            applyActiveVars();
+        }
+
         // Gameplay-mechanics sliders (Starting Max Time, Speed Decrease, etc.)
         // are NOT a true per-device override the way visual settings are -
         // there's only one game in progress, not a separate one per device. The
@@ -8648,6 +8849,23 @@
         // original 1vw/1vh (unlocked, proportional - unchanged default).
         const EDGE_LOCK_BASE = { left: '0%', top: '0%', center: '50%', right: '100%', bottom: '100%' };
         const EDGE_LOCK_SIGN = { left: 1, top: 1, center: 1, right: -1, bottom: -1 };
+        // Maps each align-loop xPrefix (derived from the align varName, e.g.
+        // '--round' from '--round-text-align') to that element's own OFFSET
+        // cssVar's prefix, wherever the 2 names diverge (e.g. Round's align
+        // var says '--round' but its offset var is '--round-dock-x-offset-
+        // vw', and Start's offset var is confusingly named '--text-x-offset-
+        // vw', not '--start-...'). Used only to look up each offset's own
+        // *-offset-unit-is-px flag (the new per-slider px/vw toggle) below -
+        // does not affect anything the existing Edge Lock code already read.
+        const OFFSET_UNIT_FLAG_PREFIX = {
+            '--start': 'text',
+            '--try-again': 'try-again-text',
+            '--try-again-question-mark': 'try-again-question-mark',
+            '--round': 'round-dock',
+            '--target': 'target',
+            '--speed': 'speed',
+            '--ms-per-click': 'ms-per-click',
+        };
         function applyTextAlignAnchors() {
             const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
@@ -8661,12 +8879,39 @@
                 const align = activeCssVars[varName] || 'center';
                 el.classList.remove('align-left', 'align-center', 'align-right');
                 el.classList.add('align-' + align);
-                const xLocked = !!activeCssVars[varName + '-edge-lock'];
                 const xPrefix = varName.replace('-text-align', '');
-                el.style.setProperty(xPrefix + '-x-unit', xLocked ? '1px' : '1vw');
-                el.style.setProperty(xPrefix + '-x-base', xLocked ? EDGE_LOCK_BASE[align] : '50%');
-                el.style.setProperty(xPrefix + '-x-sign', xLocked ? EDGE_LOCK_SIGN[align] : 1);
+                // Result (Win/Lose)'s OWN unit is handled separately below,
+                // not by the generic xUnit line further down - its unit
+                // needs to split per-state while base/sign (set further
+                // down, unconditionally, still correct for Result too)
+                // stay shared, which this generic per-xPrefix loop can't
+                // express for a single output property.
+                const edgeLocked = !!activeCssVars[varName + '-edge-lock'];
+                const offsetFlagPrefix = OFFSET_UNIT_FLAG_PREFIX[xPrefix];
+                const pxToggled = offsetFlagPrefix ? !!activeCssVars['--' + offsetFlagPrefix + '-x-offset-unit-is-px'] : false;
+                const xLocked = edgeLocked || pxToggled;
+                if (xPrefix !== '--result') {
+                    el.style.setProperty(xPrefix + '-x-unit', xLocked ? '1px' : '1vw');
+                }
+                el.style.setProperty(xPrefix + '-x-base', edgeLocked ? EDGE_LOCK_BASE[align] : '50%');
+                el.style.setProperty(xPrefix + '-x-sign', edgeLocked ? EDGE_LOCK_SIGN[align] : 1);
             });
+            // Result's OWN unit split (Win/Lose independent px/vw, base/sign
+            // still shared per the CSS rule's own comment) - can't go
+            // through the generic per-xPrefix loop above since it needs 2
+            // DIFFERENT outputs (--result-win-x-unit/--result-lose-x-unit)
+            // from ONE align var (--result-text-align)'s edge-lock state,
+            // each OR'd with its own state's px checkbox.
+            {
+                const resultEdgeLocked = !!activeCssVars['--result-text-align-edge-lock'];
+                const winPxToggled = !!activeCssVars['--result-win-x-offset-unit-is-px'];
+                const losePxToggled = !!activeCssVars['--result-lose-x-offset-unit-is-px'];
+                const resultEl = document.getElementById('resultText');
+                if (resultEl) {
+                    resultEl.style.setProperty('--result-win-x-unit', (resultEdgeLocked || winPxToggled) ? '1px' : '1vw');
+                    resultEl.style.setProperty('--result-lose-x-unit', (resultEdgeLocked || losePxToggled) ? '1px' : '1vw');
+                }
+            }
             // startButton is shared by Start and Try Again (one DOM element,
             // two states, see --try-again-text-align's own comment) - the
             // loop above just set the align-CLASS from BOTH --start-text-align
@@ -8687,12 +8932,32 @@
                 if (!el) return;
                 const valign = activeCssVars[varName] || 'center';
                 el.style.setProperty('--anchor-ty', VALIGN_TY[valign] || VALIGN_TY.center);
-                const yLocked = !!activeCssVars[varName + '-edge-lock'];
                 const yPrefix = varName.replace('-text-valign', '');
-                el.style.setProperty(yPrefix + '-y-unit', yLocked ? '1px' : '1vh');
-                el.style.setProperty(yPrefix + '-y-base', yLocked ? EDGE_LOCK_BASE[valign] : '50%');
-                el.style.setProperty(yPrefix + '-y-sign', yLocked ? EDGE_LOCK_SIGN[valign] : 1);
+                // See the X loop's own comment above - Result (Win/Lose)'s
+                // unit is handled separately below, not by the generic
+                // yUnit line further down.
+                const edgeLocked = !!activeCssVars[varName + '-edge-lock'];
+                const offsetFlagPrefix = OFFSET_UNIT_FLAG_PREFIX[yPrefix];
+                const pxToggled = offsetFlagPrefix ? !!activeCssVars['--' + offsetFlagPrefix + '-y-offset-unit-is-px'] : false;
+                const yLocked = edgeLocked || pxToggled;
+                if (yPrefix !== '--result') {
+                    el.style.setProperty(yPrefix + '-y-unit', yLocked ? '1px' : '1vh');
+                }
+                el.style.setProperty(yPrefix + '-y-base', edgeLocked ? EDGE_LOCK_BASE[valign] : '50%');
+                el.style.setProperty(yPrefix + '-y-sign', edgeLocked ? EDGE_LOCK_SIGN[valign] : 1);
             });
+            // Result's OWN Y-unit split - same reasoning as the X-axis
+            // block above.
+            {
+                const resultEdgeLockedY = !!activeCssVars['--result-text-valign-edge-lock'];
+                const winPxToggledY = !!activeCssVars['--result-win-y-offset-unit-is-px'];
+                const losePxToggledY = !!activeCssVars['--result-lose-y-offset-unit-is-px'];
+                const resultElY = document.getElementById('resultText');
+                if (resultElY) {
+                    resultElY.style.setProperty('--result-win-y-unit', (resultEdgeLockedY || winPxToggledY) ? '1px' : '1vh');
+                    resultElY.style.setProperty('--result-lose-y-unit', (resultEdgeLockedY || losePxToggledY) ? '1px' : '1vh');
+                }
+            }
             // Same startButton-is-shared correction as align above, for
             // --anchor-ty specifically (also just fought over by --start-
             // text-valign and --try-again-text-valign in map-iteration order).
@@ -11169,6 +11434,7 @@
         // below, once (if) it actually has something to restore.
         setupDevSliders();
         setupTextAlignSelects();
+        setupOffsetUnitCheckboxes();
         setupTextEdgeLockCheckboxes();
         setupTextEditMode();
         setupTextEditPanelTriggers();
