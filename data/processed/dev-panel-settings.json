@@ -36,7 +36,7 @@
     "--shadow-rotate": 0,
     "--text-font-size-px": 396.26,
     "--text-x-offset-vw": 1.44,
-    "--text-y-offset-vh": -1.08,
+    "--text-y-offset-vh": -1.8,
     "--text-letter-spacing-px": 18.5,
     "--text-line-height": 1.4,
     "--start-text-align": "center",
