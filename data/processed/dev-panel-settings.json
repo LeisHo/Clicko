@@ -163,7 +163,7 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 256,
+    "--dev-panel-width-px": 267,
     "--dev-panel-left-px": 26,
     "--dev-panel-top-px": 353,
     "--dev-panel-height-px": 373,
@@ -260,8 +260,8 @@
     "--round-text-valign": "bottom",
     "--round-text-align-edge-lock": 1,
     "--round-text-valign-edge-lock": 1,
-    "--target-font-size-px": 278.61,
-    "--target-font-size-vw": 58.9,
+    "--target-font-size-px": 238.44,
+    "--target-font-size-vw": 47.23,
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
@@ -291,10 +291,10 @@
     "--ms-per-click-scale-with-browser": 1,
     "--ms-per-click-x-offset-vw": 49.25,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-y-offset-vh": 35.7,
+    "--ms-per-click-y-offset-vh": 23.98,
     "--ms-per-click-y-offset-unit-is-px": 1,
-    "--ms-per-click-letter-spacing-px": 0.5,
-    "--ms-per-click-line-height": 0.75,
+    "--ms-per-click-letter-spacing-px": -0.5,
+    "--ms-per-click-line-height": 0.65,
     "--ms-per-click-text-align": "right",
     "--ms-per-click-text-valign": "top",
     "--ms-per-click-text-align-edge-lock": 1,
@@ -650,7 +650,7 @@
     "mobile:Win/Lose Text": true,
     "mobile:Target Count Display": true,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": true
+    "mobile:Ms/Click Display": false
   },
   "sectionOrder": {
     "desktopTabContent": [
