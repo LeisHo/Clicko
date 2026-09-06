@@ -48,6 +48,53 @@
             align-items: center;
             perspective: 1200px;
         }
+        /* Portrait lock (per direct request: the app should never react to a
+           phone's physical rotation - it should always look/behave portrait).
+           Gated on real touchscreens only ((hover:none) and (pointer:coarse))
+           so an ordinary wide desktop browser window is never mistaken for a
+           rotated phone - orientation:landscape alone can't tell those apart.
+           2 parts, both needed:
+           1) ORIENTATION - rotate the game 90deg and swap its pre-rotation
+              box to 100vh wide x 100vw tall, so after rotation its on-screen
+              footprint exactly refits the real (landscape) screen, no
+              letterboxing gap.
+           2) SCALE - native vw/vh units always measure the TRUE viewport,
+              never a transformed ancestor's own box, so rotation alone would
+              leave every button/text size still computed against the real
+              (landscape, wider-than-tall) screen - oversized/clipped, just
+              rotated. Fixed via CSS Container Query units: this box becomes
+              a size container, and every var(--cq-vw, 1vw)/var(--cq-vh, 1vh)
+              used throughout the button/text CSS below (in place of a plain
+              1vw/1vh literal) resolves against THIS box once --cq-vw/--cq-vh
+              are overridden here to 1cqw/1cqh - i.e. against the swapped
+              (logical-portrait) dimensions, not the real landscape screen.
+              isMobileActive()/resolveSpatialPx() (JS) mirror this same
+              swap via their own PORTRAIT_LOCK_QUERY check, so the
+              desktop/mobile cssVars split and click-burst/shadow spatial
+              math agree with what the CSS is actually doing.
+           Scoped to .game-container only - the dev panel is a sibling
+           outside this box, still positioned/dragged in real screen
+           coordinates, completely unaffected (its own drag/resize/clamp
+           math would break if nested inside a rotated ancestor). A few
+           dev-only debug overlays (click counter, tap diagnostic, round
+           breakdown panel) ARE inside .game-container and so get rotated
+           along with everything else, but keep their own plain vw/vh (not
+           converted to cqw/cqh) - dev-only tools, out of scope for a
+           player-facing fix; their landscape sizing may still look off. */
+        @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+            .game-container {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 100vh;
+                height: 100vw;
+                container-type: size;
+                --cq-vw: 1cqw;
+                --cq-vh: 1cqh;
+                transform: translate(-50%, -50%) rotate(90deg);
+                transform-origin: center center;
+            }
+        }
         /* Hides the whole game behind a plain --bg-color screen (already correct
            from the very first paint - see cssVars['--bg-color']'s own hardcoded
            default) until the real saved settings (colors, font sizes, Thin
@@ -94,10 +141,10 @@
                --button-min-diameter-px defaults low enough (below the
                desktop button's normal rendered size at any typical width)
                that it has no effect until the window actually gets narrow. */
-            width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vw));
-            height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vw));
-            left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, 1vw));
-            top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, 1vh));
+            width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * var(--cq-vw, 1vw)));
+            height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * var(--cq-vw, 1vw)));
+            left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
+            top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, -50%);
         }
 
@@ -197,7 +244,7 @@
                JS/resize-listener involved). Existing stored default values
                rescaled to preserve today's exact rendered offset - see
                cssVars'/mobileCssVars' own comments on these keys. */
-            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vw), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vw)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
+            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw))) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
             /* brightness(0) flattens the artwork to solid black (alpha
                unchanged - the silhouette shape stays fully opaque wherever
                the source art itself was opaque); invert(0.5) then partially
@@ -379,7 +426,7 @@
            out-of-sync shadow during an eased release is a minor cosmetic
            cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vw), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vw)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw))) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
         }
 
         /* Background fill - sits BEHIND both the base and button layers, purely
@@ -539,7 +586,7 @@
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             outline: none;
-            transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)));
             /* No static transition rule here - press/release each need their own
                independent duration (--button-press-ms/--button-release-ms, both
                dev-panel sliders), which a single CSS rule can't express since a
@@ -561,7 +608,7 @@
             pointer-events: none;
         }
         .game-button.pressed {
-            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)));
         }
         .game-button svg {
             position: absolute;
@@ -774,8 +821,8 @@
                Unlocked (defaults) is untouched - always 50%/+1/1vw or 1vh,
                identical to this element's behavior before Edge Lock existed.
                Computed in applyTextAlignAnchors(). */
-            left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--text-x-offset-vw) * var(--start-x-unit, 1vw));
-            top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, 1vh));
+            left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--text-x-offset-vw) * var(--start-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             padding: 0;
             /* Font size is always px, never vw - per explicit request ("text
@@ -799,7 +846,7 @@
                zeroes out whichever one isn't active, letting one CSS rule
                express both a fixed-px AND a viewport-relative-vw mode
                without JS having to swap the rule itself on every resize. */
-            font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
             line-height: var(--text-line-height, 1.2);
             font-weight: 700;
@@ -845,10 +892,10 @@
                (this one, vs .start-button's own base rule above) read the
                matching prefix, so there's no conflict despite living on one
                element. */
-            left: calc(var(--try-again-x-base, 50%) + var(--try-again-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--try-again-x-unit, 1vw));
-            top: calc(var(--try-again-y-base, 50%) + var(--try-again-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-y-unit, 1vh));
+            left: calc(var(--try-again-x-base, 50%) + var(--try-again-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--try-again-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--try-again-y-base, 50%) + var(--try-again-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-y-unit, var(--cq-vh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment above. */
-            font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
             line-height: var(--try-again-text-line-height, 1.2);
             color: var(--try-again-fill-color);
@@ -903,11 +950,11 @@
                exist in the DOM until Try Again first renders - see its own
                null-guard comment there), reproducing the exact original
                formula below as the default. */
-            left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, 1vw));
-            top: calc(var(--try-again-question-mark-y-base, 50%) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, 1vh));
+            left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--try-again-question-mark-y-base, 50%) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
             text-align: var(--try-again-question-mark-text-align, center);
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * var(--cq-vw, 1vw));
             transform: translate(-50%, var(--anchor-ty, -50%));
             display: inline-block;
         }
@@ -1021,11 +1068,11 @@
 
         .game-text {
             position: absolute;
-            left: calc(var(--round-x-base, 50%) + var(--round-x-sign, 1) * var(--round-dock-x-offset-vw) * var(--round-x-unit, 1vw));
-            top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, 1vh));
+            left: calc(var(--round-x-base, 50%) + var(--round-x-sign, 1) * var(--round-dock-x-offset-vw) * var(--round-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--round-scale-with-browser, 0)) * var(--round-font-size-px) * 1px + var(--round-scale-with-browser, 0) * var(--round-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--round-scale-with-browser, 0)) * var(--round-font-size-px) * 1px + var(--round-scale-with-browser, 0) * var(--round-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             line-height: var(--round-line-height, 1.2);
             font-weight: 700;
@@ -1120,10 +1167,10 @@
                above. See applyTextAlignAnchors()'s own Result-specific
                correction for how it's computed (edge lock OR'd with this
                state's own px checkbox). */
-            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-win-x-unit, 1vw));
-            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-win-y-unit, 1vh));
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-win-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-win-y-unit, var(--cq-vh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * var(--cq-vw, 1vw));
             color: var(--result-win-fill-color);
             text-shadow: var(--result-win-shadow);
             letter-spacing: calc(var(--result-win-letter-spacing-px) * 1px);
@@ -1132,10 +1179,10 @@
         .result-text.result-lose {
             /* See .result-text.result-win's own comment on -lose-x-unit/
                -y-unit being independent of Win's, unlike base/sign. */
-            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-lose-x-unit, 1vw));
-            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-lose-y-unit, 1vh));
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-lose-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-lose-y-unit, var(--cq-vh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * var(--cq-vw, 1vw));
             color: var(--result-lose-fill-color);
             text-shadow: var(--result-lose-shadow);
             letter-spacing: calc(var(--result-lose-letter-spacing-px) * 1px);
@@ -1174,11 +1221,11 @@
            its OWN extrusion depth/shadow. */
         .target-count {
             position: absolute;
-            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, 1vw));
-            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, 1vh));
+            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
             line-height: var(--target-line-height, 1.2);
             font-weight: 700;
@@ -1205,11 +1252,11 @@
         /* Speed Display - same pattern as Target Count above. */
         .speed-display {
             position: absolute;
-            left: calc(var(--speed-x-base, 50%) + var(--speed-x-sign, 1) * var(--speed-x-offset-vw) * var(--speed-x-unit, 1vw));
-            top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, 1vh));
+            left: calc(var(--speed-x-base, 50%) + var(--speed-x-sign, 1) * var(--speed-x-offset-vw) * var(--speed-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--speed-scale-with-browser, 0)) * var(--speed-font-size-px) * 1px + var(--speed-scale-with-browser, 0) * var(--speed-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--speed-scale-with-browser, 0)) * var(--speed-font-size-px) * 1px + var(--speed-scale-with-browser, 0) * var(--speed-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             line-height: var(--speed-line-height, 1.2);
             font-weight: 700;
@@ -1242,11 +1289,11 @@
            extruded text display (own font-size/position/extrusion). */
         .ms-per-click-display {
             position: absolute;
-            left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, 1vw));
-            top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, 1vh));
+            left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--ms-per-click-scale-with-browser, 0)) * var(--ms-per-click-font-size-px) * 1px + var(--ms-per-click-scale-with-browser, 0) * var(--ms-per-click-font-size-vw, 10) * 1vw);
+            font-size: calc((1 - var(--ms-per-click-scale-with-browser, 0)) * var(--ms-per-click-font-size-px) * 1px + var(--ms-per-click-scale-with-browser, 0) * var(--ms-per-click-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             line-height: var(--ms-per-click-line-height, 1.2);
             font-weight: 700;
@@ -6614,8 +6661,19 @@
         // rotating a phone) re-applies whichever var set is now active, no
         // manual toggle needed.
         const MOBILE_MEDIA_QUERY = window.matchMedia('(max-width: 767px)');
+        // Mirrors the CSS portrait-lock gate (see .game-container's own
+        // comment) - when it's engaged, the game's LOGICAL width is the
+        // real screen's HEIGHT (that's what --cq-vw/--cq-vh end up
+        // resolving against, since the box's pre-rotation width is set to
+        // 100vh). isMobileActive()/resolveSpatialPx() need to agree with
+        // that or the desktop/mobile cssVars split (and click-burst/shadow
+        // spatial math) would use the wrong profile for a rotated phone.
+        const PORTRAIT_LOCK_QUERY = window.matchMedia('(hover: none) and (pointer: coarse) and (orientation: landscape)');
+        function getLogicalViewportWidth() {
+            return PORTRAIT_LOCK_QUERY.matches ? window.innerHeight : window.innerWidth;
+        }
         function isMobileActive() {
-            return MOBILE_MEDIA_QUERY.matches;
+            return PORTRAIT_LOCK_QUERY.matches ? (getLogicalViewportWidth() <= 767) : MOBILE_MEDIA_QUERY.matches;
         }
 
         // Resolves one of the 5 mobile "spatial/motion" cssVar values
@@ -6628,11 +6686,13 @@
         // On desktop these values are still genuine px numbers, returned
         // as-is, completely unaffected. On mobile the stored number is a
         // VW value (see mobileCssVars' own comment on these 5 keys),
-        // multiplied by the CURRENT window.innerWidth here, at the point
-        // of use - not cached - so a real device rotation/resize is
-        // picked up live, same as a native CSS vw unit would be.
+        // multiplied by the CURRENT logical viewport width here (real
+        // window.innerWidth, or window.innerHeight when the portrait lock
+        // has rotated the game - see getLogicalViewportWidth()), at the
+        // point of use - not cached - so a real device rotation/resize is
+        // picked up live, same as a native CSS vw/cqw unit would be.
         function resolveSpatialPx(value) {
-            return isMobileActive() ? value * window.innerWidth / 100 : value;
+            return isMobileActive() ? value * getLogicalViewportWidth() / 100 : value;
         }
 
         // Game state
@@ -7434,8 +7494,8 @@
             // Edge Lock system to fold this into (see applyTextAlignAnchors()
             // for that side), so its unit is derived directly from its own
             // px-checkbox flag here, with no lock state to OR against.
-            document.documentElement.style.setProperty('--button-x-unit', activeCssVars['--button-x-offset-unit-is-px'] ? '1px' : '1vw');
-            document.documentElement.style.setProperty('--button-y-unit', activeCssVars['--button-y-offset-unit-is-px'] ? '1px' : '1vh');
+            document.documentElement.style.setProperty('--button-x-unit', activeCssVars['--button-x-offset-unit-is-px'] ? '1px' : 'var(--cq-vw, 1vw)');
+            document.documentElement.style.setProperty('--button-y-unit', activeCssVars['--button-y-offset-unit-is-px'] ? '1px' : 'var(--cq-vh, 1vh)');
             // Round-text/Try-Again blink timing - also not device-split,
             // same reasoning as the existing Game Mechanics timing sliders.
             // Dock POSITION (--round-dock-x/y-offset) stays in the normal
@@ -9223,7 +9283,7 @@
                 const pxToggled = offsetFlagPrefix ? !!activeCssVars['--' + offsetFlagPrefix + '-x-offset-unit-is-px'] : false;
                 const xLocked = edgeLocked || pxToggled;
                 if (xPrefix !== '--result') {
-                    el.style.setProperty(xPrefix + '-x-unit', xLocked ? '1px' : '1vw');
+                    el.style.setProperty(xPrefix + '-x-unit', xLocked ? '1px' : 'var(--cq-vw, 1vw)');
                 }
                 el.style.setProperty(xPrefix + '-x-base', edgeLocked ? EDGE_LOCK_BASE[align] : '50%');
                 el.style.setProperty(xPrefix + '-x-sign', edgeLocked ? EDGE_LOCK_SIGN[align] : 1);
@@ -9240,8 +9300,8 @@
                 const losePxToggled = !!activeCssVars['--result-lose-x-offset-unit-is-px'];
                 const resultEl = document.getElementById('resultText');
                 if (resultEl) {
-                    resultEl.style.setProperty('--result-win-x-unit', (resultEdgeLocked || winPxToggled) ? '1px' : '1vw');
-                    resultEl.style.setProperty('--result-lose-x-unit', (resultEdgeLocked || losePxToggled) ? '1px' : '1vw');
+                    resultEl.style.setProperty('--result-win-x-unit', (resultEdgeLocked || winPxToggled) ? '1px' : 'var(--cq-vw, 1vw)');
+                    resultEl.style.setProperty('--result-lose-x-unit', (resultEdgeLocked || losePxToggled) ? '1px' : 'var(--cq-vw, 1vw)');
                 }
             }
             // startButton is shared by Start and Try Again (one DOM element,
@@ -9273,7 +9333,7 @@
                 const pxToggled = offsetFlagPrefix ? !!activeCssVars['--' + offsetFlagPrefix + '-y-offset-unit-is-px'] : false;
                 const yLocked = edgeLocked || pxToggled;
                 if (yPrefix !== '--result') {
-                    el.style.setProperty(yPrefix + '-y-unit', yLocked ? '1px' : '1vh');
+                    el.style.setProperty(yPrefix + '-y-unit', yLocked ? '1px' : 'var(--cq-vh, 1vh)');
                 }
                 el.style.setProperty(yPrefix + '-y-base', edgeLocked ? EDGE_LOCK_BASE[valign] : '50%');
                 el.style.setProperty(yPrefix + '-y-sign', edgeLocked ? EDGE_LOCK_SIGN[valign] : 1);
@@ -9286,8 +9346,8 @@
                 const losePxToggledY = !!activeCssVars['--result-lose-y-offset-unit-is-px'];
                 const resultElY = document.getElementById('resultText');
                 if (resultElY) {
-                    resultElY.style.setProperty('--result-win-y-unit', (resultEdgeLockedY || winPxToggledY) ? '1px' : '1vh');
-                    resultElY.style.setProperty('--result-lose-y-unit', (resultEdgeLockedY || losePxToggledY) ? '1px' : '1vh');
+                    resultElY.style.setProperty('--result-win-y-unit', (resultEdgeLockedY || winPxToggledY) ? '1px' : 'var(--cq-vh, 1vh)');
+                    resultElY.style.setProperty('--result-lose-y-unit', (resultEdgeLockedY || losePxToggledY) ? '1px' : 'var(--cq-vh, 1vh)');
                 }
             }
             // Same startButton-is-shared correction as align above, for
