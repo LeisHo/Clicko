@@ -7402,7 +7402,14 @@
         //     .dev-section reorders).
         //   onDrop: called once after a real drag completes, to persist the
         //     new order.
-        function setupDragReorder(handleSelector, itemSelector, onDrop) {
+        //   crossContainerSelector: omitted for the group-drag call (groups
+        //     never leave their one shared parent, same single-container
+        //     behavior as before) - passed as '.dev-section-content' for the
+        //     setting-row call, per explicit request ("make it so that i can
+        //     drag settings between groups"), letting a dragged row cross
+        //     into a DIFFERENT group's content instead of only reordering
+        //     among its own group's existing siblings.
+        function setupDragReorder(handleSelector, itemSelector, onDrop, crossContainerSelector) {
             let dragging = null;
             let startY = 0;
             let moved = false;
@@ -7502,6 +7509,48 @@
                 // dev-reorder-dragging class engaged correctly, but the DOM
                 // order never changed regardless of direction, for either
                 // group or setting drag-reorder (same shared function).
+                if (crossContainerSelector) {
+                    // Cross-group drag: re-picks the TARGET container fresh on
+                    // every move (whichever one the pointer is currently
+                    // over, or nearest by center distance if between/above/
+                    // below all of them) instead of only ever considering
+                    // dragging's OWN current parent - this is what actually
+                    // lets a setting cross into a different group, not just
+                    // reorder within the one it started in. Deliberately a
+                    // simpler "insert before the first sibling whose midpoint
+                    // is below the pointer" pass (no draggingIsBefore
+                    // direction-tracking) - that scheme only made sense for a
+                    // single fixed container; recomputing which container is
+                    // even the target on every frame makes a directional
+                    // "is dragging currently before/after" comparison
+                    // meaningless the instant the container itself changes.
+                    // Only ever searches within dragging's own tab (Desktop
+                    // and Mobile settings are different elements entirely -
+                    // crossing between tabs would be meaningless).
+                    const tabRoot = dragging.closest('#desktopTabContent, #mobileTabContent');
+                    const containers = Array.from(tabRoot.querySelectorAll(crossContainerSelector));
+                    let targetContainer = containers.find(c => {
+                        const r = c.getBoundingClientRect();
+                        return e.clientY >= r.top && e.clientY <= r.bottom;
+                    });
+                    if (!targetContainer) {
+                        let minDist = Infinity;
+                        containers.forEach(c => {
+                            const r = c.getBoundingClientRect();
+                            const dist = Math.abs(e.clientY - (r.top + r.height / 2));
+                            if (dist < minDist) { minDist = dist; targetContainer = c; }
+                        });
+                    }
+                    if (!targetContainer) return;
+                    const targetSiblings = Array.from(targetContainer.querySelectorAll(':scope > ' + itemSelector)).filter(el => el !== dragging);
+                    const before = targetSiblings.find(sib => e.clientY < sib.getBoundingClientRect().top + sib.getBoundingClientRect().height / 2);
+                    if (before) {
+                        targetContainer.insertBefore(dragging, before);
+                    } else {
+                        targetContainer.appendChild(dragging);
+                    }
+                    return;
+                }
                 const siblings = Array.from(dragging.parentElement.querySelectorAll(':scope > ' + itemSelector)).filter(el => el !== dragging);
                 for (const sib of siblings) {
                     const rect = sib.getBoundingClientRect();
@@ -7627,15 +7676,26 @@
                 tabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
                     sectionsByKey[getSectionKey(sec.querySelector('.dev-section-title'))] = sec;
                 });
+                // Built ONCE, across every row in the whole tab regardless of
+                // which section currently contains it - not per-section, the
+                // way this used to work. A row dragged into a DIFFERENT
+                // group (see setupDragReorder()'s crossContainerSelector)
+                // still lives under its ORIGINAL group in the DOM on a fresh
+                // page load (nothing has moved it yet); a per-section lookup
+                // would only ever find a row already sitting in that
+                // section, so a cross-group move could never actually be
+                // restored - appendChild below relocates the row from
+                // wherever it currently is, same as it already did for
+                // same-group reordering.
+                const rowsByKey = {};
+                tabEl.querySelectorAll('.dev-section-content > .dev-row').forEach((row, i) => {
+                    rowsByKey[getRowKey(row, i)] = row;
+                });
                 savedSections.forEach(({ key, rowKeys }) => {
                     const sec = sectionsByKey[key];
                     if (!sec) return; // unknown group - leave wherever it already is
                     tabEl.appendChild(sec); // moves to the end, in saved order -> reproduces the full saved sequence
                     const content = sec.querySelector('.dev-section-content');
-                    const rowsByKey = {};
-                    content.querySelectorAll(':scope > .dev-row').forEach((row, i) => {
-                        rowsByKey[getRowKey(row, i)] = row;
-                    });
                     (rowKeys || []).forEach(rowKey => {
                         const row = rowsByKey[rowKey];
                         if (row) content.appendChild(row);
@@ -10382,7 +10442,7 @@
         // No onDrop action needed - the DOM order itself IS the live state;
         // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
         setupDragReorder('.dev-section-title', '.dev-section', null);
-        setupDragReorder('.dev-section-content .dev-label', '.dev-row', null);
+        setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, '.dev-section-content');
         makeDevValuesEditable();
         resolvePositionSentinels();
         applyActiveVars();
