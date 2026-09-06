@@ -11592,26 +11592,30 @@
                 labelMs.classList.add('hidden');
                 return;
             }
-            // el.getBoundingClientRect() alone (matching Text Edit Mode's
-            // own bounding box) is correct at line-height 0 - the user's
-            // own direct, empirical finding from adjusting the real slider
-            // and watching where the box lands - but at a real line-height
-            // like Ms-per-click's own (>0, needed for its 3-line layout),
-            // the BOX's own top sits ABOVE where the actual glyph ink
-            // starts, by (line-height * font-size) exactly - the user's own
-            // derived formula, confirmed by their own comparison of the
-            // debug line against the real text at multiple settings.
-            // getComputedStyle's own line-height is already resolved to px
-            // (lineHeightMultiplier * fontSize, exactly what's needed) so
-            // no separate font-size read/multiply is needed. Cosmetic only
-            // - this does NOT touch --anchor-ty or any actual game
-            // positioning, only where this debug line itself is drawn.
+            // Reverted back to plain el.getBoundingClientRect() with NO
+            // line-height correction - a "+lineHeightPx" version (per the
+            // user's own first-guess formula, "top of bounding box = top
+            // of text + linespacing*fontsize") shipped briefly and was
+            // then directly reported as overshooting badly for Target
+            // ("the 2 lines are now way too long... not a simple
+            // multiplication as I had previously stated"). Re-measured
+            // carefully this time - tick marks spaced 10px apart, drawn
+            // directly ACROSS the glyph's own width (not off to the side,
+            // which risked misalignment/misreading) - at Target's real
+            // line-height (0.65, forced for a clean, controlled test) and
+            // found the glyph's own visible top lands almost exactly AT
+            // the box's own top (+0 on the ruler), no meaningful gap at
+            // all. This matches Text Edit Mode's own bounding box (plain
+            // getBoundingClientRect(), no correction) exactly, and directly
+            // contradicts the "+lineHeightPx" formula's premise that a
+            // real, non-zero line-height always needs correcting for. No
+            // further correction applied here pending confirmation this
+            // holds on the user's own real device too.
             function measureGlyphTop(el) {
                 if (!el || el.classList.contains('hidden')) return null;
                 const rect = el.getBoundingClientRect();
                 if (rect.width === 0 && rect.height === 0) return null;
-                const lineHeightPx = parseFloat(getComputedStyle(el).lineHeight) || 0;
-                return { top: rect.top + lineHeightPx, left: rect.left, width: rect.width };
+                return { top: rect.top, left: rect.left, width: rect.width };
             }
             function place(el, line, label, name) {
                 const m = measureGlyphTop(el);
