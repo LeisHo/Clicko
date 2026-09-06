@@ -115,7 +115,7 @@
     "--result-text-valign-edge-lock": 0,
     "--dev-panel-width-px": 350,
     "--dev-panel-left-px": 124,
-    "--dev-panel-top-px": 289,
+    "--dev-panel-top-px": 392,
     "--dev-panel-height-px": 443,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
@@ -200,12 +200,12 @@
     "--target-text-valign": "top",
     "--target-text-align-edge-lock": 1,
     "--target-text-valign-edge-lock": 1,
-    "--speed-font-size-px": 38.73,
-    "--speed-x-offset-vw": 34.01,
-    "--speed-y-offset-vh": 154.2,
+    "--speed-font-size-px": 43.2,
+    "--speed-x-offset-vw": 37.77,
+    "--speed-y-offset-vh": 230.22,
     "--speed-letter-spacing-px": 0,
     "--speed-line-height": 1.45,
-    "--speed-text-align": "right",
+    "--speed-text-align": "left",
     "--speed-text-valign": "top",
     "--speed-text-align-edge-lock": 1,
     "--speed-text-valign-edge-lock": 1,
@@ -550,7 +550,7 @@
     "mobile:Target Count Display": true,
     "mobile:Round Text": true,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": true
+    "mobile:Ms/Click Display": false
   },
   "sectionOrder": {
     "desktopTabContent": [
