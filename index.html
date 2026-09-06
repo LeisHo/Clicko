@@ -4010,6 +4010,11 @@
                     <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="1300">
                     <span class="dev-value" id="valueRoundPostBlinkHold">1300</span>
                 </div>
+                <div class="dev-row">
+                    <span class="dev-label">New Number Disappear After (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderRoundBlink3DisappearAfter" min="0" max="2000" step="10" value="1300">
+                    <span class="dev-value" id="valueRoundBlink3DisappearAfter">1300</span>
+                </div>
             </div>
         </div>
 
@@ -5730,6 +5735,21 @@
             // for this gap, separate from gameState.roundDuration (the
             // hold BEFORE the blink starts).
             '--round-post-blink-hold-ms': 1300,
+            // Per direct follow-up request ("there should be a disappear
+            // after Blink 3"): the NEW number now hides again this many ms
+            // after it first appears (a real 4th hide step, independent of
+            // --round-post-blink-hold-ms above). Runs as its own parallel
+            // timer rather than being chained after the hold, so the two
+            // are genuinely independent knobs; defaulted equal to the hold
+            // (1300) so out of the box the number disappears at the exact
+            // instant gameplay starts (seamless, no visible blackout gap)
+            // - shorten this below the hold's value to create a visible
+            // gap before gameplay text appears. runRoundBlinkSequence()
+            // force-reveals the number again right as gameplay starts
+            // (showTargetAndSpeed() fires), so it can never get stuck
+            // hidden regardless of how these 2 sliders are tuned relative
+            // to each other.
+            '--round-blink3-disappear-after-ms': 1300,
             '--target-font-size-px': 309.76,
             '--target-font-size-vw': 24.2,
             '--target-scale-with-browser': 0,
@@ -7197,6 +7217,7 @@
             document.documentElement.style.setProperty('--round-blink3-hide-ms', cssVars['--round-blink3-hide-ms']);
             document.documentElement.style.setProperty('--round-blink3-show-ms', cssVars['--round-blink3-show-ms']);
             document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
+            document.documentElement.style.setProperty('--round-blink3-disappear-after-ms', cssVars['--round-blink3-disappear-after-ms']);
             // Dev panel's own size/position - also single/shared (cssVars
             // only, not mobile-split - see clampDevPanelPosition()'s own
             // comment), so it needs the same unconditional push: the main
@@ -8340,6 +8361,7 @@
             'sliderRoundBlink3Hide': '--round-blink3-hide-ms',
             'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
+            'sliderRoundBlink3DisappearAfter': '--round-blink3-disappear-after-ms',
             'sliderTargetFontSize': '--target-font-size-px',
             'sliderTargetFontSizeVw': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
@@ -9956,7 +9978,22 @@
                     // hold BEFORE the blink sequence starts, above).
                     setTimeout(() => {
                         showTargetAndSpeed();
+                        // Force-reveal regardless of the disappear timer
+                        // below, so the number can never get stuck hidden
+                        // no matter how the 2 sliders are tuned relative to
+                        // each other (see --round-blink3-disappear-after-ms
+                        // comment on its own cssVars default).
+                        gameTextNumber.style.visibility = 'visible';
                     }, cssVars['--round-post-blink-hold-ms']);
+                    // Per direct follow-up request ("there should be a
+                    // disappear after Blink 3, provide a slider for that")
+                    // - a genuine 4th hide step, independent of the hold
+                    // timer above (see --round-blink3-disappear-after-ms's
+                    // own comment for why it runs as its own parallel timer
+                    // rather than chained after the hold).
+                    setTimeout(() => {
+                        gameTextNumber.style.visibility = 'hidden';
+                    }, cssVars['--round-blink3-disappear-after-ms']);
                     return;
                 }
                 const phase = phases[i++];
