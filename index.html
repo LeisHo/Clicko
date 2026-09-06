@@ -3039,7 +3039,7 @@
              copy). Font sizes/colors/opacity for the panel's own text, not
              the game's. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Dev Panel</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Title Font Size (px):</span>
@@ -3166,7 +3166,7 @@
 
         <!-- Main Button Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Diameter (vw):</span>
@@ -3301,7 +3301,7 @@
 
         <!-- Shadow Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Shadow">▼ Shadow</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (% of button width):</span>
@@ -3355,7 +3355,7 @@
 
         <!-- Click Burst Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Click Burst</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Click Burst">▼ Click Burst</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Frame Set:</span>
@@ -3495,7 +3495,7 @@
              since font is the only piece that's genuinely a single,
              page-wide stylistic choice. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ 8-Bit Text Style (Start/Try Again/Round/Win-Lose)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="8-Bit Text Style (Start/Try Again/Round/Win-Lose)">▼ 8-Bit Text Style (Start/Try Again/Round/Win-Lose)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font:</span>
@@ -3547,7 +3547,7 @@
              than duplicating a parallel set. Split into its own group,
              separate from Round Text, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Start/Try Again Button" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
                 <!-- Reordered to match Target/Speed/Ms-per-click's own
                      established field order (Font Size, Extrusion Depth,
@@ -3681,7 +3681,7 @@
              reasoning as the Flash/Hold Duration sliders above (one "?",
              not a separate one per device). -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Rotation Animation</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">"?" Animation Mode:</span>
@@ -3776,7 +3776,7 @@
              used to always match --speed-font-size-vw; now has its own
              independent slider, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="gameTextLabel">▼ Round Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Text" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
                 <!-- Reordered to match Target/Speed/Ms-per-click's own
                      established field order, per explicit request that all
@@ -3896,7 +3896,7 @@
              2-panel colors every other extruded text uses - explicit
              request so a win can read differently from a loss. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="resultText">▼ Win/Lose Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
                 <!-- Reordered (Font Size, X/Y Offset, Text Align first,
                      matching every other text section's own field order,
@@ -3990,7 +3990,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="targetCount">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (px):</span>
@@ -4062,7 +4062,7 @@
 
         <!-- Speed Display Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Speed Display (max ms between taps)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (px):</span>
@@ -4132,7 +4132,7 @@
              setting ("___ms / click") above the countdown, per explicit
              request. Same shape as every other text display section. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Font Size (px):</span>
@@ -4200,7 +4200,7 @@
 
         <!-- Game Mechanics Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Game Mechanics</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Game Mechanics">▼ Game Mechanics</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Starting Time (ms):</span>
@@ -4295,7 +4295,7 @@
 
         <!-- Background Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Background</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Background">▼ Background</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Color:</span>
@@ -4320,7 +4320,7 @@
              CLAUDE.md Section 12i. Only affects the panel's look while the
              Mobile tab is selected - see the Desktop tab's own copy. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Dev Panel</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Title Font Size (px):</span>
@@ -4362,7 +4362,7 @@
 
         <!-- Main Button Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Main Button</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Diameter (vw):</span>
@@ -4409,7 +4409,7 @@
 
         <!-- Shadow Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Shadow</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Shadow">▼ Shadow</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Shadow X (% of button width):</span>
@@ -4457,7 +4457,7 @@
         <!-- Click Burst Section (frame set itself is shared, not per-device -
              see updateClickFrameSet()'s own note) -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Click Burst</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Click Burst">▼ Click Burst</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Animation Speed (ms):</span>
@@ -4540,7 +4540,7 @@
              see the desktop section's own comment) - only depth/colors/
              overall-border are mobile-split. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="8-Bit Text Style (Start/Try Again/Win-Lose)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">Win/Lose Extrusion Depth (px):</span>
@@ -4563,7 +4563,7 @@
              section's own comment for the full explanation. Split into its
              own group, separate from Round Text, per explicit request. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Start/Try Again Button" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
                 <!-- Reordered to match the desktop section's own established
                      field order per explicit request that all text settings
@@ -4654,7 +4654,7 @@
              copy). Mode/Speed/Tweening/Min Width/Extrusion-Matches-Glyph
              stay single/shared, controlled only from the Desktop tab. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)">▼ Rotation Animation</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">"?" Font Size (px):</span>
@@ -4688,7 +4688,7 @@
              explicit request. Font size used to always match
              --speed-font-size-vw; now has its own independent slider. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="gameTextLabel">▼ Round Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Text" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
                 <!-- Reordered to match the desktop section's own established
                      field order per explicit request that all text settings
@@ -4751,7 +4751,7 @@
 
         <!-- Win/Lose Text Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="resultText">▼ Win/Lose Text</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
                 <!-- Reordered to match the desktop section's own established
                      field order per explicit request that all text settings
@@ -4824,7 +4824,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="targetCount">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -4890,7 +4890,7 @@
 
         <!-- Speed Display Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Speed Display (max ms between taps)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -4953,7 +4953,7 @@
 
         <!-- Ms Per Click Display Section (Mobile) -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -6826,7 +6826,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -6889,7 +6889,7 @@
         // own exception), so this falls back to localStorage instead. See
         // acquireSavedSettings() for the matching read-back side.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -7155,6 +7155,12 @@
                     applyClickBurstTextInputs();
                     applySectionOrder(settings.sectionOrder);
                     applySectionCollapseState(settings.sectionCollapseState);
+                    // Rendered later by applyDevTextOverrides() (called from
+                    // the outer async settings-load IIFE, after this whole
+                    // function returns) - just restoring the data here,
+                    // matching every other settings.X -> liveState Object.assign
+                    // above.
+                    if (settings.devTextOverrides) Object.assign(devTextOverrides, settings.devTextOverrides);
                     // Generic slider display-sync-after-load - every
                     // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP-driven slider's
                     // underlying value already restores correctly via the
@@ -7363,6 +7369,13 @@
         let sectionJustDragged = false;
         function toggleSection(titleEl) {
             if (sectionJustDragged) { sectionJustDragged = false; return; }
+            // Text Edit Mode repurposes a title click into renaming it
+            // instead of collapsing its group - see openDevTextEditFor()'s
+            // own comment.
+            if (typeof textEditModeEnabled !== 'undefined' && textEditModeEnabled) {
+                openDevTextEditFor(titleEl, getSectionKey(titleEl), true);
+                return;
+            }
             const content = titleEl.nextElementSibling;
             content.classList.toggle('collapsed');
             titleEl.textContent = content.classList.contains('collapsed') ? '▶ ' + titleEl.textContent.slice(2) : '▼ ' + titleEl.textContent.slice(2);
@@ -7542,7 +7555,14 @@
         // own "Round Text"/etc, hence the tab prefix.
         function getSectionKey(titleEl) {
             const tab = titleEl.closest('#desktopTabContent') ? 'desktop' : 'mobile';
-            return tab + ':' + titleEl.textContent.replace(/^[▼▶]\s*/, '');
+            // data-sid is a frozen copy of this title's ORIGINAL text (see the
+            // one-off script that added it to every .dev-section-title),
+            // captured once so collapse-state/order stay correctly keyed even
+            // after Dev Panel Text Edit Mode renames the VISIBLE title -
+            // falls back to live text for any title that somehow lacks it
+            // (shouldn't happen, but keeps this from ever mis-keying instead
+            // of just degrading to the pre-data-sid behavior).
+            return tab + ':' + (titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, ''));
         }
         function captureSectionCollapseState() {
             const state = {};
@@ -8386,6 +8406,134 @@
                     openTextEditFor(titleEl.dataset.textEditTarget);
                 });
             });
+        }
+
+        // Dev Panel's own text (group/section titles, individual setting
+        // labels) is ALSO renameable in Text Edit Mode - per explicit
+        // follow-up request ("i should be able to edit Dev Panel text as
+        // well (Dev Panel Header group text, settings text, etc)"). Unlike
+        // TEXT_EDIT_TARGETS above (a handful of named elements, each with
+        // real state-dependent slots like Start/Try Again), every editable
+        // Dev Panel text is just itself - one key, one string, no slot
+        // branching - so this is a flat key->text map instead of a second
+        // TEXT_EDIT_TARGETS-shaped table. Keys reuse identifiers this file
+        // already treats as stable/reorder-proof for the exact same reason:
+        // section titles use getSectionKey() (data-sid-backed - see its own
+        // comment, added specifically so renaming a title can't silently
+        // break its collapse-state/order persistence); setting labels reuse
+        // getRowKey()'s own convention (the row's one real control id)
+        // directly, since every real .dev-label already sits in a .dev-row
+        // with exactly one [id] element.
+        let devTextOverrides = {};
+        // Captured once, the first time each key is actually seen - the
+        // un-overridden text to fall back to and to offer for editing when
+        // no override is stored yet. Derived from the DOM itself (there are
+        // 26 section titles + ~300 setting labels - hand-listing every
+        // default the way TEXT_OVERRIDE_DEFAULTS does for the ~8 game-text
+        // slots would just duplicate what the HTML already says).
+        const devTextOriginals = {};
+
+        function getDevLabelKey(labelEl) {
+            const row = labelEl.closest('.dev-row');
+            const control = row ? row.querySelector('[id]') : null;
+            return control ? control.id : null; // no stable key available - don't offer editing
+        }
+
+        function devTextOriginalFor(key, currentText) {
+            if (!(key in devTextOriginals)) devTextOriginals[key] = currentText;
+            return devTextOriginals[key];
+        }
+
+        // Renders every currently-known override (or each element's own
+        // original text) - called once on initial paint (capturing true
+        // originals into devTextOriginals, since devTextOverrides starts
+        // empty) and again after a settings load resolves (this time
+        // actually applying whatever was restored), same 2-pass pattern as
+        // every other setting in this file. Section titles keep their own
+        // "▼ "/"▶ " collapse arrow (2 chars) untouched, only the text after
+        // it is ever read as - or replaced by - an override, matching
+        // toggleSection()'s own slice(2) convention exactly.
+        function applyDevTextOverrides() {
+            document.querySelectorAll('.dev-section-title').forEach(titleEl => {
+                const key = getSectionKey(titleEl);
+                const arrow = titleEl.textContent.slice(0, 2);
+                const original = devTextOriginalFor(key, titleEl.textContent.slice(2));
+                titleEl.textContent = arrow + (devTextOverrides[key] != null ? devTextOverrides[key] : original);
+            });
+            document.querySelectorAll('.dev-label').forEach(labelEl => {
+                const key = getDevLabelKey(labelEl);
+                if (!key) return;
+                const original = devTextOriginalFor(key, labelEl.textContent);
+                labelEl.textContent = devTextOverrides[key] != null ? devTextOverrides[key] : original;
+            });
+        }
+
+        // Generic dev-panel text editor - same textarea-swap UX as
+        // openTextEditFor() above, without that function's slot/prefix
+        // machinery (nothing here has more than one possible string).
+        // isTitle controls whether the leading "▼ "/"▶ " arrow is preserved
+        // outside the editable text.
+        function openDevTextEditFor(el, key, isTitle) {
+            if (!key || el.querySelector('.text-edit-input')) return;
+            const arrow = isTitle ? el.textContent.slice(0, 2) : '';
+            const original = devTextOriginalFor(key, isTitle ? el.textContent.slice(2) : el.textContent);
+            const currentValue = devTextOverrides[key] != null ? devTextOverrides[key] : original;
+            const originalHTML = el.innerHTML;
+            const input = document.createElement('textarea');
+            input.className = 'text-edit-input';
+            input.rows = 1;
+            input.value = currentValue;
+            el.textContent = '';
+            if (isTitle) el.appendChild(document.createTextNode(arrow));
+            el.appendChild(input);
+            input.focus();
+            input.select();
+            // Stop this drag-handle element's own document-level pointerdown
+            // listener (setupDragReorder) from ever seeing events that
+            // originate inside the textarea - otherwise selecting/typing
+            // text could be misread as the start of a reorder-drag.
+            input.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+            input.addEventListener('click', (ev) => ev.stopPropagation());
+            let settled = false;
+            function commit() {
+                if (settled) return;
+                settled = true;
+                const typed = input.value;
+                devTextOverrides[key] = (typed === '' || typed === original) ? null : typed;
+                el.textContent = arrow + (devTextOverrides[key] != null ? devTextOverrides[key] : original);
+            }
+            function cancel() {
+                if (settled) return;
+                settled = true;
+                el.innerHTML = originalHTML;
+            }
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); input.blur(); }
+                else if (ev.key === 'Escape') cancel();
+            });
+        }
+
+        // Setting-label click-to-edit - delegated single listener on the
+        // panel itself rather than one per label (~300 of them). Capture
+        // phase + preventDefault so clicking a checkbox row's label text
+        // doesn't also toggle that checkbox (native <label> behavior -
+        // clicking anywhere inside a <label> activates its associated
+        // control unless the click's default is prevented). Section titles
+        // don't need an entry here - toggleSection() IS their click handler
+        // already (inline onclick), intercepted there instead of adding a
+        // second, competing listener on the same element.
+        function setupDevPanelTextEdit() {
+            devPanel.addEventListener('click', (e) => {
+                if (!textEditModeEnabled) return;
+                const label = e.target.closest('.dev-label');
+                if (!label) return;
+                if (label.querySelector('.text-edit-input')) return;
+                if (sectionJustDragged) { sectionJustDragged = false; return; }
+                e.preventDefault();
+                e.stopPropagation();
+                openDevTextEditFor(label, getDevLabelKey(label), false);
+            }, true);
         }
 
         // Per explicit request ("make sure all color pickers in the dev
@@ -10229,6 +10377,7 @@
         setupTextEdgeLockCheckboxes();
         setupTextEditMode();
         setupTextEditPanelTriggers();
+        setupDevPanelTextEdit();
         setupClickBurstTextInputs();
         // No onDrop action needed - the DOM order itself IS the live state;
         // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
@@ -10238,6 +10387,11 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
+        // Captures every dev-panel label/title's TRUE original text into
+        // devTextOriginals (devTextOverrides is still empty at this point) -
+        // re-run below once the settings fetch resolves to actually apply
+        // any restored overrides on top of these now-known originals.
+        applyDevTextOverrides();
         // Idle/landing-screen state - resetGameplayState() was defined but
         // never actually called anywhere (confirmed via a full-file grep),
         // so gameText/targetCount/speedDisplay/msPerClickDisplay - none of
@@ -10271,6 +10425,13 @@
                 // mobileCssVars - harmless no-op re-push if nothing changed.
                 applyActiveVars();
                 applyExtrusionStyles();
+                // Apply any restored devTextOverrides now that
+                // applyLoadedSettings() (inside loadSettings() above) has
+                // had a chance to populate them - devTextOriginals is
+                // already correctly populated from the synchronous initial
+                // paint's own earlier call, so this call only ever changes
+                // text where a real override exists.
+                applyDevTextOverrides();
                 // Apply a restored --flip-button-svg even though the checkbox
                 // itself won't visually reflect it (loadSettings() doesn't sync any
                 // control's displayed value from a restored setting - a pre-existing
