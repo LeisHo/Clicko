@@ -11837,7 +11837,7 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
-        // One-time re-measurement of --extrusion-font-content-ratio (see
+        // Re-measurement of --extrusion-font-content-ratio (see
         // computeAnchorTy()'s own comment) once the real webfont has
         // ACTUALLY finished loading - the call above already measured it
         // against whichever font was active at that instant, almost
@@ -11847,14 +11847,38 @@
         // value here is enough for every element to repaint correctly on
         // the browser's own next paint - no need to re-run
         // applyTextAlignAnchors() or touch any per-element style again.
-        // Deliberately a single top-level hook, not something re-scheduled
-        // on every call (see this project's own prior history with a
-        // recursive version of this pattern corrupting state under a
-        // mocked fonts object that never actually resolved) - this form
-        // can only ever run once.
-        document.fonts.ready.then(() => {
+        //
+        // Uses BOTH document.fonts.ready AND a 'loadingdone' listener,
+        // not just .ready alone - per direct report ("Target text
+        // gradually shifts down" persisting after the .ready-only
+        // version shipped), confirmed via a 2nd frame-by-frame pixel-
+        // measured recording showing the same smooth, resize-proportional
+        // drift the font-ratio fix was supposed to eliminate. Root cause:
+        // document.fonts.ready is a snapshot of whatever's in
+        // document.fonts AT THE MOMENT it's first accessed - this script
+        // runs at the top of page load, plausibly before the external
+        // Google Fonts <link> (in <head>, per-request network fetch) has
+        // even registered "Micro 5" as a pending FontFace at all, in
+        // which case .ready can resolve against an effectively-empty set
+        // and never fire again once Micro 5 actually starts (and later
+        // finishes) loading - a documented race with externally-linked,
+        // display=swap webfonts, not obviously reproducible in THIS
+        // session's own testing tool (its browser profile already has
+        // Micro 5 HTTP-cached from many earlier navigations this session,
+        // so .ready alone always happened to resolve correctly here,
+        // masking the race). 'loadingdone' fires every time a FontFaceSet
+        // loading operation completes, including one that only became
+        // pending after .ready's own initial snapshot - reliably catches
+        // the late-registration case .ready alone can miss. Both handlers
+        // call the same idempotent re-measure (safe to run more than
+        // once - always converges to the same correct ratio for whichever
+        // font is genuinely active), so no ordering or double-fire risk
+        // between the two.
+        function refreshFontContentRatio() {
             document.documentElement.style.setProperty('--extrusion-font-content-ratio', measureFontContentRatio(extrusionVars.font));
-        });
+        }
+        document.fonts.ready.then(refreshFontContentRatio);
+        document.fonts.addEventListener('loadingdone', refreshFontContentRatio);
         // Captures every dev-panel label/title's TRUE original text into
         // devTextOriginals (devTextOverrides is still empty at this point) -
         // re-run below once the settings fetch resolves to actually apply
