@@ -1243,6 +1243,27 @@
                and still wraps at a constrained width, same as pre-line
                did - pre-wrap is a strict superset of what was needed here. */
             white-space: pre-wrap;
+            /* Trims the CSS line-height "leading" space above the first
+               line's own glyph, so this element's own top edge (the "top"
+               property above, i.e. the offset number typed into the Y
+               Offset slider) lands EXACTLY at the glyph's own cap-height,
+               regardless of line-height/font-size/line-count - per direct
+               user find ("it is the leading-trim function"; the current,
+               working property names are text-box-trim/text-box-edge, not
+               the old draft names leading-trim/text-edge the user found).
+               Replaces an entire session-long investigation (idempotency
+               fixes, ResizeObservers, several rounds of hand-derived
+               calc() compensation formulas, all eventually reverted) that
+               tried to COMPUTE this offset instead of asking the browser
+               to remove it directly - confirmed live via CSS.supports()
+               and a real before/after comparison that this genuinely
+               closes the gap. Unsupported browsers simply ignore these 2
+               properties (invalid-property values are dropped per normal
+               CSS parsing) and silently keep today's un-trimmed
+               behavior - no @supports guard needed, since that's already
+               the shipping behavior everywhere until this lands. */
+            text-box-trim: trim-start;
+            text-box-edge: cap alphabetic;
         }
 
         .target-count.hidden {
@@ -1311,6 +1332,12 @@
                and still wraps at a constrained width, same as pre-line
                did - pre-wrap is a strict superset of what was needed here. */
             white-space: pre-wrap;
+            /* See .target-count's own comment - same fix, same reasoning.
+               This is the element the whole line-height investigation
+               centered on (its 3-line layout is what needed a real,
+               non-zero line-height in the first place). */
+            text-box-trim: trim-start;
+            text-box-edge: cap alphabetic;
         }
 
         .ms-per-click-display.hidden {
