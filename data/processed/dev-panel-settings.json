@@ -333,7 +333,7 @@
   },
   "gameMechanics": {
     "sliderStartingSpeed": 500,
-    "sliderSpeedDecrease": 100,
+    "sliderSpeedDecrease": 85,
     "sliderSpeedDecreaseDecay": 85,
     "sliderSpeedDecreaseDecayTolerance": 2,
     "sliderSpeedTimeRounding": 1,
