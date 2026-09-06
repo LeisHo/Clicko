@@ -105,13 +105,13 @@
     "--speed-text-valign": "bottom",
     "--speed-text-align-edge-lock": 1,
     "--speed-text-valign-edge-lock": 1,
-    "--ms-per-click-font-size-px": 127.5,
-    "--ms-per-click-font-size-vw": 5.46,
+    "--ms-per-click-font-size-px": 132.47,
+    "--ms-per-click-font-size-vw": 9.38,
     "--ms-per-click-scale-with-browser": 0,
     "--ms-per-click-x-offset-vw": 50,
     "--ms-per-click-y-offset-vh": 80.61,
-    "--ms-per-click-letter-spacing-px": -0.5,
-    "--ms-per-click-line-height": 0.65,
+    "--ms-per-click-letter-spacing-px": 7.5,
+    "--ms-per-click-line-height": 0.7,
     "--ms-per-click-text-align": "right",
     "--ms-per-click-text-valign": "top",
     "--ms-per-click-text-align-edge-lock": 1,
@@ -425,7 +425,7 @@
     "winSymbol": null,
     "loseSymbol": null,
     "speedSuffix": null,
-    "msPerClickSuffix": " ms\n/  \nCLICK",
+    "msPerClickSuffix": " ms\n/ \nCLICK",
     "targetPrefix": null
   },
   "mobileTextOverrides": {
@@ -444,7 +444,7 @@
     "resultText": null,
     "speedDisplay": 540.1875,
     "targetCount": null,
-    "msPerClickDisplay": 290.640625
+    "msPerClickDisplay": 442.640625
   },
   "clickBurstFrameVars": {
     "CLICK1": {
@@ -557,7 +557,7 @@
     "desktop:Round Text": true,
     "desktop:Win/Lose Text": true,
     "desktop:Target Count Display": true,
-    "desktop:Speed Display (max ms between taps)": false,
+    "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": false,
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
