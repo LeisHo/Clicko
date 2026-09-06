@@ -514,28 +514,21 @@
             touch-action: manipulation;
             outline: none;
             transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vw));
-            /* Instant (0ms) by default, deliberately - under rapid tapping, a
-               running transition can still be mid-flight when the next
-               press/release fires, so the visible up/down movement falls
-               behind and stops reflecting each individual click even though
-               the underlying .pressed class (and the game logic) toggles
-               correctly every time. --button-release-ms and --button-press-ms
-               (both dev-panel sliders, default per their own cssVars) exist
-               for deliberately choosing non-zero values anyway - a real
-               tradeoff: above 0, rapid taps CAN interrupt a still-easing
-               transition, reintroducing the exact lag this was originally
-               kept at 0 to avoid. Press and release now have fully
-               independent durations - per explicit request ("provide me a
-               slider for press speed, which is how fast the button goes
-               down"). A one-directional CSS transition (only easing one of
-               the two directions) isn't expressible with a single static
-               rule, so this reads --button-active-transition-ms instead of
-               either duration var directly - handleGameButtonPress()/
-               handleGameButtonRelease() set it to --button-press-ms/
-               --button-release-ms respectively, immediately before toggling
-               the .pressed class each time, so the transition already in
-               progress for THIS state change uses the right duration. */
-            transition: transform calc(var(--button-active-transition-ms, 0) * 1ms) ease-out;
+            /* No static transition rule here - press/release each need their own
+               independent duration (--button-press-ms/--button-release-ms, both
+               dev-panel sliders), which a single CSS rule can't express since a
+               transition applies the same way in both directions. Instead,
+               handleGameButtonPress()/handleGameButtonRelease() set this
+               element's `transition` inline, directly and completely, right
+               before toggling .pressed each time - a real (>0ms) duration gets
+               `transform <ms>ms ease-out`; a genuinely zero duration gets
+               `none` (not a 0ms transition) so it's never subject to the real
+               tradeoff a non-zero duration accepts: under rapid tapping, a
+               still-easing transition can be mid-flight when the next press/
+               release fires, and a 0ms transition can apparently still inherit
+               that unsettled state rather than applying atomically - a real,
+               reproduced bug, not a hypothetical. See both handlers' own
+               comments for the instant-path detail. */
             /* Only the SVG's actual painted pixels are clickable, not this element's
                full rectangular box - the child svg below opts back into hit-testing
                and browsers only hit-test an SVG's visible painted area by default. */
@@ -5183,8 +5176,8 @@
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': -1,
             '--button-y-offset-vh': 6.76,
-            '--button-release-ms': 10,
-            '--button-press-ms': 10,
+            '--button-release-ms': 0,
+            '--button-press-ms': 0,
             // Base/backing recolor - grayscale+levels+multiply-tint (see
             // #baseGrayscaleTint filter defs), replacing the old hue-rotate
             // approach which could never reach white/gray from the red
@@ -9489,7 +9482,13 @@
             const activeCssVarsForPress = isMobileActive() ? mobileCssVars : cssVars;
             const pressMs = activeCssVarsForPress['--button-press-ms'];
             if (pressMs > 0) {
-                gameButton.style.setProperty('--button-active-transition-ms', pressMs);
+                // Set the transition inline, directly and completely, rather than
+                // through --button-active-transition-ms - a leftover non-zero
+                // value in that custom property (from an earlier non-zero-
+                // duration press/release) would otherwise survive into a LATER
+                // zero-duration one, since the zero branch below never touches
+                // it, only overrides the `transition` shorthand it feeds.
+                gameButton.style.transition = `transform ${pressMs}ms ease-out`;
                 gameButton.classList.add('pressed');
             } else {
                 // transition:none (not just a 0ms transition) forces the pressed
@@ -9500,7 +9499,6 @@
                 gameButton.style.transition = 'none';
                 gameButton.classList.add('pressed');
                 void gameButton.offsetHeight;
-                gameButton.style.transition = '';
             }
             shadowCasterButtonLayer.classList.add('pressed');
             setShadowButtonPressed(true);
@@ -9696,15 +9694,16 @@
             const activeCssVarsForRelease = isMobileActive() ? mobileCssVars : cssVars;
             const releaseMs = activeCssVarsForRelease['--button-release-ms'];
             if (releaseMs > 0) {
-                gameButton.style.setProperty('--button-active-transition-ms', releaseMs);
+                // See handleGameButtonPress()'s matching branch for why this is
+                // set directly rather than through --button-active-transition-ms.
+                gameButton.style.transition = `transform ${releaseMs}ms ease-out`;
                 gameButton.classList.remove('pressed');
             } else {
-                // See handleGameButtonPress()'s matching branch - transition:none
-                // guarantees instant release even mid-interrupted-transition.
+                // transition:none guarantees instant release even mid-
+                // interrupted-transition - see handleGameButtonPress().
                 gameButton.style.transition = 'none';
                 gameButton.classList.remove('pressed');
                 void gameButton.offsetHeight;
-                gameButton.style.transition = '';
             }
             shadowCasterButtonLayer.classList.remove('pressed');
             setShadowButtonPressed(false);
