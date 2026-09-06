@@ -163,7 +163,7 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 267,
+    "--dev-panel-width-px": 252,
     "--dev-panel-left-px": 26,
     "--dev-panel-top-px": 217,
     "--dev-panel-height-px": 688,
@@ -265,8 +265,8 @@
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
-    "--target-y-offset-vh": -2.88847420417124,
-    "--target-y-offset-unit-is-px": 0,
+    "--target-y-offset-vh": -26.3279,
+    "--target-y-offset-unit-is-px": 1,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 0.65,
     "--target-text-align": "left",
@@ -291,8 +291,8 @@
     "--ms-per-click-scale-with-browser": 1,
     "--ms-per-click-x-offset-vw": 49.25,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-y-offset-vh": 36,
-    "--ms-per-click-y-offset-unit-is-px": 0,
+    "--ms-per-click-y-offset-vh": 6.7,
+    "--ms-per-click-y-offset-unit-is-px": 1,
     "--ms-per-click-letter-spacing-px": -0.5,
     "--ms-per-click-line-height": 0.65,
     "--ms-per-click-text-align": "right",
@@ -650,7 +650,7 @@
     "mobile:Win/Lose Text": true,
     "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": true
+    "mobile:Ms/Click Display": false
   },
   "sectionOrder": {
     "desktopTabContent": [
