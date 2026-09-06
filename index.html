@@ -964,14 +964,11 @@
            win can read differently from a loss. */
         .result-text {
             position: absolute;
-            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-x-offset-vw) * var(--result-x-unit, 1vw));
-            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-y-offset-vh) * var(--result-y-unit, 1vh));
             /* Rotated 90deg on top of the usual centering translate - the
                ":)"/":(" glyphs in the pixel font used here render in a way
                that only reads as a correct smiley face once turned on its
                side, per direct visual confirmation. */
             transform: translate(-50%, var(--anchor-ty, -50%)) rotate(90deg);
-            font-size: calc(var(--result-font-size-px) * 1px);
             line-height: var(--result-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
@@ -988,12 +985,24 @@
             z-index: 10;
         }
 
+        /* Font Size/X/Y split into independent Win vs Lose sets - per
+           explicit request ("font size and xy sliders for both Win and
+           Lose text"), matching the fill/border colors below which were
+           already split this way. --result-x-base/-sign/-unit (the Edge
+           Lock mechanism) stay shared - only the tuned offset/size differ
+           per state, not the alignment/anchor behavior. */
         .result-text.result-win {
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-x-unit, 1vw));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-y-unit, 1vh));
+            font-size: calc(var(--result-win-font-size-px) * 1px);
             color: var(--result-win-fill-color);
             text-shadow: var(--result-win-shadow);
         }
 
         .result-text.result-lose {
+            left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-x-unit, 1vw));
+            top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-y-unit, 1vh));
+            font-size: calc(var(--result-lose-font-size-px) * 1px);
             color: var(--result-lose-fill-color);
             text-shadow: var(--result-lose-shadow);
         }
@@ -1354,9 +1363,13 @@
             min-height: 120px;
             max-width: 92vw;
             max-height: 92vh;
-            font-size: calc(var(--dev-body-font-size-px) * 1px);
+            /* "Body Text Font Size" was removed as a redundant duplicate of
+               Setting Title Font Size (per explicit request - "by body text
+               i just meant settings text") - this base/cascade size now
+               reads that slider directly instead of its own separate one. */
+            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
             z-index: 99999;
-            font-family: monospace;
+            font-family: var(--dev-panel-font-family, monospace);
             border-left: 2px solid var(--dev-accent-color);
             display: flex;
             flex-direction: column;
@@ -1578,19 +1591,49 @@
         .dev-panel-resize-corner.corner-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
         .dev-panel-resize-corner.corner-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
 
-        /* Only the bottom-right corner gets a visible grip icon, matching
-           the common OS/app convention of one primary resize affordance -
-           the other 7 are real, working hit zones, just not visually
-           marked, to avoid cluttering the panel's edges. */
-        .dev-panel-resize-corner.corner-br::after {
+        /* All 4 corners get the same visible grip icon (previously only
+           bottom-right) - per explicit request. Same diagonal-stripe
+           pattern reused for all 4 rather than 4 differently-rotated
+           variants, matching this panel's existing "not cluttered" look. */
+        .dev-panel-resize-corner::after {
             content: '';
             position: absolute;
-            right: 2px;
-            bottom: 2px;
             width: 14px;
             height: 14px;
             background-image: repeating-linear-gradient(135deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
             opacity: 0.7;
+        }
+        .dev-panel-resize-corner.corner-tl::after { top: 2px; left: 2px; }
+        .dev-panel-resize-corner.corner-tr::after { top: 2px; right: 2px; }
+        .dev-panel-resize-corner.corner-bl::after { bottom: 2px; left: 2px; }
+        .dev-panel-resize-corner.corner-br::after { bottom: 2px; right: 2px; }
+
+        /* Matching grip marks at the center of each edge strip - per
+           explicit request for "a similar visual but on the center of the
+           edges". A short bar, oriented along the edge's own resize axis
+           (horizontal bar for the top/bottom edges' ns-resize, vertical bar
+           for left/right's ew-resize), same accent color/opacity as the
+           corner grips. */
+        .dev-panel-resize-edge::after {
+            content: '';
+            position: absolute;
+            background: var(--dev-accent-color);
+            opacity: 0.7;
+            border-radius: 1px;
+        }
+        .dev-panel-resize-edge.edge-top::after, .dev-panel-resize-edge.edge-bottom::after {
+            left: 50%;
+            top: 50%;
+            width: 14px;
+            height: 3px;
+            transform: translate(-50%, -50%);
+        }
+        .dev-panel-resize-edge.edge-left::after, .dev-panel-resize-edge.edge-right::after {
+            left: 50%;
+            top: 50%;
+            width: 3px;
+            height: 14px;
+            transform: translate(-50%, -50%);
         }
 
         .dev-panel.hidden {
@@ -1681,7 +1724,12 @@
             border: none;
             border-radius: 3px;
             width: 22px;
-            height: calc(var(--dev-button-height-px) * 1px);
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            padding-top: calc(var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 14px;
             font-weight: bold;
             line-height: 1;
@@ -1708,7 +1756,12 @@
             border: none;
             border-radius: 3px;
             width: 22px;
-            height: calc(var(--dev-button-height-px) * 1px);
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            padding-top: calc(var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 14px;
             font-weight: bold;
             line-height: 1;
@@ -1733,8 +1786,13 @@
             color: var(--dev-accent-color);
             border: 1px solid var(--dev-accent-color);
             border-radius: 3px;
-            height: calc(var(--dev-button-height-px) * 1px);
-            font-family: monospace;
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            padding-top: calc(var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--dev-panel-font-family, monospace);
             font-size: calc(var(--dev-tab-font-size-px) * 1px);
             font-weight: bold;
             cursor: pointer;
@@ -1781,14 +1839,19 @@
            a small trailing label so a failed/skipped sync (e.g. the backend
            env vars aren't set up yet) doesn't look like a broken Save. */
         .dev-save-sync-status {
-            font-size: calc(var(--dev-body-font-size-px) * 1px);
+            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
             white-space: nowrap;
             flex-shrink: 0;
         }
 
         .dev-buttons button {
             flex: 1;
-            height: calc(var(--dev-button-height-px) * 1px);
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            padding-top: calc(var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 10px;
             background: var(--dev-accent-color);
             color: #000;
@@ -1807,16 +1870,22 @@
            --dev-setting-title-font-size-px) instead of a hardcoded size, so
            it scales along with the rest of the panel's text. */
         .dev-trigger-btn {
-            padding: 3px 8px;
+            padding-left: 8px;
+            padding-right: 8px;
+            padding-top: calc(3px + var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(3px + var(--dev-button-text-border-px) * 1px);
             font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
-            height: calc(var(--dev-button-height-px) * 0.75px);
+            min-height: calc(var(--dev-button-height-px) * 0.75px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: var(--dev-accent-color);
             color: #000;
             border: none;
             border-radius: 3px;
             cursor: pointer;
             font-weight: bold;
-            font-family: monospace;
+            font-family: var(--dev-panel-font-family, monospace);
         }
 
         .dev-trigger-btn:hover {
@@ -1915,6 +1984,12 @@
             min-width: 130px;
             height: 18px;
             cursor: pointer;
+            /* Native thumb/track tint - previously the browser default
+               blue, per explicit request ("Color of slider, which is
+               currently blue"). A separate control from --dev-accent-color,
+               which never governed this (see the Dev Panel group's own
+               comment on that var). */
+            accent-color: var(--dev-slider-color);
         }
 
         .dev-value {
@@ -1939,7 +2014,7 @@
             background: #000;
             color: var(--dev-accent-color);
             border: 1px solid var(--dev-accent-color);
-            font-family: monospace;
+            font-family: var(--dev-panel-font-family, monospace);
             font-size: 10px;
             text-align: right;
             padding: 0;
@@ -1953,7 +2028,7 @@
             background: #000;
             color: var(--dev-accent-color);
             border: 1px solid var(--dev-accent-color);
-            font-family: monospace;
+            font-family: var(--dev-panel-font-family, monospace);
             font-size: 11px;
             text-align: right;
             padding: 2px 4px;
@@ -1968,8 +2043,15 @@
         }
 
         .dev-color-picker {
-            width: 50px;
-            height: 30px;
+            /* Scales with Settings Text (Setting Title Font Size) - per
+               explicit request ("when i size my Settings text small, the
+               color pickers shoulda also scale with them"). Ratios (5x/3x)
+               reproduce the previous fixed 50x30 exactly at the Mobile
+               tab's own default (10px) and land very close at Desktop's
+               (9px, ~45x27) - a small, disclosed default difference, same
+               category as this group's other minor default deltas. */
+            width: calc(var(--dev-setting-title-font-size-px) * 5px);
+            height: calc(var(--dev-setting-title-font-size-px) * 3px);
             border: 1px solid var(--dev-accent-color);
             border-radius: 3px;
             cursor: pointer;
@@ -1997,8 +2079,29 @@
             padding: 4px;
             border-radius: 3px;
             cursor: pointer;
-            font-family: monospace;
+            font-family: var(--dev-panel-font-family, monospace);
             font-size: 10px;
+        }
+
+        /* 4 independent capitalize toggles - CLAUDE.md Section 12n #1
+           (decompose, don't bundle): each text category gets its own
+           checkbox/class rather than one shared "capitalize everything"
+           toggle. Classes are applied on .dev-panel itself by
+           applyDevPanelOwnStyling() (see DEV_PANEL_CAPS_CLASS_MAP). */
+        .dev-panel.dev-caps-button-text .dev-buttons button,
+        .dev-panel.dev-caps-button-text .dev-hide-btn,
+        .dev-panel.dev-caps-button-text .dev-collapse-btn,
+        .dev-panel.dev-caps-button-text .dev-trigger-btn {
+            text-transform: uppercase;
+        }
+        .dev-panel.dev-caps-tab-text .dev-tab-btn {
+            text-transform: uppercase;
+        }
+        .dev-panel.dev-caps-group-names .dev-section-title {
+            text-transform: uppercase;
+        }
+        .dev-panel.dev-caps-settings-text .dev-label {
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -2506,7 +2609,7 @@
         <div class="dev-panel-scroll-content">
         <div class="dev-header">
             <div class="dev-panel-title">
-                DEV
+                DEV PANEL
             </div>
             <div class="dev-header-buttons">
                 <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
@@ -2619,14 +2722,35 @@
                     <span class="dev-value" id="valueDevSettingTitleFontSize">10</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Body Text Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderDevBodyFontSize" min="6" max="30" step="1" value="11">
-                    <span class="dev-value" id="valueDevBodyFontSize">11</span>
+                    <span class="dev-label">Button Text Border (px):</span>
+                    <input type="range" class="dev-slider" id="sliderDevButtonTextBorder" min="0" max="20" step="1" value="0">
+                    <span class="dev-value" id="valueDevButtonTextBorder">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Scroll Strength (x):</span>
+                    <input type="range" class="dev-slider" id="sliderDevScrollStrength" min="0.2" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueDevScrollStrength">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Opacity:</span>
                     <input type="range" class="dev-slider" id="sliderDevPanelOpacity" min="0.1" max="1" step="0.01" value="1">
                     <span class="dev-value" id="valueDevPanelOpacity">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font (All Text):</span>
+                    <select class="dev-select" id="selectDevPanelFontFamily">
+                        <option value="monospace">Monospace (Default)</option>
+                        <option value="Arial, Helvetica, sans-serif">Arial</option>
+                        <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+                        <option value="'Segoe UI', Arial, sans-serif">Segoe UI</option>
+                        <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                        <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+                        <option value="'Trebuchet MS', Arial, sans-serif">Trebuchet MS</option>
+                        <option value="'Century Gothic', Arial, sans-serif">Century Gothic</option>
+                        <option value="Calibri, Arial, sans-serif">Calibri</option>
+                        <option value="'Lucida Sans Unicode', Arial, sans-serif">Lucida Sans</option>
+                        <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
+                    </select>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Background Color:</span>
@@ -2645,9 +2769,37 @@
                     <input type="color" class="dev-color-picker" id="colorDevPanelAccent" value="#00ff00">
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Slider Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorDevPanelSliderColor" value="#3b82f6">
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Button Height (px):</span>
                     <input type="range" class="dev-slider" id="sliderDevButtonHeight" min="12" max="60" step="1" value="24">
                     <span class="dev-value" id="valueDevButtonHeight">24</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxDevCapsButtonText">
+                        <span class="dev-label" style="min-width:auto;">Capitalize Button Text</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxDevCapsTabText">
+                        <span class="dev-label" style="min-width:auto;">Capitalize Tab Text</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxDevCapsGroupNames">
+                        <span class="dev-label" style="min-width:auto;">Capitalize Group Names</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxDevCapsSettingsText">
+                        <span class="dev-label" style="min-width:auto;">Capitalize Settings Text</span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -3313,19 +3465,34 @@
                      then the unique Win/Lose colors) per explicit request
                      that all text settings share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultFontSize" min="5" max="300" step="0.01" value="172.8">
-                    <span class="dev-value" id="valueResultFontSize">8</span>
+                    <span class="dev-label">Win Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultWinFontSize" min="5" max="300" step="0.01" value="172.8">
+                    <span class="dev-value" id="valueResultWinFontSize">172.8</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderResultX" min="-40" max="40" step="0.01" value="0">
-                    <span class="dev-value" id="valueResultX">0</span>
+                    <span class="dev-label">Win X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderResultWinX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueResultWinX">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderResultY" min="-50" max="50" step="0.01" value="-20">
-                    <span class="dev-value" id="valueResultY">-20</span>
+                    <span class="dev-label">Win Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderResultWinY" min="-50" max="50" step="0.01" value="-13">
+                    <span class="dev-value" id="valueResultWinY">-13</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultLoseFontSize" min="5" max="300" step="0.01" value="172.8">
+                    <span class="dev-value" id="valueResultLoseFontSize">172.8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderResultLoseX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueResultLoseX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderResultLoseY" min="-50" max="50" step="0.01" value="-13">
+                    <span class="dev-value" id="valueResultLoseY">-13</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Line Spacing:</span>
@@ -3724,9 +3891,14 @@
                     <span class="dev-value" id="valueMobileDevSettingTitleFontSize">10</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Body Text Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileDevBodyFontSize" min="6" max="30" step="1" value="11">
-                    <span class="dev-value" id="valueMobileDevBodyFontSize">11</span>
+                    <span class="dev-label">Button Text Border (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevButtonTextBorder" min="0" max="20" step="1" value="0">
+                    <span class="dev-value" id="valueMobileDevButtonTextBorder">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Scroll Strength (x):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileDevScrollStrength" min="0.2" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueMobileDevScrollStrength">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button Height (px):</span>
@@ -4133,19 +4305,34 @@
                      field order per explicit request that all text settings
                      share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultFontSize" min="5" max="300" step="0.01" value="18.6">
-                    <span class="dev-value" id="valueMobileResultFontSize">11.4</span>
+                    <span class="dev-label">Win Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultWinFontSize" min="5" max="300" step="0.01" value="18.6">
+                    <span class="dev-value" id="valueMobileResultWinFontSize">18.6</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">X Offset (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultX" min="-40" max="40" step="0.01" value="0">
-                    <span class="dev-value" id="valueMobileResultX">0</span>
+                    <span class="dev-label">Win X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultWinX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueMobileResultWinX">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Y Offset (vh):</span>
-                    <input type="range" class="dev-slider" id="sliderMobileResultY" min="-50" max="50" step="0.01" value="-20">
-                    <span class="dev-value" id="valueMobileResultY">-20</span>
+                    <span class="dev-label">Win Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultWinY" min="-50" max="50" step="0.01" value="1.46">
+                    <span class="dev-value" id="valueMobileResultWinY">1.46</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultLoseFontSize" min="5" max="300" step="0.01" value="18.6">
+                    <span class="dev-value" id="valueMobileResultLoseFontSize">18.6</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultLoseX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueMobileResultLoseX">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultLoseY" min="-50" max="50" step="0.01" value="1.46">
+                    <span class="dev-value" id="valueMobileResultLoseY">1.46</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Line Spacing:</span>
@@ -4405,7 +4592,19 @@
             tabFontSize: 12,
             groupTitleFontSize: 11,
             settingTitleFontSize: 9,
-            bodyFontSize: 11,
+            // Vertical padding above/below a button's own text (COPY/RESET/
+            // SAVE, Hide, Collapse, tabs) - per explicit request ("how much
+            // space is above and below the text"). 0 reproduces the
+            // previous fixed-height look exactly until tuned - see the
+            // buttons' own CSS (min-height + this padding, instead of a
+            // fixed height, so growing this actually grows the button).
+            buttonTextBorder: 0,
+            // Wheel-scroll multiplier for .dev-panel-scroll-content's own
+            // internal scrolling - native overflow:auto scroll speed can't
+            // be tuned via CSS, so this scales a manually-applied wheel
+            // delta instead (see the wheel listener below). 1 matches the
+            // browser's native unscaled speed.
+            scrollStrength: 1,
             opacity: 1,
             bgColor: '#000000',
             titleTextColor: '#ffffff',
@@ -4416,6 +4615,25 @@
             // text-input borders, etc. - per explicit request. Cyan
             // (header/section-title text) is a separate, unaffected choice.
             accentColor: '#8affe8',
+            // Native range-input thumb/track tint (browser accent-color) -
+            // a separate control from accentColor above, which only ever
+            // governed buttons/borders/value-readout text, never the
+            // slider's own native color (previously hardcoded blue, the
+            // browser default). Per explicit request.
+            sliderColor: '#3b82f6',
+            // Applies to every bit of text inside the panel - per explicit
+            // request for a font selector. 'monospace' reproduces the
+            // panel's previous hardcoded look exactly until changed.
+            fontFamily: 'monospace',
+            // 4 independent capitalize toggles (text-transform:uppercase),
+            // one per text category named in the request - kept as
+            // separate booleans rather than one shared toggle so each
+            // category can be capitalized independently (CLAUDE.md Section
+            // 12n #1, decompose don't bundle).
+            capsButtonText: false,
+            capsTabText: false,
+            capsGroupNames: false,
+            capsSettingsText: false,
             // Shared height for every dev-panel button (COPY/RESET/SAVE,
             // Collapse, Hide, Desktop/Mobile tabs, Trigger Round Number
             // Flash) - per explicit request. ~24px reproduces the previous
@@ -4440,12 +4658,15 @@
             tabFontSize: '--dev-tab-font-size-px',
             groupTitleFontSize: '--dev-group-title-font-size-px',
             settingTitleFontSize: '--dev-setting-title-font-size-px',
-            bodyFontSize: '--dev-body-font-size-px',
+            buttonTextBorder: '--dev-button-text-border-px',
+            scrollStrength: '--dev-scroll-strength',
             opacity: '--dev-panel-opacity',
             bgColor: '--dev-panel-bg-color',
             titleTextColor: '--dev-panel-title-text-color',
             nonTitleTextColor: '--dev-panel-non-title-text-color',
             accentColor: '--dev-accent-color',
+            sliderColor: '--dev-slider-color',
+            fontFamily: '--dev-panel-font-family',
             buttonHeight: '--dev-button-height-px',
         };
 
@@ -4454,12 +4675,29 @@
         // remove from mobile. same for opacity"), always resolve from
         // devPanelStyle regardless of which tab is active. Every other
         // field (font sizes, button height) stays genuinely per-tab.
-        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor'];
+        // sliderColor/fontFamily/the 4 caps toggles joined the same
+        // desktop-only bucket - cosmetic/non-spatial settings, same
+        // category as the colors/opacity already here, not something that
+        // needs its own Mobile-tab copy.
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText'];
+        // The 4 capitalize toggles apply as CSS classes (text-transform has
+        // no "conditional on a custom property" form), not as raw CSS
+        // variable values - kept out of DEV_PANEL_STYLE_VAR_MAP for that
+        // reason, applied here instead.
+        const DEV_PANEL_CAPS_CLASS_MAP = {
+            capsButtonText: 'dev-caps-button-text',
+            capsTabText: 'dev-caps-tab-text',
+            capsGroupNames: 'dev-caps-group-names',
+            capsSettingsText: 'dev-caps-settings-text',
+        };
         function applyDevPanelOwnStyling(isDesktopTab) {
             const style = isDesktopTab ? devPanelStyle : mobileDevPanelStyle;
             for (const [key, varName] of Object.entries(DEV_PANEL_STYLE_VAR_MAP)) {
                 const value = DEV_PANEL_STYLE_SHARED_KEYS.includes(key) ? devPanelStyle[key] : style[key];
                 document.documentElement.style.setProperty(varName, value);
+            }
+            for (const [key, className] of Object.entries(DEV_PANEL_CAPS_CLASS_MAP)) {
+                devPanel.classList.toggle(className, !!devPanelStyle[key]);
             }
         }
 
@@ -4660,10 +4898,13 @@
             '--ms-per-click-text-valign': 'top',
             '--ms-per-click-text-align-edge-lock': 0,
             '--ms-per-click-text-valign-edge-lock': 0,
-            '--result-font-size-px': 172.8,
-            '--result-x-offset-vw': 0,
+            '--result-win-font-size-px': 172.8,
+            '--result-win-x-offset-vw': 0,
+            '--result-win-y-offset-vh': -13,
+            '--result-lose-font-size-px': 172.8,
+            '--result-lose-x-offset-vw': 0,
+            '--result-lose-y-offset-vh': -13,
             '--result-line-height': 1.2,
-            '--result-y-offset-vh': -13,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
             '--result-text-align-edge-lock': 0,
@@ -5137,10 +5378,13 @@
             '--ms-per-click-text-valign': 'center',
             '--ms-per-click-text-align-edge-lock': 0,
             '--ms-per-click-text-valign-edge-lock': 0,
-            '--result-font-size-px': 18.6,
-            '--result-x-offset-vw': 0,
+            '--result-win-font-size-px': 18.6,
+            '--result-win-x-offset-vw': 0,
+            '--result-win-y-offset-vh': 1.46,
+            '--result-lose-font-size-px': 18.6,
+            '--result-lose-x-offset-vw': 0,
+            '--result-lose-y-offset-vh': 1.46,
             '--result-line-height': 1.2,
-            '--result-y-offset-vh': 1.46,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
             '--result-text-align-edge-lock': 0,
@@ -5875,14 +6119,28 @@
         // stays in frame, per explicit request ("the resize corners will
         // always be in frame").
         const DEV_PANEL_HANDLE_OVERHANG_PX = 6;
+        // Extra clamp margin from the true LEFT/RIGHT viewport edge, mobile
+        // only - keeps the panel (and its drag/resize hit-zones) from
+        // sitting flush against the physical screen edge, where Android's
+        // own system edge-swipe-back/-forward gesture can capture a touch
+        // before it ever reaches the page - no CSS/JS on the page can
+        // override that OS-level gesture once a touch starts inside its
+        // capture zone. Per direct report: resizing the panel from its
+        // right edge on mobile triggered Chrome's swipe-back navigation.
+        // Not applied on desktop/top/bottom - no equivalent gesture there.
+        const DEV_PANEL_MOBILE_EDGE_GESTURE_MARGIN_PX = 20;
+        function devPanelEdgeMarginX() {
+            return DEV_PANEL_HANDLE_OVERHANG_PX + (isMobileActive() ? DEV_PANEL_MOBILE_EDGE_GESTURE_MARGIN_PX : 0);
+        }
 
         function clampDevPanelPosition() {
             const rect = devPanel.getBoundingClientRect();
             if (rect.width === 0 && rect.height === 0) return; // hidden (display:none) - nothing to clamp yet
             const o = DEV_PANEL_HANDLE_OVERHANG_PX;
-            const maxLeft = Math.max(o, window.innerWidth - rect.width - o);
+            const ox = devPanelEdgeMarginX();
+            const maxLeft = Math.max(ox, window.innerWidth - rect.width - ox);
             const maxTop = Math.max(o, window.innerHeight - rect.height - o);
-            const clampedLeft = Math.min(Math.max(o, cssVars['--dev-panel-left-px']), maxLeft);
+            const clampedLeft = Math.min(Math.max(ox, cssVars['--dev-panel-left-px']), maxLeft);
             const clampedTop = Math.min(Math.max(o, cssVars['--dev-panel-top-px']), maxTop);
             if (clampedLeft !== cssVars['--dev-panel-left-px']) {
                 cssVars['--dev-panel-left-px'] = clampedLeft;
@@ -6229,12 +6487,14 @@
                         tabFontSize: ['sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
                         groupTitleFontSize: ['sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
                         settingTitleFontSize: ['sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
-                        bodyFontSize: ['sliderDevBodyFontSize', 'sliderMobileDevBodyFontSize'],
+                        buttonTextBorder: ['sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder'],
+                        scrollStrength: ['sliderDevScrollStrength', 'sliderMobileDevScrollStrength'],
                         opacity: ['sliderDevPanelOpacity', null],
                         bgColor: ['colorDevPanelBg', null],
                         titleTextColor: ['colorDevPanelTitleText', null],
                         nonTitleTextColor: ['colorDevPanelNonTitleText', null],
                         accentColor: ['colorDevPanelAccent', null],
+                        sliderColor: ['colorDevPanelSliderColor', null],
                         buttonHeight: ['sliderDevButtonHeight', 'sliderMobileDevButtonHeight'],
                     };
                     Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId]]) => {
@@ -6247,6 +6507,23 @@
                         if (mobEl) mobEl.value = mobileDevPanelStyle[key];
                         const mobValEl = document.getElementById(mobId.replace(/^(slider|color)/, 'value'));
                         if (mobValEl) mobValEl.textContent = mobileDevPanelStyle[key];
+                    });
+                    // fontFamily (a <select>) and the 4 caps checkboxes need
+                    // their own restore logic - a <select>'s .textContent
+                    // would destroy its <option> children if routed through
+                    // the generic slider/color loop above, and a checkbox
+                    // needs .checked, not .value.
+                    const fontFamilyEl = document.getElementById('selectDevPanelFontFamily');
+                    if (fontFamilyEl) fontFamilyEl.value = devPanelStyle.fontFamily;
+                    Object.entries(DEV_PANEL_CAPS_CLASS_MAP).forEach(([key, _cls]) => {
+                        const idMap = {
+                            capsButtonText: 'checkboxDevCapsButtonText',
+                            capsTabText: 'checkboxDevCapsTabText',
+                            capsGroupNames: 'checkboxDevCapsGroupNames',
+                            capsSettingsText: 'checkboxDevCapsSettingsText',
+                        };
+                        const el = document.getElementById(idMap[key]);
+                        if (el) el.checked = !!devPanelStyle[key];
                     });
                     applyDevPanelOwnStyling(!document.getElementById('desktopTabContent').classList.contains('hidden'));
                     // Text Edit Mode overrides - restore the raw values then
@@ -6833,9 +7110,12 @@
             'sliderMsPerClickY': '--ms-per-click-y-offset-vh',
             'sliderMsPerClickLetterSpacing': '--ms-per-click-letter-spacing-px',
             'sliderMsPerClickLineHeight': '--ms-per-click-line-height',
-            'sliderResultFontSize': '--result-font-size-px',
-            'sliderResultX': '--result-x-offset-vw',
-            'sliderResultY': '--result-y-offset-vh',
+            'sliderResultWinFontSize': '--result-win-font-size-px',
+            'sliderResultWinX': '--result-win-x-offset-vw',
+            'sliderResultWinY': '--result-win-y-offset-vh',
+            'sliderResultLoseFontSize': '--result-lose-font-size-px',
+            'sliderResultLoseX': '--result-lose-x-offset-vw',
+            'sliderResultLoseY': '--result-lose-y-offset-vh',
             'sliderResultLineHeight': '--result-line-height',
         };
 
@@ -7711,7 +7991,8 @@
             const dy = e.clientY - devPanelDragStart.pointerY;
             const panelRect = devPanel.getBoundingClientRect();
             const o = DEV_PANEL_HANDLE_OVERHANG_PX;
-            const newLeft = Math.max(o, Math.min(window.innerWidth - panelRect.width - o, devPanelDragStart.panelLeft + dx));
+            const ox = devPanelEdgeMarginX();
+            const newLeft = Math.max(ox, Math.min(window.innerWidth - panelRect.width - ox, devPanelDragStart.panelLeft + dx));
             const newTop = Math.max(o, Math.min(window.innerHeight - panelRect.height - o, devPanelDragStart.panelTop + dy));
             cssVars['--dev-panel-left-px'] = Math.round(newLeft);
             cssVars['--dev-panel-top-px'] = Math.round(newTop);
@@ -7811,6 +8092,13 @@
                 let newWidth = start.width, newLeft = start.left;
                 if (xEdge === 'right') {
                     newWidth = Math.max(minW, Math.min(maxW, start.width + dx));
+                    // Same edge-gesture margin as the title-bar drag (see
+                    // devPanelEdgeMarginX) - without this, resizing from the
+                    // right edge could grow the panel's right border (and
+                    // its own resize handle) right up against the true
+                    // screen edge, into Android's own back-gesture zone.
+                    const maxWidthFromEdge = window.innerWidth - start.left - devPanelEdgeMarginX();
+                    newWidth = Math.min(newWidth, Math.max(minW, maxWidthFromEdge));
                 } else if (xEdge === 'left') {
                     newWidth = Math.max(minW, Math.min(maxW, start.width - dx));
                     newLeft = start.left + (start.width - newWidth);
@@ -7820,7 +8108,7 @@
                     // Re-derives width from the clamped left so the RIGHT
                     // edge (the one NOT being dragged) still stays exactly
                     // fixed even when this clamp kicks in.
-                    const clampedLeft = Math.max(DEV_PANEL_HANDLE_OVERHANG_PX, newLeft);
+                    const clampedLeft = Math.max(devPanelEdgeMarginX(), newLeft);
                     if (clampedLeft !== newLeft) {
                         newWidth = newWidth - (clampedLeft - newLeft);
                         newLeft = clampedLeft;
@@ -8992,7 +9280,8 @@
                 ['tabFontSize', 'sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
                 ['groupTitleFontSize', 'sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
                 ['settingTitleFontSize', 'sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
-                ['bodyFontSize', 'sliderDevBodyFontSize', 'sliderMobileDevBodyFontSize'],
+                ['buttonTextBorder', 'sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder'],
+                ['scrollStrength', 'sliderDevScrollStrength', 'sliderMobileDevScrollStrength'],
                 ['buttonHeight', 'sliderDevButtonHeight', 'sliderMobileDevButtonHeight'],
             ];
             sliderKeys.forEach(([key, deskId, mobId]) => {
@@ -9025,6 +9314,7 @@
                 ['titleTextColor', 'colorDevPanelTitleText'],
                 ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
                 ['accentColor', 'colorDevPanelAccent'],
+                ['sliderColor', 'colorDevPanelSliderColor'],
             ];
             colorKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
@@ -9033,6 +9323,40 @@
                     applyDevPanelOwnStyling(true);
                 });
             });
+
+            const fontFamilyEl = document.getElementById('selectDevPanelFontFamily');
+            if (fontFamilyEl) fontFamilyEl.addEventListener('change', (e) => {
+                devPanelStyle.fontFamily = e.target.value;
+                applyDevPanelOwnStyling(true);
+            });
+
+            const capsCheckboxKeys = [
+                ['capsButtonText', 'checkboxDevCapsButtonText'],
+                ['capsTabText', 'checkboxDevCapsTabText'],
+                ['capsGroupNames', 'checkboxDevCapsGroupNames'],
+                ['capsSettingsText', 'checkboxDevCapsSettingsText'],
+            ];
+            capsCheckboxKeys.forEach(([key, deskId]) => {
+                const deskEl = document.getElementById(deskId);
+                if (deskEl) deskEl.addEventListener('change', (e) => {
+                    devPanelStyle[key] = e.target.checked;
+                    applyDevPanelOwnStyling(true);
+                });
+            });
+
+            // Scroll Strength - overflow:auto's native scroll speed isn't
+            // CSS-tunable, so a manual wheel handler scales the delta
+            // instead. Desktop/mobile each apply their own tab's own
+            // scrollStrength (per-tab setting, see devPanelStyle above) to
+            // whichever scroll container is actually visible.
+            const devScrollContent = document.querySelector('.dev-panel-scroll-content');
+            if (devScrollContent) devScrollContent.addEventListener('wheel', (e) => {
+                const isDesktopTab = !document.getElementById('desktopTabContent').classList.contains('hidden');
+                const strength = (isDesktopTab ? devPanelStyle : mobileDevPanelStyle).scrollStrength;
+                if (strength === 1) return; // native speed - let the browser handle it natively
+                e.preventDefault();
+                devScrollContent.scrollTop += e.deltaY * strength;
+            }, { passive: false });
         }
 
         // The round-breakdown panel's and dev panel's left/top(/height)
