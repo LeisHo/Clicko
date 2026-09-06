@@ -9487,8 +9487,21 @@
             // .game-button's own CSS comment for why this can't just be a
             // second static CSS rule.
             const activeCssVarsForPress = isMobileActive() ? mobileCssVars : cssVars;
-            gameButton.style.setProperty('--button-active-transition-ms', activeCssVarsForPress['--button-press-ms']);
-            gameButton.classList.add('pressed');
+            const pressMs = activeCssVarsForPress['--button-press-ms'];
+            if (pressMs > 0) {
+                gameButton.style.setProperty('--button-active-transition-ms', pressMs);
+                gameButton.classList.add('pressed');
+            } else {
+                // transition:none (not just a 0ms transition) forces the pressed
+                // position to apply instantly even if a still-easing transition
+                // from a prior rapid tap hasn't fully settled yet - a genuinely
+                // zero duration should never be subject to the interruption
+                // tradeoff described above for a real (non-zero) duration.
+                gameButton.style.transition = 'none';
+                gameButton.classList.add('pressed');
+                void gameButton.offsetHeight;
+                gameButton.style.transition = '';
+            }
             shadowCasterButtonLayer.classList.add('pressed');
             setShadowButtonPressed(true);
 
@@ -9681,8 +9694,18 @@
 
         function handleGameButtonRelease() {
             const activeCssVarsForRelease = isMobileActive() ? mobileCssVars : cssVars;
-            gameButton.style.setProperty('--button-active-transition-ms', activeCssVarsForRelease['--button-release-ms']);
-            gameButton.classList.remove('pressed');
+            const releaseMs = activeCssVarsForRelease['--button-release-ms'];
+            if (releaseMs > 0) {
+                gameButton.style.setProperty('--button-active-transition-ms', releaseMs);
+                gameButton.classList.remove('pressed');
+            } else {
+                // See handleGameButtonPress()'s matching branch - transition:none
+                // guarantees instant release even mid-interrupted-transition.
+                gameButton.style.transition = 'none';
+                gameButton.classList.remove('pressed');
+                void gameButton.offsetHeight;
+                gameButton.style.transition = '';
+            }
             shadowCasterButtonLayer.classList.remove('pressed');
             setShadowButtonPressed(false);
         }
