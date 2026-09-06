@@ -34,10 +34,10 @@
     "--shadow-elongation-intensity": 1.9,
     "--shadow-elongation-angle": 76,
     "--shadow-rotate": 0,
-    "--text-font-size-px": 301.8,
-    "--text-x-offset-vw": 0.21,
-    "--text-y-offset-vh": -11.26,
-    "--text-letter-spacing-px": 10,
+    "--text-font-size-px": 396.26,
+    "--text-x-offset-vw": 1.44,
+    "--text-y-offset-vh": -1.08,
+    "--text-letter-spacing-px": 18.5,
     "--text-line-height": 1.4,
     "--start-text-align": "center",
     "--start-text-valign": "center",
@@ -642,11 +642,7 @@
       {
         "key": "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)",
         "rowKeys": [
-          "select8BitFont",
-          "sliderExtrusionDepth",
-          "checkboxOverallBorder",
-          "colorOverallBorder",
-          "sliderOverallBorderThickness"
+          "select8BitFont"
         ]
       },
       {
@@ -718,7 +714,6 @@
       {
         "key": "desktop:Win/Lose Text",
         "rowKeys": [
-          "colorResultOverallBorder",
           "sliderResultExtrusionDepth",
           "sliderResultOverallBorderThickness",
           "sliderResultWinFontSize",
@@ -870,11 +865,7 @@
       },
       {
         "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
-        "rowKeys": [
-          "sliderMobileExtrusionDepth",
-          "checkboxMobileOverallBorder",
-          "sliderMobileOverallBorderThickness"
-        ]
+        "rowKeys": []
       },
       {
         "key": "mobile:Start/Try Again Button",
