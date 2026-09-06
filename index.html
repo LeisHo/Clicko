@@ -1236,23 +1236,6 @@
                the shipping behavior everywhere until this lands. */
             text-box-trim: trim-start;
             text-box-edge: cap alphabetic;
-            /* Manual fine-tune for the residual 1-2px overshoot the
-               above trim leaves - researched (not computed) root cause:
-               text-box-edge: cap reads the font FILE's own OS/2
-               sCapHeight metric rather than this glyph's actual
-               rendered ink, and that metric is frequently loose/
-               imprecise in small decorative webfonts (confirmed via
-               Glyphs-forum and opentype.js reports of sCapHeight being
-               left at 0 or approximate by font tooling); there is
-               currently no native CSS mechanism to nudge the trim
-               point itself (see W3C csswg-drafts#8478), so this is a
-               user-controlled em-based offset instead - unitless,
-               same multiply-by-font-size convention as line-height
-               (see Font Trim Adjust slider), positive value pushes the
-               trimmed top edge DOWN by that fraction of this element's
-               own text height. Single shared value, not mobile-split -
-               see --extrusion-font's own comment, same reasoning. */
-            margin-top: calc(var(--extrusion-font-trim-adjust, 0) * 1em);
         }
 
         .target-count.hidden {
@@ -1327,9 +1310,6 @@
                non-zero line-height in the first place). */
             text-box-trim: trim-start;
             text-box-edge: cap alphabetic;
-            /* See .target-count's own comment on Font Trim Adjust - same
-               fix, same reasoning, same shared (not mobile-split) var. */
-            margin-top: calc(var(--extrusion-font-trim-adjust, 0) * 1em);
         }
 
         .ms-per-click-display.hidden {
@@ -7034,23 +7014,27 @@
         // win*/lose* are Win/Lose's own separate color pair.
         const extrusionVars = {
             font: '"Micro 5", monospace',
-            // Manual fine-tune for text-box-trim's own cap-height reference
-            // point (see .target-count/.ms-per-click-display's own CSS
-            // comment) - unitless, same convention as line-height: a
-            // multiplier of the element's OWN font-size, added as extra
-            // space above the trimmed box (positive pushes the alignment
-            // datum point down, per direct spec: "if i set it to .1, it
-            // will add .1 the text height to the top of the bounding box").
-            // Exists because text-box-edge's "cap" value reads a METRIC
-            // BAKED INTO THE FONT FILE (the OS/2 table's sCapHeight field),
-            // not the actual rendered ink of a specific glyph - that field
-            // is commonly missing/approximate on decorative/display fonts
-            // (confirmed via research, not guessed), leaving a small
+            // Manual fine-tune for the Target/Ms-per-click debug-line tool's
+            // own measurement (measureGlyphTop(), see its own comment) - NOT
+            // applied to the real .target-count/.ms-per-click-display boxes
+            // themselves. Exists because text-box-edge's "cap" value reads a
+            // METRIC BAKED INTO THE FONT FILE (the OS/2 table's sCapHeight
+            // field), not the actual rendered ink of a specific glyph - that
+            // field is commonly missing/approximate on decorative/display
+            // fonts (confirmed via research, not guessed), leaving a small
             // residual (a couple px) mismatch CSS itself currently has no
             // native way to fine-tune (an open, unresolved w3c/csswg-drafts
-            // issue as of this comment). Single, shared value (not mobile-
-            // split) - same reasoning as font itself just above: this is a
-            // property of the FONT FILE, not a per-device layout choice.
+            // issue as of this comment). Unitless, same convention as line-
+            // height: a multiplier of the element's own font-size, added to
+            // the debug line's drawn endpoint (positive moves it down), so
+            // the line can be dragged onto the real glyph edge by eye
+            // without moving the actual on-screen text - an earlier version
+            // applied this to the real boxes via margin-top instead, which
+            // moved the debug line and the real text by the same amount and
+            // so never closed the gap between them; reverted per direct
+            // correction. Single, shared value (not mobile-split) - same
+            // reasoning as font itself just above: this is a property of
+            // the FONT FILE, not a per-device layout choice.
             fontTrimAdjust: 0,
             depth: 5,
             fillColor: '#ffffff',
@@ -7405,7 +7389,6 @@
             const ext = { ...deviceExt };
             EXTRUSION_COLOR_FIELD_NAMES.forEach(field => { ext[field] = extrusionVars[field]; });
             root.setProperty('--extrusion-font', extrusionVars.font);
-            root.setProperty('--extrusion-font-trim-adjust', extrusionVars.fontTrimAdjust);
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
@@ -12638,11 +12621,29 @@
             // real, non-zero line-height always needs correcting for. No
             // further correction applied here pending confirmation this
             // holds on the user's own real device too.
+            //
+            // Font Trim Adjust (the 8-Bit Text Style slider) is applied
+            // ONLY to this reported/drawn measurement, not to the real
+            // element - per explicit correction ("when I change the
+            // slider, the text moves with it. the whole point is to
+            // change where the bottom of the green and the blue line
+            // ends, so I can manually adjust the lead trim overlap").
+            // An earlier version applied it as margin-top on the actual
+            // .target-count/.ms-per-click-display elements, which shifts
+            // the real box AND this same getBoundingClientRect() measurement
+            // by the same amount - the gap between the line and the real
+            // glyph (the thing the slider exists to close) never changed,
+            // only the on-screen Y position moved as an unwanted side
+            // effect. Offsetting only the drawn line's endpoint here keeps
+            // the actual text fixed in place while letting the line be
+            // dragged down to the glyph's real edge by eye.
             function measureGlyphTop(el) {
                 if (!el || el.classList.contains('hidden')) return null;
                 const rect = el.getBoundingClientRect();
                 if (rect.width === 0 && rect.height === 0) return null;
-                return { top: rect.top, left: rect.left, width: rect.width };
+                const fontSizePx = parseFloat(getComputedStyle(el).fontSize) || 0;
+                const trimAdjustPx = (extrusionVars.fontTrimAdjust || 0) * fontSizePx;
+                return { top: rect.top + trimAdjustPx, left: rect.left, width: rect.width };
             }
             function place(el, line, label, name) {
                 const m = measureGlyphTop(el);
