@@ -8403,6 +8403,89 @@
             });
         }
 
+        // Live, ongoing Desktop -> Mobile group/setting order mirroring -
+        // per direct follow-up to the earlier one-time sync ("Desktop and
+        // Mobile tabs still arent syncing... If i change it in desktop, the
+        // next time i click into mobile tab, it should match the Desktop
+        // tab"). One-directional by design, matching the literal request:
+        // Desktop is the source of truth, re-derived into Mobile's own
+        // order every time the Mobile tab is actually opened (not on a
+        // timer, not live mid-drag) - see switchDevPanelTab()'s own call.
+        // Ports the exact same translation the earlier one-time sync used
+        // (previously an external, one-off Node script mutating the saved
+        // JSON directly): match each Desktop group to its Mobile
+        // counterpart by title with any parenthetical suffix stripped
+        // (e.g. "8-Bit Text Style (Start/Try Again/Round/Win-Lose)" on
+        // Desktop and "(Start/Try Again/Win-Lose)" on Mobile are the same
+        // conceptual group); for each Desktop row id, derive the candidate
+        // Mobile id by inserting "Mobile" after the control-type prefix,
+        // keeping it only if that id actually exists among Mobile's real
+        // rows (desktop-only fields correctly drop out, not force-
+        // included); any Mobile-only row with no Desktop counterpart is
+        // appended at the end of its group, preserving its prior relative
+        // position, so nothing existing gets silently lost. The 2 Desktop-
+        // only groups (Game Mechanics, Background) have no Mobile
+        // counterpart and are left alone (Mobile's own order for anything
+        // unmatched passes through untouched, appended after the
+        // translated groups).
+        function syncMobileOrderToDesktop() {
+            const desktopOrder = captureSectionOrder().desktopTabContent;
+            const mobileTabEl = document.getElementById('mobileTabContent');
+            if (!desktopOrder || !mobileTabEl) return;
+            const stripParen = title => title.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+            const mobileSectionsByNormTitle = {};
+            mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
+                const titleEl = sec.querySelector('.dev-section-title');
+                const rawTitle = (titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, '')).trim();
+                mobileSectionsByNormTitle[stripParen(rawTitle)] = sec;
+            });
+            const mobileRowIdSet = new Set();
+            mobileTabEl.querySelectorAll('.dev-section-content > .dev-row [id]').forEach(el => mobileRowIdSet.add(el.id));
+            const placedRowIds = new Set();
+
+            const newMobileOrder = [];
+            desktopOrder.forEach(({ key: desktopKey, rowKeys: desktopRowKeys }) => {
+                const desktopTitle = desktopKey.replace(/^desktop:/, '');
+                const mobileSec = mobileSectionsByNormTitle[stripParen(desktopTitle)];
+                if (!mobileSec) return; // Desktop-only group (Game Mechanics, Background) - no Mobile counterpart
+                const mobileKey = getSectionKey(mobileSec.querySelector('.dev-section-title'));
+                const mobileRowKeys = [];
+                desktopRowKeys.forEach(desktopRowId => {
+                    const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1Mobile');
+                    if (mobileRowIdSet.has(mobileRowId) && !placedRowIds.has(mobileRowId)) {
+                        mobileRowKeys.push(mobileRowId);
+                        placedRowIds.add(mobileRowId);
+                    }
+                });
+                newMobileOrder.push({ key: mobileKey, rowKeys: mobileRowKeys });
+            });
+            // Any Mobile group with no Desktop counterpart passes through
+            // untouched, appended after the translated groups.
+            mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
+                const key = getSectionKey(sec.querySelector('.dev-section-title'));
+                if (!newMobileOrder.some(g => g.key === key)) {
+                    const rows = Array.from(sec.querySelectorAll('.dev-section-content > .dev-row'));
+                    newMobileOrder.push({ key, rowKeys: rows.map((row, i) => getRowKey(row, i)) });
+                }
+            });
+            // Mobile-only rows within a translated group (no Desktop
+            // counterpart) get appended at the end, preserving their prior
+            // relative order.
+            newMobileOrder.forEach(group => {
+                const sec = mobileSectionsByNormTitle[stripParen(group.key.replace(/^mobile:/, ''))];
+                if (!sec) return;
+                Array.from(sec.querySelectorAll('.dev-section-content > .dev-row')).forEach((row, i) => {
+                    const rowKey = getRowKey(row, i);
+                    if (!placedRowIds.has(rowKey)) {
+                        group.rowKeys.push(rowKey);
+                        placedRowIds.add(rowKey);
+                    }
+                });
+            });
+            applySectionOrder({ mobileTabContent: newMobileOrder });
+        }
+
         // Color pickers not otherwise special-cased (colorBase/colorButton/
         // colorButtonWin/colorButtonLose have their own dedicated handling -
         // see setBaseHue()/setButtonHue() and applyLoadedSettings()). Moved
@@ -11112,6 +11195,13 @@
         // were simultaneously visible in one long scroll.
         function switchDevPanelTab(tab) {
             const isDesktop = tab === 'desktop';
+            // Per direct request, Mobile's group/setting order always
+            // mirrors Desktop's CURRENT order the moment Mobile is opened -
+            // see syncMobileOrderToDesktop()'s own comment. Runs BEFORE the
+            // 'hidden' class toggle below so Mobile's content is already in
+            // its correct order the instant it becomes visible, not
+            // reordering visibly after the fact.
+            if (!isDesktop) syncMobileOrderToDesktop();
             document.getElementById('desktopTabContent').classList.toggle('hidden', !isDesktop);
             document.getElementById('mobileTabContent').classList.toggle('hidden', isDesktop);
             document.getElementById('devTabDesktopBtn').classList.toggle('active', isDesktop);
