@@ -6476,19 +6476,46 @@
         // 266 unit) curves, and avoids assuming the curve's angle-from-
         // center is monotonic along its length.
         const CLICK_ROUTE_ANGLE_SCAN_RESOLUTION = 200;
-        function sampleClickRoutePiecesInAngleRange(pathEl, count, floorDeg, ceilingDeg) {
+        // Real, measured per-tap lag (root cause of a direct "the animation on
+        // desktop is still very laggy" report): sampleClickRoutePiecesInAngleRange()
+        // used to call the SVG path's own getPointAtLength() 201 times, on
+        // BOTH sides, on EVERY single tap - 402 expensive DOM/geometry calls
+        // per click. Measured directly (performance.now() around a real
+        // press): spawnClickBurst() alone took 35-65ms per call, almost
+        // entirely this scan - more than 2 frame budgets of synchronous
+        // main-thread work on every tap, independent of and unrelated to any
+        // CSS transition timing (already fixed correctly in earlier rounds).
+        // clickRouteLeftPath/clickRouteRightPath's `d` attribute is set
+        // exactly once at page load and never reassigned (confirmed via
+        // grep - only the 2 initial setAttribute('d', ...) calls exist in
+        // the whole file), so the path's raw GEOMETRY never changes - only
+        // floorDeg/ceilingDeg (dev-panel sliders) can vary between calls,
+        // and those only affect the FILTER step below, never the expensive
+        // per-point geometry sampling itself. Cached per path element
+        // (computed once, lazily, on first use) so every tap after the
+        // first reuses the same 201 pre-sampled points and does only cheap
+        // array filtering - zero behavior change (the raw scan data is
+        // identical whether computed fresh or cached), purely eliminating
+        // ~400 redundant getPointAtLength() calls per tap after the first.
+        const clickRouteScanCache = new Map();
+        function getClickRouteScan(pathEl) {
+            let scan = clickRouteScanCache.get(pathEl);
+            if (scan) return scan;
             const total = pathEl.getTotalLength();
             const centerX = CLICK_ROUTE_VIEWBOX_WIDTH / 2, centerY = CLICK_ROUTE_VIEWBOX_HEIGHT / 2;
-            const qualifying = [];
+            scan = [];
             for (let i = 0; i <= CLICK_ROUTE_ANGLE_SCAN_RESOLUTION; i++) {
                 const p = pathEl.getPointAtLength(total * i / CLICK_ROUTE_ANGLE_SCAN_RESOLUTION);
                 const dx = p.x - centerX, dy = p.y - centerY;
                 const deg = clickBurstTrigRadToUserDeg(Math.atan2(dy, dx));
-                if (isUserDegInAngleRange(deg, floorDeg, ceilingDeg)) {
-                    const len = Math.hypot(dx, dy) || 1;
-                    qualifying.push({ x: p.x, y: p.y, dirX: dx / len, dirY: dy / len });
-                }
+                const len = Math.hypot(dx, dy) || 1;
+                scan.push({ x: p.x, y: p.y, dirX: dx / len, dirY: dy / len, deg });
             }
+            clickRouteScanCache.set(pathEl, scan);
+            return scan;
+        }
+        function sampleClickRoutePiecesInAngleRange(pathEl, count, floorDeg, ceilingDeg) {
+            const qualifying = getClickRouteScan(pathEl).filter(p => isUserDegInAngleRange(p.deg, floorDeg, ceilingDeg));
             if (qualifying.length === 0) return [];
             const points = [];
             for (let i = 0; i < count; i++) {
