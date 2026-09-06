@@ -5556,7 +5556,7 @@
             titleFontSize: 22,
             tabFontSize: 12,
             groupTitleFontSize: 11,
-            settingTitleFontSize: 9,
+            settingTitleFontSize: 12,
             // Vertical padding above/below a button's own text (COPY/RESET/
             // SAVE, Hide, Collapse, tabs) - per explicit request ("how much
             // space is above and below the text"). 0 reproduces the
@@ -5569,7 +5569,7 @@
             // be tuned via CSS, so this scales a manually-applied wheel
             // delta instead (see the wheel listener below). 1 matches the
             // browser's native unscaled speed.
-            scrollStrength: 1,
+            scrollStrength: 0.2,
             opacity: 1,
             bgColor: '#000000',
             titleTextColor: '#ffffff',
@@ -5591,7 +5591,7 @@
             // text-input borders, etc. Now also drives group (section)
             // title text color - per explicit request - previously a
             // separate hardcoded cyan.
-            accentColor: '#8affe8',
+            accentColor: '#3ac8e4',
             // Native range-input thumb/track tint (browser accent-color) -
             // a separate control from accentColor above, which only ever
             // governed buttons/borders/value-readout text, never the
@@ -5602,15 +5602,15 @@
             // request for a font selector. Defaults to Arial now that
             // Monospace was removed as an option per explicit request
             // ("Provide Futura as a font option. Remove Monospace").
-            fontFamily: 'Arial, Helvetica, sans-serif',
+            fontFamily: 'Verdana, Geneva, sans-serif',
             // 4 independent capitalize toggles (text-transform:uppercase),
             // one per text category named in the request - kept as
             // separate booleans rather than one shared toggle so each
             // category can be capitalized independently (CLAUDE.md Section
             // 12n #1, decompose don't bundle).
-            capsButtonText: false,
-            capsTabText: false,
-            capsGroupNames: false,
+            capsButtonText: true,
+            capsTabText: true,
+            capsGroupNames: true,
             capsSettingsText: false,
             // 4 independent letter-spacing sliders (px), same per-category
             // decomposition as the capitalize toggles above - per explicit
@@ -5625,6 +5625,7 @@
             // look closely (COPY/RESET/SAVE's implicit padding+line-height,
             // and Collapse/Hide's old fixed 22px, both landed close to this).
             buttonHeight: 21,
+            bodyFontSize: 11,
         };
         // Mobile deliberately does NOT inherit the desktop tuning above via
         // this clone - a "set defaults" dump had Mobile's own tab showing
@@ -5637,6 +5638,15 @@
         mobileDevPanelStyle.settingTitleFontSize = 10;
         mobileDevPanelStyle.accentColor = '#00ff00';
         mobileDevPanelStyle.buttonHeight = 24;
+        // Synced to the current git-tracked settings log (per explicit
+        // "set the current save settings on Git as the default" request) -
+        // these had drifted from desktop's own tuning same as the 4 above,
+        // just not yet captured as their own explicit override line.
+        mobileDevPanelStyle.scrollStrength = 1;
+        mobileDevPanelStyle.fontFamily = 'monospace';
+        mobileDevPanelStyle.capsButtonText = false;
+        mobileDevPanelStyle.capsTabText = false;
+        mobileDevPanelStyle.capsGroupNames = false;
 
         const DEV_PANEL_STYLE_VAR_MAP = {
             titleFontSize: '--dev-panel-title-font-size-px',
@@ -5705,7 +5715,7 @@
             '--button-press-intensity-px': 8,
             '--button-x-offset-vw': -1,
             '--button-x-offset-unit-is-px': 0,
-            '--button-y-offset-vh': 6.76,
+            '--button-y-offset-vh': 6,
             '--button-y-offset-unit-is-px': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
@@ -5731,18 +5741,18 @@
             // level, 1 contrast, 0 floor, 1 ceiling) reduce to the identity
             // transform, unchanged look until tuned.
             '--light-levels': 0,
-            '--light-levels-contrast': 1,
+            '--light-levels-contrast': 1.19,
             '--light-levels-floor': 0,
             '--light-levels-ceiling': 1,
             // Blend mode for each filter's own tint step (feBlend) - per
             // explicit request for a dropdown. 'overlay' matches the
             // existing hardcoded default until changed.
-            '--base-blend-mode': 'overlay',
-            '--button-blend-mode': 'overlay',
+            '--base-blend-mode': 'color',
+            '--button-blend-mode': 'color',
             // Regular (false/0) vs Thin (true/1) base+backing artwork - per
             // explicit request, single/shared like the base tint above.
             '--thin-base-enabled': 0,
-            '--click-burst-speed-ms': 150,
+            '--click-burst-speed-ms': 250,
             '--click-burst-scale': 0.32,
             '--click-burst-distance-px': 115,
             '--click-burst-height-px': 0,
@@ -5754,7 +5764,7 @@
             // (buildTransform() in JS), applied after every other shadow
             // modifier - see the dev-panel HTML comment for the full
             // reasoning. 1 = no change from the pre-existing look.
-            '--click-burst-shadow-final-scale': 1,
+            '--click-burst-shadow-final-scale': 0.64,
             // Not truly a CSS var (nothing reads it via var()) - piggybacking
             // on this object purely so the frame-set choice is included in
             // copySettings()/saveSettings() for free, matching every other
@@ -5763,7 +5773,7 @@
             '--click-frame-set': 'CLICK3',
             // Also not a true CSS var, same reasoning - piggybacks on this
             // object purely for free persistence via copySettings().
-            '--flip-button-svg': 1,
+            '--flip-button-svg': 0,
             // Rescaled from raw px (177, 113 - the live git-tracked
             // settings log's current values at the time of this fix, more
             // current than this file's own stale 198/136) to % of the
@@ -5772,8 +5782,8 @@
             // rendered at 544px wide: 177/544*100, 113/544*100) - see
             // .shadow-caster-layer's own CSS comment for why the unit
             // changed.
-            '--shadow-x-offset': 32.5368,
-            '--shadow-y-offset': 20.7721,
+            '--shadow-x-offset': 24.25,
+            '--shadow-y-offset': 17.17,
             '--shadow-blur': 0,
             '--shadow-scale': 0.55,
             '--shadow-skew': -8,
@@ -5796,7 +5806,7 @@
             // formula collapses to a plain scaleY(intensity) - identical to
             // the old Y-only --shadow-stretch (X/45 were both already
             // inactive at 1, i.e. no stretch on those axes).
-            '--shadow-elongation-intensity': 2.2,
+            '--shadow-elongation-intensity': 1.9,
             '--shadow-elongation-angle': 76,
             '--shadow-rotate': 0,
             // Formerly Round Text's big-state position/size - repurposed to
@@ -5804,15 +5814,15 @@
             // since Round Text no longer has a big state at all and the
             // button now borrows this exact look per explicit request (see
             // .start-button's own CSS comment).
-            '--text-font-size-px': 197.38,
-            '--text-font-size-vw': 15.42,
-            '--text-scale-with-browser': 0,
-            '--text-x-offset-vw': 0.21,
+            '--text-font-size-px': 396.26,
+            '--text-font-size-vw': 19.57,
+            '--text-scale-with-browser': 1,
+            '--text-x-offset-vw': 1.44,
             '--text-x-offset-unit-is-px': 0,
-            '--text-y-offset-vh': -11.26,
+            '--text-y-offset-vh': -7.66,
             '--text-y-offset-unit-is-px': 0,
-            '--text-letter-spacing-px': 10,
-            '--text-line-height': 1.2,
+            '--text-letter-spacing-px': 18.5,
+            '--text-line-height': 1.4,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
             // Try Again's own alignment, independent from Start's above -
@@ -5841,20 +5851,20 @@
             // Try Again's own font-size/position, independent from Start's -
             // per explicit request. Starts matching Start's own values until
             // tuned - see .start-button.try-again-state's CSS.
-            '--try-again-text-font-size-px': 165.63,
-            '--try-again-text-font-size-vw': 12.94,
+            '--try-again-text-font-size-px': 204.83,
+            '--try-again-text-font-size-vw': 9.38,
             '--try-again-text-scale-with-browser': 0,
             '--try-again-text-x-offset-vw': -0.16,
             '--try-again-text-x-offset-unit-is-px': 0,
-            '--try-again-text-y-offset-vh': -13.75,
+            '--try-again-text-y-offset-vh': -9.05,
             '--try-again-text-y-offset-unit-is-px': 0,
             // Try Again's own letter/line spacing, independent from
             // Start's above - per explicit request ("also give me letter
             // spacing and line spacing for the Try again text"). Starts
             // matching Start's own values until tuned, same convention as
             // the font-size/position split above.
-            '--try-again-text-letter-spacing-px': 10,
-            '--try-again-text-line-height': 1.2,
+            '--try-again-text-letter-spacing-px': 17.5,
+            '--try-again-text-line-height': 0.85,
             // The "?" glyph's own font-size/position, independent from the
             // "Try again" text above - per explicit request. Was inline
             // text before (flowed right after "Try again", no independent
@@ -5865,41 +5875,41 @@
             // this causes no visual jump - not the same numbers as Try
             // Again's own X/Y above, since those position the whole button/
             // text box, not this glyph's rendered center.
-            '--try-again-question-mark-font-size-px': 257.15,
+            '--try-again-question-mark-font-size-px': 341.37,
             '--try-again-question-mark-font-size-vw': 20.09,
             '--try-again-question-mark-scale-with-browser': 0,
-            '--try-again-question-mark-x-offset-vw': 0.47,
+            '--try-again-question-mark-x-offset-vw': 1.08,
             '--try-again-question-mark-x-offset-unit-is-px': 0,
-            '--try-again-question-mark-y-offset-vh': 35.27,
+            '--try-again-question-mark-y-offset-vh': 35.61,
             '--try-again-question-mark-y-offset-unit-is-px': 0,
             // Round Text's ONE permanent position - it no longer has a
             // separate "big" state to dock away from (see .game-text's own
             // CSS comment). Font-size now has its own independent slider
             // (--round-font-size-vw) - per explicit request; it used to
             // always MATCH --speed-font-size-vw, no longer does.
-            '--round-dock-x-offset-vw': -47.33,
+            '--round-dock-x-offset-vw': 58,
             '--round-dock-x-offset-unit-is-px': 0,
-            '--round-dock-y-offset-vh': 51,
+            '--round-dock-y-offset-vh': -27.22,
             '--round-dock-y-offset-unit-is-px': 0,
-            '--round-font-size-px': 89.34,
-            '--round-font-size-vw': 6.98,
+            '--round-font-size-px': 176.55,
+            '--round-font-size-vw': 16.38,
             '--round-scale-with-browser': 0,
-            '--round-letter-spacing-px': 4,
+            '--round-letter-spacing-px': 4.5,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'bottom',
-            '--round-text-align-edge-lock': 0,
-            '--round-text-valign-edge-lock': 0,
+            '--round-text-align-edge-lock': 1,
+            '--round-text-valign-edge-lock': 1,
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
             // startTryAgainFlash().
-            '--try-again-flash-duration-ms': 250,
-            '--try-again-hold-duration-ms': 1000,
+            '--try-again-flash-duration-ms': 340,
+            '--try-again-hold-duration-ms': 1550,
             // "?" animation mode - 'flash' (hide/show, the original look) or
             // 'rotate' (2D scaleX flip - see tickTryAgainRotate()). Shared/
             // single like the flash/hold durations above, not mobile-split.
-            '--try-again-question-mark-mode': 'rotate',
+            '--try-again-question-mark-mode': 'flash',
             '--try-again-rotate-speed-ms': 5000,
             '--try-again-rotate-tweening': 'easeOut',
             '--try-again-rotate-min-width-scale': 0.13,
@@ -5912,12 +5922,12 @@
             // CSS transform-origin itself. Shared/single like every other
             // rotation-behavior control above, not mobile-split.
             '--try-again-rotate-axis-offset-percent': 0,
-            '--round-blink1-hide-ms': 250,
-            '--round-blink1-show-ms': 250,
-            '--round-blink2-hide-ms': 250,
-            '--round-blink2-show-ms': 250,
-            '--round-blink3-hide-ms': 250,
-            '--round-blink3-show-ms': 250,
+            '--round-blink1-hide-ms': 350,
+            '--round-blink1-show-ms': 400,
+            '--round-blink2-hide-ms': 380,
+            '--round-blink2-show-ms': 450,
+            '--round-blink3-hide-ms': 400,
+            '--round-blink3-show-ms': 500,
             // How long the NEW number holds on screen (still at big/held
             // scale) after the blink sequence finishes, before docking
             // into gameplay - per explicit request for a dedicated slider
@@ -5940,78 +5950,78 @@
             // round-blink timings above. See runRoundBlinkSequence()'s and
             // showRoundText()'s own comments for how this is consumed.
             '--gameplay-result-flash-with-round': 0,
-            '--target-font-size-px': 309.76,
+            '--target-font-size-px': 500,
             '--target-font-size-vw': 24.2,
             '--target-scale-with-browser': 0,
-            '--target-x-offset-vw': 47.78,
+            '--target-x-offset-vw': 64.97,
             '--target-x-offset-unit-is-px': 0,
-            '--target-y-offset-vh': -59.12,
+            '--target-y-offset-vh': -90,
             '--target-y-offset-unit-is-px': 0,
-            '--target-letter-spacing-px': 0,
+            '--target-letter-spacing-px': -7,
             '--target-line-height': 1.2,
-            '--target-text-align': 'right',
+            '--target-text-align': 'left',
             '--target-text-valign': 'top',
-            '--target-text-align-edge-lock': 0,
-            '--target-text-valign-edge-lock': 0,
-            '--speed-font-size-px': 89.34,
-            '--speed-font-size-vw': 6.98,
+            '--target-text-align-edge-lock': 1,
+            '--target-text-valign-edge-lock': 1,
+            '--speed-font-size-px': 109.68,
+            '--speed-font-size-vw': 6.2,
             '--speed-scale-with-browser': 0,
-            '--speed-x-offset-vw': 47.67,
+            '--speed-x-offset-vw': 38.27,
             '--speed-x-offset-unit-is-px': 0,
-            '--speed-y-offset-vh': 51,
+            '--speed-y-offset-vh': -0.81,
             '--speed-y-offset-unit-is-px': 0,
             '--speed-letter-spacing-px': 6.5,
             '--speed-line-height': 1.2,
             '--speed-text-align': 'right',
             '--speed-text-valign': 'bottom',
-            '--speed-text-align-edge-lock': 0,
-            '--speed-text-valign-edge-lock': 0,
+            '--speed-text-align-edge-lock': 1,
+            '--speed-text-valign-edge-lock': 1,
             // Shows gameState.maxTimeMs as "___ms / click", above the
             // countdown timer - per explicit request, since the countdown
             // display shows the TOTAL round budget and no longer shows the
             // underlying per-click rate itself. Default position sits just
             // above --speed-y-offset-vh at a smaller font, until tuned.
-            '--ms-per-click-font-size-px': 69.89,
-            '--ms-per-click-font-size-vw': 5.46,
+            '--ms-per-click-font-size-px': 109.68,
+            '--ms-per-click-font-size-vw': 9.38,
             '--ms-per-click-scale-with-browser': 0,
-            '--ms-per-click-x-offset-vw': 46.95,
+            '--ms-per-click-x-offset-vw': 41.55,
             '--ms-per-click-x-offset-unit-is-px': 0,
-            '--ms-per-click-y-offset-vh': -15.22,
+            '--ms-per-click-y-offset-vh': 67.15,
             '--ms-per-click-y-offset-unit-is-px': 0,
-            '--ms-per-click-letter-spacing-px': 1,
-            '--ms-per-click-line-height': 0.65,
+            '--ms-per-click-letter-spacing-px': 7.5,
+            '--ms-per-click-line-height': 0.9,
             '--ms-per-click-text-align': 'right',
             '--ms-per-click-text-valign': 'top',
-            '--ms-per-click-text-align-edge-lock': 0,
-            '--ms-per-click-text-valign-edge-lock': 0,
-            '--result-win-font-size-px': 172.8,
-            '--result-win-font-size-vw': 13.5,
+            '--ms-per-click-text-align-edge-lock': 1,
+            '--ms-per-click-text-valign-edge-lock': 1,
+            '--result-win-font-size-px': 300,
+            '--result-win-font-size-vw': 19.13,
             '--result-win-scale-with-browser': 0,
             '--result-win-x-offset-vw': 0,
             '--result-win-x-offset-unit-is-px': 0,
-            '--result-win-y-offset-vh': -13,
+            '--result-win-y-offset-vh': -102.29,
             '--result-win-y-offset-unit-is-px': 0,
             '--result-win-letter-spacing-px': 0,
-            '--result-lose-font-size-px': 172.8,
-            '--result-lose-font-size-vw': 13.5,
+            '--result-lose-font-size-px': 310,
+            '--result-lose-font-size-vw': 16.64,
             '--result-lose-scale-with-browser': 0,
             '--result-lose-x-offset-vw': 0,
             '--result-lose-x-offset-unit-is-px': 0,
-            '--result-lose-y-offset-vh': -13,
+            '--result-lose-y-offset-vh': -93,
             '--result-lose-y-offset-unit-is-px': 0,
             '--result-lose-letter-spacing-px': 0,
             '--result-line-height': 1.2,
             '--result-text-align': 'center',
             '--result-text-valign': 'center',
-            '--result-text-align-edge-lock': 0,
-            '--result-text-valign-edge-lock': 0,
-            '--dev-panel-width-px': 241,
+            '--result-text-align-edge-lock': 1,
+            '--result-text-valign-edge-lock': 1,
+            '--dev-panel-width-px': 178,
             // Sentinels (never a real dragged/resized value in practice,
             // since the drag/resize logic always clamps to >=0) - overridden
             // with real viewport-computed values at load time, see below.
-            '--dev-panel-left-px': 6,
-            '--dev-panel-top-px': 372,
-            '--dev-panel-height-px': 411,
+            '--dev-panel-left-px': 26,
+            '--dev-panel-top-px': 6,
+            '--dev-panel-height-px': 120,
             '--round-breakdown-width-px': 320,
             '--round-breakdown-height-px': 450,
             '--round-breakdown-left-px': 1562,
@@ -6055,15 +6065,15 @@
             // 3, same as Target/Speed already had for depth - per explicit
             // request. Font, fill color, and size/position stay shared/own
             // as before (unaffected).
-            roundDepth: 9,
+            roundDepth: 4,
             roundBorderColor: '#ffffff',
-            roundOverallBorderThickness: 17,
+            roundOverallBorderThickness: 14,
             // Own overall-border-ring color too, decoupled from the shared
             // overallBorderColor below - since Round has its own border
             // THICKNESS slider, it also gets its own border COLOR, per
             // explicit request ("for all text that have their own border
             // thickness, I can select the border color").
-            roundOverallBorderColor: '#431114',
+            roundOverallBorderColor: '#0b3864',
             // Try Again's own border/extrusion colors, independent from
             // Start's above - per explicit request; starts matching Start's
             // own colors until tuned, same convention as the font-size/
@@ -6092,9 +6102,9 @@
             // the extrusion's own trail color, same one-picker-drives-both
             // convention as every other element's "Text Color". Starts
             // matching the shared values above until tuned.
-            questionMarkDepth: 23,
-            questionMarkOverallBorderThickness: 24,
-            questionMarkOverallBorderColor: '#59181b',
+            questionMarkDepth: 5,
+            questionMarkOverallBorderThickness: 4,
+            questionMarkOverallBorderColor: '#401013',
             // roundDepth/roundBorderColor/roundOverallBorderThickness/
             // roundOverallBorderColor above now style the Start/Try Again
             // BUTTON instead of Round Text - repurposed since Round Text no
@@ -6121,13 +6131,13 @@
             speedOverallBorderColor: '#b60300',
             // "___ms / click" label above the countdown - own extrusion
             // group, same shape as Target/Speed's own copies above.
-            msPerClickDepth: 12,
+            msPerClickDepth: 10,
             msPerClickBorderColor: '#ffffff',
             msPerClickOverallBorderColor: '#b60300',
-            winFillColor: '#f0fff4',
-            winBorderColor: '#22dd44',
-            loseFillColor: '#d3a7a7',
-            loseBorderColor: '#2c99dd',
+            winFillColor: '#ffffff',
+            winBorderColor: '#401013',
+            loseFillColor: '#ffffff',
+            loseBorderColor: '#401013',
             // Target/Speed(countdown)/Ms-per-click no longer disappear on
             // win/lose - per explicit request ("I dont want the Target
             // Text, MS/Click text, nor the countdown to dissappear. They
@@ -6135,9 +6145,9 @@
             // it reverts back to original color"). One shared pair per
             // state (not per-element) - applies uniformly to all 3, per
             // "Provide me 4 sliders" (not 12). See applyGameplayResultColor().
-            gameplayWinTextColor: '#22dd44',
-            gameplayWinBorderColor: '#22dd44',
-            gameplayLoseTextColor: '#dd3333',
+            gameplayWinTextColor: '#ffffff',
+            gameplayWinBorderColor: '#2b8f00',
+            gameplayLoseTextColor: '#ffffff',
             gameplayLoseBorderColor: '#dd3333',
             // Win/Lose's own extrusion depth/border thickness/border color -
             // per explicit request ("extrusion and border settings for the
@@ -6148,7 +6158,7 @@
             // Target's single depth/thickness/color apply regardless of any
             // "state"). Starts matching the shared depth/overallBorder*
             // values below until tuned.
-            resultDepth: 5,
+            resultDepth: 8,
             resultOverallBorderThickness: 5,
             // Shared by Win and Lose (matching resultDepth/
             // resultOverallBorderThickness above) - per direct follow-up
@@ -6166,8 +6176,8 @@
             // their own thickness slider - see roundOverallBorderColor/
             // targetOverallBorderColor/speedOverallBorderColor above).
             overallBorderEnabled: true,
-            overallBorderColor: '#401013',
-            overallBorderThickness: 5,
+            overallBorderColor: '#24f031',
+            overallBorderThickness: 20,
             targetOverallBorderThickness: 8,
             speedOverallBorderThickness: 8,
             msPerClickOverallBorderThickness: 8,
@@ -6186,19 +6196,19 @@
             borderColor: '#000000',
             roundDepth: 9,
             roundBorderColor: '#c41516',
-            roundOverallBorderThickness: 5,
+            roundOverallBorderThickness: 9,
             roundOverallBorderColor: '#c41516',
             tryAgainBorderColor: '#c41516',
             tryAgainOverallBorderColor: '#c41516',
             tryAgainDepth: 9,
             tryAgainOverallBorderThickness: 5,
             questionMarkFillColor: '#c41516',
-            questionMarkDepth: 23,
-            questionMarkOverallBorderThickness: 5,
+            questionMarkDepth: 8,
+            questionMarkOverallBorderThickness: 9,
             questionMarkOverallBorderColor: '#c41516',
             roundDockDepth: 9,
             roundDockBorderColor: '#c41516',
-            roundDockOverallBorderThickness: 5,
+            roundDockOverallBorderThickness: 9,
             roundDockOverallBorderColor: '#c41516',
             targetDepth: 20,
             targetBorderColor: '#ff0000',
@@ -6206,7 +6216,7 @@
             speedDepth: 8,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
-            msPerClickDepth: 8,
+            msPerClickDepth: 18,
             msPerClickBorderColor: '#ff0000',
             msPerClickOverallBorderColor: '#cc1b20',
             winFillColor: '#ffffff',
@@ -6493,7 +6503,7 @@
             '--button-press-intensity-px': 8.5,
             '--button-x-offset-vw': -2.32,
             '--button-x-offset-unit-is-px': 0,
-            '--button-y-offset-vh': 16,
+            '--button-y-offset-vh': 9.37,
             '--button-y-offset-unit-is-px': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
@@ -6532,15 +6542,15 @@
             '--shadow-elongation-intensity': 1,
             '--shadow-elongation-angle': 0,
             '--shadow-rotate': 11,
-            '--text-font-size-px': 78,
-            '--text-font-size-vw': 20,
-            '--text-scale-with-browser': 0,
-            '--text-x-offset-vw': 0,
+            '--text-font-size-px': 199.17,
+            '--text-font-size-vw': 38.67,
+            '--text-scale-with-browser': 1,
+            '--text-x-offset-vw': 0.96,
             '--text-x-offset-unit-is-px': 0,
-            '--text-y-offset-vh': -0.49,
+            '--text-y-offset-vh': 1.81,
             '--text-y-offset-unit-is-px': 0,
-            '--text-letter-spacing-px': 0,
-            '--text-line-height': 1.2,
+            '--text-letter-spacing-px': -0.5,
+            '--text-line-height': 1.3,
             '--start-text-align': 'center',
             '--start-text-valign': 'center',
             '--start-text-align-edge-lock': 0,
@@ -6553,87 +6563,87 @@
             '--try-again-question-mark-text-valign': 'center',
             '--try-again-question-mark-text-align-edge-lock': 0,
             '--try-again-question-mark-text-valign-edge-lock': 0,
-            '--try-again-text-font-size-px': 78,
+            '--try-again-text-font-size-px': 143.8,
             '--try-again-text-font-size-vw': 20,
-            '--try-again-text-scale-with-browser': 0,
-            '--try-again-text-x-offset-vw': 0,
+            '--try-again-text-scale-with-browser': 1,
+            '--try-again-text-x-offset-vw': -0.88,
             '--try-again-text-x-offset-unit-is-px': 0,
-            '--try-again-text-y-offset-vh': -0.49,
+            '--try-again-text-y-offset-vh': 0.36,
             '--try-again-text-y-offset-unit-is-px': 0,
-            '--try-again-text-letter-spacing-px': 0,
-            '--try-again-text-line-height': 1.2,
+            '--try-again-text-letter-spacing-px': 9.5,
+            '--try-again-text-line-height': 0.85,
             // See the desktop cssVars' own comment - same live-measured-
             // default reasoning, mobile viewport.
-            '--try-again-question-mark-font-size-px': 78,
+            '--try-again-question-mark-font-size-px': 224.6,
             '--try-again-question-mark-font-size-vw': 20,
             '--try-again-question-mark-scale-with-browser': 0,
-            '--try-again-question-mark-x-offset-vw': 20,
+            '--try-again-question-mark-x-offset-vw': 1.63,
             '--try-again-question-mark-x-offset-unit-is-px': 0,
-            '--try-again-question-mark-y-offset-vh': 5.05,
+            '--try-again-question-mark-y-offset-vh': 24.45,
             '--try-again-question-mark-y-offset-unit-is-px': 0,
-            '--round-dock-x-offset-vw': -43,
+            '--round-dock-x-offset-vw': 37.47,
             '--round-dock-x-offset-unit-is-px': 0,
-            '--round-dock-y-offset-vh': 50,
+            '--round-dock-y-offset-vh': 1.08,
             '--round-dock-y-offset-unit-is-px': 0,
-            '--round-font-size-px': 78,
+            '--round-font-size-px': 80.76,
             '--round-font-size-vw': 20,
             '--round-scale-with-browser': 0,
-            '--round-letter-spacing-px': 0,
+            '--round-letter-spacing-px': -1,
             '--round-line-height': 1.2,
             '--round-text-align': 'left',
             '--round-text-valign': 'bottom',
-            '--round-text-align-edge-lock': 0,
-            '--round-text-valign-edge-lock': 0,
-            '--target-font-size-px': 195,
-            '--target-font-size-vw': 50,
-            '--target-scale-with-browser': 0,
-            '--target-x-offset-vw': -40.7,
-            '--target-x-offset-unit-is-px': 0,
-            '--target-y-offset-vh': -53.09,
-            '--target-y-offset-unit-is-px': 0,
+            '--round-text-align-edge-lock': 1,
+            '--round-text-valign-edge-lock': 1,
+            '--target-font-size-px': 238.44,
+            '--target-font-size-vw': 47.23,
+            '--target-scale-with-browser': 1,
+            '--target-x-offset-vw': 45.96,
+            '--target-x-offset-unit-is-px': 1,
+            '--target-y-offset-vh': 20,
+            '--target-y-offset-unit-is-px': 1,
             '--target-letter-spacing-px': 0,
-            '--target-line-height': 1.2,
+            '--target-line-height': 0.65,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
-            '--target-text-align-edge-lock': 0,
-            '--target-text-valign-edge-lock': 0,
-            '--speed-font-size-px': 38.73,
+            '--target-text-align-edge-lock': 1,
+            '--target-text-valign-edge-lock': 1,
+            '--speed-font-size-px': 53.81,
             '--speed-font-size-vw': 9.93,
             '--speed-scale-with-browser': 0,
-            '--speed-x-offset-vw': 42,
+            '--speed-x-offset-vw': 37.05,
             '--speed-x-offset-unit-is-px': 0,
-            '--speed-y-offset-vh': -33,
+            '--speed-y-offset-vh': 77.55,
             '--speed-y-offset-unit-is-px': 0,
-            '--speed-letter-spacing-px': 0,
-            '--speed-line-height': 1.2,
-            '--speed-text-align': 'right',
-            '--speed-text-valign': 'top',
-            '--speed-text-align-edge-lock': 0,
-            '--speed-text-valign-edge-lock': 0,
-            '--ms-per-click-font-size-px': 38.73,
-            '--ms-per-click-font-size-vw': 9.93,
-            '--ms-per-click-scale-with-browser': 0,
-            '--ms-per-click-x-offset-vw': 24.76,
-            '--ms-per-click-x-offset-unit-is-px': 0,
-            '--ms-per-click-y-offset-vh': -1.25,
-            '--ms-per-click-y-offset-unit-is-px': 0,
-            '--ms-per-click-letter-spacing-px': 0,
+            '--speed-letter-spacing-px': 7,
+            '--speed-line-height': 1.45,
+            '--speed-text-align': 'left',
+            '--speed-text-valign': 'bottom',
+            '--speed-text-align-edge-lock': 1,
+            '--speed-text-valign-edge-lock': 1,
+            '--ms-per-click-font-size-px': 81.4,
+            '--ms-per-click-font-size-vw': 14.86,
+            '--ms-per-click-scale-with-browser': 1,
+            '--ms-per-click-x-offset-vw': 49.25,
+            '--ms-per-click-x-offset-unit-is-px': 1,
+            '--ms-per-click-y-offset-vh': 20,
+            '--ms-per-click-y-offset-unit-is-px': 1,
+            '--ms-per-click-letter-spacing-px': -0.5,
             '--ms-per-click-line-height': 0.65,
-            '--ms-per-click-text-align': 'center',
-            '--ms-per-click-text-valign': 'center',
-            '--ms-per-click-text-align-edge-lock': 0,
-            '--ms-per-click-text-valign-edge-lock': 0,
-            '--result-win-font-size-px': 18.6,
+            '--ms-per-click-text-align': 'right',
+            '--ms-per-click-text-valign': 'top',
+            '--ms-per-click-text-align-edge-lock': 1,
+            '--ms-per-click-text-valign-edge-lock': 1,
+            '--result-win-font-size-px': 131.7,
             '--result-win-font-size-vw': 4.77,
-            '--result-win-scale-with-browser': 0,
+            '--result-win-scale-with-browser': 1,
             '--result-win-x-offset-vw': 0,
             '--result-win-x-offset-unit-is-px': 0,
-            '--result-win-y-offset-vh': 1.46,
+            '--result-win-y-offset-vh': 1.4598726114649683,
             '--result-win-y-offset-unit-is-px': 0,
             '--result-win-letter-spacing-px': 0,
-            '--result-lose-font-size-px': 18.6,
+            '--result-lose-font-size-px': 142.19,
             '--result-lose-font-size-vw': 4.77,
-            '--result-lose-scale-with-browser': 0,
+            '--result-lose-scale-with-browser': 1,
             '--result-lose-x-offset-vw': 0,
             '--result-lose-x-offset-unit-is-px': 0,
             '--result-lose-y-offset-vh': 1.46,
@@ -8062,7 +8072,7 @@
         // CLICK_BURST_SCOPED_KEYS above), matching how they're actually
         // read (mobilePrefix picks the tab, not the frame set).
         const clickBurstTextInputs = {
-            hideShadowIndexA: '0=>2', hideShadowIndexB: '-2=>-1',
+            hideShadowIndexA: '0=>2', hideShadowIndexB: '',
             rightFloorDeg: 20, rightCeilingDeg: 135,
             leftFloorDeg: 230, leftCeilingDeg: 340,
         };
@@ -9380,13 +9390,13 @@
         // edited - editing one device's slot only ever writes to that
         // device's own object, never the other's.
         const textOverrides = {
-            startLabel: null, tryAgainLabel: null, roundLabel: null,
-            winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: null,
+            startLabel: null, tryAgainLabel: 'Try\nagain', roundLabel: null,
+            winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: ' ms\n/ \nCLICK',
             targetPrefix: null,
         };
         const mobileTextOverrides = {
             startLabel: null, tryAgainLabel: null, roundLabel: null,
-            winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: null,
+            winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: 'ms\n/  \nCLICK',
             targetPrefix: null,
         };
         const TEXT_OVERRIDE_DEFAULTS = {
