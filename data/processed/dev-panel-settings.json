@@ -559,8 +559,9 @@
     "desktop:Start/Try Again Button": true,
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
-    "desktop:Round Text": false,
-    "desktop:Win/Lose Text": true,
+    "desktop:Round Text": true,
+    "desktop:Win/Lose Text": false,
+    "desktop:New Group (2)": false,
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": false,
     "desktop:Ms/Click Display": true,
@@ -765,14 +766,19 @@
           "sliderResultWinFontSize",
           "sliderResultWinX",
           "sliderResultWinY",
-          "sliderResultLoseFontSize",
-          "sliderResultLoseX",
-          "sliderResultLoseY",
           "sliderResultLineHeight",
           "selectResultTextAlign",
           "selectResultTextValign",
           "colorResultWinFill",
-          "colorResultWinBorder",
+          "colorResultWinBorder"
+        ]
+      },
+      {
+        "key": "desktop:New Group (2)",
+        "rowKeys": [
+          "sliderResultLoseFontSize",
+          "sliderResultLoseX",
+          "sliderResultLoseY",
           "colorResultLoseFill",
           "colorResultLoseBorder"
         ]
@@ -1059,12 +1065,13 @@
     "desktop:Rotation Animation": "\"?\"",
     "desktop:Speed Display (max ms between taps)": "COUNTDOWN TIMER",
     "desktop:Round Text": "Round COUNTER",
-    "desktop:Win/Lose Text": null,
+    "desktop:Win/Lose Text": "WIN",
     "desktop:Target Count Display": "TARGET TEXT",
     "desktop:Ms/Click Display": "Ms/Click TEXT",
     "desktop:Click Burst": "CLICK",
     "desktop:New Group": "TRY AGAIN",
-    "desktop:Start/Try Again Button": "START"
+    "desktop:Start/Try Again Button": "START",
+    "desktop:New Group (2)": "LOSE"
   },
   "baseColor": "#009dff",
   "buttonColor": "#009dff",
