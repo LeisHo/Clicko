@@ -115,8 +115,8 @@
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 350,
     "--dev-panel-left-px": 70,
-    "--dev-panel-top-px": 208,
-    "--dev-panel-height-px": 466,
+    "--dev-panel-top-px": 6,
+    "--dev-panel-height-px": 485,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
@@ -528,7 +528,7 @@
     "desktop:Dev Panel": true,
     "desktop:Main Button": true,
     "desktop:Shadow": true,
-    "desktop:Click Burst": false,
+    "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:Start/Try Again Button": false,
     "desktop:Rotation Animation": true,
@@ -539,18 +539,18 @@
     "desktop:Ms/Click Display": true,
     "desktop:Game Mechanics": false,
     "desktop:Background": false,
-    "mobile:Rotation Animation": true,
     "mobile:Dev Panel": true,
     "mobile:Main Button": true,
     "mobile:Click Burst": true,
     "mobile:Shadow": true,
+    "mobile:Rotation Animation": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
     "mobile:Win/Lose Text": true,
     "mobile:Start/Try Again Button": true,
     "mobile:Target Count Display": true,
-    "mobile:Round Text": false,
+    "mobile:Round Text": true,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": false
+    "mobile:Ms/Click Display": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -811,16 +811,6 @@
     ],
     "mobileTabContent": [
       {
-        "key": "mobile:Rotation Animation",
-        "rowKeys": [
-          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
-          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
-          "sliderMobileTryAgainQuestionMarkFontSize",
-          "sliderMobileTryAgainQuestionMarkX",
-          "sliderMobileTryAgainQuestionMarkY"
-        ]
-      },
-      {
         "key": "mobile:Dev Panel",
         "rowKeys": [
           "sliderMobileDevButtonTextBorder",
@@ -876,6 +866,16 @@
           "sliderMobileShadowElongationIntensity",
           "sliderMobileShadowElongationAngle",
           "sliderMobileShadowRotate"
+        ]
+      },
+      {
+        "key": "mobile:Rotation Animation",
+        "rowKeys": [
+          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
+          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
+          "sliderMobileTryAgainQuestionMarkFontSize",
+          "sliderMobileTryAgainQuestionMarkX",
+          "sliderMobileTryAgainQuestionMarkY"
         ]
       },
       {
