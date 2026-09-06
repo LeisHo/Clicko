@@ -8659,13 +8659,13 @@
         // via the normal Object.assign (same as every other cssVar), but
         // the checkbox's own DOM .checked property needs an explicit sync
         // step, same category of gap the Scale With Browser checkboxes'
-        // own restore fix closed earlier this session. If restoring into
-        // px mode, also widens the slider's min/max to comfortably fit the
-        // restored value (the HTML's own default min/max are vw/vh-shaped
-        // numbers, almost always too narrow for a meaningful px range) -
-        // same "expand to fit rather than clamp" philosophy this project's
-        // click-to-type numeric boxes already use elsewhere, applied here
-        // to a programmatic restore instead of a user keystroke.
+        // own restore fix closed earlier this session. Doesn't need to
+        // widen the slider's own min/max itself - every offset slider is a
+        // normal CSS_VAR_SLIDER_MAP entry, so applyLoadedSettings()'s own
+        // generic slider-sync loop (which runs BEFORE this, per its own
+        // comment) already auto-expands whichever bound a restored
+        // out-of-range value crosses before setting el.value, the same
+        // rule this function would otherwise have had to duplicate.
         function restoreOffsetUnitCheckboxes() {
             document.querySelectorAll('.dev-offset-unit-checkbox').forEach(checkbox => {
                 const sliderId = checkbox.dataset.slider;
@@ -8674,17 +8674,7 @@
                 if (!slider) return;
                 const { isMobile } = resolveDevControlId(sliderId);
                 const activeCssVars = isMobile ? mobileCssVars : cssVars;
-                const checked = !!activeCssVars[flagVar];
-                checkbox.checked = checked;
-                if (checked) {
-                    const value = parseFloat(slider.value);
-                    let min = parseFloat(slider.min);
-                    let max = parseFloat(slider.max);
-                    if (value < min) min = value - Math.abs(value) * 0.2;
-                    if (value > max) max = value + Math.abs(value) * 0.2;
-                    slider.min = min;
-                    slider.max = max;
-                }
+                checkbox.checked = !!activeCssVars[flagVar];
             });
             applyTextAlignAnchors();
             applyActiveVars();
