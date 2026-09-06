@@ -6350,6 +6350,13 @@
             const ext = { ...deviceExt };
             EXTRUSION_COLOR_FIELD_NAMES.forEach(field => { ext[field] = extrusionVars[field]; });
             root.setProperty('--extrusion-font', extrusionVars.font);
+            // See computeAnchorTy()'s own comment - keeps the line-height
+            // leading correction accurate for whichever font is actually
+            // rendering right now (fallback or real), not a hardcoded
+            // assumption. Cheap (one throwaway off-screen element) and
+            // safe to redo on every call - only the VALUE actually
+            // changes when the font genuinely does.
+            root.setProperty('--extrusion-font-content-ratio', measureFontContentRatio(extrusionVars.font));
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
@@ -9094,13 +9101,62 @@
         // so only "top" gets the calc() correction - the same formula
         // would extend to "bottom" by mirroring the leading-above-first-
         // line term into a leading-below-last-line term instead.
+        //
+        // The "1" in "(1 - lineHeight)" assumed every font's own natural
+        // content height (ascent+descent, what the CSS spec calls the
+        // "used font metrics") is exactly 1.0x its font-size - true for
+        // "Micro 5" specifically (verified via direct measurement: a
+        // "0" glyph at line-height:1 renders at EXACTLY font-size tall,
+        // for this font only), but this project's Google Fonts link uses
+        // `display=swap`, so every page load actually renders with a
+        // FALLBACK font first (plain "monospace") until Micro 5 finishes
+        // downloading - and the fallback's own real content-height ratio
+        // measures ~1.17, not 1.0. A static "1" baked into this formula
+        // is silently wrong for however long the fallback is showing,
+        // by an amount that's a percentage of a box height which itself
+        // scales with font-size (Scale-With-Browser) - producing exactly
+        // the reported symptom (a smooth, resize-proportional drift, not
+        // a one-time jump) for as long as the real font hasn't loaded
+        // yet, which per a direct user recording can span the ENTIRE
+        // test if the font is slow to arrive. Replaced with
+        // --extrusion-font-content-ratio, a value MEASURED once (see
+        // measureFontContentRatio()) against whichever font is actually
+        // active at the time - correct immediately even before Micro 5
+        // loads (matches the fallback's own real ratio), and re-measured
+        // exactly once more when document.fonts.ready resolves to pick
+        // up Micro 5's own ratio. This is a one-time, font-load-triggered
+        // measurement, not a per-resize one - CSS still recomputes this
+        // calc() automatically on every layout with no JS involved once
+        // the ratio itself is set, preserving the whole point of the
+        // pure-CSS approach; only the FONT-CHANGE trigger (which fires
+        // once, reliably, via a real browser-native promise) needed JS.
         function computeAnchorTy(valign, yPrefix) {
             const lhBase = yPrefix ? VALIGN_LINE_HEIGHT_PREFIX[yPrefix] : null;
             if (valign === 'top' && lhBase) {
                 const lineCount = VALIGN_LINE_COUNT[yPrefix] || 1;
-                return `calc((1 - var(--${lhBase}-line-height, 1)) / (2 * ${lineCount} * var(--${lhBase}-line-height, 1)) * 100%)`;
+                return `calc((var(--extrusion-font-content-ratio, 1) - var(--${lhBase}-line-height, 1)) / (2 * ${lineCount} * var(--${lhBase}-line-height, 1)) * 100%)`;
             }
             return VALIGN_TY[valign] || VALIGN_TY.center;
+        }
+        // Measures a font's own real content-height ratio (glyph height
+        // at line-height:1, as a fraction of font-size) - see
+        // computeAnchorTy()'s own comment for why this can't just be
+        // assumed as 1.0. A pure font-metric property, independent of
+        // which element/line-count/actual font-size it'll be applied to,
+        // so one measurement covers every element sharing --extrusion-font.
+        function measureFontContentRatio(fontFamily) {
+            const REF_SIZE = 200;
+            const el = document.createElement('div');
+            el.style.cssText = 'position:fixed; top:-9999px; left:-9999px; visibility:hidden; font-weight:700; white-space:nowrap; line-height:1;';
+            el.style.fontFamily = fontFamily;
+            el.style.fontSize = REF_SIZE + 'px';
+            el.textContent = '0';
+            document.body.appendChild(el);
+            const range = document.createRange();
+            range.selectNodeContents(el.firstChild);
+            const ratio = range.getBoundingClientRect().height / REF_SIZE;
+            document.body.removeChild(el);
+            return ratio;
         }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
@@ -11781,6 +11837,24 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
+        // One-time re-measurement of --extrusion-font-content-ratio (see
+        // computeAnchorTy()'s own comment) once the real webfont has
+        // ACTUALLY finished loading - the call above already measured it
+        // against whichever font was active at that instant, almost
+        // certainly the `display=swap` fallback on a fresh/uncached load.
+        // Every element's --anchor-ty is a calc() that reads this SAME
+        // root-level custom property by name, so updating just this one
+        // value here is enough for every element to repaint correctly on
+        // the browser's own next paint - no need to re-run
+        // applyTextAlignAnchors() or touch any per-element style again.
+        // Deliberately a single top-level hook, not something re-scheduled
+        // on every call (see this project's own prior history with a
+        // recursive version of this pattern corrupting state under a
+        // mocked fonts object that never actually resolved) - this form
+        // can only ever run once.
+        document.fonts.ready.then(() => {
+            document.documentElement.style.setProperty('--extrusion-font-content-ratio', measureFontContentRatio(extrusionVars.font));
+        });
         // Captures every dev-panel label/title's TRUE original text into
         // devTextOriginals (devTextOverrides is still empty at this point) -
         // re-run below once the settings fetch resolves to actually apply
