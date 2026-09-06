@@ -8433,6 +8433,18 @@
 
         document.addEventListener('pointermove', (e) => {
             if (!isDraggingDevPanel) return;
+            // Recovery for a dropped gesture - per direct report ("in
+            // mobile, I still can't drag the dev panel up and down"),
+            // live-reproduced: a touch-drag's pointerdown fired (isDragging
+            // flipped true, pointer capture set) but no further pointermove/
+            // pointerup/pointercancel ever arrived - isDraggingDevPanel got
+            // stuck true forever, which would also break EVERY subsequent
+            // pointer interaction on the page (this same flag gates this
+            // handler unconditionally). If a move event ever DOES arrive
+            // with no button/touch actually down, the real gesture already
+            // ended without us seeing it - treat it as an implicit end
+            // rather than acting on stale drag-start data.
+            if (e.buttons === 0) { endDevPanelDrag(e); return; }
             const dx = e.clientX - devPanelDragStart.pointerX;
             const dy = e.clientY - devPanelDragStart.pointerY;
             const panelRect = devPanel.getBoundingClientRect();
@@ -8467,6 +8479,12 @@
         }
         document.addEventListener('pointerup', endDevPanelDrag);
         document.addEventListener('pointercancel', endDevPanelDrag);
+        // lostpointercapture fires whenever the browser/OS revokes capture
+        // for ANY reason, including a native gesture recognizer stepping in
+        // mid-touch - a more direct signal than waiting for pointerup/
+        // pointercancel, which the live-reproduced stuck-drag case above
+        // showed can both simply never arrive.
+        devPanelHeader.addEventListener('lostpointercapture', endDevPanelDrag);
 
         function toggleDevPanelCollapsed() {
             const collapsed = devPanel.classList.toggle('panel-collapsed');
@@ -8529,6 +8547,11 @@
 
             document.addEventListener('pointermove', (e) => {
                 if (!dragging) return;
+                // Same dropped-gesture recovery as the header drag above -
+                // see its own comment for the live-reproduced symptom this
+                // guards against (a stuck `dragging` flag that would
+                // otherwise silently absorb every future pointer move).
+                if (e.buttons === 0) { end(e); return; }
                 const cs = getComputedStyle(panel);
                 const minW = parseFloat(cs.minWidth) || 0, maxW = parseFloat(cs.maxWidth) || Infinity;
                 const minH = parseFloat(cs.minHeight) || 0, maxH = parseFloat(cs.maxHeight) || Infinity;
@@ -8598,6 +8621,7 @@
             }
             document.addEventListener('pointerup', end);
             document.addEventListener('pointercancel', end);
+            handle.addEventListener('lostpointercapture', end);
         }
 
         setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeTop'), null, 'top');
