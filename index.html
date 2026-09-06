@@ -9042,14 +9042,13 @@
             const boxRect = el.getBoundingClientRect();
             // Guards against dividing by a near-zero (not just exactly-0)
             // height below - a real, observed failure mode when this
-            // fires a 2nd time in quick succession (e.g. the deferred
-            // font.ready re-run above, right as a font swap is still
-            // settling): produced a nonsensical -909044% on one measured
-            // occurrence instead of erroring or silently no-op'ing on a
-            // genuinely tiny/transitional box size. 1px is comfortably
-            // below any real rendered text line's height at any font-size
-            // this project uses, so this never rejects a legitimate
-            // measurement.
+            // fires a 2nd time in quick succession (e.g. right as a font
+            // swap is still settling): produced a nonsensical -909044% on
+            // one measured occurrence instead of erroring or silently
+            // no-op'ing on a genuinely tiny/transitional box size. 1px is
+            // comfortably below any real rendered text line's height at
+            // any font-size this project uses, so this never rejects a
+            // legitimate measurement.
             if (boxRect.height < 1) return;
             const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
             const firstText = walker.nextNode();
@@ -9058,9 +9057,32 @@
             range.selectNodeContents(firstText);
             const glyphRect = range.getBoundingClientRect();
             if (glyphRect.height === 0) return;
+            // gapPx (the glyph's leading offset from its own box) is
+            // INVARIANT to whatever --anchor-ty currently is - a
+            // transform:translate() shifts the box and everything inside
+            // it (including the glyph) by the exact same amount, so it
+            // can never change this internal, line-height-driven gap; it
+            // can only reposition where the whole (box+glyph) unit sits.
+            // This means the correction MUST be computed as an ABSOLUTE
+            // offset from the base valign value (0% for "top"), never
+            // accumulated on top of whatever --anchor-ty already holds -
+            // a real, found-via-testing bug in an earlier version of this
+            // function did exactly that (currentTy - newCorrection), which
+            // silently DOUBLES on every single re-run since gapPx never
+            // shrinks toward the early-return threshold. This matters a
+            // lot in practice: window resize already calls
+            // applyActiveVars() -> this function on EVERY resize event
+            // (see the resize listener's own comment), and a drag-resize
+            // fires many events in quick succession - with the old
+            // additive logic, each one stacked another full correction,
+            // which is almost certainly the real, precise mechanism behind
+            // the reported "the larger the browser, the further down the
+            // target text shifts" (more resize events during a bigger
+            // drag = more accumulated corrections), not a font-loading
+            // race as first suspected. Idempotent now: calling this any
+            // number of times, from any call site, always converges to
+            // the exact same correct value.
             const gapPx = glyphRect.top - boxRect.top;
-            if (Math.abs(gapPx) < 0.05) return;
-            const currentTyPercent = parseFloat(el.style.getPropertyValue('--anchor-ty')) || 0;
             const correctionPercent = (gapPx / boxRect.height) * 100;
             // A real leading-vs-box-height ratio can never exceed roughly
             // +/-100% (the gap can't be bigger than the box itself) - a
@@ -9069,7 +9091,8 @@
             // not a real leading gap. Reject rather than apply a
             // corrupting value.
             if (Math.abs(correctionPercent) > 100) return;
-            el.style.setProperty('--anchor-ty', (currentTyPercent - correctionPercent) + '%');
+            const baseTyPercent = parseFloat(VALIGN_TY[valign]) || 0;
+            el.style.setProperty('--anchor-ty', (baseTyPercent - correctionPercent) + '%');
         }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
