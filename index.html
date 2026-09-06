@@ -381,6 +381,23 @@
         .button-tint-flood {
             flood-color: var(--button-tint-color, #eb2027);
         }
+        /* Win/Lose button tint - per explicit request. Redefines the SAME
+           --button-tint-color custom property (consumed by .button-tint-
+           flood above) scoped to .game-container's descendants only,
+           whenever resultText currently carries .result-win/.result-lose -
+           normal CSS cascade/inheritance means this correctly overrides
+           setButtonHue()'s :root-level inline-style value for anything
+           inside .game-container, no specificity fight involved (it's a
+           different, more specific element redefining the property, not
+           competing for the same element). :has() means this stays correct
+           regardless of which of the several existing code paths toggles
+           resultText's win/lose class - no game-logic JS needed at all. */
+        .game-container:has(#resultText.result-win) {
+            --button-tint-color: var(--button-win-tint-color, #22dd44);
+        }
+        .game-container:has(#resultText.result-lose) {
+            --button-tint-color: var(--button-lose-tint-color, #dd2222);
+        }
         .basebg-svg-layer {
             position: absolute;
             inset: 0;
@@ -2207,8 +2224,18 @@
                  uniformly (per explicit request), so applyLightLevels() (JS)
                  pushes the same computed slope/intercept into BOTH filters'
                  feFuncR/G/B whenever any of the 3 sliders change. Overlay
-                 blend (feBlend mode="overlay"), not multiply - per explicit
-                 request ("I want it to be Overlay"). -->
+                 blend, not multiply - per explicit request ("I want it to
+                 be Overlay"), now user-selectable via the Blend Mode
+                 dropdowns (applyBlendModes()). feBlend's `in`/`in2` order
+                 matters for every asymmetric mode (overlay, hard/soft-
+                 light, color-dodge/-burn, hue/saturation/color/luminosity):
+                 in2 is the BACKDROP (Cb) and in is the SOURCE (Cs) per
+                 spec, and it's the BACKDROP that drives Overlay's own
+                 branching/extremes - grayscale must be in2, tint must be
+                 in, or a level=1 (white) input does NOT come out white
+                 regardless of tint as intended (confirmed the hard way: had
+                 these swapped initially, live-verified white-in produced
+                 the tint color unchanged instead of white). -->
             <svg width="0" height="0" style="position:absolute" aria-hidden="true">
                 <defs>
                     <filter id="baseGrayscaleTint" color-interpolation-filters="sRGB">
@@ -2223,7 +2250,7 @@
                             <feFuncB class="light-levels-func" type="linear" slope="1" intercept="0"/>
                         </feComponentTransfer>
                         <feFlood class="base-tint-flood" result="tintColor"/>
-                        <feBlend in="levels" in2="tintColor" mode="overlay" result="tinted"/>
+                        <feBlend id="baseTintBlend" in="tintColor" in2="levels" mode="overlay" result="tinted"/>
                         <feComposite in="tinted" in2="SourceGraphic" operator="in"/>
                     </filter>
                     <filter id="buttonGrayscaleTint" color-interpolation-filters="sRGB">
@@ -2238,7 +2265,7 @@
                             <feFuncB class="light-levels-func" type="linear" slope="1" intercept="0"/>
                         </feComponentTransfer>
                         <feFlood class="button-tint-flood" result="tintColor"/>
-                        <feBlend in="levels" in2="tintColor" mode="overlay" result="tinted"/>
+                        <feBlend id="buttonTintBlend" in="tintColor" in2="levels" mode="overlay" result="tinted"/>
                         <feComposite in="tinted" in2="SourceGraphic" operator="in"/>
                     </filter>
                 </defs>
@@ -3158,14 +3185,71 @@
                     <span class="dev-value" style="font-size:9px;color:#888;">(grayscale + tint)</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Blend Mode (Color):</span>
+                    <select class="dev-select" id="selectButtonBlendMode">
+                        <option value="overlay" selected>Overlay</option>
+                        <option value="normal">Normal</option>
+                        <option value="multiply">Multiply</option>
+                        <option value="screen">Screen</option>
+                        <option value="darken">Darken</option>
+                        <option value="lighten">Lighten</option>
+                        <option value="color-dodge">Color Dodge</option>
+                        <option value="color-burn">Color Burn</option>
+                        <option value="hard-light">Hard Light</option>
+                        <option value="soft-light">Soft Light</option>
+                        <option value="difference">Difference</option>
+                        <option value="exclusion">Exclusion</option>
+                        <option value="hue">Hue</option>
+                        <option value="saturation">Saturation</option>
+                        <option value="color">Color</option>
+                        <option value="luminosity">Luminosity</option>
+                    </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorButtonWin" value="#22dd44">
+                    <span class="dev-value" style="font-size:9px;color:#888;">(button tint on Win)</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorButtonLose" value="#dd2222">
+                    <span class="dev-value" style="font-size:9px;color:#888;">(button tint on Lose)</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Base Color:</span>
                     <input type="color" class="dev-color-picker" id="colorBase" value="#eb2027">
                     <span class="dev-value" style="font-size:9px;color:#888;">(grayscale + tint)</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Blend Mode (Base Color):</span>
+                    <select class="dev-select" id="selectBaseBlendMode">
+                        <option value="overlay" selected>Overlay</option>
+                        <option value="normal">Normal</option>
+                        <option value="multiply">Multiply</option>
+                        <option value="screen">Screen</option>
+                        <option value="darken">Darken</option>
+                        <option value="lighten">Lighten</option>
+                        <option value="color-dodge">Color Dodge</option>
+                        <option value="color-burn">Color Burn</option>
+                        <option value="hard-light">Hard Light</option>
+                        <option value="soft-light">Soft Light</option>
+                        <option value="difference">Difference</option>
+                        <option value="exclusion">Exclusion</option>
+                        <option value="hue">Hue</option>
+                        <option value="saturation">Saturation</option>
+                        <option value="color">Color</option>
+                        <option value="luminosity">Luminosity</option>
+                    </select>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Light Levels:</span>
-                    <input type="range" class="dev-slider" id="sliderLightLevels" min="0" max="2.5" step="0.01" value="1">
-                    <span class="dev-value" id="valueLightLevels">1</span>
+                    <input type="range" class="dev-slider" id="sliderLightLevels" min="-1" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueLightLevels">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Contrast:</span>
+                    <input type="range" class="dev-slider" id="sliderLightLevelsContrast" min="0" max="3" step="0.01" value="1">
+                    <span class="dev-value" id="valueLightLevelsContrast">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Light Level Floor:</span>
@@ -3830,6 +3914,16 @@
                     <span class="dev-value" id="valueResultLoseY">-13</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultExtrusionDepth" min="0" max="30" step="1" value="5">
+                    <span class="dev-value" id="valueResultExtrusionDepth">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderResultOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueResultOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Line Spacing:</span>
                     <input type="range" class="dev-slider" id="sliderResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
                     <span class="dev-value" id="valueResultLineHeight">1.2</span>
@@ -3867,6 +3961,10 @@
                 <div class="dev-row">
                     <span class="dev-label">Lose Border Color:</span>
                     <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#2c99dd">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Overall Border Color:</span>
+                    <input type="color" class="dev-color-picker" id="colorResultOverallBorder" value="#401013">
                 </div>
             </div>
         </div>
@@ -4670,6 +4768,16 @@
                     <span class="dev-value" id="valueMobileResultLoseY">1.46</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultExtrusionDepth" min="0" max="30" step="1" value="5">
+                    <span class="dev-value" id="valueMobileResultExtrusionDepth">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileResultOverallBorderThickness" min="0" max="20" step="1" value="3">
+                    <span class="dev-value" id="valueMobileResultOverallBorderThickness">3</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Line Spacing:</span>
                     <input type="range" class="dev-slider" id="sliderMobileResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
                     <span class="dev-value" id="valueMobileResultLineHeight">1.2</span>
@@ -5087,13 +5195,26 @@
             // itself (not mobile-split, not per Main Button diameter etc.).
             // Applies to base+backing+button+pressed-button uniformly - per
             // explicit request ("Light Levels should just be Light Levels.
-            // It should affect all svgs"). Floor/ceiling define the final
-            // output range (see applyLightLevels()'s formula); defaults
-            // (1/0/1) reduce to the identity transform, unchanged look
-            // until tuned.
-            '--light-levels-gain': 1,
+            // It should affect all svgs"). Renamed from --light-levels-gain
+            // (was a pure multiplicative gain) since the semantics changed
+            // to a -1..1 black/white lerp per explicit clarification - a
+            // deliberate rename, not just a tweak, so an old saved gain=1
+            // value can't get silently misinterpreted as the new scale's
+            // "1" (all-white) instead of quietly resetting to the new
+            // default (0, neutral). Floor/ceiling define the final output
+            // range, Contrast pivots around the 0.5 midpoint (see
+            // applyLightLevels()'s own formula comment) - defaults (0
+            // level, 1 contrast, 0 floor, 1 ceiling) reduce to the identity
+            // transform, unchanged look until tuned.
+            '--light-levels': 0,
+            '--light-levels-contrast': 1,
             '--light-levels-floor': 0,
             '--light-levels-ceiling': 1,
+            // Blend mode for each filter's own tint step (feBlend) - per
+            // explicit request for a dropdown. 'overlay' matches the
+            // existing hardcoded default until changed.
+            '--base-blend-mode': 'overlay',
+            '--button-blend-mode': 'overlay',
             // Regular (false/0) vs Thin (true/1) base+backing artwork - per
             // explicit request, single/shared like the base tint above.
             '--thin-base-enabled': 0,
@@ -5404,6 +5525,18 @@
             winBorderColor: '#22dd44',
             loseFillColor: '#d3a7a7',
             loseBorderColor: '#2c99dd',
+            // Win/Lose's own extrusion depth/border thickness/border color -
+            // per explicit request ("extrusion and border settings for the
+            // Win/Lose text"), same independent-per-element pattern as
+            // Target/Speed/Ms-per-click above (fill/border TEXT color stays
+            // the already-existing win/lose split above; these 3 are the
+            // outer extrusion shape, shared between win and lose like
+            // Target's single depth/thickness/color apply regardless of any
+            // "state"). Starts matching the shared depth/overallBorder*
+            // values below until tuned.
+            resultDepth: 5,
+            resultOverallBorderThickness: 5,
+            resultOverallBorderColor: '#401013',
             // Overall border/outline wrapping the combined text+extrusion
             // silhouette (not just the glyph) - one shared on/off toggle
             // for everyone, but color now mirrors thickness: shared for
@@ -5457,6 +5590,9 @@
             winBorderColor: '#22dd44',
             loseFillColor: '#ffffff',
             loseBorderColor: '#dd3333',
+            resultDepth: 5,
+            resultOverallBorderThickness: 3,
+            resultOverallBorderColor: '#000000',
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
@@ -5625,9 +5761,9 @@
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-win-fill-color', ext.winFillColor);
-            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.depth, ext.winBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.resultDepth, ext.winBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-lose-fill-color', ext.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.depth, ext.loseBorderColor, ext.overallBorderThickness, ext.overallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.resultDepth, ext.loseBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled));
             // Each element's own "Text Color" picker now IS its glyph's real
             // fill, not just the extrusion/shadow layer's color - per direct
             // report ("my text currently shows as white" - the glyph was
@@ -6609,7 +6745,8 @@
             document.documentElement.style.setProperty('--dev-panel-height-px', cssVars['--dev-panel-height-px']);
             // Light Levels/Floor/Ceiling - also single/shared (cssVars
             // only), same reasoning as the dev-panel geometry above.
-            applyLightLevels(cssVars['--light-levels-gain'], cssVars['--light-levels-floor'], cssVars['--light-levels-ceiling']);
+            applyLightLevels(cssVars['--light-levels'], cssVars['--light-levels-contrast'], cssVars['--light-levels-floor'], cssVars['--light-levels-ceiling']);
+            applyBlendModes(cssVars['--base-blend-mode'], cssVars['--button-blend-mode']);
             applyThinBaseState();
             // The 8-bit extrusion system (color/depth/border) is mobile-
             // split too (see mobileExtrusionVars) - re-apply it here so a
@@ -6670,7 +6807,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -6733,7 +6870,7 @@
         // own exception), so this falls back to localStorage instead. See
         // acquireSavedSettings() for the matching read-back side.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -6758,6 +6895,16 @@
         // that need subsequent code to see the restored values must await
         // this, see the Initialize block below.
         async function loadSettings() {
+            // Reset the Thin Base race-condition guard at the start of
+            // EVERY load, not just the initial page-load one - Reset
+            // (resetDevSettings() -> loadSettings() again) is a deliberate,
+            // intentional re-application and must still be able to change
+            // Thin Base even after the user has manually toggled it once;
+            // the guard exists only to protect THIS SPECIFIC in-flight
+            // fetch from a race with a toggle that happens while IT'S
+            // pending, not to permanently lock Thin Base out of every
+            // future load.
+            thinBaseUserSet = false;
             const settings = await acquireSavedSettings();
             if (settings && typeof settings === 'object' && Object.keys(settings).length) {
                 applyLoadedSettings(settings);
@@ -6907,6 +7054,12 @@
                     if (devPanelStyle.fontFamily === 'monospace') devPanelStyle.fontFamily = 'Arial, Helvetica, sans-serif';
                     const fontFamilyEl = document.getElementById('selectDevPanelFontFamily');
                     if (fontFamilyEl) fontFamilyEl.value = devPanelStyle.fontFamily;
+                    // Blend Mode selects - same DOM-value-sync gap class as
+                    // the color pickers (see syncColorPickersFromState()).
+                    const baseBlendEl = document.getElementById('selectBaseBlendMode');
+                    if (baseBlendEl && cssVars['--base-blend-mode']) baseBlendEl.value = cssVars['--base-blend-mode'];
+                    const buttonBlendEl = document.getElementById('selectButtonBlendMode');
+                    if (buttonBlendEl && cssVars['--button-blend-mode']) buttonBlendEl.value = cssVars['--button-blend-mode'];
                     Object.entries(DEV_PANEL_CAPS_CLASS_MAP).forEach(([key, _cls]) => {
                         const idMap = {
                             capsButtonText: 'checkboxDevCapsButtonText',
@@ -6936,6 +7089,14 @@
                     if (settings.buttonColor) {
                         document.getElementById('colorButton').value = settings.buttonColor;
                         refreshButtonHue();
+                    }
+                    if (settings.buttonWinColor) {
+                        document.getElementById('colorButtonWin').value = settings.buttonWinColor;
+                        document.documentElement.style.setProperty('--button-win-tint-color', settings.buttonWinColor);
+                    }
+                    if (settings.buttonLoseColor) {
+                        document.getElementById('colorButtonLose').value = settings.buttonLoseColor;
+                        document.documentElement.style.setProperty('--button-lose-tint-color', settings.buttonLoseColor);
                     }
                     // Text Edit Mode overrides - restore the raw values then
                     // re-render every editable slot from them (also picks
@@ -7024,6 +7185,10 @@
                             });
                         });
                     });
+                    // Generic color-picker DOM-value sync - same gap-closing
+                    // shape as the slider sync loop just above, see
+                    // syncColorPickersFromState()'s own comment.
+                    syncColorPickersFromState();
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -7440,6 +7605,45 @@
             });
         }
 
+        // Color pickers not otherwise special-cased (colorBase/colorButton/
+        // colorButtonWin/colorButtonLose have their own dedicated handling -
+        // see setBaseHue()/setButtonHue() and applyLoadedSettings()). Moved
+        // to top-level scope (was function-locally scoped inside
+        // setupDevSliders()) so both the live 'input' listener AND
+        // syncColorPickersFromState() (the generic post-load DOM-value sync
+        // - per explicit request "make sure all color pickers in the dev
+        // panel reflect the current settings") can share one definition
+        // instead of drifting apart.
+        const COLOR_VAR_MAP = {
+            'colorBg': '--bg-color',
+        };
+        // The 8-bit extrusion style's colors are mobile-split (see
+        // mobileExtrusionVars) but don't live in colorVars - they write
+        // straight into extrusionVars/mobileExtrusionVars (see
+        // applyExtrusionStyles()).
+        const EXTRUSION_COLOR_MAP = {
+            'colorResultWinFill': 'winFillColor',
+            'colorResultWinBorder': 'winBorderColor',
+            'colorResultLoseFill': 'loseFillColor',
+            'colorResultLoseBorder': 'loseBorderColor',
+            'colorResultOverallBorder': 'resultOverallBorderColor',
+            'colorOverallBorder': 'overallBorderColor',
+            'colorRoundExtrusionBorder': 'roundBorderColor',
+            'colorTryAgainExtrusionBorder': 'tryAgainBorderColor',
+            'colorTryAgainOverallBorder': 'tryAgainOverallBorderColor',
+            'colorTryAgainQuestionMarkFill': 'questionMarkFillColor',
+            'colorTryAgainQuestionMarkOverallBorder': 'questionMarkOverallBorderColor',
+            'colorTargetExtrusionBorder': 'targetBorderColor',
+            'colorSpeedExtrusionBorder': 'speedBorderColor',
+            'colorMsPerClickExtrusionBorder': 'msPerClickBorderColor',
+            'colorRoundOverallBorder': 'roundOverallBorderColor',
+            'colorRoundDockExtrusionBorder': 'roundDockBorderColor',
+            'colorRoundDockOverallBorder': 'roundDockOverallBorderColor',
+            'colorTargetOverallBorder': 'targetOverallBorderColor',
+            'colorSpeedOverallBorder': 'speedOverallBorderColor',
+            'colorMsPerClickOverallBorder': 'msPerClickOverallBorderColor',
+        };
+
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
         // "sliderMobile"-prefixed twin (see the Mobile Overrides dev-panel
@@ -7455,7 +7659,8 @@
             'sliderButtonY': '--button-y-offset-vh',
             'sliderButtonReleaseMs': '--button-release-ms',
             'sliderButtonPressMs': '--button-press-ms',
-            'sliderLightLevels': '--light-levels-gain',
+            'sliderLightLevels': '--light-levels',
+            'sliderLightLevelsContrast': '--light-levels-contrast',
             'sliderLightLevelFloor': '--light-levels-floor',
             'sliderLightLevelCeiling': '--light-levels-ceiling',
             'sliderClickBurstSpeed': '--click-burst-speed-ms',
@@ -7552,6 +7757,8 @@
             'sliderRoundDockOverallBorderThickness': 'roundDockOverallBorderThickness',
             'sliderTryAgainQuestionMarkExtrusionDepth': 'questionMarkDepth',
             'sliderTryAgainQuestionMarkOverallBorderThickness': 'questionMarkOverallBorderThickness',
+            'sliderResultExtrusionDepth': 'resultDepth',
+            'sliderResultOverallBorderThickness': 'resultOverallBorderThickness',
         };
 
         // Given any slider/color id (desktop OR its "Mobile"-infixed twin),
@@ -8162,6 +8369,34 @@
             });
         }
 
+        // Per explicit request ("make sure all color pickers in the dev
+        // panel reflect the current settings") - a real, previously-known
+        // gap (this file's own Round 1 comment already flagged color
+        // pickers as "left out of scope" for the generic post-load sync
+        // that sliders got). colorBase/colorButton/colorButtonWin/
+        // colorButtonLose are skipped here - they're special-cased (not
+        // stored via COLOR_VAR_MAP/EXTRUSION_COLOR_MAP) and already have
+        // their own dedicated restore in applyLoadedSettings(); Dev Panel
+        // styling colors are likewise already covered by
+        // DEV_PANEL_STYLE_CONTROL_IDS's own restore loop and simply won't
+        // match either map below, so they're harmlessly skipped too.
+        function syncColorPickersFromState() {
+            const SPECIAL_CASED_IDS = ['colorButton', 'colorBase', 'colorButtonWin', 'colorButtonLose'];
+            document.querySelectorAll('.dev-color-picker').forEach(picker => {
+                const { isMobile, desktopId } = resolveDevControlId(picker.id);
+                if (SPECIAL_CASED_IDS.includes(desktopId)) return;
+                const extrusionKey = EXTRUSION_COLOR_MAP[desktopId];
+                if (extrusionKey) {
+                    picker.value = (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey];
+                    return;
+                }
+                const varName = COLOR_VAR_MAP[desktopId];
+                if (varName) {
+                    picker.value = (isMobile ? mobileColorVars : colorVars)[varName];
+                }
+            });
+        }
+
         function setupDevSliders() {
             const sliders = document.querySelectorAll('.dev-slider');
             sliders.forEach(slider => {
@@ -8170,35 +8405,8 @@
                 });
             });
 
-            // Setup color pickers
-            const COLOR_VAR_MAP = {
-                'colorBg': '--bg-color',
-            };
-            // The 8-bit extrusion style's colors are mobile-split (see
-            // mobileExtrusionVars) but don't live in colorVars - they write
-            // straight into extrusionVars/mobileExtrusionVars (see
-            // applyExtrusionStyles()).
-            const EXTRUSION_COLOR_MAP = {
-                'colorResultWinFill': 'winFillColor',
-                'colorResultWinBorder': 'winBorderColor',
-                'colorResultLoseFill': 'loseFillColor',
-                'colorResultLoseBorder': 'loseBorderColor',
-                'colorOverallBorder': 'overallBorderColor',
-                'colorRoundExtrusionBorder': 'roundBorderColor',
-                'colorTryAgainExtrusionBorder': 'tryAgainBorderColor',
-                'colorTryAgainOverallBorder': 'tryAgainOverallBorderColor',
-                'colorTryAgainQuestionMarkFill': 'questionMarkFillColor',
-                'colorTryAgainQuestionMarkOverallBorder': 'questionMarkOverallBorderColor',
-                'colorTargetExtrusionBorder': 'targetBorderColor',
-                'colorSpeedExtrusionBorder': 'speedBorderColor',
-                'colorMsPerClickExtrusionBorder': 'msPerClickBorderColor',
-                'colorRoundOverallBorder': 'roundOverallBorderColor',
-                'colorRoundDockExtrusionBorder': 'roundDockBorderColor',
-                'colorRoundDockOverallBorder': 'roundDockOverallBorderColor',
-                'colorTargetOverallBorder': 'targetOverallBorderColor',
-                'colorSpeedOverallBorder': 'speedOverallBorderColor',
-                'colorMsPerClickOverallBorder': 'msPerClickOverallBorderColor',
-            };
+            // Setup color pickers (COLOR_VAR_MAP/EXTRUSION_COLOR_MAP are now
+            // top-level - see their own comment there).
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
                 picker.addEventListener('input', (e) => {
@@ -8212,6 +8420,23 @@
                     }
                     if (desktopId === 'colorBase') {
                         refreshBaseHue();
+                        return;
+                    }
+                    // Win/Lose button tint - per explicit request ("provide
+                    // a color picker for Win Color, and Lose Color... tints
+                    // for the button svg when the player Wins or Loses").
+                    // Plain CSS custom properties, overridden by
+                    // .game-container:has(#resultText.result-win/-lose)
+                    // (see its own CSS comment) - no game-logic JS needed,
+                    // stays correct regardless of which of the several
+                    // existing call sites toggles resultText's win/lose
+                    // class.
+                    if (desktopId === 'colorButtonWin') {
+                        document.documentElement.style.setProperty('--button-win-tint-color', e.target.value);
+                        return;
+                    }
+                    if (desktopId === 'colorButtonLose') {
+                        document.documentElement.style.setProperty('--button-lose-tint-color', e.target.value);
                         return;
                     }
 
@@ -8376,13 +8601,49 @@
         // the darkest possible output, ceiling caps the brightest. Defaults
         // (gain=1, floor=0, ceiling=1) reduce to slope=1/intercept=0 -
         // exactly the old single-slope behavior, unchanged until tuned.
-        function applyLightLevels(gain, floor, ceiling) {
-            const slope = gain * (ceiling - floor);
-            const intercept = floor;
+        // Redefined per explicit clarification: "I want it to control how
+        // white every shade is. if its set to max, everything is white. if
+        // its at 0, everything is black. This includes even if a color
+        // tint is applied." A pure multiplicative gain can't do this (0
+        // input * any gain is still 0 - shadows could never turn white),
+        // so `level` is now a -1..1 LERP toward black (-1) or white (+1),
+        // passing through the true/original grayscale at 0 (neutral). The
+        // "even with a tint applied" part falls out for free from Overlay
+        // blend's own math (base=1 -> result=1 regardless of blend color,
+        // base=0 -> result=0 regardless of blend color) - no extra work
+        // needed there, just getting the grayscale layer itself to reach
+        // true 0/1 at the extremes.
+        //   level>=0: v1 = input*(1-level) + level      [lerp toward white]
+        //   level<0:  v1 = input*(1+level)               [lerp toward black]
+        // Contrast (per explicit request, "under Light Levels... a contrast
+        // slider") pivots v1 around the 0.5 midpoint, default 1 = neutral:
+        //   v2 = (v1-0.5)*contrast + 0.5
+        // Floor/Ceiling (existing sliders) remap the final range as before:
+        //   output = floor + v2*(ceiling-floor)
+        // All 3 stages are linear in `input`, so they compose into ONE
+        // slope+intercept (same reasoning as the original gain+floor+
+        // ceiling version) - see the derivation in this project's own
+        // CHANGELOG for this entry.
+        function applyLightLevels(level, contrast, floor, ceiling) {
+            const slope1 = 1 - Math.abs(level);
+            const intercept1 = Math.max(level, 0);
+            const range = ceiling - floor;
+            const slope = slope1 * contrast * range;
+            const intercept = (intercept1 * contrast + 0.5 * (1 - contrast)) * range + floor;
             document.querySelectorAll('.light-levels-func').forEach(el => {
                 el.setAttribute('slope', slope);
                 el.setAttribute('intercept', intercept);
             });
+        }
+
+        // Blend Mode dropdowns (Button/Base Color) - per explicit request.
+        // feBlend's own `mode` attribute isn't part of the CSS-stylable
+        // filter-primitive subset reliably cross-browser (unlike flood-
+        // color), so this sets it directly, same reasoning as
+        // applyLightLevels()'s slope/intercept above.
+        function applyBlendModes(baseMode, buttonMode) {
+            document.getElementById('baseTintBlend').setAttribute('mode', baseMode);
+            document.getElementById('buttonTintBlend').setAttribute('mode', buttonMode);
         }
 
         // Thin vs Regular base+backing artwork - per explicit request.
@@ -8391,12 +8652,23 @@
         // toggle on the common ancestor, but also syncs the checkbox's own
         // displayed state (closing the exact gap updateFlipButtonSvg()'s
         // own comment already flags as pre-existing and unaddressed there).
+        // thinBaseUserSet guards against a real race: loadSettings() is an
+        // async fetch that can still be in flight when the user interacts
+        // with the panel - if they toggle Thin Base before it resolves, the
+        // fetch's own (likely stale/unsaved) --thin-base-enabled value would
+        // otherwise silently overwrite their live toggle the instant it
+        // completes (applyActiveVars() -> applyThinBaseState() re-runs
+        // post-load). Once the user has touched it directly, their own
+        // value wins over that one-time post-load reapplication.
+        let thinBaseUserSet = false;
         function updateThinBase() {
             const thin = document.getElementById('checkboxThinBase').checked;
             cssVars['--thin-base-enabled'] = thin ? 1 : 0;
             buttonAssembly.classList.toggle('thin-base', thin);
+            thinBaseUserSet = true;
         }
         function applyThinBaseState() {
+            if (thinBaseUserSet) return;
             const thin = !!cssVars['--thin-base-enabled'];
             buttonAssembly.classList.toggle('thin-base', thin);
             const cb = document.getElementById('checkboxThinBase');
@@ -9865,6 +10137,22 @@
 
         // Initialize
         setupDevPanelStyleControls();
+        // Blend Mode dropdowns (Button/Base Color) - per explicit request.
+        // cssVars-backed (single/shared, like Light Levels/Base Color
+        // itself), not a .dev-slider/.dev-color-picker, so wired directly
+        // here rather than through either of those generic loops.
+        (function setupBlendModeSelects() {
+            const baseEl = document.getElementById('selectBaseBlendMode');
+            if (baseEl) baseEl.addEventListener('change', (e) => {
+                cssVars['--base-blend-mode'] = e.target.value;
+                applyActiveVars();
+            });
+            const buttonEl = document.getElementById('selectButtonBlendMode');
+            if (buttonEl) buttonEl.addEventListener('change', (e) => {
+                cssVars['--button-blend-mode'] = e.target.value;
+                applyActiveVars();
+            });
+        })();
         applyDevPanelOwnStyling(true);
         // Wire up + paint with hardcoded defaults FIRST, synchronously -
         // loadSettings() is now an async fetch (git-only settings log, not
