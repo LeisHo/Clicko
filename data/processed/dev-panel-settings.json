@@ -102,6 +102,7 @@
     "--round-blink3-show-ms": 500,
     "--round-post-blink-hold-ms": 1300,
     "--round-blink4-hide-ms": 250,
+    "--gameplay-result-flash-with-round": 0,
     "--target-font-size-px": 500,
     "--target-font-size-vw": 24.2,
     "--target-scale-with-browser": 0,
@@ -164,8 +165,8 @@
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 305,
     "--dev-panel-left-px": 26,
-    "--dev-panel-top-px": 338,
-    "--dev-panel-height-px": 355,
+    "--dev-panel-top-px": 353,
+    "--dev-panel-height-px": 373,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 450,
     "--round-breakdown-left-px": 1562,
@@ -264,7 +265,7 @@
     "--target-scale-with-browser": 1,
     "--target-x-offset-vw": 45.96,
     "--target-x-offset-unit-is-px": 1,
-    "--target-y-offset-vh": -46.75,
+    "--target-y-offset-vh": -3.94,
     "--target-y-offset-unit-is-px": 1,
     "--target-letter-spacing-px": 0,
     "--target-line-height": 1.2,
@@ -290,7 +291,7 @@
     "--ms-per-click-scale-with-browser": 1,
     "--ms-per-click-x-offset-vw": 49.25,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-y-offset-vh": 47.88,
+    "--ms-per-click-y-offset-vh": 35.7,
     "--ms-per-click-y-offset-unit-is-px": 1,
     "--ms-per-click-letter-spacing-px": 0.5,
     "--ms-per-click-line-height": 0.75,
@@ -365,6 +366,10 @@
     "winBorderColor": "#401013",
     "loseFillColor": "#ffffff",
     "loseBorderColor": "#401013",
+    "gameplayWinTextColor": "#22dd44",
+    "gameplayWinBorderColor": "#22dd44",
+    "gameplayLoseTextColor": "#dd3333",
+    "gameplayLoseBorderColor": "#dd3333",
     "resultDepth": 8,
     "resultOverallBorderThickness": 5,
     "resultExtrusionAngle": 45,
@@ -409,6 +414,10 @@
     "winBorderColor": "#22dd44",
     "loseFillColor": "#ffffff",
     "loseBorderColor": "#dd3333",
+    "gameplayWinTextColor": "#22dd44",
+    "gameplayWinBorderColor": "#22dd44",
+    "gameplayLoseTextColor": "#dd3333",
+    "gameplayLoseBorderColor": "#dd3333",
     "resultDepth": 5,
     "resultOverallBorderThickness": 3,
     "resultExtrusionAngle": 45,
@@ -632,16 +641,16 @@
     "desktop:Background": true,
     "mobile:Dev Panel": true,
     "mobile:Main Button": true,
-    "mobile:Click Burst": true,
     "mobile:Shadow": true,
-    "mobile:Rotation Animation": true,
+    "mobile:Click Burst": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
-    "mobile:Win/Lose Text": true,
     "mobile:Start/Try Again Button": true,
-    "mobile:Target Count Display": false,
+    "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
+    "mobile:Win/Lose Text": true,
+    "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": true
+    "mobile:Ms/Click Display": false
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -825,6 +834,11 @@
       {
         "key": "desktop:Win/Lose Text",
         "rowKeys": [
+          "colorGameplayWinText",
+          "colorGameplayWinBorder",
+          "colorGameplayLoseText",
+          "colorGameplayLoseBorder",
+          "checkboxGameplayResultFlashWithRound",
           "sliderResultWinLetterSpacing",
           "sliderResultLoseLetterSpacing",
           "sliderResultExtrusionAngle",
@@ -960,26 +974,6 @@
         ]
       },
       {
-        "key": "mobile:Click Burst",
-        "rowKeys": [
-          "sliderMobileClickBurstShadowFinalScale",
-          "sliderMobileClickBurstSpeed",
-          "sliderMobileClickBurstScale",
-          "sliderMobileClickBurstDistance",
-          "sliderMobileClickBurstHeight",
-          "sliderMobileClickBurstCurveOffset",
-          "sliderMobileClickBurstCurveAmount",
-          "sliderMobileClickBurstCountMin",
-          "sliderMobileClickBurstCountMax",
-          "inputMobileClickBurstHideShadowIndexA",
-          "inputMobileClickBurstHideShadowIndexB",
-          "inputMobileClickBurstRightFloorDeg",
-          "inputMobileClickBurstRightCeilingDeg",
-          "inputMobileClickBurstLeftFloorDeg",
-          "inputMobileClickBurstLeftCeilingDeg"
-        ]
-      },
-      {
         "key": "mobile:Shadow",
         "rowKeys": [
           "sliderMobileShadowX",
@@ -993,22 +987,85 @@
         ]
       },
       {
+        "key": "mobile:Click Burst",
+        "rowKeys": [
+          "sliderMobileClickBurstSpeed",
+          "sliderMobileClickBurstScale",
+          "sliderMobileClickBurstShadowFinalScale",
+          "sliderMobileClickBurstDistance",
+          "sliderMobileClickBurstHeight",
+          "sliderMobileClickBurstCurveAmount",
+          "sliderMobileClickBurstCountMin",
+          "sliderMobileClickBurstCountMax",
+          "inputMobileClickBurstHideShadowIndexA",
+          "inputMobileClickBurstHideShadowIndexB",
+          "sliderMobileClickBurstCurveOffset",
+          "inputMobileClickBurstRightFloorDeg",
+          "inputMobileClickBurstRightCeilingDeg",
+          "inputMobileClickBurstLeftFloorDeg",
+          "inputMobileClickBurstLeftCeilingDeg"
+        ]
+      },
+      {
+        "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
+        "rowKeys": []
+      },
+      {
+        "key": "mobile:Start/Try Again Button",
+        "rowKeys": [
+          "selectMobileTryAgainTextAlign",
+          "selectMobileTryAgainTextValign",
+          "sliderMobileTryAgainExtrusionDepth",
+          "sliderMobileTryAgainOverallBorderThickness",
+          "checkboxMobileTextScaleWithBrowser",
+          "sliderMobileTextFontSizeVw",
+          "sliderMobileTryAgainTextFontSizeVw",
+          "sliderMobileTextFontSize",
+          "sliderMobileRoundExtrusionDepth",
+          "sliderMobileRoundOverallBorderThickness",
+          "sliderMobileTextLetterSpacing",
+          "sliderMobileTextLineHeight",
+          "selectMobileStartTextAlign",
+          "selectMobileStartTextValign",
+          "sliderMobileTextX",
+          "sliderMobileTextY",
+          "checkboxMobileTryAgainTextScaleWithBrowser",
+          "sliderMobileTryAgainTextLetterSpacing",
+          "sliderMobileTryAgainTextLineHeight",
+          "sliderMobileTryAgainTextFontSize",
+          "sliderMobileTryAgainTextX",
+          "sliderMobileTryAgainTextY"
+        ]
+      },
+      {
         "key": "mobile:Rotation Animation",
         "rowKeys": [
           "selectMobileTryAgainQuestionMarkTextAlign",
           "selectMobileTryAgainQuestionMarkTextValign",
           "checkboxMobileTryAgainQuestionMarkScaleWithBrowser",
           "sliderMobileTryAgainQuestionMarkFontSizeVw",
+          "sliderMobileTryAgainQuestionMarkFontSize",
           "sliderMobileTryAgainQuestionMarkExtrusionDepth",
           "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
-          "sliderMobileTryAgainQuestionMarkFontSize",
           "sliderMobileTryAgainQuestionMarkX",
           "sliderMobileTryAgainQuestionMarkY"
         ]
       },
       {
-        "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
-        "rowKeys": []
+        "key": "mobile:Round Text",
+        "rowKeys": [
+          "checkboxMobileRoundScaleWithBrowser",
+          "sliderMobileRoundFontSizeVw",
+          "sliderMobileRoundFontSize",
+          "sliderMobileRoundDockExtrusionDepth",
+          "sliderMobileRoundDockOverallBorderThickness",
+          "sliderMobileRoundLetterSpacing",
+          "sliderMobileRoundLineHeight",
+          "sliderMobileRoundDockX",
+          "sliderMobileRoundDockY",
+          "selectMobileRoundTextAlign",
+          "selectMobileRoundTextValign"
+        ]
       },
       {
         "key": "mobile:Win/Lose Text",
@@ -1020,44 +1077,17 @@
           "sliderMobileResultWinFontSizeVw",
           "checkboxMobileResultLoseScaleWithBrowser",
           "sliderMobileResultLoseFontSizeVw",
+          "sliderMobileResultWinFontSize",
           "sliderMobileResultExtrusionDepth",
           "sliderMobileResultOverallBorderThickness",
-          "sliderMobileResultWinFontSize",
           "sliderMobileResultWinX",
           "sliderMobileResultWinY",
-          "sliderMobileResultLoseFontSize",
-          "sliderMobileResultLoseX",
-          "sliderMobileResultLoseY",
           "sliderMobileResultLineHeight",
           "selectMobileResultTextAlign",
-          "selectMobileResultTextValign"
-        ]
-      },
-      {
-        "key": "mobile:Start/Try Again Button",
-        "rowKeys": [
-          "selectMobileTryAgainTextAlign",
-          "selectMobileTryAgainTextValign",
-          "sliderMobileTryAgainExtrusionDepth",
-          "sliderMobileTryAgainOverallBorderThickness",
-          "checkboxMobileTextScaleWithBrowser",
-          "sliderMobileTextFontSizeVw",
-          "checkboxMobileTryAgainTextScaleWithBrowser",
-          "sliderMobileTryAgainTextFontSizeVw",
-          "sliderMobileTryAgainTextLetterSpacing",
-          "sliderMobileTryAgainTextLineHeight",
-          "sliderMobileTextFontSize",
-          "sliderMobileRoundExtrusionDepth",
-          "sliderMobileRoundOverallBorderThickness",
-          "sliderMobileTextX",
-          "sliderMobileTextY",
-          "sliderMobileTextLetterSpacing",
-          "sliderMobileTextLineHeight",
-          "selectMobileStartTextAlign",
-          "selectMobileStartTextValign",
-          "sliderMobileTryAgainTextFontSize",
-          "sliderMobileTryAgainTextX",
-          "sliderMobileTryAgainTextY"
+          "selectMobileResultTextValign",
+          "sliderMobileResultLoseFontSize",
+          "sliderMobileResultLoseX",
+          "sliderMobileResultLoseY"
         ]
       },
       {
@@ -1077,22 +1107,6 @@
         ]
       },
       {
-        "key": "mobile:Round Text",
-        "rowKeys": [
-          "checkboxMobileRoundScaleWithBrowser",
-          "sliderMobileRoundFontSizeVw",
-          "sliderMobileRoundFontSize",
-          "sliderMobileRoundDockExtrusionDepth",
-          "sliderMobileRoundDockOverallBorderThickness",
-          "sliderMobileRoundDockX",
-          "sliderMobileRoundDockY",
-          "sliderMobileRoundLetterSpacing",
-          "sliderMobileRoundLineHeight",
-          "selectMobileRoundTextAlign",
-          "selectMobileRoundTextValign"
-        ]
-      },
-      {
         "key": "mobile:Speed Display (max ms between taps)",
         "rowKeys": [
           "checkboxMobileSpeedScaleWithBrowser",
@@ -1100,10 +1114,10 @@
           "sliderMobileSpeedFontSize",
           "sliderMobileSpeedExtrusionDepth",
           "sliderMobileSpeedOverallBorderThickness",
-          "sliderMobileSpeedX",
-          "sliderMobileSpeedY",
           "sliderMobileSpeedLetterSpacing",
           "sliderMobileSpeedLineHeight",
+          "sliderMobileSpeedX",
+          "sliderMobileSpeedY",
           "selectMobileSpeedTextAlign",
           "selectMobileSpeedTextValign"
         ]
