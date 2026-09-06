@@ -6468,13 +6468,6 @@
             const ext = { ...deviceExt };
             EXTRUSION_COLOR_FIELD_NAMES.forEach(field => { ext[field] = extrusionVars[field]; });
             root.setProperty('--extrusion-font', extrusionVars.font);
-            // See computeAnchorTy()'s own comment - keeps the line-height
-            // leading correction accurate for whichever font is actually
-            // rendering right now (fallback or real), not a hardcoded
-            // assumption. Cheap (one throwaway off-screen element) and
-            // safe to redo on every call - only the VALUE actually
-            // changes when the font genuinely does.
-            root.setProperty('--extrusion-font-content-ratio', measureFontContentRatio(extrusionVars.font));
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
@@ -9162,132 +9155,29 @@
             '--result-text-valign': 'resultText',
         };
         const VALIGN_TY = { top: '0%', center: '-50%', bottom: '-100%' };
-        // Compensates --anchor-ty for CSS line-height's own "leading" -
-        // per direct bug report ("I've set Target Text and Ms/Click text to
-        // scale with browser and lined up their top edge to be equal, yet
-        // resizing the browser, the top edge of the 2 texts don't stay
-        // aligned - the Target text shifts down as browser increases").
-        // Root cause, confirmed via direct measurement (Range.
-        // getBoundingClientRect() on each element's own text node, at 2
-        // different viewport widths): a "top"-valigned element's own BOX
-        // top is correctly static (already anchored via a real px offset -
-        // see the Edge Lock/offset-unit-toggle mechanism above), but
-        // line-height != 1 inserts CSS "leading" space split above/below
-        // the glyph WITHIN that box, proportional to font-size - so as
-        // Scale-With-Browser grows font-size with viewport width, the
-        // GLYPH drifts within its own (fixed-position) box even though the
-        // box itself never moves. "center" is unaffected since leading is
-        // symmetric (equal space above and below), so the glyph's own
-        // center always coincides with the box's center regardless of
-        // line-height.
-        //
-        // Three straight rounds of "detect the drift after layout, then
-        // nudge --anchor-ty to compensate" (an idempotency fix, a debounced
-        // resize-settle re-run, then a ResizeObserver) each fixed every
-        // test this environment could construct, then each still failed on
-        // the user's real device (confirmed via 3 separate frame-by-frame,
-        // pixel-measured screen recordings) - because every one of those
-        // relied on some JS event/observer firing at the right time in the
-        // user's actual Chrome DevTools Device Toolbar emulation, and
-        // that's a viewport/resize code path visibly different from a
-        // plain window resize. Per direct follow-up ("so cant you just
-        // subtract the top padding that is caused by line height?"),
-        // replaced entirely with a formula computed once, in pure CSS,
-        // that the browser's own layout engine re-evaluates automatically
-        // on every single paint - with NO JS re-trigger of any kind
-        // required, so there's no "did the right event fire" question left
-        // to get wrong.
-        //
-        // The leading above the FIRST line of an n-line, line-height LH
-        // block is (LH-1)/2 of the font-size, and the box's total height
-        // (all n line-boxes stacked) is n*LH of the font-size - so the
-        // gap as a fraction of the box's own height is (1-LH)/(2*n*LH),
-        // independent of font-size entirely (it cancels out top and
-        // bottom), which is exactly why this can be a static formula
-        // instead of something re-measured per resize. A first attempt at
-        // this same formula (this session, earlier) assumed n=1 for every
-        // element and fixed Target (genuinely 1 line) but left Ms-per-click
-        // still drifting, because Ms-per-click is genuinely 3 lines
-        // (white-space: pre-wrap with real \n's in its suffix - confirmed
-        // via getComputedStyle, not assumed) and the plain 1-line formula
-        // doesn't account for the box height scaling with line count while
-        // the leading-above-the-first-line does not. VALIGN_LINE_COUNT
-        // below is that missing factor - each element's line count is a
-        // fixed structural fact of its (static) text template, not
-        // something that varies at runtime, so it's safe to hardcode.
-        const VALIGN_LINE_HEIGHT_PREFIX = {
-            '--start': 'text',
-            '--try-again': 'try-again-text',
-            '--try-again-question-mark': null,
-            '--round': 'round',
-            '--target': 'target',
-            '--speed': 'speed',
-            '--ms-per-click': 'ms-per-click',
-            '--result': 'result',
-        };
-        const VALIGN_LINE_COUNT = {
-            '--ms-per-click': 3,
-        };
-        // "bottom" valign isn't used by any element in this project today,
-        // so only "top" gets the calc() correction - the same formula
-        // would extend to "bottom" by mirroring the leading-above-first-
-        // line term into a leading-below-last-line term instead.
-        //
-        // The "1" in "(1 - lineHeight)" assumed every font's own natural
-        // content height (ascent+descent, what the CSS spec calls the
-        // "used font metrics") is exactly 1.0x its font-size - true for
-        // "Micro 5" specifically (verified via direct measurement: a
-        // "0" glyph at line-height:1 renders at EXACTLY font-size tall,
-        // for this font only), but this project's Google Fonts link uses
-        // `display=swap`, so every page load actually renders with a
-        // FALLBACK font first (plain "monospace") until Micro 5 finishes
-        // downloading - and the fallback's own real content-height ratio
-        // measures ~1.17, not 1.0. A static "1" baked into this formula
-        // is silently wrong for however long the fallback is showing,
-        // by an amount that's a percentage of a box height which itself
-        // scales with font-size (Scale-With-Browser) - producing exactly
-        // the reported symptom (a smooth, resize-proportional drift, not
-        // a one-time jump) for as long as the real font hasn't loaded
-        // yet, which per a direct user recording can span the ENTIRE
-        // test if the font is slow to arrive. Replaced with
-        // --extrusion-font-content-ratio, a value MEASURED once (see
-        // measureFontContentRatio()) against whichever font is actually
-        // active at the time - correct immediately even before Micro 5
-        // loads (matches the fallback's own real ratio), and re-measured
-        // exactly once more when document.fonts.ready resolves to pick
-        // up Micro 5's own ratio. This is a one-time, font-load-triggered
-        // measurement, not a per-resize one - CSS still recomputes this
-        // calc() automatically on every layout with no JS involved once
-        // the ratio itself is set, preserving the whole point of the
-        // pure-CSS approach; only the FONT-CHANGE trigger (which fires
-        // once, reliably, via a real browser-native promise) needed JS.
-        function computeAnchorTy(valign, yPrefix) {
-            const lhBase = yPrefix ? VALIGN_LINE_HEIGHT_PREFIX[yPrefix] : null;
-            if (valign === 'top' && lhBase) {
-                const lineCount = VALIGN_LINE_COUNT[yPrefix] || 1;
-                return `calc((var(--extrusion-font-content-ratio, 1) - var(--${lhBase}-line-height, 1)) / (2 * ${lineCount} * var(--${lhBase}-line-height, 1)) * 100%)`;
-            }
+        // NOTE: this project spent a long investigation (see CHANGELOG.txt,
+        // 2026-09-06) chasing a "Target/Ms-per-click drift on resize"
+        // report by adding a line-height-leading compensation formula to
+        // --anchor-ty (first a JS-measured correction, then several pure-
+        // CSS calc() variants accounting for line count and font-metric
+        // ratio). ALL of that was a misdiagnosis. Direct proof: with equal
+        // Y-offset numbers (20/20) and full compensation live, the elements'
+        // own getBoundingClientRect().top values were 33px apart (68.76 vs
+        // 35.34) - forcing --anchor-ty back to the plain, uncompensated
+        // VALIGN_TY value made both land at EXACTLY 20.00px. The
+        // compensation was solving a problem in a measurement
+        // (Range.getBoundingClientRect() on the text node) that never
+        // corresponded to the actual rendered element box in the first
+        // place - confirmed by the user via Text Edit Mode's own bounding
+        // box (plain el.getBoundingClientRect(), see
+        // updateTextEditBoundingBoxes() above), which they confirmed looks
+        // visually correct around the real text, and which the debug-line
+        // dev tool (see updateTopDebugLines()) was switched to match for
+        // the same reason. computeAnchorTy() is deliberately back to
+        // exactly what it was before that entire investigation began -
+        // valign alone determines --anchor-ty, nothing else.
+        function computeAnchorTy(valign) {
             return VALIGN_TY[valign] || VALIGN_TY.center;
-        }
-        // Measures a font's own real content-height ratio (glyph height
-        // at line-height:1, as a fraction of font-size) - see
-        // computeAnchorTy()'s own comment for why this can't just be
-        // assumed as 1.0. A pure font-metric property, independent of
-        // which element/line-count/actual font-size it'll be applied to,
-        // so one measurement covers every element sharing --extrusion-font.
-        function measureFontContentRatio(fontFamily) {
-            const REF_SIZE = 200;
-            const el = document.createElement('div');
-            el.style.cssText = 'position:fixed; top:-9999px; left:-9999px; visibility:hidden; font-weight:700; white-space:nowrap; line-height:1;';
-            el.style.fontFamily = fontFamily;
-            el.style.fontSize = REF_SIZE + 'px';
-            el.textContent = '0';
-            document.body.appendChild(el);
-            const range = document.createRange();
-            range.selectNodeContents(el.firstChild);
-            const ratio = range.getBoundingClientRect().height / REF_SIZE;
-            document.body.removeChild(el);
-            return ratio;
         }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
@@ -9395,7 +9285,7 @@
                 if (!el) return;
                 const valign = activeCssVars[varName] || 'center';
                 const yPrefix = varName.replace('-text-valign', '');
-                el.style.setProperty('--anchor-ty', computeAnchorTy(valign, yPrefix));
+                el.style.setProperty('--anchor-ty', computeAnchorTy(valign));
                 // See the X loop's own comment above - Result (Win/Lose)'s
                 // unit is handled separately below, not by the generic
                 // yUnit line further down.
@@ -9426,8 +9316,7 @@
             // text-valign and --try-again-text-valign in map-iteration order).
             const startValignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-valign' : '--start-text-valign';
             const startValign = activeCssVars[startValignVarName] || 'center';
-            const startYPrefix = startValignVarName.replace('-text-valign', '');
-            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign, startYPrefix));
+            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign));
         }
 
         // Text Edit Mode - per explicit request ("I can click on any text
@@ -11639,12 +11528,23 @@
 
         // Top-edge debug lines - see the dev-panel checkbox's own comment.
         // Draws a vertical bar from the browser's real top edge (y=0) down
-        // to the SAME measurement (Range.getBoundingClientRect() on the
-        // element's own first text node) this project's own diagnostic
-        // checks have used throughout this investigation, with a live px
-        // readout next to it - direct visual proof of what the code thinks
-        // vs. what's actually on screen, on the user's OWN real device,
-        // instead of another round of "I measured X, you're seeing Y".
+        // to each element's own plain getBoundingClientRect().top - the
+        // EXACT same measurement Text Edit Mode's own bounding box already
+        // uses (see updateTextEditBoundingBoxes() above), which the user
+        // directly confirmed looks visually correct around the real
+        // rendered text. The first version of this tool used
+        // Range.getBoundingClientRect() on the text node instead (this
+        // investigation's own earlier diagnostic method, used to root-cause
+        // the original line-height leading bug) - per direct report ("30px
+        // gap between the bottom of the green line and the top of the
+        // Target Text... when I change the Line Spacing of Target, nothing
+        // moves... I think both your green and blue line is measuring to
+        // the top of the Ms/Click text" - and the direct suggestion "why
+        // dont you use the Edit Text mode Bounding Box... as a measurement
+        // guide"), that Range-based measurement does NOT correspond to
+        // where the text actually renders, at least not reliably enough to
+        // trust over Text Edit Mode's own already-validated method. Switched
+        // to match it exactly rather than keep trusting the Range approach.
         // Self-perpetuating requestAnimationFrame loop (not a resize
         // listener) specifically because every resize-event-based re-
         // trigger tried earlier this session proved unreliable on the
@@ -11666,12 +11566,7 @@
             }
             function measureGlyphTop(el) {
                 if (!el || el.classList.contains('hidden')) return null;
-                const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-                const firstText = walker.nextNode();
-                if (!firstText || !firstText.textContent.trim()) return null;
-                const range = document.createRange();
-                range.selectNodeContents(firstText);
-                const rect = range.getBoundingClientRect();
+                const rect = el.getBoundingClientRect();
                 if (rect.width === 0 && rect.height === 0) return null;
                 return { top: rect.top, left: rect.left, width: rect.width };
             }
@@ -11998,21 +11893,6 @@
         // below, once (if) it actually has something to restore.
         setupDevSliders();
         setupTextAlignSelects();
-        // Per direct follow-up ("so cant you just subtract the top padding
-        // that is caused by line height?") - the line-height leading fix
-        // is now a pure CSS calc() on --anchor-ty itself (see
-        // computeAnchorTy()'s own comment), recomputed natively by the
-        // browser's layout engine on every paint. That replaces 3 earlier
-        // rounds of "detect the drift after layout, then nudge --anchor-ty"
-        // (an idempotency fix, a debounced resize-settle re-run, then a
-        // ResizeObserver) which each passed every test available in this
-        // environment but still failed on the user's real device (Chrome
-        // DevTools' own Device Toolbar, confirmed via 3 separate frame-by-
-        // frame pixel-measured recordings) - because all 3 depended on
-        // some JS event/observer firing at the right time, and that
-        // dependency is exactly what the CSS-formula approach eliminates.
-        // No resize listener, ResizeObserver, or document.fonts.ready hook
-        // is needed for this anymore.
         setupOffsetUnitCheckboxes();
         setupTextEdgeLockCheckboxes();
         setupTextEditMode();
@@ -12027,48 +11907,6 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
-        // Re-measurement of --extrusion-font-content-ratio (see
-        // computeAnchorTy()'s own comment) once the real webfont has
-        // ACTUALLY finished loading - the call above already measured it
-        // against whichever font was active at that instant, almost
-        // certainly the `display=swap` fallback on a fresh/uncached load.
-        // Every element's --anchor-ty is a calc() that reads this SAME
-        // root-level custom property by name, so updating just this one
-        // value here is enough for every element to repaint correctly on
-        // the browser's own next paint - no need to re-run
-        // applyTextAlignAnchors() or touch any per-element style again.
-        //
-        // Uses BOTH document.fonts.ready AND a 'loadingdone' listener,
-        // not just .ready alone - per direct report ("Target text
-        // gradually shifts down" persisting after the .ready-only
-        // version shipped), confirmed via a 2nd frame-by-frame pixel-
-        // measured recording showing the same smooth, resize-proportional
-        // drift the font-ratio fix was supposed to eliminate. Root cause:
-        // document.fonts.ready is a snapshot of whatever's in
-        // document.fonts AT THE MOMENT it's first accessed - this script
-        // runs at the top of page load, plausibly before the external
-        // Google Fonts <link> (in <head>, per-request network fetch) has
-        // even registered "Micro 5" as a pending FontFace at all, in
-        // which case .ready can resolve against an effectively-empty set
-        // and never fire again once Micro 5 actually starts (and later
-        // finishes) loading - a documented race with externally-linked,
-        // display=swap webfonts, not obviously reproducible in THIS
-        // session's own testing tool (its browser profile already has
-        // Micro 5 HTTP-cached from many earlier navigations this session,
-        // so .ready alone always happened to resolve correctly here,
-        // masking the race). 'loadingdone' fires every time a FontFaceSet
-        // loading operation completes, including one that only became
-        // pending after .ready's own initial snapshot - reliably catches
-        // the late-registration case .ready alone can miss. Both handlers
-        // call the same idempotent re-measure (safe to run more than
-        // once - always converges to the same correct ratio for whichever
-        // font is genuinely active), so no ordering or double-fire risk
-        // between the two.
-        function refreshFontContentRatio() {
-            document.documentElement.style.setProperty('--extrusion-font-content-ratio', measureFontContentRatio(extrusionVars.font));
-        }
-        document.fonts.ready.then(refreshFontContentRatio);
-        document.fonts.addEventListener('loadingdone', refreshFontContentRatio);
         // Captures every dev-panel label/title's TRUE original text into
         // devTextOriginals (devTextOverrides is still empty at this point) -
         // re-run below once the settings fetch resolves to actually apply
