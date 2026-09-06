@@ -11785,6 +11785,40 @@
         // below, once (if) it actually has something to restore.
         setupDevSliders();
         setupTextAlignSelects();
+        // Per direct follow-up ("seems slightly better but still same
+        // issue"), confirmed via a 2nd frame-by-frame pixel-measured
+        // recording: the debounced window-'resize' re-correction (see its
+        // own comment) genuinely wasn't enough - Target's drift (114px ->
+        // 129px this round) settled and HELD STEADY for 2+ full seconds at
+        // a paused width, well past the 200ms debounce window, ruling out
+        // a transient mid-drag timing issue (that theory is now known
+        // wrong, not just unconfirmed). The recording also revealed the
+        // user tests via Chrome DevTools' own Device Toolbar (responsive
+        // design mode - visible in the recording's own on-screen "WxH"
+        // readout and drag handles), a genuinely different viewport/
+        // emulation path than a plain window resize or this environment's
+        // own resize_window testing tool, which could plausibly drive
+        // layout updates through different internal timing/events that a
+        // plain window 'resize' listener doesn't reliably observe.
+        // ResizeObserver sidesteps needing to know the exact trigger
+        // mechanism at all - it fires whenever an OBSERVED ELEMENT's own
+        // rendered box size actually changes, for ANY reason (window
+        // resize, DevTools device emulation, webfont finishing load,
+        // browser zoom, becoming visible from hidden), rather than
+        // inferring it indirectly from window-level resize events. Must
+        // run here (after TEXT_VALIGN_TARGET_ELEMENT_IDS's own top-level
+        // declaration further down the file), not up near the window
+        // 'resize' listener above - an earlier draft referenced it too
+        // early and would have thrown a ReferenceError on every page load,
+        // caught via a direct declaration-order check before shipping.
+        const valignResizeObserver = new ResizeObserver(() => {
+            clearTimeout(resizeSettleTimeoutId);
+            resizeSettleTimeoutId = setTimeout(applyTextAlignAnchors, 50);
+        });
+        Object.values(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(elId => {
+            const el = document.getElementById(elId);
+            if (el) valignResizeObserver.observe(el);
+        });
         setupOffsetUnitCheckboxes();
         setupTextEdgeLockCheckboxes();
         setupTextEditMode();
