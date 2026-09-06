@@ -1999,6 +1999,39 @@
         /* Persistent reopen toggle - visible whenever the dev panel is allowed at
            all (gated by isDevAllowed in JS), regardless of the panel's own hidden
            state, so it can always be brought back without a keyboard on mobile. */
+        /* Top-edge debug lines - see the dev-panel checkbox's own comment.
+           position:fixed + top:0 so the line always starts at the browser's
+           own real top edge regardless of any ancestor's transform; height
+           is set live (JS) to each element's own measured top-of-glyph
+           value, so the line's own BOTTOM edge is the actual claim being
+           visualized. z-index above the dev panel (100000) so the lines are
+           never hidden behind it. */
+        .top-debug-line {
+            position: fixed;
+            top: 0;
+            width: 3px;
+            z-index: 100001;
+            pointer-events: none;
+        }
+        .top-debug-line.hidden { display: none; }
+        #topDebugLineTarget { background: #00ff00; }
+        #topDebugLineMs { background: #2277ff; }
+        .top-debug-label {
+            position: fixed;
+            z-index: 100001;
+            pointer-events: none;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 1px 4px;
+            border-radius: 3px;
+            color: #000;
+            white-space: nowrap;
+        }
+        .top-debug-label.hidden { display: none; }
+        #topDebugLabelTarget { background: #00ff00; }
+        #topDebugLabelMs { background: #2277ff; }
+
         .dev-toggle-btn {
             position: fixed;
             bottom: 10px;
@@ -3057,6 +3090,17 @@
         </div>
     </div>
 
+    <!-- Top-edge debug lines (see the "Show Target/Ms-Click Top Debug
+         Lines" checkbox's own comment) - deliberately OUTSIDE
+         .game-container, as a sibling, same as the dev panel itself, so
+         they stay in real screen coordinates (from the browser's own true
+         top edge) rather than rotating/rescaling under the Portrait Lock
+         media query. position:fixed, not absolute, for the same reason. -->
+    <div class="top-debug-line hidden" id="topDebugLineTarget"></div>
+    <div class="top-debug-line hidden" id="topDebugLineMs"></div>
+    <div class="top-debug-label hidden" id="topDebugLabelTarget"></div>
+    <div class="top-debug-label hidden" id="topDebugLabelMs"></div>
+
     <!-- Persistent toggle so the dev panel can be reopened without a keyboard
          (D-key doesn't exist on mobile) -->
     <button class="dev-toggle-btn" id="devToggleBtn" onclick="devPanel.classList.toggle('hidden')">DEV</button>
@@ -3136,6 +3180,23 @@
         </div>
         <div class="dev-row">
             <button class="dev-trigger-btn" onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
+        </div>
+        <!-- Direct visual proof of what the code thinks each element's own
+             rendered top edge is, vs. where it actually renders on THIS
+             real browser - per explicit request, after repeated disagreement
+             between live-measured values (via JS) and what's visually
+             showing on the user's own device. Green = Target Text, Blue =
+             Ms/Click Text - a vertical line/bar from the browser's own top
+             edge (y=0) down to the SAME Range.getBoundingClientRect() value
+             this project's own diagnostic measurements have used throughout
+             (see updateTopDebugLines()), with its own live length readout
+             printed at the label so both can be read directly instead of
+             taking any measurement's word for it. -->
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxShowTopDebugLines" onchange="updateTopDebugLines()">
+                <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
+            </label>
         </div>
 
         <!-- Text Edit Mode - lets clicking a game-text element rename its
@@ -11574,6 +11635,65 @@
             // not tied to the real device viewport - re-apply whichever
             // tab's own saved look now that it's the one showing.
             applyDevPanelOwnStyling(isDesktop);
+        }
+
+        // Top-edge debug lines - see the dev-panel checkbox's own comment.
+        // Draws a vertical bar from the browser's real top edge (y=0) down
+        // to the SAME measurement (Range.getBoundingClientRect() on the
+        // element's own first text node) this project's own diagnostic
+        // checks have used throughout this investigation, with a live px
+        // readout next to it - direct visual proof of what the code thinks
+        // vs. what's actually on screen, on the user's OWN real device,
+        // instead of another round of "I measured X, you're seeing Y".
+        // Self-perpetuating requestAnimationFrame loop (not a resize
+        // listener) specifically because every resize-event-based re-
+        // trigger tried earlier this session proved unreliable on the
+        // user's real device - a per-frame poll has no "did the right
+        // event fire" question to get wrong, and naturally stops
+        // rescheduling itself the instant the checkbox is unchecked.
+        function updateTopDebugLines() {
+            const checkbox = document.getElementById('checkboxShowTopDebugLines');
+            const lineTarget = document.getElementById('topDebugLineTarget');
+            const lineMs = document.getElementById('topDebugLineMs');
+            const labelTarget = document.getElementById('topDebugLabelTarget');
+            const labelMs = document.getElementById('topDebugLabelMs');
+            if (!checkbox.checked) {
+                lineTarget.classList.add('hidden');
+                lineMs.classList.add('hidden');
+                labelTarget.classList.add('hidden');
+                labelMs.classList.add('hidden');
+                return;
+            }
+            function measureGlyphTop(el) {
+                if (!el || el.classList.contains('hidden')) return null;
+                const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                const firstText = walker.nextNode();
+                if (!firstText || !firstText.textContent.trim()) return null;
+                const range = document.createRange();
+                range.selectNodeContents(firstText);
+                const rect = range.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return null;
+                return { top: rect.top, left: rect.left, width: rect.width };
+            }
+            function place(el, line, label, name) {
+                const m = measureGlyphTop(el);
+                if (!m) {
+                    line.classList.add('hidden');
+                    label.classList.add('hidden');
+                    return;
+                }
+                line.classList.remove('hidden');
+                label.classList.remove('hidden');
+                const x = m.left + m.width / 2;
+                line.style.left = x + 'px';
+                line.style.height = Math.max(0, m.top) + 'px';
+                label.style.left = (x + 6) + 'px';
+                label.style.top = Math.max(0, m.top - 2) + 'px';
+                label.textContent = name + ': ' + m.top.toFixed(1) + 'px';
+            }
+            place(document.getElementById('targetCount'), lineTarget, labelTarget, 'Target');
+            place(document.getElementById('msPerClickDisplay'), lineMs, labelMs, 'Ms/Click');
+            requestAnimationFrame(updateTopDebugLines);
         }
 
         // Keyboard shortcuts
