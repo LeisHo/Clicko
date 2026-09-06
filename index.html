@@ -7494,36 +7494,6 @@
         // though a real device rotation or window resize would - a plain
         // window resize listener re-applies too, redundantly but harmlessly.
         window.addEventListener('resize', applyActiveVars);
-        // Debounced final re-correction for the line-height leading fix -
-        // per direct report ("still not good... clearly not the same as I
-        // resize the browser"), confirmed via a screen recording analyzed
-        // frame-by-frame (pixel-measured, not eyeballed): Target's glyph
-        // position genuinely drifts during an ACTIVE, continuous mouse-drag
-        // resize and, critically, the wrong value PERSISTS even once the
-        // drag stops and the window sits still for many seconds - not a
-        // transient lag that self-corrects. Every attempt to reproduce this
-        // via discrete, fully-settled resize steps (even 14 small ~20-30px
-        // steps spanning the same width range, each with its own dispatched
-        // 'resize' event) found ZERO drift - correctValignLeading() gave
-        // the exact same correct answer every single time. The difference:
-        // a real continuous drag fires 'resize' events WHILE layout is
-        // actively still changing (mid-transition), not just once per
-        // settled size the way a discrete step-and-wait test does - if a
-        // resize handler happens to run during that transitional window, it
-        // can measure a momentarily-inconsistent glyph/box geometry, and
-        // since nothing re-runs once the drag stops and events stop firing,
-        // that one bad measurement's correction just stays applied
-        // indefinitely instead of self-correcting. Fixed by re-running the
-        // full correction pass again ~200ms after the LAST resize event in
-        // a burst (debounced, so it fires once per drag, not per event) -
-        // by then layout has genuinely settled, so this final pass is
-        // guaranteed to measure real, consistent geometry regardless of
-        // what any mid-drag measurement caught.
-        let resizeSettleTimeoutId = null;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeSettleTimeoutId);
-            resizeSettleTimeoutId = setTimeout(applyTextAlignAnchors, 200);
-        });
 
         // Reads the color picker for whichever mode (desktop/mobile) is
         // currently active and re-applies it - used both for live edits and
@@ -9021,108 +8991,76 @@
         // aligned - the Target text shifts down as browser increases").
         // Root cause, confirmed via direct measurement (Range.
         // getBoundingClientRect() on each element's own text node, at 2
-        // different viewport widths): a "top"/"bottom"-valigned element's
-        // own BOX top is correctly static (already anchored via a real px
-        // offset - see the Edge Lock/offset-unit-toggle mechanism above),
-        // but line-height != 1 inserts CSS "leading" space split above/
-        // below the glyph WITHIN that box, proportional to font-size - so
-        // as Scale-With-Browser grows font-size with viewport width, the
+        // different viewport widths): a "top"-valigned element's own BOX
+        // top is correctly static (already anchored via a real px offset -
+        // see the Edge Lock/offset-unit-toggle mechanism above), but
+        // line-height != 1 inserts CSS "leading" space split above/below
+        // the glyph WITHIN that box, proportional to font-size - so as
+        // Scale-With-Browser grows font-size with viewport width, the
         // GLYPH drifts within its own (fixed-position) box even though the
-        // box itself never moves. Measured exactly: Target (line-height
-        // 1.2) glyph moved from -24.75 to -17.75 (down 7px) as width went
-        // 375->500 while its box stayed at a constant -46.75; Ms-per-click
-        // (line-height 0.65) moved the opposite direction for the same
-        // reason. Only "top"/"bottom" valign are affected - "center" is
-        // unaffected since leading is symmetric (equal space above and
-        // below), so the glyph's own center always coincides with the
-        // box's center regardless of line-height.
+        // box itself never moves. "center" is unaffected since leading is
+        // symmetric (equal space above and below), so the glyph's own
+        // center always coincides with the box's center regardless of
+        // line-height.
         //
-        // computeAnchorTy() itself just returns the plain VALIGN_TY value -
-        // a first attempt tried to derive the correction from line-height
-        // alone (leading-fraction-of-box-height is font-size-independent,
-        // so it seemed like it'd only need recomputing on real settings
-        // changes, not every resize), but that assumed exactly 1 line of
-        // text. Ms-per-click is genuinely 3 lines (white-space: pre-wrap
-        // with real \n's in its suffix - confirmed via getComputedStyle
-        // before assuming), where the box height scales with line COUNT
-        // but the leading-above-the-first-line does not, breaking the
-        // formula (verified live: it fixed Target, which is 1 line, but
-        // left Ms-per-click still drifting ~5px per 125px of width).
-        // correctValignLeading() below fixes this properly by MEASURING
-        // the real glyph-vs-box gap after layout, rather than assuming a
-        // line count - correct for any content, any number of lines.
-        function computeAnchorTy(valign) {
+        // Three straight rounds of "detect the drift after layout, then
+        // nudge --anchor-ty to compensate" (an idempotency fix, a debounced
+        // resize-settle re-run, then a ResizeObserver) each fixed every
+        // test this environment could construct, then each still failed on
+        // the user's real device (confirmed via 3 separate frame-by-frame,
+        // pixel-measured screen recordings) - because every one of those
+        // relied on some JS event/observer firing at the right time in the
+        // user's actual Chrome DevTools Device Toolbar emulation, and
+        // that's a viewport/resize code path visibly different from a
+        // plain window resize. Per direct follow-up ("so cant you just
+        // subtract the top padding that is caused by line height?"),
+        // replaced entirely with a formula computed once, in pure CSS,
+        // that the browser's own layout engine re-evaluates automatically
+        // on every single paint - with NO JS re-trigger of any kind
+        // required, so there's no "did the right event fire" question left
+        // to get wrong.
+        //
+        // The leading above the FIRST line of an n-line, line-height LH
+        // block is (LH-1)/2 of the font-size, and the box's total height
+        // (all n line-boxes stacked) is n*LH of the font-size - so the
+        // gap as a fraction of the box's own height is (1-LH)/(2*n*LH),
+        // independent of font-size entirely (it cancels out top and
+        // bottom), which is exactly why this can be a static formula
+        // instead of something re-measured per resize. A first attempt at
+        // this same formula (this session, earlier) assumed n=1 for every
+        // element and fixed Target (genuinely 1 line) but left Ms-per-click
+        // still drifting, because Ms-per-click is genuinely 3 lines
+        // (white-space: pre-wrap with real \n's in its suffix - confirmed
+        // via getComputedStyle, not assumed) and the plain 1-line formula
+        // doesn't account for the box height scaling with line count while
+        // the leading-above-the-first-line does not. VALIGN_LINE_COUNT
+        // below is that missing factor - each element's line count is a
+        // fixed structural fact of its (static) text template, not
+        // something that varies at runtime, so it's safe to hardcode.
+        const VALIGN_LINE_HEIGHT_PREFIX = {
+            '--start': 'text',
+            '--try-again': 'try-again-text',
+            '--try-again-question-mark': null,
+            '--round': 'round',
+            '--target': 'target',
+            '--speed': 'speed',
+            '--ms-per-click': 'ms-per-click',
+            '--result': 'result',
+        };
+        const VALIGN_LINE_COUNT = {
+            '--ms-per-click': 3,
+        };
+        // "bottom" valign isn't used by any element in this project today,
+        // so only "top" gets the calc() correction - the same formula
+        // would extend to "bottom" by mirroring the leading-above-first-
+        // line term into a leading-below-last-line term instead.
+        function computeAnchorTy(valign, yPrefix) {
+            const lhBase = yPrefix ? VALIGN_LINE_HEIGHT_PREFIX[yPrefix] : null;
+            if (valign === 'top' && lhBase) {
+                const lineCount = VALIGN_LINE_COUNT[yPrefix] || 1;
+                return `calc((1 - var(--${lhBase}-line-height, 1)) / (2 * ${lineCount} * var(--${lhBase}-line-height, 1)) * 100%)`;
+            }
             return VALIGN_TY[valign] || VALIGN_TY.center;
-        }
-        // Measures each top/bottom-valigned element's actual rendered
-        // glyph-to-box gap (a Range on its first real text node vs the
-        // element's own getBoundingClientRect()) and nudges --anchor-ty by
-        // that gap, expressed as a % of the element's own height (matching
-        // the transform's own basis) - so the correction is exact
-        // regardless of line-height, font-size, OR line count, without
-        // having to model any of them. Runs as a separate pass AFTER the
-        // main loop below has already set every element's base --anchor-ty
-        // and positioned it, since it needs the real post-layout geometry
-        // to measure against. "bottom" valign isn't used by any element in
-        // this project today, so only "top" is corrected - the same
-        // measurement approach would extend to "bottom" by comparing the
-        // LAST text node's rect against the box's own bottom edge instead.
-        function correctValignLeading(el, valign) {
-            if (!el || valign !== 'top') return;
-            const boxRect = el.getBoundingClientRect();
-            // Guards against dividing by a near-zero (not just exactly-0)
-            // height below - a real, observed failure mode when this
-            // fires a 2nd time in quick succession (e.g. right as a font
-            // swap is still settling): produced a nonsensical -909044% on
-            // one measured occurrence instead of erroring or silently
-            // no-op'ing on a genuinely tiny/transitional box size. 1px is
-            // comfortably below any real rendered text line's height at
-            // any font-size this project uses, so this never rejects a
-            // legitimate measurement.
-            if (boxRect.height < 1) return;
-            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-            const firstText = walker.nextNode();
-            if (!firstText || !firstText.textContent.trim()) return;
-            const range = document.createRange();
-            range.selectNodeContents(firstText);
-            const glyphRect = range.getBoundingClientRect();
-            if (glyphRect.height === 0) return;
-            // gapPx (the glyph's leading offset from its own box) is
-            // INVARIANT to whatever --anchor-ty currently is - a
-            // transform:translate() shifts the box and everything inside
-            // it (including the glyph) by the exact same amount, so it
-            // can never change this internal, line-height-driven gap; it
-            // can only reposition where the whole (box+glyph) unit sits.
-            // This means the correction MUST be computed as an ABSOLUTE
-            // offset from the base valign value (0% for "top"), never
-            // accumulated on top of whatever --anchor-ty already holds -
-            // a real, found-via-testing bug in an earlier version of this
-            // function did exactly that (currentTy - newCorrection), which
-            // silently DOUBLES on every single re-run since gapPx never
-            // shrinks toward the early-return threshold. This matters a
-            // lot in practice: window resize already calls
-            // applyActiveVars() -> this function on EVERY resize event
-            // (see the resize listener's own comment), and a drag-resize
-            // fires many events in quick succession - with the old
-            // additive logic, each one stacked another full correction,
-            // which is almost certainly the real, precise mechanism behind
-            // the reported "the larger the browser, the further down the
-            // target text shifts" (more resize events during a bigger
-            // drag = more accumulated corrections), not a font-loading
-            // race as first suspected. Idempotent now: calling this any
-            // number of times, from any call site, always converges to
-            // the exact same correct value.
-            const gapPx = glyphRect.top - boxRect.top;
-            const correctionPercent = (gapPx / boxRect.height) * 100;
-            // A real leading-vs-box-height ratio can never exceed roughly
-            // +/-100% (the gap can't be bigger than the box itself) - a
-            // computed correction far outside that range means something
-            // was measured wrong (see the near-zero-height note above),
-            // not a real leading gap. Reject rather than apply a
-            // corrupting value.
-            if (Math.abs(correctionPercent) > 100) return;
-            const baseTyPercent = parseFloat(VALIGN_TY[valign]) || 0;
-            el.style.setProperty('--anchor-ty', (baseTyPercent - correctionPercent) + '%');
         }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
@@ -9230,7 +9168,7 @@
                 if (!el) return;
                 const valign = activeCssVars[varName] || 'center';
                 const yPrefix = varName.replace('-text-valign', '');
-                el.style.setProperty('--anchor-ty', computeAnchorTy(valign));
+                el.style.setProperty('--anchor-ty', computeAnchorTy(valign, yPrefix));
                 // See the X loop's own comment above - Result (Win/Lose)'s
                 // unit is handled separately below, not by the generic
                 // yUnit line further down.
@@ -9261,15 +9199,8 @@
             // text-valign and --try-again-text-valign in map-iteration order).
             const startValignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-valign' : '--start-text-valign';
             const startValign = activeCssVars[startValignVarName] || 'center';
-            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign));
-            // Line-height leading correction (see correctValignLeading()'s
-            // own comment) - runs LAST, after every element above has its
-            // real base --anchor-ty and is laid out, since it needs actual
-            // post-layout geometry to measure against.
-            Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
-                correctValignLeading(document.getElementById(elId), activeCssVars[varName] || 'center');
-            });
-            correctValignLeading(startButtonEl, startValign);
+            const startYPrefix = startValignVarName.replace('-text-valign', '');
+            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign, startYPrefix));
         }
 
         // Text Edit Mode - per explicit request ("I can click on any text
@@ -10898,13 +10829,9 @@
             // TOTAL round budget now.
             msPerClickDisplay.textContent = gameState.maxTimeMs.toFixed(0) + overrideOr('msPerClickSuffix');
             msPerClickDisplay.classList.remove('hidden');
-            // Target/Speed/Ms-per-click were just revealed from hidden
-            // (height 0) - correctValignLeading()'s own measurement-based
-            // line-height correction (see its comment) skips a zero-height
-            // element, so whatever ran the last time applyTextAlignAnchors()
-            // fired (page load, before these were ever visible) couldn't
-            // measure or correct them. Re-run now that they have real
-            // layout to measure against.
+            // Target/Speed/Ms-per-click were just revealed from hidden -
+            // re-run so their align/edge-lock/unit vars (set by
+            // applyTextAlignAnchors(), not just --anchor-ty) are current.
             applyTextAlignAnchors();
 
             // Reset button color
@@ -11785,40 +11712,21 @@
         // below, once (if) it actually has something to restore.
         setupDevSliders();
         setupTextAlignSelects();
-        // Per direct follow-up ("seems slightly better but still same
-        // issue"), confirmed via a 2nd frame-by-frame pixel-measured
-        // recording: the debounced window-'resize' re-correction (see its
-        // own comment) genuinely wasn't enough - Target's drift (114px ->
-        // 129px this round) settled and HELD STEADY for 2+ full seconds at
-        // a paused width, well past the 200ms debounce window, ruling out
-        // a transient mid-drag timing issue (that theory is now known
-        // wrong, not just unconfirmed). The recording also revealed the
-        // user tests via Chrome DevTools' own Device Toolbar (responsive
-        // design mode - visible in the recording's own on-screen "WxH"
-        // readout and drag handles), a genuinely different viewport/
-        // emulation path than a plain window resize or this environment's
-        // own resize_window testing tool, which could plausibly drive
-        // layout updates through different internal timing/events that a
-        // plain window 'resize' listener doesn't reliably observe.
-        // ResizeObserver sidesteps needing to know the exact trigger
-        // mechanism at all - it fires whenever an OBSERVED ELEMENT's own
-        // rendered box size actually changes, for ANY reason (window
-        // resize, DevTools device emulation, webfont finishing load,
-        // browser zoom, becoming visible from hidden), rather than
-        // inferring it indirectly from window-level resize events. Must
-        // run here (after TEXT_VALIGN_TARGET_ELEMENT_IDS's own top-level
-        // declaration further down the file), not up near the window
-        // 'resize' listener above - an earlier draft referenced it too
-        // early and would have thrown a ReferenceError on every page load,
-        // caught via a direct declaration-order check before shipping.
-        const valignResizeObserver = new ResizeObserver(() => {
-            clearTimeout(resizeSettleTimeoutId);
-            resizeSettleTimeoutId = setTimeout(applyTextAlignAnchors, 50);
-        });
-        Object.values(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(elId => {
-            const el = document.getElementById(elId);
-            if (el) valignResizeObserver.observe(el);
-        });
+        // Per direct follow-up ("so cant you just subtract the top padding
+        // that is caused by line height?") - the line-height leading fix
+        // is now a pure CSS calc() on --anchor-ty itself (see
+        // computeAnchorTy()'s own comment), recomputed natively by the
+        // browser's layout engine on every paint. That replaces 3 earlier
+        // rounds of "detect the drift after layout, then nudge --anchor-ty"
+        // (an idempotency fix, a debounced resize-settle re-run, then a
+        // ResizeObserver) which each passed every test available in this
+        // environment but still failed on the user's real device (Chrome
+        // DevTools' own Device Toolbar, confirmed via 3 separate frame-by-
+        // frame pixel-measured recordings) - because all 3 depended on
+        // some JS event/observer firing at the right time, and that
+        // dependency is exactly what the CSS-formula approach eliminates.
+        // No resize listener, ResizeObserver, or document.fonts.ready hook
+        // is needed for this anymore.
         setupOffsetUnitCheckboxes();
         setupTextEdgeLockCheckboxes();
         setupTextEditMode();
@@ -11833,40 +11741,6 @@
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
-        // Re-runs the line-height leading correction (see
-        // correctValignLeading()'s own comment) once every requested
-        // webfont has ACTUALLY finished loading - per direct report ("the
-        // larger the browser, the further down the target text shifts
-        // down"), still reproducing on a real device after a hard refresh.
-        // Root-caused by directly measuring the SAME element's leading gap
-        // under its real webfont vs the generic fallback: 17px real vs 2px
-        // fallback at the same size - a genuinely different ratio. The
-        // very first applyActiveVars() call above runs at page load,
-        // before there's any guarantee a real, uncached connection has
-        // finished downloading the custom font - a correction computed
-        // against the fallback's much smaller gap bakes a WRONG percentage
-        // into --anchor-ty that the browser then faithfully reapplies once
-        // the real font takes over, producing a growing absolute-px error
-        // as font-size (and the box) grows - exactly matching the report,
-        // and why this session's own earlier testing (fonts already cached
-        // from repeated same-session loads) never reproduced it.
-        // Deliberately a single top-level hook (not correctValignLeading()
-        // recursively re-scheduling itself via document.fonts.ready on
-        // every call while status isn't yet 'loaded') - an early version
-        // did that and, when tested against a mocked fonts object whose
-        // status never actually transitioned to 'loaded', cascaded into
-        // repeated corrections and corrupted --anchor-ty to a nonsensical
-        // value. This form can only ever run once. Target/Speed/Ms-per-
-        // click are still hidden at this point in a fresh page load (idle
-        // screen) - showTargetAndSpeed()'s own correction call covers them
-        // once they're first revealed, using whichever font is active at
-        // that (later, Start-click-gated) moment.
-        document.fonts.ready.then(() => {
-            Object.entries(TEXT_VALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
-                const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
-                correctValignLeading(document.getElementById(elId), activeCssVars[varName] || 'center');
-            });
-        });
         // Captures every dev-panel label/title's TRUE original text into
         // devTextOriginals (devTextOverrides is still empty at this point) -
         // re-run below once the settings fetch resolves to actually apply
