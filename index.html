@@ -48,53 +48,25 @@
             align-items: center;
             perspective: 1200px;
         }
-        /* Portrait lock (per direct request: the app should never react to a
-           phone's physical rotation - it should always look/behave portrait).
-           Gated on real touchscreens only ((hover:none) and (pointer:coarse))
-           so an ordinary wide desktop browser window is never mistaken for a
-           rotated phone - orientation:landscape alone can't tell those apart.
-           2 parts, both needed:
-           1) ORIENTATION - rotate the game 90deg and swap its pre-rotation
-              box to 100vh wide x 100vw tall, so after rotation its on-screen
-              footprint exactly refits the real (landscape) screen, no
-              letterboxing gap.
-           2) SCALE - native vw/vh units always measure the TRUE viewport,
-              never a transformed ancestor's own box, so rotation alone would
-              leave every button/text size still computed against the real
-              (landscape, wider-than-tall) screen - oversized/clipped, just
-              rotated. Fixed via CSS Container Query units: this box becomes
-              a size container, and every var(--cq-vw, 1vw)/var(--cq-vh, 1vh)
-              used throughout the button/text CSS below (in place of a plain
-              1vw/1vh literal) resolves against THIS box once --cq-vw/--cq-vh
-              are overridden here to 1cqw/1cqh - i.e. against the swapped
-              (logical-portrait) dimensions, not the real landscape screen.
-              isMobileActive()/resolveSpatialPx() (JS) mirror this same
-              swap via their own PORTRAIT_LOCK_QUERY check, so the
-              desktop/mobile cssVars split and click-burst/shadow spatial
-              math agree with what the CSS is actually doing.
-           Scoped to .game-container only - the dev panel is a sibling
-           outside this box, still positioned/dragged in real screen
-           coordinates, completely unaffected (its own drag/resize/clamp
-           math would break if nested inside a rotated ancestor). A few
-           dev-only debug overlays (click counter, tap diagnostic, round
-           breakdown panel) ARE inside .game-container and so get rotated
-           along with everything else, but keep their own plain vw/vh (not
-           converted to cqw/cqh) - dev-only tools, out of scope for a
-           player-facing fix; their landscape sizing may still look off. */
-        @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
-            .game-container {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                width: 100vh;
-                height: 100vw;
-                container-type: size;
-                --cq-vw: 1cqw;
-                --cq-vh: 1cqh;
-                transform: translate(-50%, -50%) rotate(90deg);
-                transform-origin: center center;
-            }
-        }
+        /* SUPERSEDED (was a portrait-lock: rotate .game-container 90deg on a
+           real touchscreen phone in landscape, so it always LOOKED portrait
+           regardless of physical orientation). Per direct follow-up, this
+           was replaced with a genuine third "Landscape" device profile
+           instead - the game now actually reflows for landscape (its own
+           cssVars/dev-panel tab, real unrotated rendering) rather than
+           faking portrait. See getActiveDeviceProfile() (JS) for the 3-way
+           desktop/mobile/landscape split that replaced this.
+           var(--cq-vw, 1vw)/var(--cq-vh, 1vh) still appear throughout the
+           button/text CSS below in place of a plain 1vw/1vh literal - this
+           was this mechanism's other half (CSS Container Query units so
+           sizing could resolve against a rotated/swapped box instead of the
+           true viewport). Left in place as an inert no-op (nothing defines
+           --cq-vw/--cq-vh anymore, so every var() falls back to plain
+           1vw/1vh, identical to never having had this indirection) rather
+           than reverting ~20 call sites back to a literal unit for no
+           functional gain - reactivating a letterboxed-portrait fallback
+           later would need only this comment's old CSS block back, not a
+           re-conversion of the button/text rules. */
         /* Hides the whole game behind a plain --bg-color screen (already correct
            from the very first paint - see cssVars['--bg-color']'s own hardcoded
            default) until the real saved settings (colors, font sizes, Thin
@@ -1264,6 +1236,23 @@
                the shipping behavior everywhere until this lands. */
             text-box-trim: trim-start;
             text-box-edge: cap alphabetic;
+            /* Manual fine-tune for the residual 1-2px overshoot the
+               above trim leaves - researched (not computed) root cause:
+               text-box-edge: cap reads the font FILE's own OS/2
+               sCapHeight metric rather than this glyph's actual
+               rendered ink, and that metric is frequently loose/
+               imprecise in small decorative webfonts (confirmed via
+               Glyphs-forum and opentype.js reports of sCapHeight being
+               left at 0 or approximate by font tooling); there is
+               currently no native CSS mechanism to nudge the trim
+               point itself (see W3C csswg-drafts#8478), so this is a
+               user-controlled em-based offset instead - unitless,
+               same multiply-by-font-size convention as line-height
+               (see Font Trim Adjust slider), positive value pushes the
+               trimmed top edge DOWN by that fraction of this element's
+               own text height. Single shared value, not mobile-split -
+               see --extrusion-font's own comment, same reasoning. */
+            margin-top: calc(var(--extrusion-font-trim-adjust, 0) * 1em);
         }
 
         .target-count.hidden {
@@ -1338,6 +1327,9 @@
                non-zero line-height in the first place). */
             text-box-trim: trim-start;
             text-box-edge: cap alphabetic;
+            /* See .target-count's own comment on Font Trim Adjust - same
+               fix, same reasoning, same shared (not mobile-split) var. */
+            margin-top: calc(var(--extrusion-font-trim-adjust, 0) * 1em);
         }
 
         .ms-per-click-display.hidden {
@@ -1868,7 +1860,7 @@
            in DOM order (mobile's content starting ~7000px below desktop's),
            so the inactive tab was never actually hidden, only scrolled out
            of the immediate view. */
-        #desktopTabContent.hidden, #mobileTabContent.hidden {
+        #desktopTabContent.hidden, #mobileTabContent.hidden, #landscapeTabContent.hidden {
             display: none !important;
         }
 
@@ -3252,6 +3244,7 @@
         <div class="dev-tabs">
             <button class="dev-tab-btn active" id="devTabDesktopBtn" onclick="switchDevPanelTab('desktop')">Desktop</button>
             <button class="dev-tab-btn" id="devTabMobileBtn" onclick="switchDevPanelTab('mobile')">Mobile</button>
+            <button class="dev-tab-btn" id="devTabLandscapeBtn" onclick="switchDevPanelTab('landscape')">Landscape</button>
         </div>
 
         <div id="desktopTabContent">
@@ -3751,6 +3744,11 @@
                         <option value="Jersey 20">Jersey 20</option>
                         <option value="Jacquard 24">Jacquard 24</option>
                     </select>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Trim Adjust:</span>
+                    <input type="range" class="dev-slider" id="sliderExtrusionFontTrimAdjust" min="-1" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueExtrusionFontTrimAdjust">0</span>
                 </div>
             </div>
         </div>
@@ -5612,6 +5610,887 @@
              applyGameMechanicsSlider() and the unconditional --bg-color line
              in applyActiveVars(). -->
         </div>
+        <div id="landscapeTabContent" class="hidden">
+        <div class="dev-buttons">
+            <button onclick="addDevGroup('landscape')">+ Add Group</button>
+        </div>
+        <!-- Same controls as the Desktop tab, but only take effect on a
+             landscape-width viewport (auto-detected via matchMedia, live -
+             resizing the browser or rotating a phone switches
+             automatically, no manual toggle). Lets layout/appearance be
+             tuned independently for landscape without disturbing the desktop
+             configuration. -->
+        <!-- Built-in "Dev Panel" settings group (Landscape tab's own copy) -
+             CLAUDE.md Section 12i. Only affects the panel's look while the
+             Landscape tab is selected - see the Desktop tab's own copy. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevPanelTitleFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueLandscapeDevPanelTitleFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Tab Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevTabFontSize" min="6" max="30" step="1" value="12">
+                    <span class="dev-value" id="valueLandscapeDevTabFontSize">12</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Group Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevGroupTitleFontSize" min="6" max="30" step="1" value="11">
+                    <span class="dev-value" id="valueLandscapeDevGroupTitleFontSize">11</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Setting Title Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevSettingTitleFontSize" min="6" max="30" step="1" value="10">
+                    <span class="dev-value" id="valueLandscapeDevSettingTitleFontSize">10</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Text Border (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevButtonTextBorder" min="0" max="20" step="1" value="0">
+                    <span class="dev-value" id="valueLandscapeDevButtonTextBorder">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Scroll Strength (x):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevScrollStrength" min="0.2" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueLandscapeDevScrollStrength">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Height (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeDevButtonHeight" min="12" max="60" step="1" value="24">
+                    <span class="dev-value" id="valueLandscapeDevButtonHeight">24</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Button Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Diameter (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonDiameter" min="5" max="120" step="0.5" value="77">
+                    <span class="dev-value" id="valueLandscapeButtonDiameter">77</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Min Diameter (px, floor on narrow windows):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonMinDiameter" min="0" max="500" step="5" value="165">
+                    <span class="dev-value" id="valueLandscapeButtonMinDiameter">165</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height (offset, % of diameter):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonHeight" min="-30" max="30" step="0.5" value="-3.5">
+                    <span class="dev-value" id="valueLandscapeButtonHeight">-3.50</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Press Intensity (% of diameter):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonPressIntensity" min="0" max="30" step="0.5" value="8.5">
+                    <span class="dev-value" id="valueLandscapeButtonPressIntensity">8.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Press Speed (ms, 0=instant):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonPressMs" min="0" max="200" step="5" value="0">
+                    <span class="dev-value" id="valueLandscapeButtonPressMs">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Release Speed (ms, 0=instant):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonReleaseMs" min="0" max="200" step="5" value="0">
+                    <span class="dev-value" id="valueLandscapeButtonReleaseMs">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonX" min="-50" max="50" step="0.01" value="-2.32">
+                    <span class="dev-value" id="valueLandscapeButtonX">-2.32</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeButtonXOffsetUnitPx" data-slider="sliderLandscapeButtonX" data-flag-var="--button-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeButtonY" min="-50" max="50" step="0.01" value="16">
+                    <span class="dev-value" id="valueLandscapeButtonY">16</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeButtonYOffsetUnitPx" data-slider="sliderLandscapeButtonY" data-flag-var="--button-y-offset-unit-is-px">Px</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shadow Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Shadow">▼ Shadow</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Shadow X (% of button width):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowX" min="-97.4" max="220.78" step="0.1" value="27.4286">
+                    <span class="dev-value" id="valueLandscapeShadowX">27.4286</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Y (% of button width):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowY" min="-129.87" max="64.94" step="0.1" value="18.1818">
+                    <span class="dev-value" id="valueLandscapeShadowY">18.1818</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Blur (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowBlur" min="0" max="60" step="1" value="0">
+                    <span class="dev-value" id="valueLandscapeShadowBlur">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Size (scale):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowScale" min="0.1" max="3" step="0.05" value="0.65">
+                    <span class="dev-value" id="valueLandscapeShadowScale">0.65</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Skew (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowSkew" min="-60" max="60" step="1" value="-37">
+                    <span class="dev-value" id="valueLandscapeShadowSkew">-37</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Elongation Intensity:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowElongationIntensity" min="1" max="5" step="0.1" value="1">
+                    <span class="dev-value" id="valueLandscapeShadowElongationIntensity">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Elongation Angle (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowElongationAngle" min="0" max="360" step="1" value="0">
+                    <span class="dev-value" id="valueLandscapeShadowElongationAngle">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Rotate (deg):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeShadowRotate" min="-180" max="180" step="1" value="11">
+                    <span class="dev-value" id="valueLandscapeShadowRotate">11</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Click Burst Section (frame set itself is shared, not per-device -
+             see updateClickFrameSet()'s own note) -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Click Burst">▼ Click Burst</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Animation Speed (ms):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstSpeed" min="80" max="1000" step="10" value="180">
+                    <span class="dev-value" id="valueLandscapeClickBurstSpeed">180</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Frame Size (scale):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstScale" min="0" max="1" step="0.01" value="0.14">
+                    <span class="dev-value" id="valueLandscapeClickBurstScale">0.14</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Distance Out (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstDistance" min="0" max="75" step="0.5" value="8">
+                    <span class="dev-value" id="valueLandscapeClickBurstDistance">8</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Height / Lift (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstHeight" min="0" max="50" step="0.5" value="1">
+                    <span class="dev-value" id="valueLandscapeClickBurstHeight">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Curve Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstCurveOffset" min="0" max="40" step="0.5" value="6.5">
+                    <span class="dev-value" id="valueLandscapeClickBurstCurveOffset">6.5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Flight Path Curviness (x):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstCurveAmount" min="0" max="3" step="0.05" value="0.2">
+                    <span class="dev-value" id="valueLandscapeClickBurstCurveAmount">0.20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Count Per Side - Floor:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstCountMin" min="1" max="8" step="1" value="3">
+                    <span class="dev-value" id="valueLandscapeClickBurstCountMin">3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Count Per Side - Ceiling:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstCountMax" min="1" max="8" step="1" value="5">
+                    <span class="dev-value" id="valueLandscapeClickBurstCountMax">5</span>
+                </div>
+                <!-- Landscape-split copies of Hide Shadow A/B and the 4 guide-
+                     curve angle inputs (see their own desktop-section
+                     comments) - per explicit request that landscape and
+                     desktop get independent values here. -->
+                <div class="dev-row">
+                    <span class="dev-label">Hide Shadow (Left) - Frame Positions:</span>
+                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputLandscapeClickBurstHideShadowIndexA" value="0=>2">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Hide Shadow (Right) - Frame Positions:</span>
+                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputLandscapeClickBurstHideShadowIndexB" value="-2=>-1">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Right Floor Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstRightFloorDeg" step="1" value="20">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Right Ceiling Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstRightCeilingDeg" step="1" value="135">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Left Floor Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstLeftFloorDeg" step="1" value="230">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Left Ceiling Angle (deg):</span>
+                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstLeftCeilingDeg" step="1" value="340">
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Shadow Final Scale:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeClickBurstShadowFinalScale" min="0" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueLandscapeClickBurstShadowFinalScale">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8-Bit Text Style Section - landscape counterpart. Font stays on
+             the single shared select8BitFont above (not duplicated here -
+             see the desktop section's own comment) - only depth/colors/
+             overall-border are landscape-split. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="8-Bit Text Style (Start/Try Again/Win-Lose)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
+            <div class="dev-section-content">
+            </div>
+        </div>
+
+        <!-- Start/Try Again Button Section (Landscape) - see the desktop
+             section's own comment for the full explanation. Split into its
+             own group, separate from Round Text, per explicit request. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Start/Try Again Button" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
+            <div class="dev-section-content">
+                <!-- Reordered to match the desktop section's own established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
+                <div class="dev-row">
+                    <span class="dev-label">Button Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTextFontSize" min="10" max="400" step="0.01" value="78">
+                    <span class="dev-value" id="valueLandscapeTextFontSize">8</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTextScaleWithBrowser', '--text-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTextFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueLandscapeTextFontSizeVw">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueLandscapeRoundExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueLandscapeRoundOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTextX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueLandscapeTextX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTextXOffsetUnitPx" data-slider="sliderLandscapeTextX" data-flag-var="--text-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTextY" min="-50" max="50" step="0.01" value="-16.5">
+                    <span class="dev-value" id="valueLandscapeTextY">-16.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTextYOffsetUnitPx" data-slider="sliderLandscapeTextY" data-flag-var="--text-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeTextLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeTextLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeStartTextAlign" data-var="--start-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeStartTextAlignEdgeLock" data-var="--start-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeStartTextValign" data-var="--start-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeStartTextValignEdgeLock" data-var="--start-text-valign-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainTextFontSize" min="10" max="400" step="0.01" value="78">
+                    <span class="dev-value" id="valueLandscapeTryAgainTextFontSize">20</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainTextFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueLandscapeTryAgainTextFontSizeVw">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueLandscapeTryAgainExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainOverallBorderThickness" min="0" max="20" step="1" value="5">
+                    <span class="dev-value" id="valueLandscapeTryAgainOverallBorderThickness">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainTextX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueLandscapeTryAgainTextX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTryAgainTextXOffsetUnitPx" data-slider="sliderLandscapeTryAgainTextX" data-flag-var="--try-again-text-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainTextY" min="-50" max="50" step="0.01" value="-0.49">
+                    <span class="dev-value" id="valueLandscapeTryAgainTextY">-0.49</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTryAgainTextYOffsetUnitPx" data-slider="sliderLandscapeTryAgainTextY" data-flag-var="--try-again-text-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeTryAgainTextLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Line Height:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeTryAgainTextLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeTryAgainTextAlign" data-var="--try-again-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeTryAgainTextAlignEdgeLock" data-var="--try-again-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Try Again Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeTryAgainTextValign" data-var="--try-again-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeTryAgainTextValignEdgeLock" data-var="--try-again-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rotation Animation Section (Landscape) - just the "?" glyph's own
+             device-specific size/color/position (see the Desktop tab's own
+             copy). Mode/Speed/Tweening/Min Width/Extrusion-Matches-Glyph
+             stay single/shared, controlled only from the Desktop tab. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">"?" Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainQuestionMarkFontSize" min="10" max="500" step="0.01" value="78">
+                    <span class="dev-value" id="valueLandscapeTryAgainQuestionMarkFontSize">20</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainQuestionMarkFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueLandscapeTryAgainQuestionMarkFontSizeVw">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainQuestionMarkX" min="-50" max="50" step="0.01" value="20">
+                    <span class="dev-value" id="valueLandscapeTryAgainQuestionMarkX">20</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTryAgainQuestionMarkXOffsetUnitPx" data-slider="sliderLandscapeTryAgainQuestionMarkX" data-flag-var="--try-again-question-mark-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainQuestionMarkY" min="-50" max="50" step="0.01" value="5.05">
+                    <span class="dev-value" id="valueLandscapeTryAgainQuestionMarkY">5.05</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTryAgainQuestionMarkYOffsetUnitPx" data-slider="sliderLandscapeTryAgainQuestionMarkY" data-flag-var="--try-again-question-mark-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeTryAgainQuestionMarkTextAlign" data-var="--try-again-question-mark-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeTryAgainQuestionMarkTextAlignEdgeLock" data-var="--try-again-question-mark-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeTryAgainQuestionMarkTextValign" data-var="--try-again-question-mark-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeTryAgainQuestionMarkTextValignEdgeLock" data-var="--try-again-question-mark-text-valign-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainQuestionMarkExtrusionDepth" min="0" max="30" step="1" value="9">
+                    <span class="dev-value" id="valueLandscapeTryAgainQuestionMarkExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">"?" Overall Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTryAgainQuestionMarkOverallBorderThickness" min="0" max="30" step="1" value="5">
+                    <span class="dev-value" id="valueLandscapeTryAgainQuestionMarkOverallBorderThickness">5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Round Text Section (Landscape) - split into its own group per
+             explicit request. Font size used to always match
+             --speed-font-size-vw; now has its own independent slider. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Text" data-text-edit-target="gameTextLabel">▼ Round Text</div>
+            <div class="dev-section-content">
+                <!-- Reordered to match the desktop section's own established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
+                <div class="dev-row">
+                    <span class="dev-label">Text Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundFontSize" min="5" max="200" step="0.01" value="78">
+                    <span class="dev-value" id="valueLandscapeRoundFontSize">5.43</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeRoundScaleWithBrowser', '--round-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundFontSizeVw" min="1" max="60" step="0.01" value="20">
+                    <span class="dev-value" id="valueLandscapeRoundFontSizeVw">20</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
+                    <span class="dev-value" id="valueLandscapeRoundDockExtrusionDepth">2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueLandscapeRoundDockOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundDockX" min="-50" max="50" step="0.01" value="-30">
+                    <span class="dev-value" id="valueLandscapeRoundDockX">-30</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeRoundDockXOffsetUnitPx" data-slider="sliderLandscapeRoundDockX" data-flag-var="--round-dock-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundDockY" min="-50" max="50" step="0.01" value="35">
+                    <span class="dev-value" id="valueLandscapeRoundDockY">35</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeRoundDockYOffsetUnitPx" data-slider="sliderLandscapeRoundDockY" data-flag-var="--round-dock-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeRoundLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeRoundLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeRoundLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeRoundTextAlign" data-var="--round-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeRoundTextAlignEdgeLock" data-var="--round-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeRoundTextValign" data-var="--round-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeRoundTextValignEdgeLock" data-var="--round-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Win/Lose Text Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
+            <div class="dev-section-content">
+                <!-- Reordered to match the desktop section's own established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
+                <div class="dev-row">
+                    <span class="dev-label">Win Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultWinFontSize" min="5" max="300" step="0.01" value="18.6">
+                    <span class="dev-value" id="valueLandscapeResultWinFontSize">18.6</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultWinFontSizeVw" min="1" max="60" step="0.01" value="4.77">
+                    <span class="dev-value" id="valueLandscapeResultWinFontSizeVw">4.77</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultWinX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueLandscapeResultWinX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeResultWinXOffsetUnitPx" data-slider="sliderLandscapeResultWinX" data-flag-var="--result-win-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultWinY" min="-50" max="50" step="0.01" value="1.46">
+                    <span class="dev-value" id="valueLandscapeResultWinY">1.46</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeResultWinYOffsetUnitPx" data-slider="sliderLandscapeResultWinY" data-flag-var="--result-win-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Win Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultWinLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeResultWinLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultLoseFontSize" min="5" max="300" step="0.01" value="18.6">
+                    <span class="dev-value" id="valueLandscapeResultLoseFontSize">18.6</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeResultLoseScaleWithBrowser" data-css-var="--result-lose-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeResultLoseScaleWithBrowser', '--result-lose-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultLoseFontSizeVw" min="1" max="60" step="0.01" value="4.77">
+                    <span class="dev-value" id="valueLandscapeResultLoseFontSizeVw">4.77</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultLoseX" min="-40" max="40" step="0.01" value="0">
+                    <span class="dev-value" id="valueLandscapeResultLoseX">0</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeResultLoseXOffsetUnitPx" data-slider="sliderLandscapeResultLoseX" data-flag-var="--result-lose-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultLoseY" min="-50" max="50" step="0.01" value="1.46">
+                    <span class="dev-value" id="valueLandscapeResultLoseY">1.46</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeResultLoseYOffsetUnitPx" data-slider="sliderLandscapeResultLoseY" data-flag-var="--result-lose-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lose Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultLoseLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeResultLoseLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultExtrusionDepth" min="0" max="30" step="1" value="5">
+                    <span class="dev-value" id="valueLandscapeResultExtrusionDepth">5</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultOverallBorderThickness" min="0" max="20" step="1" value="3">
+                    <span class="dev-value" id="valueLandscapeResultOverallBorderThickness">3</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Angle (Deg):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultExtrusionAngle" min="0" max="360" step="1" value="45">
+                    <span class="dev-value" id="valueLandscapeResultExtrusionAngle">45</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeResultLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeResultTextAlign" data-var="--result-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeResultTextAlignEdgeLock" data-var="--result-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeResultTextValign" data-var="--result-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeResultTextValignEdgeLock" data-var="--result-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Count Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
+            <div class="dev-section-content">
+                <!-- Reordered to match every other text section's established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetFontSize" min="10" max="500" step="0.01" value="195">
+                    <span class="dev-value" id="valueLandscapeTargetFontSize">25</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTargetScaleWithBrowser', '--target-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetFontSizeVw" min="1" max="60" step="0.01" value="50">
+                    <span class="dev-value" id="valueLandscapeTargetFontSizeVw">50</span>
+                </div>
+                <!-- Font dropdown removed - shares the ONE 8-Bit Text
+                     Style font (select8BitFont, not landscape-split), per
+                     explicit request. -->
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueLandscapeTargetExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueLandscapeTargetOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetX" min="-50" max="50" step="0.01" value="20">
+                    <span class="dev-value" id="valueLandscapeTargetX">20</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTargetXOffsetUnitPx" data-slider="sliderLandscapeTargetX" data-flag-var="--target-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetY" min="-50" max="50" step="0.01" value="-23.5">
+                    <span class="dev-value" id="valueLandscapeTargetY">-23.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeTargetYOffsetUnitPx" data-slider="sliderLandscapeTargetY" data-flag-var="--target-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeTargetLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeTargetLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeTargetLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeTargetTextAlign" data-var="--target-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeTargetTextAlignEdgeLock" data-var="--target-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeTargetTextValign" data-var="--target-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeTargetTextValignEdgeLock" data-var="--target-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Speed Display Section -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Speed Display (max ms between taps)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
+            <div class="dev-section-content">
+                <!-- Reordered to match every other text section's established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedFontSize" min="5" max="300" step="0.01" value="38.73">
+                    <span class="dev-value" id="valueLandscapeSpeedFontSize">9</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeSpeedScaleWithBrowser" data-css-var="--speed-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeSpeedScaleWithBrowser', '--speed-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedFontSizeVw" min="1" max="60" step="0.01" value="9.93">
+                    <span class="dev-value" id="valueLandscapeSpeedFontSizeVw">9.93</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedExtrusionDepth" min="0" max="20" step="1" value="4">
+                    <span class="dev-value" id="valueLandscapeSpeedExtrusionDepth">4</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueLandscapeSpeedOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedX" min="-50" max="50" step="0.01" value="-23">
+                    <span class="dev-value" id="valueLandscapeSpeedX">-23</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeSpeedXOffsetUnitPx" data-slider="sliderLandscapeSpeedX" data-flag-var="--speed-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedY" min="-50" max="50" step="0.01" value="-19.5">
+                    <span class="dev-value" id="valueLandscapeSpeedY">-19.5</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeSpeedYOffsetUnitPx" data-slider="sliderLandscapeSpeedY" data-flag-var="--speed-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeSpeedLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeSpeedLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeSpeedLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeSpeedTextAlign" data-var="--speed-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeSpeedTextAlignEdgeLock" data-var="--speed-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeSpeedTextValign" data-var="--speed-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeSpeedTextValignEdgeLock" data-var="--speed-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ms Per Click Display Section (Landscape) -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
+            <div class="dev-section-content">
+                <!-- Reordered to match every other text section's established
+                     field order per explicit request that all text settings
+                     share one consistent order. -->
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickFontSize" min="5" max="300" step="0.01" value="38.73">
+                    <span class="dev-value" id="valueLandscapeMsPerClickFontSize">3.6</span>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Font Size (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickFontSizeVw" min="1" max="60" step="0.01" value="9.93">
+                    <span class="dev-value" id="valueLandscapeMsPerClickFontSizeVw">9.93</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Extrusion Depth (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickExtrusionDepth" min="0" max="20" step="1" value="9">
+                    <span class="dev-value" id="valueLandscapeMsPerClickExtrusionDepth">9</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Border Thickness (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
+                    <span class="dev-value" id="valueLandscapeMsPerClickOverallBorderThickness">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">X Offset (vw):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickX" min="-50" max="50" step="0.01" value="24.76">
+                    <span class="dev-value" id="valueLandscapeMsPerClickX">24.76</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeMsPerClickXOffsetUnitPx" data-slider="sliderLandscapeMsPerClickX" data-flag-var="--ms-per-click-x-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Y Offset (vh):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickY" min="-50" max="50" step="0.01" value="-26.84">
+                    <span class="dev-value" id="valueLandscapeMsPerClickY">-26.84</span>
+                    <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxLandscapeMsPerClickYOffsetUnitPx" data-slider="sliderLandscapeMsPerClickY" data-flag-var="--ms-per-click-y-offset-unit-is-px">Px</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Letter Spacing (px):</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
+                    <span class="dev-value" id="valueLandscapeMsPerClickLetterSpacing">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Line Spacing:</span>
+                    <input type="range" class="dev-slider" id="sliderLandscapeMsPerClickLineHeight" min="0.5" max="3" step="0.05" value="1.2">
+                    <span class="dev-value" id="valueLandscapeMsPerClickLineHeight">1.2</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeMsPerClickTextAlign" data-var="--ms-per-click-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeMsPerClickTextAlignEdgeLock" data-var="--ms-per-click-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeMsPerClickTextValign" data-var="--ms-per-click-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeMsPerClickTextValignEdgeLock" data-var="--ms-per-click-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Mechanics and Background Color are NOT per-device settings -
+             there's only one game in progress and one page background, not a
+             separate one per breakpoint - so unlike every visual section
+             above, they don't get a Landscape Overrides duplicate. See
+             applyGameMechanicsSlider() and the unconditional --bg-color line
+             in applyActiveVars(). -->
+        </div>
         <!-- ^ closes mobileTabContent -->
         </div>
         <!-- ^ closes dev-panel-scroll-content -->
@@ -5735,6 +6614,11 @@
         mobileDevPanelStyle.capsButtonText = false;
         mobileDevPanelStyle.capsTabText = false;
         mobileDevPanelStyle.capsGroupNames = false;
+        // Landscape's own dev-panel geometry/look - independent per-tab like
+        // Desktop/Mobile already are (CLAUDE.md 12f: the panel's own size/
+        // position is always independent per device). Seeded as a clone of
+        // Mobile's current tuning so nothing looks different until retuned.
+        const landscapeDevPanelStyle = structuredClone(mobileDevPanelStyle);
 
         const DEV_PANEL_STYLE_VAR_MAP = {
             titleFontSize: '--dev-panel-title-font-size-px',
@@ -5777,8 +6661,13 @@
             capsGroupNames: 'dev-caps-group-names',
             capsSettingsText: 'dev-caps-settings-text',
         };
-        function applyDevPanelOwnStyling(isDesktopTab) {
-            const style = isDesktopTab ? devPanelStyle : mobileDevPanelStyle;
+        function applyDevPanelOwnStyling(tab) {
+            // tab is 'desktop' | 'mobile' | 'landscape', OR (legacy call
+            // sites not yet updated to pass a tab name) a boolean, where
+            // true means desktop - kept so a stray old boolean call site
+            // still resolves correctly rather than silently misbehaving.
+            const resolvedTab = typeof tab === 'boolean' ? (tab ? 'desktop' : 'mobile') : tab;
+            const style = resolvedTab === 'desktop' ? devPanelStyle : resolvedTab === 'mobile' ? mobileDevPanelStyle : landscapeDevPanelStyle;
             for (const [key, varName] of Object.entries(DEV_PANEL_STYLE_VAR_MAP)) {
                 const value = DEV_PANEL_STYLE_SHARED_KEYS.includes(key) ? devPanelStyle[key] : style[key];
                 document.documentElement.style.setProperty(varName, value);
@@ -6145,6 +7034,24 @@
         // win*/lose* are Win/Lose's own separate color pair.
         const extrusionVars = {
             font: '"Micro 5", monospace',
+            // Manual fine-tune for text-box-trim's own cap-height reference
+            // point (see .target-count/.ms-per-click-display's own CSS
+            // comment) - unitless, same convention as line-height: a
+            // multiplier of the element's OWN font-size, added as extra
+            // space above the trimmed box (positive pushes the alignment
+            // datum point down, per direct spec: "if i set it to .1, it
+            // will add .1 the text height to the top of the bounding box").
+            // Exists because text-box-edge's "cap" value reads a METRIC
+            // BAKED INTO THE FONT FILE (the OS/2 table's sCapHeight field),
+            // not the actual rendered ink of a specific glyph - that field
+            // is commonly missing/approximate on decorative/display fonts
+            // (confirmed via research, not guessed), leaving a small
+            // residual (a couple px) mismatch CSS itself currently has no
+            // native way to fine-tune (an open, unresolved w3c/csswg-drafts
+            // issue as of this comment). Single, shared value (not mobile-
+            // split) - same reasoning as font itself just above: this is a
+            // property of the FONT FILE, not a per-device layout choice.
+            fontTrimAdjust: 0,
             depth: 5,
             fillColor: '#ffffff',
             borderColor: '#000000',
@@ -6326,6 +7233,9 @@
             speedOverallBorderThickness: 8,
             msPerClickOverallBorderThickness: 8,
         };
+        // Landscape's own extrusion vars - seeded as a clone of Mobile's
+        // current tuning, independently adjustable later.
+        const landscapeExtrusionVars = structuredClone(mobileExtrusionVars);
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
         // depth) - the CSS-native way to fake a solid pixel-block 3D
@@ -6491,10 +7401,11 @@
         ];
         function applyExtrusionStyles() {
             const root = document.documentElement.style;
-            const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
+            const deviceExt = isMobileActive() ? getActiveMobileExtrusionVars() : extrusionVars;
             const ext = { ...deviceExt };
             EXTRUSION_COLOR_FIELD_NAMES.forEach(field => { ext[field] = extrusionVars[field]; });
             root.setProperty('--extrusion-font', extrusionVars.font);
+            root.setProperty('--extrusion-font-trim-adjust', extrusionVars.fontTrimAdjust);
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
             root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
@@ -6554,7 +7465,7 @@
                 return;
             }
             const root = document.documentElement.style;
-            const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
+            const deviceExt = isMobileActive() ? getActiveMobileExtrusionVars() : extrusionVars;
             const textColor = state === 'win' ? extrusionVars.gameplayWinTextColor : extrusionVars.gameplayLoseTextColor;
             const borderColor = state === 'win' ? extrusionVars.gameplayWinBorderColor : extrusionVars.gameplayLoseBorderColor;
             root.setProperty('--target-fill-color', textColor);
@@ -6740,11 +7651,21 @@
             '--round-breakdown-left-px': 1240,
             '--round-breakdown-top-px': 190,
         };
+        // Landscape's own cssVars - the actual point of this whole feature:
+        // a real touchscreen phone in landscape gets its OWN tuned button/
+        // text positions and sizes instead of either the (wrong) Desktop
+        // profile or Mobile's portrait-tuned ones stretched sideways.
+        // Seeded as a clone of Mobile's current values so nothing looks
+        // different until these are independently retuned via the new
+        // Landscape dev-panel tab.
+        const landscapeCssVars = structuredClone(mobileCssVars);
         const mobileColorVars = {
             '--button-color': '#ff3333',
             // No --bg-color here - the background color is a single shared
             // value (colorVars['--bg-color'] only), see applyActiveVars().
         };
+        // Landscape's own color vars - seeded as a clone of Mobile's.
+        const landscapeColorVars = structuredClone(mobileColorVars);
         // mobileFontVars used to live here - removed along with fontVars,
         // see the comment near the desktop declaration above.
 
@@ -6752,19 +7673,51 @@
         // rotating a phone) re-applies whichever var set is now active, no
         // manual toggle needed.
         const MOBILE_MEDIA_QUERY = window.matchMedia('(max-width: 767px)');
-        // Mirrors the CSS portrait-lock gate (see .game-container's own
-        // comment) - when it's engaged, the game's LOGICAL width is the
-        // real screen's HEIGHT (that's what --cq-vw/--cq-vh end up
-        // resolving against, since the box's pre-rotation width is set to
-        // 100vh). isMobileActive()/resolveSpatialPx() need to agree with
-        // that or the desktop/mobile cssVars split (and click-burst/shadow
-        // spatial math) would use the wrong profile for a rotated phone.
-        const PORTRAIT_LOCK_QUERY = window.matchMedia('(hover: none) and (pointer: coarse) and (orientation: landscape)');
-        function getLogicalViewportWidth() {
-            return PORTRAIT_LOCK_QUERY.matches ? window.innerHeight : window.innerWidth;
+        // A real touchscreen device (phone/tablet) held in landscape gets its
+        // OWN "Landscape" profile (landscapeCssVars etc., own dev-panel tab)
+        // - checked FIRST and independently of raw pixel width, so a wide
+        // landscape phone (e.g. 844px) is never mistaken for Desktop just
+        // because it crosses the 767px Mobile breakpoint (the original bug
+        // this whole feature exists to fix). Gated on (hover:none) and
+        // (pointer:coarse) so an ordinary wide desktop browser window is
+        // never mistaken for a rotated phone - orientation:landscape alone
+        // can't tell those apart.
+        const LANDSCAPE_TOUCH_QUERY = window.matchMedia('(hover: none) and (pointer: coarse) and (orientation: landscape)');
+        function isLandscapeActive() {
+            return LANDSCAPE_TOUCH_QUERY.matches;
         }
+        // True for either non-Desktop profile (Mobile-portrait OR Landscape)
+        // - most call sites just want "is this some kind of phone", not
+        // which specific one; see getActiveDeviceProfile() for the 3-way
+        // split used wherever the actual DATA differs per sub-profile
+        // (cssVars/mobileCssVars/landscapeCssVars and its siblings).
         function isMobileActive() {
-            return PORTRAIT_LOCK_QUERY.matches ? (getLogicalViewportWidth() <= 767) : MOBILE_MEDIA_QUERY.matches;
+            return isLandscapeActive() || MOBILE_MEDIA_QUERY.matches;
+        }
+        function getActiveDeviceProfile() {
+            if (isLandscapeActive()) return 'landscape';
+            return MOBILE_MEDIA_QUERY.matches ? 'mobile' : 'desktop';
+        }
+        // The 5 device-object pairs below (cssVars, extrusionVars,
+        // colorVars, textOverrides, clickBurstFrameVars) each have a 3rd
+        // Landscape sibling now - these helpers pick the correct one so
+        // every render-side "isMobileActive() ? mobileX : X" ternary only
+        // needs to change its middle term to "getActiveXVars()" once,
+        // rather than becoming its own 3-way ternary at every call site.
+        function getActiveMobileVars() {
+            return isLandscapeActive() ? landscapeCssVars : mobileCssVars;
+        }
+        function getActiveMobileExtrusionVars() {
+            return isLandscapeActive() ? landscapeExtrusionVars : mobileExtrusionVars;
+        }
+        function getActiveMobileColorVars() {
+            return isLandscapeActive() ? landscapeColorVars : mobileColorVars;
+        }
+        function getActiveMobileTextOverrides() {
+            return isLandscapeActive() ? landscapeTextOverrides : mobileTextOverrides;
+        }
+        function getActiveMobileClickBurstFrameVars() {
+            return isLandscapeActive() ? landscapeClickBurstFrameVars : mobileClickBurstFrameVars;
         }
 
         // Resolves one of the 5 mobile "spatial/motion" cssVar values
@@ -6775,15 +7728,15 @@
         // instead of being a fixed px count that reads differently
         // relative to the (vw-scaled) button on a narrow vs. wide phone.
         // On desktop these values are still genuine px numbers, returned
-        // as-is, completely unaffected. On mobile the stored number is a
-        // VW value (see mobileCssVars' own comment on these 5 keys),
-        // multiplied by the CURRENT logical viewport width here (real
-        // window.innerWidth, or window.innerHeight when the portrait lock
-        // has rotated the game - see getLogicalViewportWidth()), at the
-        // point of use - not cached - so a real device rotation/resize is
-        // picked up live, same as a native CSS vw/cqw unit would be.
+        // as-is, completely unaffected. On mobile/landscape the stored
+        // number is a VW value (see mobileCssVars' own comment on these 5
+        // keys), multiplied by the CURRENT real window.innerWidth here (no
+        // rotation happens anymore, so the true viewport width is always
+        // the correct reference for both sub-profiles), at the point of
+        // use - not cached - so a real device rotation/resize is picked up
+        // live, same as a native CSS vw unit would be.
         function resolveSpatialPx(value) {
-            return isMobileActive() ? value * getLogicalViewportWidth() / 100 : value;
+            return isMobileActive() ? value * window.innerWidth / 100 : value;
         }
 
         // Game state
@@ -7170,7 +8123,7 @@
             // (which would have inherited the same mistake). Fixed by reading
             // through whichever set is actually active, matching every other
             // mobile-split cssVar in this file.
-            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
             const urls = CLICK_FRAME_URLS[frameSet];
             if (!urls) return;
@@ -7206,7 +8159,7 @@
             // CSS_VAR_SLIDER_MAP machinery (they're plain typed inputs, not
             // range sliders), so the isMobile branch is just picked here
             // directly rather than adding a new control type to that map.
-            const mobilePrefix = isMobileActive() ? 'inputMobile' : 'input';
+            const mobilePrefix = isLandscapeActive() ? 'inputLandscape' : isMobileActive() ? 'inputMobile' : 'input';
             const floorId = `${mobilePrefix}ClickBurst${mirror ? 'Right' : 'Left'}FloorDeg`;
             const ceilingId = `${mobilePrefix}ClickBurst${mirror ? 'Right' : 'Left'}CeilingDeg`;
             const floorDeg = parseFloat(document.getElementById(floorId).value);
@@ -7393,7 +8346,7 @@
             // HTML comment on these elements) - right keeps the skew as-is,
             // left negates it, the same sign logic already proven correct
             // for the sprite-level mirror fix earlier this session.
-            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             const buttonCenterX = (buttonRect.left + buttonRect.width / 2) - containerRect.left;
             const buttonCenterY = (buttonRect.top + buttonRect.height / 2) - containerRect.top;
             const originStr = `${buttonCenterX}px ${buttonCenterY}px`;
@@ -7561,7 +8514,7 @@
         ]);
 
         function applyActiveVars() {
-            const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeCssVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             // Colors are no longer device-split at all - per explicit
             // request ("desktop tab will determine all color selection"),
             // mobileColorVars is never read here anymore (still exists as
@@ -7686,7 +8639,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -7753,7 +8706,7 @@
         // falling back to this same localStorage key when that's
         // unreachable.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, extrusionVars, mobileExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, textOverrides, mobileTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -7872,6 +8825,8 @@
                     Object.assign(colorVars, settings.colorVars);
                     Object.assign(mobileCssVars, settings.mobileCssVars);
                     Object.assign(mobileColorVars, settings.mobileColorVars);
+                    Object.assign(landscapeCssVars, settings.landscapeCssVars);
+                    Object.assign(landscapeColorVars, settings.landscapeColorVars);
                     // Text-align/valign dropdowns (setupTextAlignSelects())
                     // write into cssVars/mobileCssVars on change, same as
                     // every other cssVar-backed control - the underlying
@@ -7886,19 +8841,20 @@
                     // alignment") - confirmed via the actual git-tracked
                     // settings log that the data was there all along.
                     document.querySelectorAll('.dev-align-select, .dev-valign-select').forEach(select => {
-                        const { isMobile } = resolveDevControlId(select.id);
-                        const value = (isMobile ? mobileCssVars : cssVars)[select.dataset.var];
+                        const { device } = resolveDevControlId(select.id);
+                        const value = (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[select.dataset.var];
                         if (value !== undefined) select.value = value;
                     });
                     // Same restore-gap as the align/valign selects just
                     // above, for the Edge Lock checkboxes beside them.
                     document.querySelectorAll('.dev-edge-lock-checkbox').forEach(checkbox => {
-                        const { isMobile } = resolveDevControlId(checkbox.id);
-                        const value = (isMobile ? mobileCssVars : cssVars)[checkbox.dataset.var];
+                        const { device } = resolveDevControlId(checkbox.id);
+                        const value = (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[checkbox.dataset.var];
                         if (value !== undefined) checkbox.checked = !!value;
                     });
                     Object.assign(extrusionVars, settings.extrusionVars);
                     Object.assign(mobileExtrusionVars, settings.mobileExtrusionVars);
+                    Object.assign(landscapeExtrusionVars, settings.landscapeExtrusionVars);
                     if (settings.gameMechanics) {
                         GAME_MECHANICS_SLIDER_IDS.forEach(id => {
                             const value = settings.gameMechanics[id];
@@ -7916,38 +8872,46 @@
                     // tab is currently active.
                     if (settings.devPanelStyle) Object.assign(devPanelStyle, settings.devPanelStyle);
                     if (settings.mobileDevPanelStyle) Object.assign(mobileDevPanelStyle, settings.mobileDevPanelStyle);
+                    if (settings.landscapeDevPanelStyle) Object.assign(landscapeDevPanelStyle, settings.landscapeDevPanelStyle);
                     // opacity/bgColor/titleTextColor/nonTitleTextColor/
-                    // accentColor have no Mobile id (null) - desktop-only
-                    // now, see DEV_PANEL_STYLE_SHARED_KEYS.
+                    // accentColor have no Mobile/Landscape id (null) -
+                    // desktop-only now, see DEV_PANEL_STYLE_SHARED_KEYS.
                     const DEV_PANEL_STYLE_CONTROL_IDS = {
-                        titleFontSize: ['sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize'],
-                        tabFontSize: ['sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
-                        groupTitleFontSize: ['sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
-                        settingTitleFontSize: ['sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
-                        buttonTextBorder: ['sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder'],
-                        scrollStrength: ['sliderDevScrollStrength', 'sliderMobileDevScrollStrength'],
-                        opacity: ['sliderDevPanelOpacity', null],
-                        bgColor: ['colorDevPanelBg', null],
-                        titleTextColor: ['colorDevPanelTitleText', null],
-                        nonTitleTextColor: ['colorDevPanelNonTitleText', null],
-                        accentColor: ['colorDevPanelAccent', null],
-                        sliderColor: ['colorDevPanelSliderColor', null],
-                        buttonHeight: ['sliderDevButtonHeight', 'sliderMobileDevButtonHeight'],
-                        buttonTextLetterSpacing: ['sliderDevButtonTextLetterSpacing', null],
-                        tabTextLetterSpacing: ['sliderDevTabTextLetterSpacing', null],
-                        groupTextLetterSpacing: ['sliderDevGroupTextLetterSpacing', null],
-                        settingsTextLetterSpacing: ['sliderDevSettingsTextLetterSpacing', null],
+                        titleFontSize: ['sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize', 'sliderLandscapeDevPanelTitleFontSize'],
+                        tabFontSize: ['sliderDevTabFontSize', 'sliderMobileDevTabFontSize', 'sliderLandscapeDevTabFontSize'],
+                        groupTitleFontSize: ['sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize', 'sliderLandscapeDevGroupTitleFontSize'],
+                        settingTitleFontSize: ['sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize', 'sliderLandscapeDevSettingTitleFontSize'],
+                        buttonTextBorder: ['sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder', 'sliderLandscapeDevButtonTextBorder'],
+                        scrollStrength: ['sliderDevScrollStrength', 'sliderMobileDevScrollStrength', 'sliderLandscapeDevScrollStrength'],
+                        opacity: ['sliderDevPanelOpacity', null, null],
+                        bgColor: ['colorDevPanelBg', null, null],
+                        titleTextColor: ['colorDevPanelTitleText', null, null],
+                        nonTitleTextColor: ['colorDevPanelNonTitleText', null, null],
+                        accentColor: ['colorDevPanelAccent', null, null],
+                        sliderColor: ['colorDevPanelSliderColor', null, null],
+                        buttonHeight: ['sliderDevButtonHeight', 'sliderMobileDevButtonHeight', 'sliderLandscapeDevButtonHeight'],
+                        buttonTextLetterSpacing: ['sliderDevButtonTextLetterSpacing', null, null],
+                        tabTextLetterSpacing: ['sliderDevTabTextLetterSpacing', null, null],
+                        groupTextLetterSpacing: ['sliderDevGroupTextLetterSpacing', null, null],
+                        settingsTextLetterSpacing: ['sliderDevSettingsTextLetterSpacing', null, null],
                     };
-                    Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId]]) => {
+                    Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId, landId]]) => {
                         const deskEl = document.getElementById(deskId);
                         if (deskEl) deskEl.value = devPanelStyle[key];
                         const deskValEl = document.getElementById(deskId.replace(/^(slider|color)/, 'value'));
                         if (deskValEl) deskValEl.textContent = devPanelStyle[key];
-                        if (!mobId) return;
-                        const mobEl = document.getElementById(mobId);
-                        if (mobEl) mobEl.value = mobileDevPanelStyle[key];
-                        const mobValEl = document.getElementById(mobId.replace(/^(slider|color)/, 'value'));
-                        if (mobValEl) mobValEl.textContent = mobileDevPanelStyle[key];
+                        if (mobId) {
+                            const mobEl = document.getElementById(mobId);
+                            if (mobEl) mobEl.value = mobileDevPanelStyle[key];
+                            const mobValEl = document.getElementById(mobId.replace(/^(slider|color)/, 'value'));
+                            if (mobValEl) mobValEl.textContent = mobileDevPanelStyle[key];
+                        }
+                        if (landId) {
+                            const landEl = document.getElementById(landId);
+                            if (landEl) landEl.value = landscapeDevPanelStyle[key];
+                            const landValEl = document.getElementById(landId.replace(/^(slider|color)/, 'value'));
+                            if (landValEl) landValEl.textContent = landscapeDevPanelStyle[key];
+                        }
                     });
                     // fontFamily (a <select>) and the 4 caps checkboxes need
                     // their own restore logic - a <select>'s .textContent
@@ -7977,7 +8941,11 @@
                         const el = document.getElementById(idMap[key]);
                         if (el) el.checked = !!devPanelStyle[key];
                     });
-                    applyDevPanelOwnStyling(!document.getElementById('desktopTabContent').classList.contains('hidden'));
+                    applyDevPanelOwnStyling(
+                        !document.getElementById('mobileTabContent').classList.contains('hidden') ? 'mobile'
+                        : !document.getElementById('landscapeTabContent').classList.contains('hidden') ? 'landscape'
+                        : 'desktop'
+                    );
                     // Base Color's own picked value was never actually
                     // persisted before now - a real, separate gap from the
                     // hue-rotate-can't-reach-white math issue, but likely
@@ -8018,6 +8986,10 @@
                         Object.assign(mobileTextOverrides, settings.mobileTextOverrides);
                         refreshAllTextOverrides();
                     }
+                    if (settings.landscapeTextOverrides) {
+                        Object.assign(landscapeTextOverrides, settings.landscapeTextOverrides);
+                        refreshAllTextOverrides();
+                    }
                     if (settings.textEditWrapWidths) {
                         Object.assign(textEditWrapWidths, settings.textEditWrapWidths);
                         applyAllTextEditWrapWidths();
@@ -8032,6 +9004,7 @@
                     // into cssVars/mobileCssVars and every scoped slider.
                     if (settings.clickBurstFrameVars) Object.assign(clickBurstFrameVars, settings.clickBurstFrameVars);
                     if (settings.mobileClickBurstFrameVars) Object.assign(mobileClickBurstFrameVars, settings.mobileClickBurstFrameVars);
+                    if (settings.landscapeClickBurstFrameVars) Object.assign(landscapeClickBurstFrameVars, settings.landscapeClickBurstFrameVars);
                     const frameSetSelect = document.getElementById('selectClickFrameSet');
                     if (frameSetSelect && cssVars['--click-frame-set']) frameSetSelect.value = cssVars['--click-frame-set'];
                     restoreClickBurstFrameVars(cssVars['--click-frame-set'] || 'CLICK1');
@@ -8040,6 +9013,7 @@
                     // clickBurstTextInputs' own comment).
                     if (settings.clickBurstTextInputs) Object.assign(clickBurstTextInputs, settings.clickBurstTextInputs);
                     if (settings.mobileClickBurstTextInputs) Object.assign(mobileClickBurstTextInputs, settings.mobileClickBurstTextInputs);
+                    if (settings.landscapeClickBurstTextInputs) Object.assign(landscapeClickBurstTextInputs, settings.landscapeClickBurstTextInputs);
                     applyClickBurstTextInputs();
                     applySectionOrder(settings.sectionOrder);
                     applySectionCollapseState(settings.sectionCollapseState);
@@ -8068,13 +9042,13 @@
                         const isExtrusionMap = map === EXTRUSION_SLIDER_MAP;
                         Object.keys(map).forEach(desktopId => {
                             const key = map[desktopId];
-                            [desktopId, desktopId.replace(/^(slider|color|select|checkbox)/, '$1Mobile')].forEach(id => {
+                            [desktopId, desktopId.replace(/^(slider|color|select|checkbox)/, '$1Mobile'), desktopId.replace(/^(slider|color|select|checkbox)/, '$1Landscape')].forEach(id => {
                                 const el = document.getElementById(id);
                                 if (!el) return;
-                                const { isMobile } = resolveDevControlId(id);
+                                const { device } = resolveDevControlId(id);
                                 const source = isExtrusionMap
-                                    ? (isMobile ? mobileExtrusionVars : extrusionVars)
-                                    : (isMobile ? mobileCssVars : cssVars);
+                                    ? (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)
+                                    : (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars);
                                 const value = source[key];
                                 if (value === undefined) return;
                                 // Auto-expand whichever bound a restored
@@ -8110,10 +9084,10 @@
                     // when its cssVar is genuinely 1 - confirmed live via a
                     // direct applyLoadedSettings() call before adding this.
                     document.querySelectorAll('.dev-scale-with-browser-checkbox').forEach(cb => {
-                        const { isMobile, desktopId } = resolveDevControlId(cb.id);
+                        const { device, desktopId } = resolveDevControlId(cb.id);
                         const varName = cb.getAttribute('data-css-var');
                         if (!varName) return;
-                        cb.checked = !!(isMobile ? mobileCssVars : cssVars)[varName];
+                        cb.checked = !!(device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[varName];
                     });
                     // Same gap, for the 40 offset-unit (px/vw-vh) checkboxes -
                     // see restoreOffsetUnitCheckboxes()'s own comment.
@@ -8168,6 +9142,7 @@
         }
         const clickBurstFrameVars = seedClickBurstFrameVars(cssVars);
         const mobileClickBurstFrameVars = seedClickBurstFrameVars(mobileCssVars);
+        const landscapeClickBurstFrameVars = seedClickBurstFrameVars(landscapeCssVars);
 
         // Hide Shadow position spec + guide-curve angle floor/ceiling -
         // plain typed text/number inputs (not sliders, not per-frame-set),
@@ -8190,6 +9165,7 @@
             rightFloorDeg: 20, rightCeilingDeg: 135,
             leftFloorDeg: 230, leftCeilingDeg: 340,
         };
+        const landscapeClickBurstTextInputs = structuredClone(mobileClickBurstTextInputs);
         const CLICK_BURST_TEXT_INPUT_MAP = {
             'inputClickBurstHideShadowIndexA': [clickBurstTextInputs, 'hideShadowIndexA'],
             'inputClickBurstHideShadowIndexB': [clickBurstTextInputs, 'hideShadowIndexB'],
@@ -8203,6 +9179,12 @@
             'inputMobileClickBurstRightCeilingDeg': [mobileClickBurstTextInputs, 'rightCeilingDeg'],
             'inputMobileClickBurstLeftFloorDeg': [mobileClickBurstTextInputs, 'leftFloorDeg'],
             'inputMobileClickBurstLeftCeilingDeg': [mobileClickBurstTextInputs, 'leftCeilingDeg'],
+            'inputLandscapeClickBurstHideShadowIndexA': [landscapeClickBurstTextInputs, 'hideShadowIndexA'],
+            'inputLandscapeClickBurstHideShadowIndexB': [landscapeClickBurstTextInputs, 'hideShadowIndexB'],
+            'inputLandscapeClickBurstRightFloorDeg': [landscapeClickBurstTextInputs, 'rightFloorDeg'],
+            'inputLandscapeClickBurstRightCeilingDeg': [landscapeClickBurstTextInputs, 'rightCeilingDeg'],
+            'inputLandscapeClickBurstLeftFloorDeg': [landscapeClickBurstTextInputs, 'leftFloorDeg'],
+            'inputLandscapeClickBurstLeftCeilingDeg': [landscapeClickBurstTextInputs, 'leftCeilingDeg'],
         };
         function setupClickBurstTextInputs() {
             Object.keys(CLICK_BURST_TEXT_INPUT_MAP).forEach(id => {
@@ -8483,7 +9465,7 @@
                     // Only ever searches within dragging's own tab (Desktop
                     // and Mobile settings are different elements entirely -
                     // crossing between tabs would be meaningless).
-                    const tabRoot = dragging.closest('#desktopTabContent, #mobileTabContent');
+                    const tabRoot = dragging.closest('#desktopTabContent, #mobileTabContent, #landscapeTabContent');
                     const containers = Array.from(tabRoot.querySelectorAll(crossContainerSelector));
                     let targetContainer = containers.find(c => {
                         const r = c.getBoundingClientRect();
@@ -8559,7 +9541,7 @@
         // every section-title element. Desktop and Mobile each have their
         // own "Round Text"/etc, hence the tab prefix.
         function getSectionKey(titleEl) {
-            const tab = titleEl.closest('#desktopTabContent') ? 'desktop' : 'mobile';
+            const tab = titleEl.closest('#desktopTabContent') ? 'desktop' : titleEl.closest('#landscapeTabContent') ? 'landscape' : 'mobile';
             // data-sid is a frozen copy of this title's ORIGINAL text (see the
             // one-off script that added it to every .dev-section-title),
             // captured once so collapse-state/order stay correctly keyed even
@@ -8607,7 +9589,7 @@
         // Copy/Save/Load only need one field for all of §12e's layout state.
         function captureSectionOrder() {
             const result = {};
-            ['desktopTabContent', 'mobileTabContent'].forEach(tabId => {
+            ['desktopTabContent', 'mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
                 const tabEl = document.getElementById(tabId);
                 if (!tabEl) return;
                 const sections = Array.from(tabEl.querySelectorAll(':scope > .dev-section'));
@@ -8624,7 +9606,7 @@
         }
         function applySectionOrder(order) {
             if (!order) return;
-            ['desktopTabContent', 'mobileTabContent'].forEach(tabId => {
+            ['desktopTabContent', 'mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
                 const tabEl = document.getElementById(tabId);
                 const savedSections = order[tabId];
                 if (!tabEl || !savedSections) return;
@@ -8656,7 +9638,7 @@
                         // HTML at all, only in the saved order, so it has to
                         // be created fresh here rather than skipped. name is
                         // key minus its "tab:" prefix (see getSectionKey()).
-                        const name = key.replace(/^(desktop|mobile):/, '');
+                        const name = key.replace(/^(desktop|mobile|landscape):/, '');
                         sec = createDevGroupElement(name);
                         sectionsByKey[key] = sec;
                     }
@@ -8710,9 +9692,15 @@
         // independent one, so a custom name like "LOSE" carries over
         // instead of the newly-created group showing its raw internal
         // name ("New Group (2)").
-        function syncMobileOrderToDesktop() {
+        // Generalized so both Mobile and Landscape tabs can mirror Desktop's
+        // order/renames through the same logic - tabContentId is the tab's
+        // DOM container id ('mobileTabContent'/'landscapeTabContent'),
+        // tabPrefix is the id-infix ('Mobile'/'Landscape') and key-prefix
+        // (lowercased, e.g. 'mobile:'/'landscape:') this tab's rows/groups use.
+        function syncTabOrderToDesktop(tabContentId, tabPrefix) {
+            const keyPrefix = tabPrefix.toLowerCase() + ':';
             const desktopOrder = captureSectionOrder().desktopTabContent;
-            const mobileTabEl = document.getElementById('mobileTabContent');
+            const mobileTabEl = document.getElementById(tabContentId);
             if (!desktopOrder || !mobileTabEl) return;
             const stripParen = title => title.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
@@ -8733,7 +9721,7 @@
                 const mobileSec = mobileSectionsByNormTitle[stripParen(desktopTitle)];
                 const mobileRowKeys = [];
                 desktopRowKeys.forEach(desktopRowId => {
-                    const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1Mobile');
+                    const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1' + tabPrefix);
                     if (mobileRowIdSet.has(mobileRowId) && !placedRowIds.has(mobileRowId)) {
                         mobileRowKeys.push(mobileRowId);
                         placedRowIds.add(mobileRowId);
@@ -8741,7 +9729,7 @@
                 });
                 if (!mobileSec) {
                     if (mobileRowKeys.length === 0) return; // truly Desktop-only (Game Mechanics, Background) - nothing to mirror
-                    const newMobileKey = 'mobile:' + desktopTitle;
+                    const newMobileKey = keyPrefix + desktopTitle;
                     newMobileOrder.push({ key: newMobileKey, rowKeys: mobileRowKeys });
                     if (devTextOverrides[desktopKey] != null && devTextOverrides[newMobileKey] == null) {
                         devTextOverrides[newMobileKey] = devTextOverrides[desktopKey];
@@ -8752,16 +9740,16 @@
                 const mobileKey = getSectionKey(mobileSec.querySelector('.dev-section-title'));
                 newMobileOrder.push({ key: mobileKey, rowKeys: mobileRowKeys });
                 // Same rename carry-over as the newly-created branch above,
-                // for an EXISTING title-matched Mobile group - e.g. Desktop's
-                // "Win/Lose Text" renamed to "WIN" should show "WIN" on
-                // Mobile too, not the raw original title, unless Mobile
-                // already has its own independent rename.
+                // for an EXISTING title-matched group - e.g. Desktop's
+                // "Win/Lose Text" renamed to "WIN" should show "WIN" here
+                // too, not the raw original title, unless this tab already
+                // has its own independent rename.
                 if (devTextOverrides[desktopKey] != null && devTextOverrides[mobileKey] == null) {
                     devTextOverrides[mobileKey] = devTextOverrides[desktopKey];
                     overridesChanged = true;
                 }
             });
-            // Any Mobile group with no Desktop counterpart passes through
+            // Any group with no Desktop counterpart passes through
             // untouched, appended after the translated groups.
             mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
                 const key = getSectionKey(sec.querySelector('.dev-section-title'));
@@ -8770,11 +9758,10 @@
                     newMobileOrder.push({ key, rowKeys: rows.map((row, i) => getRowKey(row, i)) });
                 }
             });
-            // Mobile-only rows within a translated group (no Desktop
-            // counterpart) get appended at the end, preserving their prior
-            // relative order.
+            // Rows within a translated group with no Desktop counterpart get
+            // appended at the end, preserving their prior relative order.
             newMobileOrder.forEach(group => {
-                const sec = mobileSectionsByNormTitle[stripParen(group.key.replace(/^mobile:/, ''))];
+                const sec = mobileSectionsByNormTitle[stripParen(group.key.replace(new RegExp('^' + keyPrefix), ''))];
                 if (!sec) return;
                 Array.from(sec.querySelectorAll('.dev-section-content > .dev-row')).forEach((row, i) => {
                     const rowKey = getRowKey(row, i);
@@ -8784,13 +9771,19 @@
                     }
                 });
             });
-            applySectionOrder({ mobileTabContent: newMobileOrder });
-            // A newly-created Mobile group (see above) is painted with its
-            // raw internal name by createDevGroupElement()/applySectionOrder()
-            // - re-run the override painter now that devTextOverrides may
+            applySectionOrder({ [tabContentId]: newMobileOrder });
+            // A newly-created group (see above) is painted with its raw
+            // internal name by createDevGroupElement()/applySectionOrder() -
+            // re-run the override painter now that devTextOverrides may
             // have gained a fresh entry for it, so a carried-over rename
             // (e.g. "LOSE") actually shows instead of "New Group (2)".
             if (overridesChanged) applyDevTextOverrides();
+        }
+        function syncMobileOrderToDesktop() {
+            syncTabOrderToDesktop('mobileTabContent', 'Mobile');
+        }
+        function syncLandscapeOrderToDesktop() {
+            syncTabOrderToDesktop('landscapeTabContent', 'Landscape');
         }
 
         // Color pickers not otherwise special-cased (colorBase/colorButton/
@@ -8942,11 +9935,13 @@
             'sliderResultLineHeight': '--result-line-height',
         };
 
-        // Desktop slider id -> extrusionVars/mobileExtrusionVars key -
-        // generic handling for every extrusion depth/border-thickness
-        // slider, mobile-split via resolveDevControlId's isMobile flag
-        // (same convention as CSS_VAR_SLIDER_MAP above).
+        // Desktop slider id -> extrusionVars/mobileExtrusionVars/
+        // landscapeExtrusionVars key - generic handling for every
+        // extrusion depth/border-thickness slider, device-split via
+        // resolveDevControlId's device field (same convention as
+        // CSS_VAR_SLIDER_MAP above).
         const EXTRUSION_SLIDER_MAP = {
+            'sliderExtrusionFontTrimAdjust': 'fontTrimAdjust',
             'sliderExtrusionDepth': 'depth',
             'sliderTargetExtrusionDepth': 'targetDepth',
             'sliderSpeedExtrusionDepth': 'speedDepth',
@@ -8968,16 +9963,17 @@
             'sliderResultExtrusionAngle': 'resultExtrusionAngle',
         };
 
-        // Given any slider/color id (desktop OR its "Mobile"-infixed twin),
-        // returns { isMobile, desktopId } - e.g. 'sliderMobileButtonX' ->
-        // { isMobile: true, desktopId: 'sliderButtonX' }.
+        // Given any slider/color id (desktop OR its "Mobile"/"Landscape"-
+        // infixed twin), returns { device, desktopId } - e.g.
+        // 'sliderMobileButtonX' -> { device: 'mobile', desktopId: 'sliderButtonX' },
+        // 'sliderLandscapeButtonX' -> { device: 'landscape', desktopId: 'sliderButtonX' }.
         function resolveDevControlId(id) {
             // "checkbox" added alongside slider/color/select - the Overall
             // Border on/off toggle is the first checkbox-type control to
             // need mobile-split resolution (checkboxMobileOverallBorder).
-            const m = id.match(/^(slider|color|select|checkbox)Mobile(.+)$/);
-            if (m) return { isMobile: true, desktopId: m[1] + m[2] };
-            return { isMobile: false, desktopId: id };
+            const m = id.match(/^(slider|color|select|checkbox)(Mobile|Landscape)(.+)$/);
+            if (m) return { device: m[2] === 'Landscape' ? 'landscape' : 'mobile', desktopId: m[1] + m[3] };
+            return { device: 'desktop', desktopId: id };
         }
 
         // "Scale With Browser" checkboxes - per explicit request ("For each
@@ -8993,9 +9989,9 @@
         // haven't been tuned to look similar; that's an accepted tradeoff of
         // keeping this a plain toggle instead of a resize-aware converter.
         function updateScaleWithBrowser(checkboxId, cssVarName) {
-            const { isMobile } = resolveDevControlId(checkboxId);
+            const { device } = resolveDevControlId(checkboxId);
             const checked = document.getElementById(checkboxId).checked;
-            (isMobile ? mobileCssVars : cssVars)[cssVarName] = checked ? 1 : 0;
+            (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[cssVarName] = checked ? 1 : 0;
             applyActiveVars();
         }
 
@@ -9019,8 +10015,8 @@
                     const flagVar = checkbox.dataset.flagVar;
                     const slider = document.getElementById(sliderId);
                     if (!slider) return;
-                    const { isMobile } = resolveDevControlId(sliderId);
-                    const activeCssVars = isMobile ? mobileCssVars : cssVars;
+                    const { device } = resolveDevControlId(sliderId);
+                    const activeCssVars = device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars;
                     const isX = flagVar.endsWith('-x-offset-unit-is-px');
                     const refPx = isX ? window.innerWidth : window.innerHeight;
                     const checkedNow = checkbox.checked;
@@ -9066,8 +10062,8 @@
                 const flagVar = checkbox.dataset.flagVar;
                 const slider = document.getElementById(sliderId);
                 if (!slider) return;
-                const { isMobile } = resolveDevControlId(sliderId);
-                const activeCssVars = isMobile ? mobileCssVars : cssVars;
+                const { device } = resolveDevControlId(sliderId);
+                const activeCssVars = device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars;
                 checkbox.checked = !!activeCssVars[flagVar];
             });
             applyTextAlignAnchors();
@@ -9106,24 +10102,24 @@
         // slider.dispatchEvent('input') directly). No duplicated apply logic
         // either way.
         function applySliderValue(slider, value) {
-            const { isMobile, desktopId } = resolveDevControlId(slider.id);
+            const { device, desktopId } = resolveDevControlId(slider.id);
             const varName = CSS_VAR_SLIDER_MAP[desktopId];
 
             const extrusionKey = EXTRUSION_SLIDER_MAP[desktopId];
 
             if (varName) {
-                (isMobile ? mobileCssVars : cssVars)[varName] = value;
+                (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[varName] = value;
                 // Click Burst per-frame-set memory - capture this edit into
                 // the CURRENTLY selected frame set's own storage, so
                 // switching frame sets and back preserves it even before
                 // Save (see restoreClickBurstFrameVars()).
                 if (CLICK_BURST_SCOPED_KEYS.includes(varName)) {
                     const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
-                    (isMobile ? mobileClickBurstFrameVars : clickBurstFrameVars)[frameSet][varName] = value;
+                    (device === 'landscape' ? landscapeClickBurstFrameVars : device === 'mobile' ? mobileClickBurstFrameVars : clickBurstFrameVars)[frameSet][varName] = value;
                 }
                 applyActiveVars();
             } else if (extrusionKey) {
-                (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey] = value;
+                (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)[extrusionKey] = value;
                 applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
@@ -9145,8 +10141,8 @@
         function setupTextAlignSelects() {
             document.querySelectorAll('.dev-align-select, .dev-valign-select').forEach(select => {
                 select.addEventListener('change', () => {
-                    const { isMobile } = resolveDevControlId(select.id);
-                    (isMobile ? mobileCssVars : cssVars)[select.dataset.var] = select.value;
+                    const { device } = resolveDevControlId(select.id);
+                    (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[select.dataset.var] = select.value;
                     applyActiveVars();
                 });
             });
@@ -9162,8 +10158,8 @@
         function setupTextEdgeLockCheckboxes() {
             document.querySelectorAll('.dev-edge-lock-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
-                    const { isMobile } = resolveDevControlId(checkbox.id);
-                    (isMobile ? mobileCssVars : cssVars)[checkbox.dataset.var] = checkbox.checked ? 1 : 0;
+                    const { device } = resolveDevControlId(checkbox.id);
+                    (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[checkbox.dataset.var] = checkbox.checked ? 1 : 0;
                     applyActiveVars();
                 });
             });
@@ -9275,7 +10271,7 @@
             '--ms-per-click': 'ms-per-click',
         };
         function applyTextAlignAnchors() {
-            const activeCssVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeCssVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
                 const el = document.getElementById(elId);
                 // startButtonFlashChar (the "?" glyph) only exists in the DOM
@@ -9404,6 +10400,7 @@
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: 'ms\n/  \nCLICK',
             targetPrefix: null,
         };
+        const landscapeTextOverrides = structuredClone(mobileTextOverrides);
         const TEXT_OVERRIDE_DEFAULTS = {
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
             winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / \nCLICK',
@@ -9414,7 +10411,7 @@
         // from (see applyExtrusionStyles()'s own ext = isMobileActive() ?
         // ... pattern), not a separate/independent notion of "mobile".
         function activeTextOverrides() {
-            return isMobileActive() ? mobileTextOverrides : textOverrides;
+            return isMobileActive() ? getActiveMobileTextOverrides() : textOverrides;
         }
         function overrideOr(slot) {
             const v = activeTextOverrides()[slot];
@@ -9943,16 +10940,16 @@
         function syncColorPickersFromState() {
             const SPECIAL_CASED_IDS = ['colorButton', 'colorBase', 'colorButtonWin', 'colorButtonLose'];
             document.querySelectorAll('.dev-color-picker').forEach(picker => {
-                const { isMobile, desktopId } = resolveDevControlId(picker.id);
+                const { device, desktopId } = resolveDevControlId(picker.id);
                 if (SPECIAL_CASED_IDS.includes(desktopId)) return;
                 const extrusionKey = EXTRUSION_COLOR_MAP[desktopId];
                 if (extrusionKey) {
-                    picker.value = (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey];
+                    picker.value = (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)[extrusionKey];
                     return;
                 }
                 const varName = COLOR_VAR_MAP[desktopId];
                 if (varName) {
-                    picker.value = (isMobile ? mobileColorVars : colorVars)[varName];
+                    picker.value = (device === 'landscape' ? landscapeColorVars : device === 'mobile' ? mobileColorVars : colorVars)[varName];
                 }
             });
         }
@@ -9970,7 +10967,7 @@
             const colorPickers = document.querySelectorAll('.dev-color-picker');
             colorPickers.forEach(picker => {
                 picker.addEventListener('input', (e) => {
-                    const { isMobile, desktopId } = resolveDevControlId(e.target.id);
+                    const { device, desktopId } = resolveDevControlId(e.target.id);
 
                     if (desktopId === 'colorButton') {
                         // The button is real artwork (SVG), not a flat CSS fill - recolor it by
@@ -10002,14 +10999,14 @@
 
                     const extrusionKey = EXTRUSION_COLOR_MAP[desktopId];
                     if (extrusionKey) {
-                        (isMobile ? mobileExtrusionVars : extrusionVars)[extrusionKey] = e.target.value;
+                        (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)[extrusionKey] = e.target.value;
                         applyExtrusionStyles();
                         return;
                     }
 
                     const varName = COLOR_VAR_MAP[desktopId];
                     if (varName) {
-                        (isMobile ? mobileColorVars : colorVars)[varName] = e.target.value;
+                        (device === 'landscape' ? landscapeColorVars : device === 'mobile' ? mobileColorVars : colorVars)[varName] = e.target.value;
                         applyActiveVars();
                     }
                 });
@@ -10023,8 +11020,8 @@
             // color-picker's own generic loops above.
             document.querySelectorAll('.dev-overall-border-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
-                    const { isMobile } = resolveDevControlId(e.target.id);
-                    (isMobile ? mobileExtrusionVars : extrusionVars).overallBorderEnabled = e.target.checked;
+                    const { device } = resolveDevControlId(e.target.id);
+                    (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars).overallBorderEnabled = e.target.checked;
                     applyExtrusionStyles();
                 });
             });
@@ -10508,7 +11505,7 @@
 
         document.addEventListener('pointermove', (e) => {
             if (!isDraggingBreakdown) return;
-            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             const dx = e.clientX - breakdownDragStart.pointerX;
             const dy = e.clientY - breakdownDragStart.pointerY;
             const panelRect = roundBreakdownPanel.getBoundingClientRect();
@@ -10582,7 +11579,7 @@
         // Native `resize` (the panel's own CSS) sets width/height directly on
         // the element - catch the result here and persist it the same way.
         new ResizeObserver((entries) => {
-            const activeVars = isMobileActive() ? mobileCssVars : cssVars;
+            const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             for (const entry of entries) {
                 const w = Math.round(entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width);
                 const h = Math.round(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
@@ -10884,7 +11881,7 @@
             const now = Date.now();
             if (now - tryAgainRotateShadowLastUpdate >= 50) {
                 tryAgainRotateShadowLastUpdate = now;
-                const deviceExt = isMobileActive() ? mobileExtrusionVars : extrusionVars;
+                const deviceExt = isMobileActive() ? getActiveMobileExtrusionVars() : extrusionVars;
                 extrusionEl.style.textShadow = buildCombinedShadowXComp(
                     deviceExt.questionMarkDepth, extrusionVars.questionMarkFillColor, deviceExt.questionMarkOverallBorderThickness,
                     extrusionVars.questionMarkOverallBorderColor, deviceExt.overallBorderEnabled, shadowXScale
@@ -11100,7 +12097,7 @@
             // before the class that actually triggers the transition - see
             // .game-button's own CSS comment for why this can't just be a
             // second static CSS rule.
-            const activeCssVarsForPress = isMobileActive() ? mobileCssVars : cssVars;
+            const activeCssVarsForPress = isMobileActive() ? getActiveMobileVars() : cssVars;
             const pressMs = activeCssVarsForPress['--button-press-ms'];
             if (pressMs > 0) {
                 // Set the transition inline, directly and completely, rather than
@@ -11312,7 +12309,7 @@
         }
 
         function handleGameButtonRelease() {
-            const activeCssVarsForRelease = isMobileActive() ? mobileCssVars : cssVars;
+            const activeCssVarsForRelease = isMobileActive() ? getActiveMobileVars() : cssVars;
             const releaseMs = activeCssVarsForRelease['--button-release-ms'];
             if (releaseMs > 0) {
                 // See handleGameButtonPress()'s matching branch for why this is
@@ -11563,22 +12560,25 @@
         // currently looking at, same as before this restructuring when both
         // were simultaneously visible in one long scroll.
         function switchDevPanelTab(tab) {
-            const isDesktop = tab === 'desktop';
-            // Per direct request, Mobile's group/setting order always
-            // mirrors Desktop's CURRENT order the moment Mobile is opened -
-            // see syncMobileOrderToDesktop()'s own comment. Runs BEFORE the
-            // 'hidden' class toggle below so Mobile's content is already in
-            // its correct order the instant it becomes visible, not
-            // reordering visibly after the fact.
-            if (!isDesktop) syncMobileOrderToDesktop();
-            document.getElementById('desktopTabContent').classList.toggle('hidden', !isDesktop);
-            document.getElementById('mobileTabContent').classList.toggle('hidden', isDesktop);
-            document.getElementById('devTabDesktopBtn').classList.toggle('active', isDesktop);
-            document.getElementById('devTabMobileBtn').classList.toggle('active', !isDesktop);
+            // tab is 'desktop' | 'mobile' | 'landscape'.
+            // Per direct request, Mobile's (and now Landscape's) group/
+            // setting order always mirrors Desktop's CURRENT order the
+            // moment that tab is opened - see syncTabOrderToDesktop()'s own
+            // comment. Runs BEFORE the 'hidden' class toggle below so the
+            // tab's content is already in its correct order the instant it
+            // becomes visible, not reordering visibly after the fact.
+            if (tab === 'mobile') syncMobileOrderToDesktop();
+            else if (tab === 'landscape') syncLandscapeOrderToDesktop();
+            document.getElementById('desktopTabContent').classList.toggle('hidden', tab !== 'desktop');
+            document.getElementById('mobileTabContent').classList.toggle('hidden', tab !== 'mobile');
+            document.getElementById('landscapeTabContent').classList.toggle('hidden', tab !== 'landscape');
+            document.getElementById('devTabDesktopBtn').classList.toggle('active', tab === 'desktop');
+            document.getElementById('devTabMobileBtn').classList.toggle('active', tab === 'mobile');
+            document.getElementById('devTabLandscapeBtn').classList.toggle('active', tab === 'landscape');
             // The panel's OWN styling (Section 12i) is independent per tab,
             // not tied to the real device viewport - re-apply whichever
             // tab's own saved look now that it's the one showing.
-            applyDevPanelOwnStyling(isDesktop);
+            applyDevPanelOwnStyling(tab);
         }
 
         // Top-edge debug lines - see the dev-panel checkbox's own comment.
@@ -11823,31 +12823,38 @@
         // controls below.
         function setupDevPanelStyleControls() {
             const sliderKeys = [
-                ['titleFontSize', 'sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize'],
-                ['tabFontSize', 'sliderDevTabFontSize', 'sliderMobileDevTabFontSize'],
-                ['groupTitleFontSize', 'sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize'],
-                ['settingTitleFontSize', 'sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize'],
-                ['buttonTextBorder', 'sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder'],
-                ['scrollStrength', 'sliderDevScrollStrength', 'sliderMobileDevScrollStrength'],
-                ['buttonHeight', 'sliderDevButtonHeight', 'sliderMobileDevButtonHeight'],
-                ['buttonTextLetterSpacing', 'sliderDevButtonTextLetterSpacing', null],
-                ['tabTextLetterSpacing', 'sliderDevTabTextLetterSpacing', null],
-                ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null],
-                ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null],
+                ['titleFontSize', 'sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize', 'sliderLandscapeDevPanelTitleFontSize'],
+                ['tabFontSize', 'sliderDevTabFontSize', 'sliderMobileDevTabFontSize', 'sliderLandscapeDevTabFontSize'],
+                ['groupTitleFontSize', 'sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize', 'sliderLandscapeDevGroupTitleFontSize'],
+                ['settingTitleFontSize', 'sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize', 'sliderLandscapeDevSettingTitleFontSize'],
+                ['buttonTextBorder', 'sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder', 'sliderLandscapeDevButtonTextBorder'],
+                ['scrollStrength', 'sliderDevScrollStrength', 'sliderMobileDevScrollStrength', 'sliderLandscapeDevScrollStrength'],
+                ['buttonHeight', 'sliderDevButtonHeight', 'sliderMobileDevButtonHeight', 'sliderLandscapeDevButtonHeight'],
+                ['buttonTextLetterSpacing', 'sliderDevButtonTextLetterSpacing', null, null],
+                ['tabTextLetterSpacing', 'sliderDevTabTextLetterSpacing', null, null],
+                ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
+                ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
             ];
-            sliderKeys.forEach(([key, deskId, mobId]) => {
+            sliderKeys.forEach(([key, deskId, mobId, landId]) => {
                 const deskEl = document.getElementById(deskId);
                 if (deskEl) deskEl.addEventListener('input', (e) => {
                     devPanelStyle[key] = parseFloat(e.target.value);
-                    applyDevPanelOwnStyling(true);
+                    applyDevPanelOwnStyling('desktop');
                     const valEl = document.getElementById(deskId.replace('slider', 'value'));
                     if (valEl) valEl.textContent = e.target.value;
                 });
                 const mobEl = document.getElementById(mobId);
                 if (mobEl) mobEl.addEventListener('input', (e) => {
                     mobileDevPanelStyle[key] = parseFloat(e.target.value);
-                    applyDevPanelOwnStyling(false);
+                    applyDevPanelOwnStyling('mobile');
                     const valEl = document.getElementById(mobId.replace('slider', 'value'));
+                    if (valEl) valEl.textContent = e.target.value;
+                });
+                const landEl = document.getElementById(landId);
+                if (landEl) landEl.addEventListener('input', (e) => {
+                    landscapeDevPanelStyle[key] = parseFloat(e.target.value);
+                    applyDevPanelOwnStyling('landscape');
+                    const valEl = document.getElementById(landId.replace('slider', 'value'));
                     if (valEl) valEl.textContent = e.target.value;
                 });
             });
