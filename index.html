@@ -8899,6 +8899,62 @@
             '--result-text-valign': 'resultText',
         };
         const VALIGN_TY = { top: '0%', center: '-50%', bottom: '-100%' };
+        // Maps each valign-loop yPrefix to that element's own line-height
+        // cssVar's prefix, wherever the 2 names diverge (same shape as
+        // OFFSET_UNIT_FLAG_PREFIX below, but NOT identical to it - "round"
+        // stays "round" here, unlike the offset var's "round-dock"). null
+        // for the "?" question mark, which has no line-height control at
+        // all (a single glyph, the concept doesn't apply) - computeAnchorTy()
+        // treats a missing prefix as line-height 1 (no compensation).
+        const VALIGN_LINE_HEIGHT_PREFIX = {
+            '--start': 'text',
+            '--try-again': 'try-again-text',
+            '--try-again-question-mark': null,
+            '--round': 'round',
+            '--target': 'target',
+            '--speed': 'speed',
+            '--ms-per-click': 'ms-per-click',
+            '--result': 'result',
+        };
+        // Compensates --anchor-ty for CSS line-height's own "leading" -
+        // per direct bug report ("I've set Target Text and Ms/Click text to
+        // scale with browser and lined up their top edge to be equal, yet
+        // resizing the browser, the top edge of the 2 texts don't stay
+        // aligned - the Target text shifts down as browser increases").
+        // Root cause, confirmed via direct measurement (Range.
+        // getBoundingClientRect() on each element's own text node, at 2
+        // different viewport widths): a "top"/"bottom"-valigned element's
+        // own BOX top is correctly static (already anchored via a real px
+        // offset - see the Edge Lock/offset-unit-toggle mechanism above),
+        // but line-height != 1 inserts CSS "leading" space split above/
+        // below the glyph WITHIN that box, proportional to font-size - so
+        // as Scale-With-Browser grows font-size with viewport width, the
+        // GLYPH drifts within its own (fixed-position) box even though the
+        // box itself never moves. Measured exactly: Target (line-height
+        // 1.2) glyph moved from -24.75 to -17.75 (down 7px) as width went
+        // 375->500 while its box stayed at a constant -46.75; Ms-per-click
+        // (line-height 0.65) moved the opposite direction for the same
+        // reason. Only "top"/"center"/"bottom" are affected asymmetrically
+        // by "top"/"bottom" valign - "center" is unaffected since leading
+        // is symmetric (equal space above and below), so the glyph's own
+        // center always coincides with the box's center regardless of
+        // line-height. Fix: the leading-to-box-height RATIO is constant
+        // regardless of actual font-size (font-size cancels out of the
+        // ratio), so it only needs recomputing when line-height/valign
+        // actually change (this function's own normal call sites), not on
+        // every resize - shifting --anchor-ty (a %-of-the-element's-own-
+        // height transform, so this composes correctly) by that ratio
+        // exactly cancels the leading, keeping the GLYPH (not just the box)
+        // anchored at the intended point regardless of font-size.
+        function computeAnchorTy(valign, lineHeightPrefix, activeCssVars) {
+            if (valign === 'center' || !lineHeightPrefix) return VALIGN_TY[valign] || VALIGN_TY.center;
+            const lineHeight = activeCssVars['--' + lineHeightPrefix + '-line-height'];
+            if (typeof lineHeight !== 'number' || lineHeight <= 0) return VALIGN_TY[valign] || VALIGN_TY.center;
+            const leadingFraction = (lineHeight - 1) / (2 * lineHeight); // fraction of the box's OWN height
+            if (valign === 'top') return (-leadingFraction * 100) + '%';
+            if (valign === 'bottom') return (-100 + leadingFraction * 100) + '%';
+            return VALIGN_TY[valign] || VALIGN_TY.center;
+        }
         // Edge Lock checkboxes - per explicit request/clarification: when
         // checked, that AXIS's offset becomes a constant PX distance from
         // whichever anchor point the align/valign dropdown currently
@@ -9004,8 +9060,8 @@
                 const el = document.getElementById(elId);
                 if (!el) return;
                 const valign = activeCssVars[varName] || 'center';
-                el.style.setProperty('--anchor-ty', VALIGN_TY[valign] || VALIGN_TY.center);
                 const yPrefix = varName.replace('-text-valign', '');
+                el.style.setProperty('--anchor-ty', computeAnchorTy(valign, VALIGN_LINE_HEIGHT_PREFIX[yPrefix], activeCssVars));
                 // See the X loop's own comment above - Result (Win/Lose)'s
                 // unit is handled separately below, not by the generic
                 // yUnit line further down.
@@ -9036,7 +9092,8 @@
             // text-valign and --try-again-text-valign in map-iteration order).
             const startValignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-valign' : '--start-text-valign';
             const startValign = activeCssVars[startValignVarName] || 'center';
-            startButtonEl.style.setProperty('--anchor-ty', VALIGN_TY[startValign] || VALIGN_TY.center);
+            const startLineHeightPrefix = VALIGN_LINE_HEIGHT_PREFIX[startValignVarName.replace('-text-valign', '')];
+            startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign, startLineHeightPrefix, activeCssVars));
         }
 
         // Text Edit Mode - per explicit request ("I can click on any text
