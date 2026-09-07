@@ -936,6 +936,17 @@
             text-align: var(--try-again-question-mark-text-align, center);
             /* See .start-button's own "Scale With Browser" comment. */
             font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * var(--cq-vw, 1vw));
+            /* Explicit, not inherited - per direct report ("why did the
+               font of the '?' change"). While this was a DOM child of
+               #startButton, it inherited font-weight/font-family from
+               .start-button's own rule for free; now that it's a sibling
+               (see this element's own comment above), it no longer has
+               that parent to inherit from, so both need stating directly -
+               matching how every other independent overlay text element
+               (.target-count etc.) already declares its own copy rather
+               than relying on inheritance. */
+            font-weight: 700;
+            font-family: var(--extrusion-font);
             transform: translate(-50%, var(--anchor-ty, -50%));
             display: inline-block;
             pointer-events: none;
@@ -7476,6 +7487,12 @@
         // applyExtrusionStyles(), which recomputes each element's own
         // normal (untinted) values from scratch, overwriting this
         // override with no separate "restore" data path needed.
+        // The 4 extrusionVars keys applyGameplayResultColor() itself reads -
+        // used by the generic color-picker handler (setupDevSliders()) to
+        // know when a picker change needs an immediate re-apply of the
+        // CURRENTLY showing result tint, not just the usual
+        // applyExtrusionStyles() (see that handler's own comment).
+        const GAMEPLAY_RESULT_COLOR_FIELDS = ['gameplayWinTextColor', 'gameplayWinBorderColor', 'gameplayLoseTextColor', 'gameplayLoseBorderColor'];
         function applyGameplayResultColor(state) {
             if (!state) {
                 applyExtrusionStyles();
@@ -11026,6 +11043,28 @@
                     if (extrusionKey) {
                         (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)[extrusionKey] = e.target.value;
                         applyExtrusionStyles();
+                        // The 4 Gameplay Win/Lose colors (Target/Speed/Ms-
+                        // per-click's OWN tint while a result is showing -
+                        // not resultText's ":)"/":(" symbol, that's the
+                        // separate Win/Lose section's own colors) are read
+                        // ONLY by applyGameplayResultColor(), which
+                        // applyExtrusionStyles() above never calls - per
+                        // direct report ("gameplay win Border/Extrusion
+                        // color doesnt work. It stays the same color"),
+                        // confirmed by reading the code: this picker's own
+                        // value was updating correctly, it just never got
+                        // pushed to the actual --target-fill-color/-
+                        // extrusion-shadow (etc.) CSS vars until the NEXT
+                        // real win/lose transition, so tuning it while a
+                        // result was currently showing (or via the Preview
+                        // Win/Lose Text checkboxes - see their own updated
+                        // handlers) had no visible effect at all. Re-apply
+                        // immediately using whichever result state (if any)
+                        // is currently showing, matching every other color
+                        // picker's already-instant feedback.
+                        if (GAMEPLAY_RESULT_COLOR_FIELDS.includes(extrusionKey)) {
+                            applyGameplayResultColor(resultText.classList.contains('result-win') ? 'win' : resultText.classList.contains('result-lose') ? 'lose' : null);
+                        }
                         return;
                     }
 
@@ -12779,8 +12818,17 @@
                 resultText.classList.remove('result-lose');
                 resultText.classList.add('result-win');
                 resultText.classList.remove('hidden');
+                // Also tints Target/Speed/Ms-per-click, same as a real win -
+                // per direct report that the Gameplay Win Border/Text color
+                // pickers "stay the same color": this was the only way to
+                // preview them live without playing a real round, and this
+                // checkbox never called the one function that actually
+                // applies them (see applyGameplayResultColor()'s own
+                // comment on the color-picker side of this same fix).
+                applyGameplayResultColor('win');
             } else {
                 resultText.classList.add('hidden');
+                applyGameplayResultColor(null);
             }
         });
 
@@ -12798,8 +12846,11 @@
                 resultText.classList.remove('result-win');
                 resultText.classList.add('result-lose');
                 resultText.classList.remove('hidden');
+                // See Preview Win Text's own comment just above - same fix.
+                applyGameplayResultColor('lose');
             } else {
                 resultText.classList.add('hidden');
+                applyGameplayResultColor(null);
             }
         });
 
