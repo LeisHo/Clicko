@@ -678,7 +678,13 @@
             position: absolute;
             left: 0;
             top: 0;
-            width: calc(var(--click-burst-scale, 1) * 40px);
+            /* var(--button-user-scale, 1) makes piece size follow the
+               button's own live scale (Max/Min Button Scale) - per direct
+               request. --click-burst-scale stays the per-frame-set base
+               size tuned by its own slider; button-user-scale is a further
+               live multiplier on top, same relationship as the JS-side
+               distance/height/curve-offset scaling in spawnClickBurstSide(). */
+            width: calc(var(--click-burst-scale, 1) * var(--button-user-scale, 1) * 40px);
             /* offset-distance animates via @keyframes below; offset-rotate:auto
                orients the element to match the path's tangent direction as it
                travels - exactly "the arrow follows the flight path curve
@@ -8239,10 +8245,20 @@
             // resolveSpatialPx() is a no-op on desktop (real px already) -
             // on mobile it converts the stored vw number to actual current
             // -viewport px, per explicit request that these scale with
-            // screen width on phones.
-            const distance = resolveSpatialPx(activeVars['--click-burst-distance-px']);
-            const height = resolveSpatialPx(activeVars['--click-burst-height-px']);
-            const curveOffset = resolveSpatialPx(activeVars['--click-burst-curve-offset-px']) || 0;
+            // screen width on phones. buttonScale (Max/Min Button Scale)
+            // is then layered on top of THAT, per direct follow-up request
+            // ("make it follow the scale of the button") - so distance/
+            // height/curve-offset track however much the button is
+            // CURRENTLY visually scaled, on every device uniformly, same
+            // relationship as .click-burst-particle's own CSS width rule.
+            // curveAmountMultiplier is a dimensionless ratio applied to an
+            // already-scaled slotDistance further down, so it doesn't need
+            // its own multiplication here - it inherits the scaling
+            // transitively.
+            const buttonScale = computeButtonUserScale();
+            const distance = resolveSpatialPx(activeVars['--click-burst-distance-px']) * buttonScale;
+            const height = resolveSpatialPx(activeVars['--click-burst-height-px']) * buttonScale;
+            const curveOffset = (resolveSpatialPx(activeVars['--click-burst-curve-offset-px']) || 0) * buttonScale;
             const curveAmountMultiplier = activeVars['--click-burst-curve-amount'];
             // Which per-side shadow container this burst's shadows belong
             // in - see spawnClickBurst(), which sets each one's transform.
