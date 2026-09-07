@@ -7579,9 +7579,25 @@
             root.setProperty('--target-fill-color', textColor);
             root.setProperty('--speed-fill-color', textColor);
             root.setProperty('--ms-per-click-fill-color', textColor);
-            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(deviceExt.targetDepth, borderColor, deviceExt.targetOverallBorderThickness, deviceExt.targetOverallBorderColor, deviceExt.overallBorderEnabled));
-            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(deviceExt.speedDepth, borderColor, deviceExt.speedOverallBorderThickness, deviceExt.speedOverallBorderColor, deviceExt.overallBorderEnabled));
-            root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(deviceExt.msPerClickDepth, borderColor, deviceExt.msPerClickOverallBorderThickness, deviceExt.msPerClickOverallBorderColor, deviceExt.overallBorderEnabled));
+            // buildCombinedShadow(depthPx, extrusionColor, thicknessPx,
+            // ringColor, enabled) takes TWO separate colors - the extrusion
+            // depth trail (arg 2) and the outer "Overall Border" ring (arg
+            // 4), normally each element's own independently-tuned colors
+            // (targetBorderColor vs targetOverallBorderColor, etc). Per
+            // direct report ("gameplay win and lose border color doesnt
+            // change the actual color o the border and extrusion"): this
+            // function was only ever passing the gameplay borderColor as
+            // the EXTRUSION color, while the ring color stayed hardcoded to
+            // the element's own normal, non-gameplay overall-border color
+            // (deviceExt.targetOverallBorderColor etc) - invisible in an
+            // earlier verification pass that only checked the combined
+            // text-shadow string CONTAINED the test color somewhere, not
+            // that BOTH parts used it. Passing borderColor for both now
+            // makes "Gameplay Win/Lose Border" genuinely recolor the whole
+            // extrusion+ring look, not just half of it.
+            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(deviceExt.targetDepth, borderColor, deviceExt.targetOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(deviceExt.speedDepth, borderColor, deviceExt.speedOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(deviceExt.msPerClickDepth, borderColor, deviceExt.msPerClickOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
         }
 
         // Mobile overrides - same shape as cssVars/colorVars, applied
