@@ -557,7 +557,7 @@
     "loseFillColor": "#ffffff",
     "loseBorderColor": "#401013",
     "gameplayWinTextColor": "#ffffff",
-    "gameplayWinBorderColor": "#2b8f00",
+    "gameplayWinBorderColor": "#fec806",
     "gameplayLoseTextColor": "#ffffff",
     "gameplayLoseBorderColor": "#cbaaaa",
     "resultDepth": 8,
