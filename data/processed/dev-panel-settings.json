@@ -482,7 +482,7 @@
     "--ms-per-click-text-align-edge-lock": 1,
     "--ms-per-click-text-valign-edge-lock": 1,
     "--result-win-font-size-px": 300,
-    "--result-win-font-size-vw": 20.2,
+    "--result-win-font-size-vw": 15.19,
     "--result-win-scale-with-browser": 1,
     "--result-win-x-offset-vw": 2.44,
     "--result-win-x-offset-unit-is-px": 0,
@@ -490,7 +490,7 @@
     "--result-win-y-offset-unit-is-px": 0,
     "--result-win-letter-spacing-px": 0,
     "--result-lose-font-size-px": 310,
-    "--result-lose-font-size-vw": 20.22,
+    "--result-lose-font-size-vw": 15.19,
     "--result-lose-scale-with-browser": 1,
     "--result-lose-x-offset-vw": 6.19,
     "--result-lose-x-offset-unit-is-px": 0,
@@ -985,13 +985,13 @@
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
     "landscape:Start/Try Again Button": true,
     "landscape:Rotation Animation": true,
-    "landscape:Round Text": false,
+    "landscape:Round Text": true,
     "landscape:Win/Lose Text": true,
     "landscape:New Group": true,
     "landscape:Target Count Display": true,
-    "landscape:Speed Display (max ms between taps)": false,
+    "landscape:Speed Display (max ms between taps)": true,
     "landscape:Ms/Click Display": true,
-    "landscape:New Group (2)": true
+    "landscape:New Group (2)": false
   },
   "sectionOrder": {
     "desktopTabContent": [
