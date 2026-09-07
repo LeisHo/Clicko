@@ -12596,6 +12596,17 @@
             gameState.currentRound = 1;
             gameState.maxTimeMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
             startButton.classList.add('hidden');
+            // Per direct report ("the question mark doesnt go away even
+            // after i click try again"): startButtonFlashChar used to be a
+            // DOM CHILD of startButton, so hiding the button here also hid
+            // the "?" for free. Since the position-independence fix made it
+            // a sibling instead, that implicit hide stopped happening -
+            // this call site was missed when every OTHER hide-on-transition
+            // spot (resetGameplayState(), TEXT_EDIT_TARGETS.startButton's
+            // render(), endGame()'s lose branch) was updated for the new
+            // structure, since it's the "click to actually play" handler,
+            // not one of those state-transition functions.
+            document.getElementById('startButtonFlashChar').classList.add('hidden');
             totalClickCount = 0;
             clickCounter.textContent = totalClickCount;
             roundHistory = [];
