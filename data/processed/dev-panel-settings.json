@@ -337,7 +337,7 @@
     "--button-color": "#ff3333"
   },
   "landscapeCssVars": {
-    "--button-diameter-vw": 41,
+    "--button-diameter-vw": 28.5,
     "--button-min-diameter-px": 110,
     "--button-height-offset-px": -4.5,
     "--button-press-intensity-px": 8,
@@ -979,7 +979,7 @@
     "mobile:Win/Lose Text": false,
     "mobile:New Group (2)": false,
     "landscape:Dev Panel": true,
-    "landscape:Main Button": true,
+    "landscape:Main Button": false,
     "landscape:Shadow": true,
     "landscape:Click Burst": true,
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
