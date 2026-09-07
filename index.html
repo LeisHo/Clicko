@@ -8993,8 +8993,26 @@
                     Object.assign(colorVars, settings.colorVars);
                     Object.assign(mobileCssVars, settings.mobileCssVars);
                     Object.assign(mobileColorVars, settings.mobileColorVars);
-                    Object.assign(landscapeCssVars, settings.landscapeCssVars);
-                    Object.assign(landscapeColorVars, settings.landscapeColorVars);
+                    // || structuredClone(cssVars)/(colorVars) - NOT the same
+                    // as the declare-time `structuredClone(cssVars)` seed
+                    // these 2 objects already have. That seed runs at
+                    // SCRIPT-PARSE time, before this async function ever
+                    // gets the real saved cssVars/colorVars above - so
+                    // without this fallback, whenever settings.landscapeX is
+                    // genuinely absent (e.g. the current desktop-seed
+                    // experiment - see landscapeCssVars' own declare-time
+                    // comment), landscapeCssVars/landscapeColorVars would
+                    // stay stuck on cssVars'/colorVars' STALE HARDCODED
+                    // DEFAULT forever, never picking up whatever Desktop's
+                    // sliders have actually been tuned to since - a real bug
+                    // found via direct report ("still showing the mobile
+                    // settings" - it wasn't even Mobile, it was Desktop's
+                    // OWN stale un-loaded default, which just happened to
+                    // look equally wrong). This re-derives from the NOW-
+                    // current, just-updated cssVars/colorVars on every load
+                    // when there's no explicit saved landscape override.
+                    Object.assign(landscapeCssVars, settings.landscapeCssVars || structuredClone(cssVars));
+                    Object.assign(landscapeColorVars, settings.landscapeColorVars || structuredClone(colorVars));
                     // Text-align/valign dropdowns (setupTextAlignSelects())
                     // write into cssVars/mobileCssVars on change, same as
                     // every other cssVar-backed control - the underlying
@@ -9022,7 +9040,9 @@
                     });
                     Object.assign(extrusionVars, settings.extrusionVars);
                     Object.assign(mobileExtrusionVars, settings.mobileExtrusionVars);
-                    Object.assign(landscapeExtrusionVars, settings.landscapeExtrusionVars);
+                    // See landscapeCssVars' own comment above - same
+                    // declare-time-vs-load-time staleness fix.
+                    Object.assign(landscapeExtrusionVars, settings.landscapeExtrusionVars || structuredClone(extrusionVars));
                     if (settings.gameMechanics) {
                         GAME_MECHANICS_SLIDER_IDS.forEach(id => {
                             const value = settings.gameMechanics[id];
@@ -9040,7 +9060,11 @@
                     // tab is currently active.
                     if (settings.devPanelStyle) Object.assign(devPanelStyle, settings.devPanelStyle);
                     if (settings.mobileDevPanelStyle) Object.assign(mobileDevPanelStyle, settings.mobileDevPanelStyle);
+                    // See landscapeCssVars' own comment above - same fix,
+                    // as an explicit else since this one's source assign is
+                    // itself conditional.
                     if (settings.landscapeDevPanelStyle) Object.assign(landscapeDevPanelStyle, settings.landscapeDevPanelStyle);
+                    else Object.assign(landscapeDevPanelStyle, structuredClone(devPanelStyle));
                     // opacity/bgColor/titleTextColor/nonTitleTextColor/
                     // accentColor have no Mobile/Landscape id (null) -
                     // desktop-only now, see DEV_PANEL_STYLE_SHARED_KEYS.
@@ -9154,10 +9178,13 @@
                         Object.assign(mobileTextOverrides, settings.mobileTextOverrides);
                         refreshAllTextOverrides();
                     }
+                    // See landscapeCssVars' own comment above - same fix.
                     if (settings.landscapeTextOverrides) {
                         Object.assign(landscapeTextOverrides, settings.landscapeTextOverrides);
-                        refreshAllTextOverrides();
+                    } else {
+                        Object.assign(landscapeTextOverrides, structuredClone(textOverrides));
                     }
+                    refreshAllTextOverrides();
                     if (settings.textEditWrapWidths) {
                         Object.assign(textEditWrapWidths, settings.textEditWrapWidths);
                         applyAllTextEditWrapWidths();
@@ -9172,7 +9199,16 @@
                     // into cssVars/mobileCssVars and every scoped slider.
                     if (settings.clickBurstFrameVars) Object.assign(clickBurstFrameVars, settings.clickBurstFrameVars);
                     if (settings.mobileClickBurstFrameVars) Object.assign(mobileClickBurstFrameVars, settings.mobileClickBurstFrameVars);
+                    // See landscapeCssVars' own comment above - same fix.
+                    // structuredClone (not Object.assign's shallow copy) for
+                    // the fallback specifically because clickBurstFrameVars
+                    // is nested (one sub-object per frame set) - a shallow
+                    // copy would share the SAME sub-object references
+                    // between landscapeClickBurstFrameVars and
+                    // clickBurstFrameVars, so tuning one frame set on either
+                    // tab would silently mutate the other's too.
                     if (settings.landscapeClickBurstFrameVars) Object.assign(landscapeClickBurstFrameVars, settings.landscapeClickBurstFrameVars);
+                    else Object.assign(landscapeClickBurstFrameVars, structuredClone(clickBurstFrameVars));
                     const frameSetSelect = document.getElementById('selectClickFrameSet');
                     if (frameSetSelect && cssVars['--click-frame-set']) frameSetSelect.value = cssVars['--click-frame-set'];
                     restoreClickBurstFrameVars(cssVars['--click-frame-set'] || 'CLICK1');
@@ -9181,7 +9217,9 @@
                     // clickBurstTextInputs' own comment).
                     if (settings.clickBurstTextInputs) Object.assign(clickBurstTextInputs, settings.clickBurstTextInputs);
                     if (settings.mobileClickBurstTextInputs) Object.assign(mobileClickBurstTextInputs, settings.mobileClickBurstTextInputs);
+                    // See landscapeCssVars' own comment above - same fix.
                     if (settings.landscapeClickBurstTextInputs) Object.assign(landscapeClickBurstTextInputs, settings.landscapeClickBurstTextInputs);
+                    else Object.assign(landscapeClickBurstTextInputs, structuredClone(clickBurstTextInputs));
                     applyClickBurstTextInputs();
                     applySectionOrder(settings.sectionOrder);
                     applySectionCollapseState(settings.sectionCollapseState);
