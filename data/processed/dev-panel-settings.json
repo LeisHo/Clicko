@@ -414,7 +414,7 @@
     "--try-again-question-mark-y-offset-unit-is-px": 0,
     "--round-dock-x-offset-vw": 44.11,
     "--round-dock-x-offset-unit-is-px": 0,
-    "--round-dock-y-offset-vh": 5,
+    "--round-dock-y-offset-vh": 50,
     "--round-dock-y-offset-unit-is-px": 1,
     "--round-font-size-px": 176.89,
     "--round-font-size-vw": 6.2,
