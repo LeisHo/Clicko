@@ -3149,8 +3149,15 @@
         <div class="game-text" id="gameText"><span id="gameTextLabel"></span><span id="gameTextNumber"></span></div>
         <div class="result-text hidden" id="resultText"></div>
         <div class="target-count" id="targetCount"></div>
-        <div class="ms-per-click-display" id="msPerClickDisplay"></div>
-        <div class="speed-display" id="speedDisplay"></div>
+        <!-- Number/suffix split so the Round-Number-style blink sequence
+             (runRoundBlinkSequence()) can blink ONLY the live number, never
+             the static word suffix ("ms"/"CLICK") - per direct request ("i
+             want only the numbers to blink, not the words"), same pattern
+             #gameTextLabel/#gameTextNumber already established for "ROUND".
+             Each render call site below sets these 2 children's own
+             textContent separately instead of one combined string. -->
+        <div class="ms-per-click-display" id="msPerClickDisplay"><span id="msPerClickDisplayNumber"></span><span id="msPerClickDisplaySuffix"></span></div>
+        <div class="speed-display" id="speedDisplay"><span id="speedDisplayNumber"></span><span id="speedDisplaySuffix"></span></div>
         <div class="click-counter hidden" id="clickCounter">0</div>
         <div class="tap-diagnostic-panel hidden" id="tapDiagnosticPanel">
             <div class="tap-diagnostic-header">
@@ -4429,7 +4436,7 @@
                 </div>
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxGameplayResultFlashWithRound" onchange="cssVars['--gameplay-result-flash-with-round'] = this.checked ? 1 : 0">
+                        <input type="checkbox" id="checkboxGameplayResultFlashWithRound" checked onchange="cssVars['--gameplay-result-flash-with-round'] = this.checked ? 1 : 0">
                         <span class="dev-label" style="min-width:auto;">Flash Target/Speed/Ms-per-click With Round Number</span>
                     </label>
                 </div>
@@ -7022,7 +7029,12 @@
             // number") - shared/not device-split, same convention as the
             // round-blink timings above. See runRoundBlinkSequence()'s and
             // showRoundText()'s own comments for how this is consumed.
-            '--gameplay-result-flash-with-round': 0,
+            // Defaulted ON per direct follow-up request - previously OFF
+            // meant Target/Speed/Ms-per-click flatly hid/reappeared around
+            // every round transition (after Try Again, and after a Win)
+            // instead of blinking in sync with the round number the way the
+            // user actually wanted.
+            '--gameplay-result-flash-with-round': 1,
             '--target-font-size-px': 500,
             '--target-font-size-vw': 24.2,
             '--target-scale-with-browser': 0,
@@ -8021,6 +8033,13 @@
         const targetCount = document.getElementById('targetCount');
         const speedDisplay = document.getElementById('speedDisplay');
         const msPerClickDisplay = document.getElementById('msPerClickDisplay');
+        // Number/suffix children - see their own HTML comment. Cached here
+        // since every render call site below sets these individually now,
+        // instead of one combined speedDisplay.textContent/msPerClickDisplay.textContent.
+        const speedDisplayNumber = document.getElementById('speedDisplayNumber');
+        const speedDisplaySuffix = document.getElementById('speedDisplaySuffix');
+        const msPerClickDisplayNumber = document.getElementById('msPerClickDisplayNumber');
+        const msPerClickDisplaySuffix = document.getElementById('msPerClickDisplaySuffix');
         const roundBreakdownPanel = document.getElementById('roundBreakdownPanel');
         const roundBreakdownTable = document.getElementById('roundBreakdownTable');
         const devPanel = document.getElementById('devPanel');
@@ -10722,8 +10741,16 @@
             },
             speedDisplay: {
                 getSlot: () => 'speedSuffix',
-                getPrefix: () => (speedDisplay.textContent.match(/^-?\d+/) || ['0'])[0],
-                render: (slot, prefix) => { speedDisplay.textContent = (prefix != null ? prefix : '0') + overrideOr(slot); },
+                // Reads the live number straight from its own span now
+                // (see the HTML/JS-reference comments on speedDisplayNumber)
+                // instead of regex-scraping it back out of the combined
+                // text - simpler and can't be confused by digits in the
+                // suffix, same reasoning as targetCount's own getPrefix().
+                getPrefix: () => speedDisplayNumber.textContent || '0',
+                render: (slot, prefix) => {
+                    speedDisplayNumber.textContent = prefix != null ? prefix : '0';
+                    speedDisplaySuffix.textContent = overrideOr(slot);
+                },
             },
             targetCount: {
                 // Target Count has no static wording at all normally (just
@@ -10747,8 +10774,12 @@
             },
             msPerClickDisplay: {
                 getSlot: () => 'msPerClickSuffix',
-                getPrefix: () => (msPerClickDisplay.textContent.match(/^-?\d+/) || [gameState.maxTimeMs.toFixed(0)])[0],
-                render: (slot, prefix) => { msPerClickDisplay.textContent = (prefix != null ? prefix : gameState.maxTimeMs.toFixed(0)) + overrideOr(slot); },
+                // See speedDisplay's own getPrefix() comment - same reasoning.
+                getPrefix: () => msPerClickDisplayNumber.textContent || gameState.maxTimeMs.toFixed(0),
+                render: (slot, prefix) => {
+                    msPerClickDisplayNumber.textContent = prefix != null ? prefix : gameState.maxTimeMs.toFixed(0);
+                    msPerClickDisplaySuffix.textContent = overrideOr(slot);
+                },
             },
         };
 
@@ -12024,10 +12055,20 @@
                 // selected, all 3 of those texts will flash along with the
                 // round number") - see showRoundText()'s own comment for
                 // why they're not flatly hidden for the announcement when
-                // this is on.
+                // this is on. Toggles ONLY the live NUMBER, never any static
+                // word alongside it - per direct follow-up request ("i want
+                // only the numbers to blink, not the words"). targetCount is
+                // toggled as a whole element since it's always a bare number
+                // during real gameplay (no word ever renders inside it live -
+                // see its own TEXT_EDIT_TARGETS comment); speedDisplay/
+                // msPerClickDisplay each have their own number/suffix child
+                // spans specifically for this (see their own HTML comment) -
+                // only *Number is touched, so " ms"/"CLICK" etc. stay put
+                // and visible throughout, same as "ROUND" already does
+                // alongside gameTextNumber above.
                 if (cssVars['--gameplay-result-flash-with-round']) {
-                    [targetCount, speedDisplay, msPerClickDisplay].forEach(el => {
-                        el.classList.toggle('hidden', !phase.visible);
+                    [targetCount, speedDisplayNumber, msPerClickDisplayNumber].forEach(el => {
+                        el.style.visibility = phase.visible ? 'visible' : 'hidden';
                     });
                 }
                 setTimeout(step, phase.ms);
@@ -12284,8 +12325,18 @@
             // request (any flash-with-round-number toggling started during
             // the just-finished announcement is moot from here on, since
             // every remove('hidden') below unconditionally makes them
-            // visible again anyway).
+            // visible again anyway, AND the explicit style.visibility resets
+            // just below undo runRoundBlinkSequence()'s own toggling of
+            // those same 3 elements - its last phase always ends on
+            // visible:false, and classList.remove('hidden') alone doesn't
+            // touch a separate inline style.visibility, so without this
+            // reset targetCount/speedDisplayNumber/msPerClickDisplayNumber
+            // would stay invisible forever after the very first
+            // flash-with-round announcement).
             applyGameplayResultColor(null);
+            targetCount.style.visibility = 'visible';
+            speedDisplayNumber.style.visibility = 'visible';
+            msPerClickDisplayNumber.style.visibility = 'visible';
             targetCount.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
             // Countdown's total budget, rounded to a whole number per
@@ -12295,12 +12346,14 @@
             // the static starting value, exactly like this did before).
             gameState.roundTotalTimeMs = gameState.maxTimeMs * gameState.targetCount;
             gameState.countdownStartTime = null;
-            speedDisplay.textContent = gameState.roundTotalTimeMs.toFixed(0) + ' ms';
+            speedDisplayNumber.textContent = gameState.roundTotalTimeMs.toFixed(0);
+            speedDisplaySuffix.textContent = ' ms';
             speedDisplay.classList.remove('hidden');
             // The raw per-click rate, shown above the countdown - per
             // explicit request, since the countdown itself only shows the
             // TOTAL round budget now.
-            msPerClickDisplay.textContent = gameState.maxTimeMs.toFixed(0) + overrideOr('msPerClickSuffix');
+            msPerClickDisplayNumber.textContent = gameState.maxTimeMs.toFixed(0);
+            msPerClickDisplaySuffix.textContent = overrideOr('msPerClickSuffix');
             msPerClickDisplay.classList.remove('hidden');
             // Target/Speed/Ms-per-click were just revealed from hidden -
             // re-run so their align/edge-lock/unit vars (set by
@@ -12568,7 +12621,8 @@
             }
             // Rounded to a whole number - per explicit follow-up request
             // (reversing the initial "doesn't need to be rounded" ask).
-            speedDisplay.textContent = remaining.toFixed(0) + overrideOr('speedSuffix');
+            speedDisplayNumber.textContent = remaining.toFixed(0);
+            speedDisplaySuffix.textContent = overrideOr('speedSuffix');
             if (remaining > 0 && gameState.isCountingTaps) {
                 gameState.countdownRafId = requestAnimationFrame(tickRoundCountdown);
             }
