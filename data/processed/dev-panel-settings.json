@@ -73,7 +73,7 @@
     "--try-again-question-mark-scale-with-browser": 1,
     "--try-again-question-mark-x-offset-vw": 11.99,
     "--try-again-question-mark-x-offset-unit-is-px": 0,
-    "--try-again-question-mark-y-offset-vh": 122.23,
+    "--try-again-question-mark-y-offset-vh": 190,
     "--try-again-question-mark-y-offset-unit-is-px": 0,
     "--round-dock-x-offset-vw": 44.11,
     "--round-dock-x-offset-unit-is-px": 0,
@@ -1748,8 +1748,8 @@
     "landscape:Speed Display (max ms between taps)": "COUNTDOWN TIMER",
     "landscape:Ms/Click Display": "Ms/Click TEXT"
   },
-  "baseColor": "#009dff",
-  "buttonColor": "#009dff",
+  "baseColor": "#050505",
+  "buttonColor": "#dd2222",
   "buttonWinColor": "#27b942",
-  "buttonLoseColor": "#dd2222"
+  "buttonLoseColor": "#ffa3a3"
 }
