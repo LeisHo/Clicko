@@ -11415,12 +11415,27 @@
                 if (xEdge === 'left') {
                     cssVars['--dev-panel-left-px'] = Math.round(newLeft);
                     document.documentElement.style.setProperty('--dev-panel-left-px', Math.round(newLeft));
-                    panel.style.left = newLeft + 'px';
+                    // NOT also panel.style.left - that direct inline write
+                    // permanently shadows the CSS rule (left: calc(var(
+                    // --dev-panel-left-px) * 1px)) regardless of the custom
+                    // property's value, which is exactly what broke the
+                    // header drag-to-move afterward: per direct report
+                    // ("i cant drag the dev panel up and down on desktop...
+                    // though i can vertically resize it freely"), resizing
+                    // from an edge once was enough to permanently pin the
+                    // position via this inline style, so every later
+                    // --dev-panel-top-px/-left-px write from dragging the
+                    // header (setupDevPanelHeader's pointermove handler,
+                    // above) kept updating the custom property with zero
+                    // visible effect. The setProperty() call above already
+                    // re-renders the position immediately - this line was
+                    // never needed for the resize itself to work.
                 }
                 if (yEdge === 'top') {
                     cssVars['--dev-panel-top-px'] = Math.round(newTop);
                     document.documentElement.style.setProperty('--dev-panel-top-px', Math.round(newTop));
-                    panel.style.top = newTop + 'px';
+                    // See the xEdge === 'left' branch's own comment just
+                    // above - same bug, same fix, vertical axis.
                 }
             });
 
