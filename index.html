@@ -451,6 +451,23 @@
         .game-container:has(#resultText.result-lose) {
             --button-tint-color: var(--button-lose-tint-color, #dd2222);
         }
+        /* Extends the exact same mechanism to the base layer - per direct
+           request ("provide a checkbox that allows me to turn on the base
+           changing color with the button on a win or lose"). Reuses the
+           SAME --button-win/-lose-tint-color pickers (not a separate Base-
+           specific pair) - "with the button" means the same color, not an
+           independently-tunable one. Gated behind the
+           .base-follows-result-color class (toggled by
+           checkboxBaseFollowsResultColor, see its own HTML comment) since
+           unlike the button, the base normally keeps its own static
+           colorBase tint regardless of gameplay result - this is opt-in,
+           not the default. */
+        .game-container.base-follows-result-color:has(#resultText.result-win) {
+            --base-tint-color: var(--button-win-tint-color, #22dd44);
+        }
+        .game-container.base-follows-result-color:has(#resultText.result-lose) {
+            --base-tint-color: var(--button-lose-tint-color, #dd2222);
+        }
         .basebg-svg-layer {
             position: absolute;
             inset: 0;
@@ -3560,25 +3577,95 @@
                         <option value="luminosity">Luminosity</option>
                     </select>
                 </div>
+                <!-- Base and Button Light Levels split back into 2
+                     independent groups - per direct follow-up request
+                     ("give me a contrast and lightness slider for the base
+                     overall" + wanting the button's own Lose-state contrast/
+                     lightness separately tunable). REVERSES an earlier
+                     explicit request ("Base Light Levels should just be
+                     Light Levels. It should affect all svgs" - see
+                     applyLightLevels()'s own comment) that unified these -
+                     a deliberate, informed reversal this time, not an
+                     oversight. #baseGrayscaleTint and #buttonGrayscaleTint
+                     already had their own separate feFuncR/G/B filter
+                     primitives all along (just always driven by the same
+                     shared slider values until now) - see
+                     applyLightLevels()'s own updated comment. -->
                 <div class="dev-row">
-                    <span class="dev-label">Light Levels:</span>
-                    <input type="range" class="dev-slider" id="sliderLightLevels" min="-1" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueLightLevels">0</span>
+                    <span class="dev-label">Base Light Levels:</span>
+                    <input type="range" class="dev-slider" id="sliderBaseLightLevels" min="-1" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueBaseLightLevels">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Contrast:</span>
-                    <input type="range" class="dev-slider" id="sliderLightLevelsContrast" min="0" max="3" step="0.01" value="1">
-                    <span class="dev-value" id="valueLightLevelsContrast">1</span>
+                    <span class="dev-label">Base Contrast:</span>
+                    <input type="range" class="dev-slider" id="sliderBaseLightLevelsContrast" min="0" max="3" step="0.01" value="1">
+                    <span class="dev-value" id="valueBaseLightLevelsContrast">1</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Light Level Floor:</span>
-                    <input type="range" class="dev-slider" id="sliderLightLevelFloor" min="0" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueLightLevelFloor">0</span>
+                    <span class="dev-label">Base Light Level Floor:</span>
+                    <input type="range" class="dev-slider" id="sliderBaseLightLevelFloor" min="0" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueBaseLightLevelFloor">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Light Level Ceiling:</span>
-                    <input type="range" class="dev-slider" id="sliderLightLevelCeiling" min="0" max="1" step="0.01" value="1">
-                    <span class="dev-value" id="valueLightLevelCeiling">1</span>
+                    <span class="dev-label">Base Light Level Ceiling:</span>
+                    <input type="range" class="dev-slider" id="sliderBaseLightLevelCeiling" min="0" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueBaseLightLevelCeiling">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Light Levels:</span>
+                    <input type="range" class="dev-slider" id="sliderButtonLightLevels" min="-1" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueButtonLightLevels">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Contrast:</span>
+                    <input type="range" class="dev-slider" id="sliderButtonLightLevelsContrast" min="0" max="3" step="0.01" value="1">
+                    <span class="dev-value" id="valueButtonLightLevelsContrast">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Light Level Floor:</span>
+                    <input type="range" class="dev-slider" id="sliderButtonLightLevelFloor" min="0" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueButtonLightLevelFloor">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Light Level Ceiling:</span>
+                    <input type="range" class="dev-slider" id="sliderButtonLightLevelCeiling" min="0" max="1" step="0.01" value="1">
+                    <span class="dev-value" id="valueButtonLightLevelCeiling">1</span>
+                </div>
+                <!-- Lose-only OVERRIDE for the button's own Contrast/Level
+                     (Floor/Ceiling stay the normal Button ones above) - per
+                     direct request ("provide me 2 sliders to control the
+                     button contrast and lightness at a lose"). Same
+                     lifecycle as the existing Win/Lose button tint color:
+                     active only while resultText carries .result-lose,
+                     reverts to the normal Button Light Levels above the
+                     moment the next round begins (applyGameplayResultColor(
+                     null), called from showTargetAndSpeed()). See that
+                     function's own updated comment. -->
+                <div class="dev-row">
+                    <span class="dev-label">Button Lose Contrast:</span>
+                    <input type="range" class="dev-slider" id="sliderButtonLoseContrast" min="0" max="3" step="0.01" value="1">
+                    <span class="dev-value" id="valueButtonLoseContrast">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Button Lose Lightness:</span>
+                    <input type="range" class="dev-slider" id="sliderButtonLoseLightness" min="-1" max="1" step="0.01" value="0">
+                    <span class="dev-value" id="valueButtonLoseLightness">0</span>
+                </div>
+                <!-- Per direct request ("provide a checkbox that allows me
+                     to turn on the base changing color with the button on a
+                     win or lose") - the button's own tint already follows
+                     Win/Lose (see .game-container:has(#resultText.result-
+                     win/-lose)'s own CSS comment); this extends the SAME
+                     mechanism to the base layer too, gated behind this
+                     checkbox since (unlike the button) the base normally
+                     keeps its own static colorBase tint regardless of
+                     gameplay result. See the matching CSS rule's own
+                     comment for how the class this toggles is consumed. -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxBaseFollowsResultColor" onchange="document.querySelector('.game-container').classList.toggle('base-follows-result-color', this.checked); cssVars['--base-follows-result-color'] = this.checked ? 1 : 0;">
+                        <span class="dev-label" style="min-width:auto;">Base Follows Win/Lose Color</span>
+                    </label>
                 </div>
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
@@ -6807,23 +6894,47 @@
             // setBaseHue(). This one IS: the grayscale layer's own
             // brightness before tinting, single/shared like Base Color
             // itself (not mobile-split, not per Main Button diameter etc.).
-            // Applies to base+backing+button+pressed-button uniformly - per
-            // explicit request ("Light Levels should just be Light Levels.
-            // It should affect all svgs"). Renamed from --light-levels-gain
-            // (was a pure multiplicative gain) since the semantics changed
-            // to a -1..1 black/white lerp per explicit clarification - a
-            // deliberate rename, not just a tweak, so an old saved gain=1
-            // value can't get silently misinterpreted as the new scale's
-            // "1" (all-white) instead of quietly resetting to the new
-            // default (0, neutral). Floor/ceiling define the final output
-            // range, Contrast pivots around the 0.5 midpoint (see
-            // applyLightLevels()'s own formula comment) - defaults (0
-            // level, 1 contrast, 0 floor, 1 ceiling) reduce to the identity
-            // transform, unchanged look until tuned.
-            '--light-levels': 0,
-            '--light-levels-contrast': 1.19,
-            '--light-levels-floor': 0,
-            '--light-levels-ceiling': 1,
+            // Split back into independent Base/Button pairs - per direct
+            // follow-up request ("give me a contrast and lightness slider
+            // for the base overall"). REVERSES an earlier explicit request
+            // ("Light Levels should just be Light Levels. It should affect
+            // all svgs" - the single shared value these used to be) - a
+            // deliberate, informed reversal this time, not an oversight;
+            // see applyLightLevels()'s own updated comment. Both pairs
+            // seeded identically (matching the shared value's own former
+            // contrast=1.19 tuning) so today's exact look is reproduced
+            // unchanged for BOTH base and button until either is retuned
+            // independently. Floor/ceiling define the final output range,
+            // Contrast pivots around the 0.5 midpoint (see
+            // applyLightLevels()'s own formula comment) - 0 level, 1
+            // contrast, 0 floor, 1 ceiling would reduce to the identity
+            // transform.
+            '--base-light-levels': 0,
+            '--base-light-levels-contrast': 1.19,
+            '--base-light-levels-floor': 0,
+            '--base-light-levels-ceiling': 1,
+            '--button-light-levels': 0,
+            '--button-light-levels-contrast': 1.19,
+            '--button-light-levels-floor': 0,
+            '--button-light-levels-ceiling': 1,
+            // Lose-only OVERRIDE for the button's own contrast/level (floor/
+            // ceiling stay whatever --button-light-levels-floor/-ceiling
+            // above are set to) - per direct request ("provide me 2 sliders
+            // to control the button contrast and lightness at a lose").
+            // Defaults reproduce --button-light-levels/-contrast's own
+            // defaults exactly (0 level, 1.19 contrast) so Lose looks
+            // identical to normal until deliberately tuned apart. See
+            // applyGameplayResultColor()'s own comment for the lifecycle
+            // (active only while resultText carries .result-lose).
+            '--button-lose-contrast': 1.19,
+            '--button-lose-lightness': 0,
+            // Per direct request ("provide a checkbox that allows me to
+            // turn on the base changing color with the button on a win or
+            // lose") - off by default (0), matching the button's own
+            // win/lose tint's default-on behavior NOT being extended to
+            // the base unless explicitly opted into. See the matching CSS
+            // rule's own comment.
+            '--base-follows-result-color': 0,
             // Blend mode for each filter's own tint step (feBlend) - per
             // explicit request for a dropdown. 'overlay' matches the
             // existing hardcoded default until changed.
@@ -7582,12 +7693,31 @@
         function applyGameplayResultColor(state) {
             if (!state) {
                 applyExtrusionStyles();
+                // Reverts the button's own light-levels filter back to its
+                // NORMAL (non-Lose) contrast/lightness - see the 'lose'
+                // branch below's own comment for why this needs a separate,
+                // explicit revert here (applyExtrusionStyles() above only
+                // covers extrusion/color, not this SVG filter).
+                applyLightLevels(cssVars['--button-light-levels'], cssVars['--button-light-levels-contrast'], cssVars['--button-light-levels-floor'], cssVars['--button-light-levels-ceiling'], 'buttonGrayscaleTint');
                 return;
             }
             const root = document.documentElement.style;
             const deviceExt = isMobileActive() ? getActiveMobileExtrusionVars() : extrusionVars;
             const textColor = state === 'win' ? extrusionVars.gameplayWinTextColor : extrusionVars.gameplayLoseTextColor;
             const borderColor = state === 'win' ? extrusionVars.gameplayWinBorderColor : extrusionVars.gameplayLoseBorderColor;
+            // Button Lose Contrast/Lightness (2 dedicated sliders) override
+            // the button's own SVG filter ONLY while Lose is showing - per
+            // direct request ("provide me 2 sliders to control the button
+            // contrast and lightness at a lose"), same on/off lifecycle as
+            // every other gameplay-result override here (reverted by the
+            // !state branch above, called from showTargetAndSpeed() at the
+            // start of the next round). Floor/Ceiling stay the NORMAL
+            // Button Light Levels' own values - only Contrast/Lightness
+            // (Level) get a dedicated Lose-specific pair, per the 2
+            // sliders actually asked for.
+            if (state === 'lose') {
+                applyLightLevels(cssVars['--button-lose-lightness'], cssVars['--button-lose-contrast'], cssVars['--button-light-levels-floor'], cssVars['--button-light-levels-ceiling'], 'buttonGrayscaleTint');
+            }
             root.setProperty('--target-fill-color', textColor);
             root.setProperty('--speed-fill-color', textColor);
             root.setProperty('--ms-per-click-fill-color', textColor);
@@ -8778,9 +8908,18 @@
             document.documentElement.style.setProperty('--dev-panel-top-px', cssVars['--dev-panel-top-px']);
             document.documentElement.style.setProperty('--dev-panel-width-px', cssVars['--dev-panel-width-px']);
             document.documentElement.style.setProperty('--dev-panel-height-px', cssVars['--dev-panel-height-px']);
-            // Light Levels/Floor/Ceiling - also single/shared (cssVars
-            // only), same reasoning as the dev-panel geometry above.
-            applyLightLevels(cssVars['--light-levels'], cssVars['--light-levels-contrast'], cssVars['--light-levels-floor'], cssVars['--light-levels-ceiling']);
+            // Base/Button Light Levels/Contrast/Floor/Ceiling - single/
+            // shared (cssVars only, not mobile/landscape-split), same
+            // reasoning as the dev-panel geometry above. Independent pairs
+            // now (see applyLightLevels()'s own comment) - the BUTTON call
+            // here is always the NORMAL (non-Lose) values; if Lose is
+            // currently showing, applyGameplayResultColor('lose') (called
+            // separately, wherever gameplay state changes) overrides the
+            // button filter again right after this with the Lose-specific
+            // values, same layering as every other gameplay-result
+            // override in this file.
+            applyLightLevels(cssVars['--base-light-levels'], cssVars['--base-light-levels-contrast'], cssVars['--base-light-levels-floor'], cssVars['--base-light-levels-ceiling'], 'baseGrayscaleTint');
+            applyLightLevels(cssVars['--button-light-levels'], cssVars['--button-light-levels-contrast'], cssVars['--button-light-levels-floor'], cssVars['--button-light-levels-ceiling'], 'buttonGrayscaleTint');
             applyBlendModes(cssVars['--base-blend-mode'], cssVars['--button-blend-mode']);
             applyThinBaseState();
             // The 8-bit extrusion system (color/depth/border) is mobile-
@@ -9335,6 +9474,17 @@
                     restoreOffsetUnitCheckboxes();
                     // Same gap, for the Flash-With-Round checkbox.
                     document.getElementById('checkboxGameplayResultFlashWithRound').checked = !!cssVars['--gameplay-result-flash-with-round'];
+                    // Same gap, for Base Follows Win/Lose Color - also
+                    // needs the .game-container CLASS itself toggled (not
+                    // just the checkbox's own .checked display), since
+                    // setting .checked programmatically here doesn't fire
+                    // the checkbox's onchange handler that normally does
+                    // that.
+                    {
+                        const baseFollowsChecked = !!cssVars['--base-follows-result-color'];
+                        document.getElementById('checkboxBaseFollowsResultColor').checked = baseFollowsChecked;
+                        document.querySelector('.game-container').classList.toggle('base-follows-result-color', baseFollowsChecked);
+                    }
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -10089,10 +10239,16 @@
             'sliderButtonPressMs': '--button-press-ms',
             'sliderButtonMaxScale': '--button-max-scale',
             'sliderButtonMinScale': '--button-min-scale',
-            'sliderLightLevels': '--light-levels',
-            'sliderLightLevelsContrast': '--light-levels-contrast',
-            'sliderLightLevelFloor': '--light-levels-floor',
-            'sliderLightLevelCeiling': '--light-levels-ceiling',
+            'sliderBaseLightLevels': '--base-light-levels',
+            'sliderBaseLightLevelsContrast': '--base-light-levels-contrast',
+            'sliderBaseLightLevelFloor': '--base-light-levels-floor',
+            'sliderBaseLightLevelCeiling': '--base-light-levels-ceiling',
+            'sliderButtonLightLevels': '--button-light-levels',
+            'sliderButtonLightLevelsContrast': '--button-light-levels-contrast',
+            'sliderButtonLightLevelFloor': '--button-light-levels-floor',
+            'sliderButtonLightLevelCeiling': '--button-light-levels-ceiling',
+            'sliderButtonLoseContrast': '--button-lose-contrast',
+            'sliderButtonLoseLightness': '--button-lose-lightness',
             'sliderClickBurstSpeed': '--click-burst-speed-ms',
             'sliderClickBurstScale': '--click-burst-scale',
             'sliderClickBurstDistance': '--click-burst-distance-px',
@@ -10363,6 +10519,18 @@
                     (device === 'landscape' ? landscapeClickBurstFrameVars : device === 'mobile' ? mobileClickBurstFrameVars : clickBurstFrameVars)[frameSet][varName] = value;
                 }
                 applyActiveVars();
+                // Button Lose Contrast/Lightness only have a visible effect
+                // while resultText carries .result-lose (see
+                // applyGameplayResultColor()'s own comment) -
+                // applyActiveVars() above just reapplied the NORMAL button
+                // light levels unconditionally (it doesn't know about
+                // gameplay state), so re-apply the lose override on top
+                // immediately if that's what's currently showing - same
+                // live-preview-while-tuning reasoning as the Gameplay
+                // Win/Lose Border color fix.
+                if ((varName === '--button-lose-contrast' || varName === '--button-lose-lightness') && resultText.classList.contains('result-lose')) {
+                    applyGameplayResultColor('lose');
+                }
             } else if (extrusionKey) {
                 (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)[extrusionKey] = value;
                 applyExtrusionStyles();
@@ -11502,13 +11670,21 @@
         // slope+intercept (same reasoning as the original gain+floor+
         // ceiling version) - see the derivation in this project's own
         // CHANGELOG for this entry.
-        function applyLightLevels(level, contrast, floor, ceiling) {
+        // filterId scopes which SVG filter's own feFuncR/G/B trio gets this
+        // slope/intercept - #baseGrayscaleTint and #buttonGrayscaleTint
+        // each have their own separate trio (see the HTML's own comment),
+        // so Base and Button can carry independent Light Levels/Contrast/
+        // Floor/Ceiling now - per direct follow-up request ("give me a
+        // contrast and lightness slider for the base overall"), reversing
+        // an earlier explicit request that unified them into one shared
+        // set (see the cssVars declaration's own comment on this reversal).
+        function applyLightLevels(level, contrast, floor, ceiling, filterId) {
             const slope1 = 1 - Math.abs(level);
             const intercept1 = Math.max(level, 0);
             const range = ceiling - floor;
             const slope = slope1 * contrast * range;
             const intercept = (intercept1 * contrast + 0.5 * (1 - contrast)) * range + floor;
-            document.querySelectorAll('.light-levels-func').forEach(el => {
+            document.querySelectorAll('#' + filterId + ' .light-levels-func').forEach(el => {
                 el.setAttribute('slope', slope);
                 el.setAttribute('intercept', intercept);
             });
