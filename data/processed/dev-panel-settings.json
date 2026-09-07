@@ -165,10 +165,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 462,
-    "--dev-panel-left-px": 66,
-    "--dev-panel-top-px": 79,
-    "--dev-panel-height-px": 384,
+    "--dev-panel-width-px": 350,
+    "--dev-panel-left-px": 35,
+    "--dev-panel-top-px": 62,
+    "--dev-panel-height-px": 280,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -195,8 +195,8 @@
     "--button-y-offset-unit-is-px": 0,
     "--button-release-ms": 0,
     "--button-press-ms": 0,
-    "--button-max-scale": 0.74,
-    "--button-min-scale": 0.6,
+    "--button-max-scale": 1.05,
+    "--button-min-scale": 1.01,
     "--click-burst-speed-ms": 180,
     "--click-burst-scale": 0.14,
     "--click-burst-distance-px": 8,
@@ -934,11 +934,11 @@
     "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
     "mobile:Win/Lose Text": true,
-    "mobile:New Group": true,
+    "mobile:New Group (2)": true,
     "mobile:Target Count Display": false,
     "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": false,
-    "mobile:New Group (2)": true,
+    "mobile:New Group": true,
     "landscape:Dev Panel": false,
     "landscape:Main Button": false,
     "landscape:Shadow": false,
@@ -1379,22 +1379,11 @@
         ]
       },
       {
-        "key": "mobile:New Group",
+        "key": "mobile:New Group (2)",
         "rowKeys": [
-          "selectMobileTryAgainTextValign",
-          "selectMobileTryAgainTextAlign",
-          "checkboxMobileTryAgainTextScaleWithBrowser",
-          "sliderMobileTryAgainTextFontSize",
-          "sliderMobileTryAgainTextFontSizeVw",
-          "sliderMobileTryAgainExtrusionDepth",
-          "sliderMobileTryAgainOverallBorderThickness",
-          "sliderMobileTryAgainTextLetterSpacing",
-          "sliderMobileTryAgainTextLineHeight",
-          "sliderMobileTryAgainTextX",
-          "sliderMobileTryAgainTextY",
-          "checkboxMobileResultLoseScaleWithBrowser",
-          "sliderMobileResultLoseFontSizeVw",
-          "sliderMobileResultLoseLetterSpacing"
+          "sliderMobileResultLoseFontSize",
+          "sliderMobileResultLoseX",
+          "sliderMobileResultLoseY"
         ]
       },
       {
@@ -1446,11 +1435,22 @@
         ]
       },
       {
-        "key": "mobile:New Group (2)",
+        "key": "mobile:New Group",
         "rowKeys": [
-          "sliderMobileResultLoseFontSize",
-          "sliderMobileResultLoseX",
-          "sliderMobileResultLoseY"
+          "selectMobileTryAgainTextValign",
+          "selectMobileTryAgainTextAlign",
+          "checkboxMobileTryAgainTextScaleWithBrowser",
+          "sliderMobileTryAgainTextFontSize",
+          "sliderMobileTryAgainTextFontSizeVw",
+          "sliderMobileTryAgainExtrusionDepth",
+          "sliderMobileTryAgainOverallBorderThickness",
+          "sliderMobileTryAgainTextLetterSpacing",
+          "sliderMobileTryAgainTextLineHeight",
+          "sliderMobileTryAgainTextX",
+          "sliderMobileTryAgainTextY",
+          "checkboxMobileResultLoseScaleWithBrowser",
+          "sliderMobileResultLoseFontSizeVw",
+          "sliderMobileResultLoseLetterSpacing"
         ]
       }
     ],
