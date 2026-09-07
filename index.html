@@ -925,14 +925,32 @@
            HTML for the DOM-restructuring side of this fix. */
         #startButtonFlashChar {
             position: absolute;
-            /* Same base/sign/unit anchor system as every other element
+            /* X: same base/sign/unit anchor system as every other element
                (Target/Speed/etc.), not a hardcoded 50% origin - per direct
                follow-up request for its own Text Align/Valign. Falls back to
-               plain 50%/1(sign)/1vw-1vh before applyTextAlignAnchors() has
-               run for this element (e.g. the very first paint), reproducing
-               the exact original formula below as the default. */
+               plain 50%/1(sign)/1vw before applyTextAlignAnchors() has run
+               for this element (e.g. the very first paint), reproducing the
+               exact original formula below as the default. Stays fully
+               independent of Try Again's own X - only Y is coupled (see
+               top's own comment just below), per direct follow-up request
+               ("i want the '?' y position to be dependent on the try
+               again"). */
             left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--try-again-question-mark-y-base, 50%) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
+            /* Y: DELIBERATELY coupled to wherever Try Again itself
+               vertically sits, unlike X above - the first term reproduces
+               Try Again's own top formula exactly (--try-again-question-
+               mark-parent-y-base/-sign/-unit are startButtonEl's own
+               --try-again-y-base/-sign/-unit, mirrored onto this element by
+               applyTextAlignAnchors() since custom-property inheritance
+               doesn't reach sideways between siblings - see that function's
+               own comment for the full reasoning), and this element's own
+               Y offset/sign/unit (its own Edge Lock/Text Valign, untouched)
+               is then added as a SECOND, independent delta on top - so
+               moving Try Again moves the "?" by the same amount, while the
+               "?"'s own Y slider still fine-tunes an additional offset
+               relative to wherever that lands, exactly like #gameTextNumber
+               is deliberately coupled to #gameTextLabel's own position. */
+            top: calc(var(--try-again-question-mark-parent-y-base, 50%) + var(--try-again-question-mark-parent-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-question-mark-parent-y-unit, var(--cq-vh, 1vh)) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
             text-align: var(--try-again-question-mark-text-align, center);
             /* See .start-button's own "Scale With Browser" comment. */
             font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * var(--cq-vw, 1vw));
@@ -10401,6 +10419,38 @@
             const startValignVarName = startButtonEl.classList.contains('try-again-state') ? '--try-again-text-valign' : '--start-text-valign';
             const startValign = activeCssVars[startValignVarName] || 'center';
             startButtonEl.style.setProperty('--anchor-ty', computeAnchorTy(startValign));
+            // The "?" glyph's Y position now DELIBERATELY tracks wherever
+            // Try Again itself vertically sits - per direct follow-up
+            // request ("i want the '?' y position to be dependent on the
+            // try again"), reversing the earlier position-INDEPENDENCE fix
+            // for the Y axis only (X stays fully independent, untouched).
+            // startButtonFlashChar is a SIBLING of startButton, not its
+            // descendant (see its own HTML/CSS comment on why) - it can't
+            // just read --try-again-y-base/-sign/-unit directly, because
+            // this whole align/valign system intentionally scopes those 3
+            // as INLINE custom properties on each target element itself
+            // (set via el.style.setProperty two loops up), not on :root,
+            // so several elements can carry independent align/valign
+            // settings without colliding - and CSS custom-property
+            // inheritance only flows down the DOM tree, never sideways
+            // between siblings. (--try-again-text-y-offset-vh itself,
+            // unlike base/sign/unit, IS already globally visible - it's
+            // one of the plain cssVars applyActiveVars() pushes onto
+            // :root, not something this function sets - so only the 3
+            // terms below actually need mirroring.) Copies whichever of
+            // --try-again-y-base/-sign/-unit was just computed onto
+            // startButtonEl above (always Try Again's real current values
+            // regardless of which state is actually showing - see this
+            // loop's own header comment) onto startButtonFlashChar under
+            // its own "parent-y-*" names, which its own top: calc() (see
+            // its CSS) composes with its own Y offset as an ADDITIONAL
+            // delta on top, not a replacement.
+            const questionMarkEl = document.getElementById('startButtonFlashChar');
+            if (questionMarkEl) {
+                questionMarkEl.style.setProperty('--try-again-question-mark-parent-y-base', startButtonEl.style.getPropertyValue('--try-again-y-base') || '50%');
+                questionMarkEl.style.setProperty('--try-again-question-mark-parent-y-sign', startButtonEl.style.getPropertyValue('--try-again-y-sign') || '1');
+                questionMarkEl.style.setProperty('--try-again-question-mark-parent-y-unit', startButtonEl.style.getPropertyValue('--try-again-y-unit') || 'var(--cq-vh, 1vh)');
+            }
         }
 
         // Text Edit Mode - per explicit request ("I can click on any text
