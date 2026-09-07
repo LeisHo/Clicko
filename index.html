@@ -909,19 +909,28 @@
            ("separate size, color, and x y sliders for the question mark").
            Used to be plain inline text (flowed right after "Try again",
            inheriting that text's own font-size/color/position entirely) -
-           now fixed like every other on-screen element, same screen-center
-           vw/vh origin (CLAUDE.md Section 12k) so a copied X/Y value means
-           the same thing here as anywhere else. */
+           then briefly `position: fixed` aiming for the same screen-center
+           vw/vh origin as every other element (CLAUDE.md Section 12k), but
+           that alone wasn't enough: .start-button (this element's DOM
+           parent at the time) has its own `transform`, which per spec makes
+           ANY ancestor with a transform the containing block for a `fixed`
+           (or `absolute`) descendant - so this was actually resolving
+           against the BUTTON's own transformed box the whole time, not the
+           viewport, silently reproducing the exact "position depends on Try
+           Again" bug it was meant to fix. Now a plain sibling of
+           .start-button (not its child) with `position: absolute`, so it
+           resolves against .game-container - the same containing block
+           Target/Speed/Ms-per-click already use - genuinely independent of
+           wherever the button currently sits. See its own <span> tag in the
+           HTML for the DOM-restructuring side of this fix. */
         #startButtonFlashChar {
-            position: fixed;
-            /* Now uses the same base/sign/unit anchor system as every other
-               element (Target/Speed/etc.) instead of a hardcoded 50% origin
-               - per direct follow-up request for its own Text Align/Valign.
-               Falls back to plain 50%/1(sign)/1vw-1vh when
-               applyTextAlignAnchors() hasn't run yet (this element doesn't
-               exist in the DOM until Try Again first renders - see its own
-               null-guard comment there), reproducing the exact original
-               formula below as the default. */
+            position: absolute;
+            /* Same base/sign/unit anchor system as every other element
+               (Target/Speed/etc.), not a hardcoded 50% origin - per direct
+               follow-up request for its own Text Align/Valign. Falls back to
+               plain 50%/1(sign)/1vw-1vh before applyTextAlignAnchors() has
+               run for this element (e.g. the very first paint), reproducing
+               the exact original formula below as the default. */
             left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--try-again-question-mark-y-base, 50%) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
             text-align: var(--try-again-question-mark-text-align, center);
@@ -929,6 +938,10 @@
             font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * var(--cq-vw, 1vw));
             transform: translate(-50%, var(--anchor-ty, -50%));
             display: inline-block;
+            pointer-events: none;
+        }
+        #startButtonFlashChar.hidden {
+            display: none !important;
         }
         #startButtonFlashChar.align-left { transform: translate(0%, var(--anchor-ty, -50%)); }
         #startButtonFlashChar.align-right { transform: translate(-100%, var(--anchor-ty, -50%)); }
@@ -3069,6 +3082,27 @@
         <div class="click-burst-shadow-container" id="clickBurstShadowContainerLeft"></div>
         <div class="click-burst-container" id="clickBurstContainer"></div>
         <button class="start-button" id="startButton">START</button>
+        <!-- Was created/destroyed via startButton.innerHTML (a child of the
+             button itself) - moved out to its own static sibling element per
+             direct report ("make the '?'s position not dependent on the
+             position of Try Again"). Root cause: .start-button itself has
+             `transform: translate(...)` (its own centering transform), and
+             per the CSS spec ANY ancestor with a transform becomes the
+             containing block for a `position: fixed` (or absolute)
+             descendant - so despite this element's own independent X/Y
+             offset vars, its actual on-screen position was being resolved
+             relative to the BUTTON's transformed box, not the viewport/
+             .game-container, exactly reproducing the reported symptom. As a
+             plain sibling of .start-button here (both direct children of
+             .game-container, which has no transform of its own), its
+             `position: absolute` now resolves against .game-container - the
+             same reference frame every other overlay text (Target/Speed/
+             Ms-per-click) already uses - fully independent of wherever Try
+             Again itself currently sits. Shown/hidden via the .hidden class
+             (see startTryAgainFlash()/resetGameplayState()) instead of being
+             created/destroyed, matching every other overlay element's own
+             pattern. -->
+        <span class="hidden" id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>
         <div class="game-text" id="gameText"><span id="gameTextLabel"></span><span id="gameTextNumber"></span></div>
         <div class="result-text hidden" id="resultText"></div>
         <div class="target-count" id="targetCount"></div>
@@ -3934,7 +3968,7 @@
             <div class="dev-section-content">
                 <div class="dev-row">
                     <span class="dev-label">"?" Animation Mode:</span>
-                    <select class="dev-select" id="selectTryAgainMode" onchange="cssVars['--try-again-question-mark-mode'] = this.value; if (document.getElementById('startButtonFlashChar')) startTryAgainFlash();">
+                    <select class="dev-select" id="selectTryAgainMode" onchange="cssVars['--try-again-question-mark-mode'] = this.value; if (startButton.classList.contains('try-again-state')) startTryAgainFlash();">
                         <option value="flash">Flashing</option>
                         <option value="rotate" selected>Rotating</option>
                     </select>
@@ -10257,11 +10291,10 @@
             const activeCssVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
                 const el = document.getElementById(elId);
-                // startButtonFlashChar (the "?" glyph) only exists in the DOM
-                // while Try Again is actually showing (rebuilt via innerHTML -
-                // see TEXT_EDIT_TARGETS.startButton's own render()) - skip
-                // rather than throw when it's absent; the correct anchors get
-                // (re)computed the next time this runs after it's rebuilt.
+                // Defensive null-guard, kept even though every current
+                // target (including startButtonFlashChar, now a permanent
+                // element - see its own HTML/CSS comment) always exists in
+                // the DOM by the time this runs.
                 if (!el) return;
                 const align = activeCssVars[varName] || 'center';
                 el.classList.remove('align-left', 'align-center', 'align-right');
@@ -10410,20 +10443,29 @@
         // a settings-load restore.
         const TEXT_EDIT_TARGETS = {
             startButton: {
-                getSlot: () => document.getElementById('startButtonFlashChar') ? 'tryAgainLabel' : 'startLabel',
+                // startButtonFlashChar is now a permanent sibling element
+                // (see its own HTML/CSS comment), always present - the
+                // canonical try-again-state class is what actually tracks
+                // which slot is showing, same as resultText's own
+                // classList-based check just below.
+                getSlot: () => startButton.classList.contains('try-again-state') ? 'tryAgainLabel' : 'startLabel',
                 render: (slot) => {
                     if (slot === 'tryAgainLabel') {
-                        startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>`;
+                        startButton.textContent = overrideOr('tryAgainLabel');
                         startButton.classList.add('try-again-state');
+                        document.getElementById('startButtonFlashChar').classList.remove('hidden');
                     } else {
                         startButton.textContent = overrideOr('startLabel');
                         startButton.classList.remove('try-again-state');
+                        document.getElementById('startButtonFlashChar').classList.add('hidden');
                     }
-                    // See endGame()'s own comment on its matching call -
-                    // startButtonFlashChar may have just been created/
-                    // removed above, and startButton's own shared align-
-                    // class/--anchor-ty needs to track whichever state this
-                    // render() call just switched to.
+                    // startButton's own shared align-class/--anchor-ty needs
+                    // to track whichever state this render() call just
+                    // switched to (see applyTextAlignAnchors()'s own
+                    // comment) - startButtonFlashChar's own anchors get
+                    // recomputed in the same pass since it's a permanent
+                    // element now, not something that only exists once Try
+                    // Again first renders.
                     applyTextAlignAnchors();
                 },
             },
@@ -11742,7 +11784,7 @@
             }
             function cycle(visible) {
                 const charEl = document.getElementById('startButtonFlashChar');
-                if (!charEl) return; // button content changed since this was scheduled
+                if (!charEl) return; // defensive only - this is a permanent element now
                 charEl.style.visibility = visible ? 'visible' : 'hidden';
                 const delay = visible ? cssVars['--try-again-hold-duration-ms'] : cssVars['--try-again-flash-duration-ms'];
                 tryAgainFlashTimeoutId = setTimeout(() => cycle(!visible), delay);
@@ -11772,7 +11814,7 @@
             const charEl = document.getElementById('startButtonFlashChar');
             const glyphEl = document.getElementById('startButtonFlashCharGlyph');
             const extrusionEl = document.getElementById('startButtonFlashCharExtrusion');
-            if (!charEl || !glyphEl || !extrusionEl) return; // button content changed since this was scheduled
+            if (!charEl || !glyphEl || !extrusionEl) return; // defensive only - these are permanent elements now
             const cycleMs = Math.max(50, cssVars['--try-again-rotate-speed-ms']);
             const elapsed = Date.now() - tryAgainRotateStartTime;
             const rawT = (elapsed % cycleMs) / cycleMs;
@@ -12399,19 +12441,20 @@
                     // pool (left declared but unused, same as winMessages/
                     // tooManyMessages/notEnoughMessages) and no "ROUND X ·"
                     // prefix - per explicit request, this button says only
-                    // "Try again?" and nothing else. The "?" is its own span
-                    // so it can blink independently - see startTryAgainFlash().
-                    startButton.innerHTML = `${overrideOr('tryAgainLabel')}<span id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>`;
+                    // "Try again?" and nothing else. The "?" is its own
+                    // permanent sibling element (see its own HTML/CSS
+                    // comment) so it can blink independently - see
+                    // startTryAgainFlash() - and position independently of
+                    // wherever this button itself currently sits.
+                    startButton.textContent = overrideOr('tryAgainLabel');
                     startButton.classList.add('try-again-state');
                     startButton.classList.remove('hidden');
-                    // startButtonFlashChar (the "?" glyph) was just created
-                    // above and doesn't exist until this exact moment - its
-                    // own Text Align/Valign anchors (see
-                    // applyTextAlignAnchors()'s null-guard) need computing
-                    // now, not on whatever unrelated update happens to run
-                    // next; this also re-resolves startButton's own shared
-                    // align-class/--anchor-ty to the Try Again state that
-                    // just became current (see that function's own comment).
+                    document.getElementById('startButtonFlashChar').classList.remove('hidden');
+                    // Re-resolves startButton's own shared align-class/
+                    // --anchor-ty, and startButtonFlashChar's own Text
+                    // Align/Valign anchors, to the Try Again state that just
+                    // became current (see applyTextAlignAnchors()'s own
+                    // comment).
                     applyTextAlignAnchors();
                     startTryAgainFlash();
                     resultText.classList.add('hidden');
@@ -12519,6 +12562,7 @@
             startButton.classList.remove('hidden');
             startButton.textContent = overrideOr('startLabel');
             startButton.classList.remove('try-again-state');
+            document.getElementById('startButtonFlashChar').classList.add('hidden');
             // Re-resolves startButton's shared align-class/--anchor-ty back
             // to the Start state's own vars - see applyTextAlignAnchors()'s
             // own comment.
