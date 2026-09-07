@@ -117,7 +117,15 @@
             height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * var(--cq-vw, 1vw)));
             left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
             top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
-            transform: translate(-50%, -50%);
+            /* scale() composed onto the same centering transform, not a
+               separate rule - percentage-based translate(-50%,-50%) resolves
+               against this element's own untransformed layout box regardless
+               of order, so the button/base/shadow-caster (all descendants,
+               see .shadow-caster's own nesting) scale uniformly around the
+               SAME centered anchor point set by left/top above, never
+               drifting off it as --button-user-scale changes live on resize.
+               See computeButtonUserScale() (JS) for Max/Min Button Scale. */
+            transform: translate(-50%, -50%) scale(var(--button-user-scale, 1));
         }
 
         /* Shadow caster - a duplicate of the base+button artwork, flattened to a
@@ -3468,6 +3476,16 @@
                     <span class="dev-value" id="valueButtonReleaseMs">10</span>
                 </div>
                 <div class="dev-row">
+                    <span class="dev-label">Max Button Scale (x, at 1280px+ width):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonMaxScale" min="0.5" max="2" step="0.01" value="1">
+                    <span class="dev-value" id="valueButtonMaxScale">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Min Button Scale (x, at 768px width):</span>
+                    <input type="range" class="dev-slider" id="sliderButtonMinScale" min="0.1" max="2" step="0.01" value="1">
+                    <span class="dev-value" id="valueButtonMinScale">1</span>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Color:</span>
                     <input type="color" class="dev-color-picker" id="colorButton" value="#eb2027">
                     <span class="dev-value" style="font-size:9px;color:#888;">(grayscale + tint)</span>
@@ -4859,6 +4877,16 @@
                     <span class="dev-label">Release Speed (ms, 0=instant):</span>
                     <input type="range" class="dev-slider" id="sliderMobileButtonReleaseMs" min="0" max="200" step="5" value="0">
                     <span class="dev-value" id="valueMobileButtonReleaseMs">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Max Button Scale (x, at 767px width):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonMaxScale" min="0.5" max="2" step="0.01" value="1">
+                    <span class="dev-value" id="valueMobileButtonMaxScale">1</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Min Button Scale (x, floor as width shrinks):</span>
+                    <input type="range" class="dev-slider" id="sliderMobileButtonMinScale" min="0.1" max="2" step="0.01" value="1">
+                    <span class="dev-value" id="valueMobileButtonMinScale">1</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -6739,6 +6767,22 @@
             '--button-y-offset-unit-is-px': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
+            // Max/Min Button Scale - an extra multiplier on top of the
+            // button's normal vw-based sizing (applied to .button-assembly
+            // as a whole, so the button, its base, AND its shadow-caster
+            // all scale together), per direct request. Desktop's own
+            // formula (see computeButtonUserScale()) interpolates linearly
+            // between Min Scale at 768px (the narrowest a Desktop-mode
+            // browser can be) and Max Scale at 1280px ("full screen" -
+            // this project's own established desktop reference width, see
+            // the font-size-px conversion's comment) and beyond, clamped
+            // at both ends. Landscape reuses these exact values and this
+            // exact formula against its own real width - per direct
+            // request ("for now, for landscape mobile mode, use the same
+            // settings as desktop mode"), not its own independent pair.
+            // Both default to 1 (no-op) until spread apart.
+            '--button-max-scale': 1,
+            '--button-min-scale': 1,
             // Base/backing recolor - grayscale+levels+multiply-tint (see
             // #baseGrayscaleTint filter defs), replacing the old hue-rotate
             // approach which could never reach white/gray from the red
@@ -7551,6 +7595,18 @@
             '--button-y-offset-unit-is-px': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
+            // Max/Min Button Scale, Mobile's own pair - see the Desktop
+            // declaration's own comment for the full mechanism. Mobile's
+            // formula (computeButtonUserScale()) is different in kind, not
+            // just in numbers: Max Scale is reached at 767px (Mobile's own
+            // widest width, the existing breakpoint), and scale shrinks
+            // proportionally with width below that, floored at Min Scale -
+            // there's no second reference width to interpolate toward the
+            // way Desktop has 1280px, per direct request ("at 767px width
+            // it will be max scale on mobile side, and Min scale will just
+            // cap how small it can get"). Both default to 1 (no-op).
+            '--button-max-scale': 1,
+            '--button-min-scale': 1,
             '--click-burst-speed-ms': 180,
             '--click-burst-scale': 0.14,
             // These 5 keys (through --shadow-y-offset below) hold a VW
@@ -8565,6 +8621,34 @@
             '--click-burst-distance-px', '--click-burst-height-px', '--click-burst-curve-offset-px',
         ]);
 
+        // Max/Min Button Scale - see cssVars'/mobileCssVars' own comments on
+        // these 2 keys for the full mechanism. Desktop and Landscape share
+        // one formula (linear interpolation between 2 fixed reference
+        // widths, both ends clamped); Mobile's is different in kind (a
+        // single reference width - its own max - with proportional shrink
+        // and a floor, no second reference width). Returns a plain
+        // multiplier, pushed to --button-user-scale and applied as an extra
+        // scale() on .button-assembly (see that rule's own comment) so the
+        // button, its base, and its shadow-caster all scale together.
+        const DESKTOP_BUTTON_SCALE_MIN_WIDTH = 768; // narrowest a Desktop-mode browser can be (the Mobile breakpoint's own upper edge)
+        const DESKTOP_BUTTON_SCALE_MAX_WIDTH = 1280; // "full screen" reference - this project's own established desktop reference width (see the font-size-px conversion's comment)
+        const MOBILE_BUTTON_SCALE_MAX_WIDTH = 767; // Mobile's own widest width (the breakpoint's own lower edge) - Max Scale is reached here
+        function computeButtonUserScale() {
+            if (getActiveDeviceProfile() === 'mobile') {
+                const maxScale = mobileCssVars['--button-max-scale'];
+                const minScale = mobileCssVars['--button-min-scale'];
+                const t = Math.max(0, Math.min(1, window.innerWidth / MOBILE_BUTTON_SCALE_MAX_WIDTH));
+                return Math.max(minScale, Math.min(maxScale, maxScale * t));
+            }
+            // Desktop AND Landscape - Landscape deliberately reuses Desktop's
+            // own values and formula against its own real width, per direct
+            // request ("for now... use the same settings as desktop mode").
+            const maxScale = cssVars['--button-max-scale'];
+            const minScale = cssVars['--button-min-scale'];
+            const t = Math.max(0, Math.min(1, (window.innerWidth - DESKTOP_BUTTON_SCALE_MIN_WIDTH) / (DESKTOP_BUTTON_SCALE_MAX_WIDTH - DESKTOP_BUTTON_SCALE_MIN_WIDTH)));
+            return minScale + t * (maxScale - minScale);
+        }
+
         function applyActiveVars() {
             const activeCssVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             // Colors are no longer device-split at all - per explicit
@@ -8612,6 +8696,11 @@
             document.documentElement.style.setProperty('--round-blink3-show-ms', cssVars['--round-blink3-show-ms']);
             document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
             document.documentElement.style.setProperty('--round-blink4-hide-ms', cssVars['--round-blink4-hide-ms']);
+            // Max/Min Button Scale - re-derived live from the CURRENT real
+            // width every time this function runs (on resize, not just on a
+            // breakpoint crossing), same as a native CSS vw unit would be -
+            // see computeButtonUserScale()'s own comment.
+            document.documentElement.style.setProperty('--button-user-scale', computeButtonUserScale());
             // Dev panel's own size/position - also single/shared (cssVars
             // only, not mobile-split - see clampDevPanelPosition()'s own
             // comment), so it needs the same unconditional push: the main
@@ -9896,6 +9985,8 @@
             'sliderButtonY': '--button-y-offset-vh',
             'sliderButtonReleaseMs': '--button-release-ms',
             'sliderButtonPressMs': '--button-press-ms',
+            'sliderButtonMaxScale': '--button-max-scale',
+            'sliderButtonMinScale': '--button-min-scale',
             'sliderLightLevels': '--light-levels',
             'sliderLightLevelsContrast': '--light-levels-contrast',
             'sliderLightLevelFloor': '--light-levels-floor',
