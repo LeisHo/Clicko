@@ -165,10 +165,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 227,
-    "--dev-panel-left-px": 41,
+    "--dev-panel-width-px": 350,
+    "--dev-panel-left-px": 35.79998779296875,
     "--dev-panel-top-px": 14,
-    "--dev-panel-height-px": 274,
+    "--dev-panel-height-px": 276,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -195,7 +195,7 @@
     "--button-y-offset-unit-is-px": 0,
     "--button-release-ms": 0,
     "--button-press-ms": 0,
-    "--button-max-scale": 1.05,
+    "--button-max-scale": 1.76,
     "--button-min-scale": 0.85,
     "--click-burst-speed-ms": 180,
     "--click-burst-scale": 0.14,
@@ -303,18 +303,18 @@
     "--ms-per-click-text-valign": "top",
     "--ms-per-click-text-align-edge-lock": 1,
     "--ms-per-click-text-valign-edge-lock": 1,
-    "--result-win-font-size-px": 131.7,
-    "--result-win-font-size-vw": 29.87,
+    "--result-win-font-size-px": 157.33,
+    "--result-win-font-size-vw": 32.29,
     "--result-win-scale-with-browser": 1,
     "--result-win-x-offset-vw": 0,
     "--result-win-x-offset-unit-is-px": 0,
     "--result-win-y-offset-vh": -2,
     "--result-win-y-offset-unit-is-px": 0,
     "--result-win-letter-spacing-px": 0,
-    "--result-lose-font-size-px": 165.17,
-    "--result-lose-font-size-vw": 4.77,
+    "--result-lose-font-size-px": 160,
+    "--result-lose-font-size-vw": 41.65,
     "--result-lose-scale-with-browser": 1,
-    "--result-lose-x-offset-vw": 2.21,
+    "--result-lose-x-offset-vw": 0.75,
     "--result-lose-x-offset-unit-is-px": 0,
     "--result-lose-y-offset-vh": 1.46,
     "--result-lose-y-offset-unit-is-px": 0,
@@ -970,14 +970,14 @@
     "mobile:Click Burst": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
     "mobile:Start/Try Again Button": true,
+    "mobile:Rotation Animation": true,
     "mobile:Round Text": true,
+    "mobile:Win/Lose Text": true,
+    "mobile:New Group (2)": true,
     "mobile:Target Count Display": true,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": true,
-    "mobile:New Group": true,
-    "mobile:Rotation Animation": true,
-    "mobile:Win/Lose Text": false,
-    "mobile:New Group (2)": false,
+    "mobile:Ms/Click Display": false,
+    "mobile:New Group": false,
     "landscape:Dev Panel": true,
     "landscape:Main Button": true,
     "landscape:Shadow": true,
@@ -1373,6 +1373,20 @@
         ]
       },
       {
+        "key": "mobile:Rotation Animation",
+        "rowKeys": [
+          "selectMobileTryAgainQuestionMarkTextAlign",
+          "selectMobileTryAgainQuestionMarkTextValign",
+          "checkboxMobileTryAgainQuestionMarkScaleWithBrowser",
+          "sliderMobileTryAgainQuestionMarkFontSizeVw",
+          "sliderMobileTryAgainQuestionMarkFontSize",
+          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
+          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
+          "sliderMobileTryAgainQuestionMarkX",
+          "sliderMobileTryAgainQuestionMarkY"
+        ]
+      },
+      {
         "key": "mobile:Round Text",
         "rowKeys": [
           "checkboxMobileRoundScaleWithBrowser",
@@ -1386,6 +1400,31 @@
           "sliderMobileRoundDockY",
           "selectMobileRoundTextAlign",
           "selectMobileRoundTextValign"
+        ]
+      },
+      {
+        "key": "mobile:Win/Lose Text",
+        "rowKeys": [
+          "sliderMobileResultWinLetterSpacing",
+          "sliderMobileResultExtrusionAngle",
+          "checkboxMobileResultWinScaleWithBrowser",
+          "sliderMobileResultWinFontSizeVw",
+          "sliderMobileResultWinFontSize",
+          "sliderMobileResultExtrusionDepth",
+          "sliderMobileResultOverallBorderThickness",
+          "sliderMobileResultWinX",
+          "sliderMobileResultWinY",
+          "sliderMobileResultLineHeight",
+          "selectMobileResultTextAlign",
+          "selectMobileResultTextValign"
+        ]
+      },
+      {
+        "key": "mobile:New Group (2)",
+        "rowKeys": [
+          "sliderMobileResultLoseFontSize",
+          "sliderMobileResultLoseX",
+          "sliderMobileResultLoseY"
         ]
       },
       {
@@ -1453,45 +1492,6 @@
           "checkboxMobileResultLoseScaleWithBrowser",
           "sliderMobileResultLoseFontSizeVw",
           "sliderMobileResultLoseLetterSpacing"
-        ]
-      },
-      {
-        "key": "mobile:Rotation Animation",
-        "rowKeys": [
-          "selectMobileTryAgainQuestionMarkTextAlign",
-          "selectMobileTryAgainQuestionMarkTextValign",
-          "checkboxMobileTryAgainQuestionMarkScaleWithBrowser",
-          "sliderMobileTryAgainQuestionMarkFontSizeVw",
-          "sliderMobileTryAgainQuestionMarkFontSize",
-          "sliderMobileTryAgainQuestionMarkExtrusionDepth",
-          "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
-          "sliderMobileTryAgainQuestionMarkX",
-          "sliderMobileTryAgainQuestionMarkY"
-        ]
-      },
-      {
-        "key": "mobile:Win/Lose Text",
-        "rowKeys": [
-          "sliderMobileResultWinLetterSpacing",
-          "sliderMobileResultExtrusionAngle",
-          "checkboxMobileResultWinScaleWithBrowser",
-          "sliderMobileResultWinFontSize",
-          "sliderMobileResultExtrusionDepth",
-          "sliderMobileResultOverallBorderThickness",
-          "sliderMobileResultWinX",
-          "sliderMobileResultWinY",
-          "sliderMobileResultLineHeight",
-          "selectMobileResultTextAlign",
-          "selectMobileResultTextValign"
-        ]
-      },
-      {
-        "key": "mobile:New Group (2)",
-        "rowKeys": [
-          "sliderMobileResultWinFontSizeVw",
-          "sliderMobileResultLoseFontSize",
-          "sliderMobileResultLoseX",
-          "sliderMobileResultLoseY"
         ]
       }
     ],
