@@ -460,7 +460,7 @@
     "--speed-scale-with-browser": 1,
     "--speed-x-offset-vw": 43.32,
     "--speed-x-offset-unit-is-px": 0,
-    "--speed-y-offset-vh": -15,
+    "--speed-y-offset-vh": -5,
     "--speed-y-offset-unit-is-px": 0,
     "--speed-letter-spacing-px": 4.5,
     "--speed-line-height": 1.2,
