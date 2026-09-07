@@ -460,7 +460,7 @@
     "--speed-scale-with-browser": 1,
     "--speed-x-offset-vw": 43.32,
     "--speed-x-offset-unit-is-px": 0,
-    "--speed-y-offset-vh": 3.125,
+    "--speed-y-offset-vh": -50,
     "--speed-y-offset-unit-is-px": 0,
     "--speed-letter-spacing-px": 4.5,
     "--speed-line-height": 1.2,
@@ -987,11 +987,11 @@
     "landscape:Rotation Animation": true,
     "landscape:Round Text": true,
     "landscape:Win/Lose Text": true,
-    "landscape:New Group (2)": true,
+    "landscape:New Group": true,
     "landscape:Target Count Display": true,
     "landscape:Speed Display (max ms between taps)": false,
     "landscape:Ms/Click Display": true,
-    "landscape:New Group": true
+    "landscape:New Group (2)": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1622,14 +1622,19 @@
         ]
       },
       {
-        "key": "landscape:New Group (2)",
+        "key": "landscape:New Group",
         "rowKeys": [
-          "checkboxLandscapeResultLoseScaleWithBrowser",
-          "sliderLandscapeResultLoseFontSizeVw",
-          "sliderLandscapeResultLoseFontSize",
-          "sliderLandscapeResultLoseX",
-          "sliderLandscapeResultLoseY",
-          "sliderLandscapeResultLoseLetterSpacing"
+          "selectLandscapeTryAgainTextValign",
+          "selectLandscapeTryAgainTextAlign",
+          "checkboxLandscapeTryAgainTextScaleWithBrowser",
+          "sliderLandscapeTryAgainTextFontSize",
+          "sliderLandscapeTryAgainTextFontSizeVw",
+          "sliderLandscapeTryAgainExtrusionDepth",
+          "sliderLandscapeTryAgainOverallBorderThickness",
+          "sliderLandscapeTryAgainTextLetterSpacing",
+          "sliderLandscapeTryAgainTextLineHeight",
+          "sliderLandscapeTryAgainTextX",
+          "sliderLandscapeTryAgainTextY"
         ]
       },
       {
@@ -1681,19 +1686,14 @@
         ]
       },
       {
-        "key": "landscape:New Group",
+        "key": "landscape:New Group (2)",
         "rowKeys": [
-          "selectLandscapeTryAgainTextValign",
-          "selectLandscapeTryAgainTextAlign",
-          "checkboxLandscapeTryAgainTextScaleWithBrowser",
-          "sliderLandscapeTryAgainTextFontSize",
-          "sliderLandscapeTryAgainTextFontSizeVw",
-          "sliderLandscapeTryAgainExtrusionDepth",
-          "sliderLandscapeTryAgainOverallBorderThickness",
-          "sliderLandscapeTryAgainTextLetterSpacing",
-          "sliderLandscapeTryAgainTextLineHeight",
-          "sliderLandscapeTryAgainTextX",
-          "sliderLandscapeTryAgainTextY"
+          "checkboxLandscapeResultLoseScaleWithBrowser",
+          "sliderLandscapeResultLoseFontSizeVw",
+          "sliderLandscapeResultLoseFontSize",
+          "sliderLandscapeResultLoseX",
+          "sliderLandscapeResultLoseY",
+          "sliderLandscapeResultLoseLetterSpacing"
         ]
       }
     ]
