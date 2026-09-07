@@ -166,8 +166,8 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 227,
-    "--dev-panel-left-px": 170,
-    "--dev-panel-top-px": 40,
+    "--dev-panel-left-px": 41,
+    "--dev-panel-top-px": 14,
     "--dev-panel-height-px": 274,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
@@ -406,11 +406,11 @@
     "--try-again-text-letter-spacing-px": 6.5,
     "--try-again-text-line-height": 1,
     "--try-again-question-mark-font-size-px": 341.37,
-    "--try-again-question-mark-font-size-vw": 23.17,
+    "--try-again-question-mark-font-size-vw": 15.15,
     "--try-again-question-mark-scale-with-browser": 1,
-    "--try-again-question-mark-x-offset-vw": 11.99,
+    "--try-again-question-mark-x-offset-vw": 0.35,
     "--try-again-question-mark-x-offset-unit-is-px": 0,
-    "--try-again-question-mark-y-offset-vh": 122.23,
+    "--try-again-question-mark-y-offset-vh": 100.87,
     "--try-again-question-mark-y-offset-unit-is-px": 0,
     "--round-dock-x-offset-vw": 44.11,
     "--round-dock-x-offset-unit-is-px": 0,
@@ -984,14 +984,14 @@
     "landscape:Click Burst": true,
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
     "landscape:Start/Try Again Button": true,
-    "landscape:Rotation Animation": true,
+    "landscape:Rotation Animation": false,
     "landscape:Round Text": true,
     "landscape:Win/Lose Text": true,
-    "landscape:New Group": true,
+    "landscape:New Group (2)": false,
     "landscape:Target Count Display": true,
     "landscape:Speed Display (max ms between taps)": true,
     "landscape:Ms/Click Display": true,
-    "landscape:New Group (2)": false
+    "landscape:New Group": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1622,19 +1622,14 @@
         ]
       },
       {
-        "key": "landscape:New Group",
+        "key": "landscape:New Group (2)",
         "rowKeys": [
-          "selectLandscapeTryAgainTextValign",
-          "selectLandscapeTryAgainTextAlign",
-          "checkboxLandscapeTryAgainTextScaleWithBrowser",
-          "sliderLandscapeTryAgainTextFontSize",
-          "sliderLandscapeTryAgainTextFontSizeVw",
-          "sliderLandscapeTryAgainExtrusionDepth",
-          "sliderLandscapeTryAgainOverallBorderThickness",
-          "sliderLandscapeTryAgainTextLetterSpacing",
-          "sliderLandscapeTryAgainTextLineHeight",
-          "sliderLandscapeTryAgainTextX",
-          "sliderLandscapeTryAgainTextY"
+          "checkboxLandscapeResultLoseScaleWithBrowser",
+          "sliderLandscapeResultLoseFontSizeVw",
+          "sliderLandscapeResultLoseFontSize",
+          "sliderLandscapeResultLoseX",
+          "sliderLandscapeResultLoseY",
+          "sliderLandscapeResultLoseLetterSpacing"
         ]
       },
       {
@@ -1686,14 +1681,19 @@
         ]
       },
       {
-        "key": "landscape:New Group (2)",
+        "key": "landscape:New Group",
         "rowKeys": [
-          "checkboxLandscapeResultLoseScaleWithBrowser",
-          "sliderLandscapeResultLoseFontSizeVw",
-          "sliderLandscapeResultLoseFontSize",
-          "sliderLandscapeResultLoseX",
-          "sliderLandscapeResultLoseY",
-          "sliderLandscapeResultLoseLetterSpacing"
+          "selectLandscapeTryAgainTextValign",
+          "selectLandscapeTryAgainTextAlign",
+          "checkboxLandscapeTryAgainTextScaleWithBrowser",
+          "sliderLandscapeTryAgainTextFontSize",
+          "sliderLandscapeTryAgainTextFontSizeVw",
+          "sliderLandscapeTryAgainExtrusionDepth",
+          "sliderLandscapeTryAgainOverallBorderThickness",
+          "sliderLandscapeTryAgainTextLetterSpacing",
+          "sliderLandscapeTryAgainTextLineHeight",
+          "sliderLandscapeTryAgainTextX",
+          "sliderLandscapeTryAgainTextY"
         ]
       }
     ]
