@@ -6694,8 +6694,11 @@
         // Landscape's own dev-panel geometry/look - independent per-tab like
         // Desktop/Mobile already are (CLAUDE.md 12f: the panel's own size/
         // position is always independent per device). Seeded as a clone of
-        // Mobile's current tuning so nothing looks different until retuned.
-        const landscapeDevPanelStyle = structuredClone(mobileDevPanelStyle);
+        // Desktop's current tuning (changed from Mobile per direct request
+        // "let's try all settings pulled from desktop... be ready to change
+        // it back" - flip mobileDevPanelStyle back here to revert) so
+        // nothing looks different until retuned.
+        const landscapeDevPanelStyle = structuredClone(devPanelStyle);
 
         const DEV_PANEL_STYLE_VAR_MAP = {
             titleFontSize: '--dev-panel-title-font-size-px',
@@ -7330,9 +7333,12 @@
             speedOverallBorderThickness: 8,
             msPerClickOverallBorderThickness: 8,
         };
-        // Landscape's own extrusion vars - seeded as a clone of Mobile's
-        // current tuning, independently adjustable later.
-        const landscapeExtrusionVars = structuredClone(mobileExtrusionVars);
+        // Landscape's own extrusion vars - seeded as a clone of Desktop's
+        // current tuning (changed from Mobile per direct request "let's
+        // try all settings pulled from desktop... be ready to change it
+        // back" - flip mobileExtrusionVars back here to revert),
+        // independently adjustable later.
+        const landscapeExtrusionVars = structuredClone(extrusionVars);
 
         // Builds a stepped diagonal text-shadow stack (1 layer per px of
         // depth) - the CSS-native way to fake a solid pixel-block 3D
@@ -7769,17 +7775,22 @@
         // a real touchscreen phone in landscape gets its OWN tuned button/
         // text positions and sizes instead of either the (wrong) Desktop
         // profile or Mobile's portrait-tuned ones stretched sideways.
-        // Seeded as a clone of Mobile's current values so nothing looks
-        // different until these are independently retuned via the new
+        // Seeded as a clone of Desktop's current values (changed from
+        // Mobile per direct request "let's try all settings pulled from
+        // desktop... be ready to change it back" - flip mobileCssVars back
+        // here, and the saved settings JSON's landscape* keys back to
+        // their pre-switch values via git history, to revert) so nothing
+        // looks different until these are independently retuned via the
         // Landscape dev-panel tab.
-        const landscapeCssVars = structuredClone(mobileCssVars);
+        const landscapeCssVars = structuredClone(cssVars);
         const mobileColorVars = {
             '--button-color': '#ff3333',
             // No --bg-color here - the background color is a single shared
             // value (colorVars['--bg-color'] only), see applyActiveVars().
         };
-        // Landscape's own color vars - seeded as a clone of Mobile's.
-        const landscapeColorVars = structuredClone(mobileColorVars);
+        // Landscape's own color vars - seeded as a clone of Desktop's
+        // (changed from Mobile - flip mobileColorVars back here to revert).
+        const landscapeColorVars = structuredClone(colorVars);
         // mobileFontVars used to live here - removed along with fontVars,
         // see the comment near the desktop declaration above.
 
@@ -9322,7 +9333,9 @@
             rightFloorDeg: 20, rightCeilingDeg: 135,
             leftFloorDeg: 230, leftCeilingDeg: 340,
         };
-        const landscapeClickBurstTextInputs = structuredClone(mobileClickBurstTextInputs);
+        // Seeded from Desktop's (changed from Mobile - flip
+        // mobileClickBurstTextInputs back here to revert).
+        const landscapeClickBurstTextInputs = structuredClone(clickBurstTextInputs);
         const CLICK_BURST_TEXT_INPUT_MAP = {
             'inputClickBurstHideShadowIndexA': [clickBurstTextInputs, 'hideShadowIndexA'],
             'inputClickBurstHideShadowIndexB': [clickBurstTextInputs, 'hideShadowIndexB'],
@@ -10590,7 +10603,9 @@
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: 'ms\n/  \nCLICK',
             targetPrefix: null,
         };
-        const landscapeTextOverrides = structuredClone(mobileTextOverrides);
+        // Seeded from Desktop's (changed from Mobile - flip
+        // mobileTextOverrides back here to revert).
+        const landscapeTextOverrides = structuredClone(textOverrides);
         const TEXT_OVERRIDE_DEFAULTS = {
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
             winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / \nCLICK',
