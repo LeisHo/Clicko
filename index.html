@@ -11193,6 +11193,25 @@
                 if (i >= phases.length) {
                     gameTextNumber.textContent = roundNum;
                     gameTextNumber.style.visibility = 'visible';
+                    // When flashing with the round number, Target/Speed/
+                    // Ms-per-click's FINAL (new-round) values must appear in
+                    // the SAME paint as the round number - per explicit
+                    // request ("make them show up the same time as the
+                    // round number"). showTargetAndSpeed() is what actually
+                    // computes those final values and reveals them (it also
+                    // flips gameState.canTap true, starting gameplay), so it
+                    // has to run right here instead of after the extra
+                    // --round-post-blink-hold-ms wait below - that wait was
+                    // otherwise re-introducing exactly the stagger being
+                    // asked to remove (round number flips immediately, but
+                    // the other 3 stayed hidden at their last blink-phase
+                    // state for the full hold duration before finally
+                    // updating). Default (flag off) behavior is unchanged -
+                    // still holds before showTargetAndSpeed() runs.
+                    if (cssVars['--gameplay-result-flash-with-round']) {
+                        showTargetAndSpeed();
+                        return;
+                    }
                     // Holds the new number on screen for its own duration
                     // (--round-post-blink-hold-ms) before gameplay starts -
                     // per explicit request for a dedicated slider covering
