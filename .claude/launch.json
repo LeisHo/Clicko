@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "clicko-static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8934"],
+      "port": 8934
+    },
+    {
+      "name": "clicko-static-2",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8936"],
+      "port": 8936
+    }
+  ]
+}
