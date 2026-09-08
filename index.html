@@ -4017,77 +4017,22 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Game Mechanics">▼ Game Mechanics</div>
             <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Starting Time (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderStartingSpeed" min="50" max="800" step="10" value="500">
-                    <span class="dev-value" id="valueStartingSpeed">500</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Speed Decrease (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedDecrease" min="5" max="150" step="5" value="75">
-                    <span class="dev-value" id="valueSpeedDecrease">75</span>
-                </div>
                 <!-- Multiplier on Speed Decrease, compounded per round -
                      100% = no decay (every round drops the same flat
                      amount, the previous behavior); 50% means each round's
                      drop is half of the round before it (not half of the
                      base Speed Decrease value) - per explicit request/
                      clarification. -->
-                <div class="dev-row">
-                    <span class="dev-label">Speed Decrease Decay (%):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecay" min="0" max="100" step="1" value="75">
-                    <span class="dev-value" id="valueSpeedDecreaseDecay">75</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Speed Decrease Decay Tolerance (%):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedDecreaseDecayTolerance" min="0" max="100" step="1" value="5">
-                    <span class="dev-value" id="valueSpeedDecreaseDecayTolerance">5</span>
-                </div>
                 <!-- Rounds the round's speed time to the nearest multiple of
                      this value (e.g. 10 -> nearest 10ms) after the decay/
                      jitter calculation, applied before the 100ms floor so the
                      floor still holds exactly. 1 = no rounding (identity for
                      integer ms), reproducing prior behavior exactly. -->
-                <div class="dev-row">
-                    <span class="dev-label">Speed Time Rounding (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedTimeRounding" min="1" max="100" step="1" value="1">
-                    <span class="dev-value" id="valueSpeedTimeRounding">1</span>
-                </div>
                 <!-- Rounds the live countdown display (.speed-display, ticking
                      down every frame in tickRoundCountdown()) to the nearest
                      multiple of this value - separate from Speed Time
                      Rounding above, which rounds the per-round DECREASING
                      max-time value, not the live display. 1 = no rounding. -->
-                <div class="dev-row">
-                    <span class="dev-label">Countdown Display Rounding (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderCountdownRounding" min="1" max="100" step="1" value="100">
-                    <span class="dev-value" id="valueCountdownRounding">100</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Debounce Window (ms, same pos only):</span>
-                    <input type="range" class="dev-slider" id="sliderTapDebounce" min="0" max="400" step="10" value="50">
-                    <span class="dev-value" id="valueTapDebounce">50</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Round Text Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDuration" min="200" max="3000" step="50" value="1000">
-                    <span class="dev-value" id="valueRoundDuration">1000</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Result Text Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderResultDuration" min="200" max="3000" step="50" value="1000">
-                    <span class="dev-value" id="valueResultDuration">1000</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Target Floor - Round 1:</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFloorBase" min="0" max="30" step="1" value="2">
-                    <span class="dev-value" id="valueTargetFloorBase">2</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Target Floor - Increase Per Round:</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFloorIncrease" min="0" max="10" step="1" value="0">
-                    <span class="dev-value" id="valueTargetFloorIncrease">0</span>
-                </div>
                 <!-- Target Ceiling caps the same per-round random range Target
                      Floor starts - previously a fixed +29 above the floor
                      (Math.floor(Math.random()*29) + targetFloor); now the
@@ -4095,16 +4040,6 @@
                      floor already is. Default 30 (base) / 0 (increase)
                      reproduces the exact previous range (2 to 30 at round 1)
                      until tuned. -->
-                <div class="dev-row">
-                    <span class="dev-label">Target Ceiling - Round 1:</span>
-                    <input type="range" class="dev-slider" id="sliderTargetCeilingBase" min="0" max="60" step="1" value="30">
-                    <span class="dev-value" id="valueTargetCeilingBase">30</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Target Ceiling - Increase Per Round:</span>
-                    <input type="range" class="dev-slider" id="sliderTargetCeilingIncrease" min="0" max="10" step="1" value="0">
-                    <span class="dev-value" id="valueTargetCeilingIncrease">0</span>
-                </div>
             </div>
         </div>
 
@@ -9116,6 +9051,39 @@
             });
         }
         renderSpecialColorControls();
+
+        // Game Mechanics group (Desktop-only, single/shared - not device-
+        // split, see GAME_MECHANICS_SLIDER_IDS' own comment) - 13 sliders,
+        // same simple shape as the uniform controls, reusing
+        // buildUniformControlRow(). Read generically by ID via
+        // captureGameMechanics()/GAME_MECHANICS_SLIDER_IDS.forEach() -
+        // unaffected by how the row was created.
+        const GAME_MECHANICS_CONTROLS = [
+            { id: 'sliderStartingSpeed', type: 'slider', label: 'Starting Time (ms):', min: 50, max: 800, step: 10, value: 500 },
+            { id: 'sliderSpeedDecrease', type: 'slider', label: 'Speed Decrease (ms):', min: 5, max: 150, step: 5, value: 75 },
+            { id: 'sliderSpeedDecreaseDecay', type: 'slider', label: 'Speed Decrease Decay (%):', min: 0, max: 100, step: 1, value: 75 },
+            { id: 'sliderSpeedDecreaseDecayTolerance', type: 'slider', label: 'Speed Decrease Decay Tolerance (%):', min: 0, max: 100, step: 1, value: 5 },
+            { id: 'sliderSpeedTimeRounding', type: 'slider', label: 'Speed Time Rounding (ms):', min: 1, max: 100, step: 1, value: 1 },
+            { id: 'sliderCountdownRounding', type: 'slider', label: 'Countdown Display Rounding (ms):', min: 1, max: 100, step: 1, value: 100 },
+            { id: 'sliderTapDebounce', type: 'slider', label: 'Debounce Window (ms, same pos only):', min: 0, max: 400, step: 10, value: 50 },
+            { id: 'sliderRoundDuration', type: 'slider', label: 'Round Text Duration (ms):', min: 200, max: 3000, step: 50, value: 1000 },
+            { id: 'sliderResultDuration', type: 'slider', label: 'Result Text Duration (ms):', min: 200, max: 3000, step: 50, value: 1000 },
+            { id: 'sliderTargetFloorBase', type: 'slider', label: 'Target Floor - Round 1:', min: 0, max: 30, step: 1, value: 2 },
+            { id: 'sliderTargetFloorIncrease', type: 'slider', label: 'Target Floor - Increase Per Round:', min: 0, max: 10, step: 1, value: 0 },
+            { id: 'sliderTargetCeilingBase', type: 'slider', label: 'Target Ceiling - Round 1:', min: 0, max: 60, step: 1, value: 30 },
+            { id: 'sliderTargetCeilingIncrease', type: 'slider', label: 'Target Ceiling - Increase Per Round:', min: 0, max: 10, step: 1, value: 0 },
+        ];
+        function renderGameMechanicsControls() {
+            GAME_MECHANICS_CONTROLS.forEach(ctrl => {
+                const titleEl = document.querySelector('#desktopTabContent > .dev-section > .dev-section-title[data-sid="Game Mechanics"]');
+                if (!titleEl) {
+                    console.warn('renderGameMechanicsControls: group not found', ctrl.id);
+                    return;
+                }
+                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+            });
+        }
+        renderGameMechanicsControls();
 
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
