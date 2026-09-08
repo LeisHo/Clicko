@@ -13,15 +13,15 @@
     "--button-max-scale": 1,
     "--button-min-scale": 1.01,
     "--base-light-levels": 0.09,
-    "--base-light-levels-contrast": 1.56,
+    "--base-light-levels-contrast": 1.61,
     "--base-light-levels-floor": 0,
     "--base-light-levels-ceiling": 1,
     "--button-light-levels": 0.09,
-    "--button-light-levels-contrast": 1.56,
+    "--button-light-levels-contrast": 1.61,
     "--button-light-levels-floor": 0,
     "--button-light-levels-ceiling": 1,
-    "--base-saturation": 1,
-    "--button-saturation": 1,
+    "--base-saturation": 1.15,
+    "--button-saturation": 1.15,
     "--button-lose-contrast": 0.8,
     "--button-lose-lightness": 0.31,
     "--base-follows-result-color": 1,
@@ -178,10 +178,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 326,
+    "--dev-panel-width-px": 301,
     "--dev-panel-left-px": 67,
-    "--dev-panel-top-px": 121,
-    "--dev-panel-height-px": 439,
+    "--dev-panel-top-px": 279,
+    "--dev-panel-height-px": 281,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -983,7 +983,7 @@
   },
   "sectionCollapseState": {
     "desktop:Dev Panel": true,
-    "desktop:Main Button": true,
+    "desktop:Main Button": false,
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
@@ -1019,14 +1019,14 @@
     "landscape:Click Burst": true,
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
     "landscape:Start/Try Again Button": true,
+    "landscape:New Group": true,
     "landscape:Rotation Animation": false,
     "landscape:Round Text": true,
     "landscape:Win/Lose Text": true,
     "landscape:New Group (2)": false,
     "landscape:Target Count Display": true,
     "landscape:Speed Display (max ms between taps)": true,
-    "landscape:Ms/Click Display": true,
-    "landscape:New Group": true
+    "landscape:Ms/Click Display": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1596,9 +1596,9 @@
       {
         "key": "landscape:Main Button",
         "rowKeys": [
-          "sliderLandscapeButtonPressMs",
           "sliderLandscapeButtonDiameter",
           "sliderLandscapeButtonMinDiameter",
+          "sliderLandscapeButtonPressMs",
           "sliderLandscapeButtonHeight",
           "sliderLandscapeButtonPressIntensity",
           "sliderLandscapeButtonReleaseMs",
@@ -1661,6 +1661,23 @@
           "selectLandscapeStartTextValign",
           "sliderLandscapeTextX",
           "sliderLandscapeTextY"
+        ],
+        "subgroups": []
+      },
+      {
+        "key": "landscape:New Group",
+        "rowKeys": [
+          "selectLandscapeTryAgainTextValign",
+          "selectLandscapeTryAgainTextAlign",
+          "checkboxLandscapeTryAgainTextScaleWithBrowser",
+          "sliderLandscapeTryAgainTextFontSize",
+          "sliderLandscapeTryAgainTextFontSizeVw",
+          "sliderLandscapeTryAgainExtrusionDepth",
+          "sliderLandscapeTryAgainOverallBorderThickness",
+          "sliderLandscapeTryAgainTextLetterSpacing",
+          "sliderLandscapeTryAgainTextLineHeight",
+          "sliderLandscapeTryAgainTextX",
+          "sliderLandscapeTryAgainTextY"
         ],
         "subgroups": []
       },
@@ -1776,23 +1793,6 @@
           "selectLandscapeMsPerClickTextValign"
         ],
         "subgroups": []
-      },
-      {
-        "key": "landscape:New Group",
-        "rowKeys": [
-          "selectLandscapeTryAgainTextValign",
-          "selectLandscapeTryAgainTextAlign",
-          "checkboxLandscapeTryAgainTextScaleWithBrowser",
-          "sliderLandscapeTryAgainTextFontSize",
-          "sliderLandscapeTryAgainTextFontSizeVw",
-          "sliderLandscapeTryAgainExtrusionDepth",
-          "sliderLandscapeTryAgainOverallBorderThickness",
-          "sliderLandscapeTryAgainTextLetterSpacing",
-          "sliderLandscapeTryAgainTextLineHeight",
-          "sliderLandscapeTryAgainTextX",
-          "sliderLandscapeTryAgainTextY"
-        ],
-        "subgroups": []
       }
     ]
   },
@@ -1878,8 +1878,8 @@
     "colorDevPanelAccent": "Dev  Panel Accent Color:",
     "sliderDevButtonHeight": "Dev  Panel Buttons Height (px):"
   },
-  "baseColor": "#ff5252",
-  "buttonColor": "#ff5252",
+  "baseColor": "#fe6c6c",
+  "buttonColor": "#fe6c6c",
   "buttonWinColor": "#27b942",
   "buttonLoseColor": "#8b5050"
 }
