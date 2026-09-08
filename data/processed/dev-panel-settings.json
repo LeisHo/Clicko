@@ -594,7 +594,7 @@
     "gameplayWinBorderColor": "#007517",
     "gameplayLoseTextColor": "#ffffff",
     "gameplayLoseBorderColor": "#cbaaaa",
-    "resultDepth": 14,
+    "resultDepth": 12,
     "resultOverallBorderThickness": 5,
     "resultExtrusionAngle": 315,
     "resultOverallBorderColor": "#008a17",
