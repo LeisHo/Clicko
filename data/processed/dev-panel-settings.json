@@ -594,10 +594,10 @@
     "gameplayWinBorderColor": "#007517",
     "gameplayLoseTextColor": "#ffffff",
     "gameplayLoseBorderColor": "#cbaaaa",
-    "resultDepth": 21,
+    "resultDepth": 14,
     "resultOverallBorderThickness": 5,
-    "resultExtrusionAngle": 279,
-    "resultOverallBorderColor": "#401013",
+    "resultExtrusionAngle": 315,
+    "resultOverallBorderColor": "#008a17",
     "overallBorderEnabled": true,
     "overallBorderColor": "#24f031",
     "overallBorderThickness": 20,
@@ -984,16 +984,16 @@
   "sectionCollapseState": {
     "desktop:Dev Panel": true,
     "desktop:Main Button": true,
-    "desktop:New Group (3)": false,
+    "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:Start/Try Again Button": true,
-    "desktop:New Group": false,
-    "desktop:Rotation Animation": false,
-    "desktop:Round Text": true,
-    "desktop:Win/Lose Text": true,
+    "desktop:Win/Lose Text": false,
     "desktop:New Group (2)": true,
+    "desktop:New Group": true,
+    "desktop:Rotation Animation": true,
+    "desktop:Round Text": true,
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
@@ -1168,6 +1168,46 @@
         "subgroups": []
       },
       {
+        "key": "desktop:Win/Lose Text",
+        "rowKeys": [
+          "colorResultOverallBorder",
+          "colorGameplayWinText",
+          "colorGameplayWinBorder",
+          "checkboxGameplayResultFlashWithRound",
+          "sliderResultWinLetterSpacing",
+          "sliderResultExtrusionAngle",
+          "checkboxResultWinScaleWithBrowser",
+          "sliderResultWinFontSizeVw",
+          "sliderResultWinFontSize",
+          "sliderResultExtrusionDepth",
+          "sliderResultOverallBorderThickness",
+          "sliderResultWinX",
+          "sliderResultWinY",
+          "sliderResultLineHeight",
+          "selectResultTextAlign",
+          "selectResultTextValign",
+          "colorResultWinFill",
+          "colorResultWinBorder"
+        ],
+        "subgroups": []
+      },
+      {
+        "key": "desktop:New Group (2)",
+        "rowKeys": [
+          "checkboxResultLoseScaleWithBrowser",
+          "sliderResultLoseFontSizeVw",
+          "sliderResultLoseFontSize",
+          "colorGameplayLoseText",
+          "colorGameplayLoseBorder",
+          "sliderResultLoseX",
+          "sliderResultLoseY",
+          "sliderResultLoseLetterSpacing",
+          "colorResultLoseFill",
+          "colorResultLoseBorder"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "desktop:New Group",
         "rowKeys": [
           "selectTryAgainTextValign",
@@ -1235,45 +1275,6 @@
           "sliderRoundBlink3Hide",
           "sliderRoundBlink3Show",
           "sliderRoundPostBlinkHold"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "desktop:Win/Lose Text",
-        "rowKeys": [
-          "colorGameplayWinText",
-          "colorGameplayWinBorder",
-          "checkboxGameplayResultFlashWithRound",
-          "sliderResultWinLetterSpacing",
-          "sliderResultExtrusionAngle",
-          "checkboxResultWinScaleWithBrowser",
-          "sliderResultWinFontSizeVw",
-          "sliderResultWinFontSize",
-          "sliderResultExtrusionDepth",
-          "sliderResultOverallBorderThickness",
-          "sliderResultWinX",
-          "sliderResultWinY",
-          "sliderResultLineHeight",
-          "selectResultTextAlign",
-          "selectResultTextValign",
-          "colorResultWinFill",
-          "colorResultWinBorder"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "desktop:New Group (2)",
-        "rowKeys": [
-          "checkboxResultLoseScaleWithBrowser",
-          "sliderResultLoseFontSizeVw",
-          "sliderResultLoseFontSize",
-          "colorGameplayLoseText",
-          "colorGameplayLoseBorder",
-          "sliderResultLoseX",
-          "sliderResultLoseY",
-          "sliderResultLoseLetterSpacing",
-          "colorResultLoseFill",
-          "colorResultLoseBorder"
         ],
         "subgroups": []
       },
