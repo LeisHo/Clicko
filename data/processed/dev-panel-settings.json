@@ -12,9 +12,9 @@
     "--button-press-ms": 0,
     "--button-max-scale": 1,
     "--button-min-scale": 1.01,
-    "--base-light-levels": 0,
-    "--base-light-levels-contrast": 1,
-    "--base-light-levels-floor": 0.19,
+    "--base-light-levels": -0.06,
+    "--base-light-levels-contrast": 1.24,
+    "--base-light-levels-floor": 0,
     "--base-light-levels-ceiling": 1,
     "--button-light-levels": -0.06,
     "--button-light-levels-contrast": 1.24,
@@ -971,7 +971,7 @@
   },
   "sectionCollapseState": {
     "desktop:Dev Panel": true,
-    "desktop:Main Button": false,
+    "desktop:Main Button": true,
     "desktop:New Group (3)": false,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
@@ -1043,7 +1043,8 @@
           "colorDevPanelNonTitleText",
           "colorDevPanelAccent",
           "sliderDevButtonHeight"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Main Button",
@@ -1068,7 +1069,8 @@
           "sliderButtonReleaseMs",
           "sliderButtonX",
           "sliderButtonY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:New Group (3)",
@@ -1081,7 +1083,8 @@
           "sliderBaseLightLevelCeiling",
           "sliderBaseLightLevelFloor",
           "sliderBaseLightLevelsContrast"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Shadow",
@@ -1094,7 +1097,8 @@
           "sliderShadowElongationIntensity",
           "sliderShadowElongationAngle",
           "sliderShadowRotate"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Click Burst",
@@ -1115,14 +1119,16 @@
           "inputClickBurstRightCeilingDeg",
           "inputClickBurstLeftFloorDeg",
           "inputClickBurstLeftCeilingDeg"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)",
         "rowKeys": [
           "sliderExtrusionFontTrimAdjust",
           "select8BitFont"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Start/Try Again Button",
@@ -1140,7 +1146,8 @@
           "colorRoundOverallBorder",
           "sliderTextX",
           "sliderTextY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:New Group",
@@ -1158,7 +1165,8 @@
           "colorTryAgainOverallBorder",
           "sliderTryAgainTextX",
           "sliderTryAgainTextY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Rotation Animation",
@@ -1182,7 +1190,8 @@
           "selectTryAgainTweening",
           "sliderTryAgainRotateMinWidth",
           "checkboxTryAgainRotateExtrusionMatchesGlyph"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Round Text",
@@ -1208,7 +1217,8 @@
           "sliderRoundBlink3Hide",
           "sliderRoundBlink3Show",
           "sliderRoundPostBlinkHold"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Win/Lose Text",
@@ -1230,7 +1240,8 @@
           "selectResultTextValign",
           "colorResultWinFill",
           "colorResultWinBorder"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:New Group (2)",
@@ -1245,7 +1256,8 @@
           "sliderResultLoseLetterSpacing",
           "colorResultLoseFill",
           "colorResultLoseBorder"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Target Count Display",
@@ -1263,7 +1275,8 @@
           "sliderTargetLineHeight",
           "selectTargetTextAlign",
           "selectTargetTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Speed Display (max ms between taps)",
@@ -1281,7 +1294,8 @@
           "sliderSpeedY",
           "selectSpeedTextAlign",
           "selectSpeedTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Ms/Click Display",
@@ -1299,7 +1313,8 @@
           "sliderMsPerClickY",
           "selectMsPerClickTextAlign",
           "selectMsPerClickTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Game Mechanics",
@@ -1317,13 +1332,15 @@
           "sliderTargetFloorIncrease",
           "sliderTargetCeilingBase",
           "sliderTargetCeilingIncrease"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:Background",
         "rowKeys": [
           "colorBg"
-        ]
+        ],
+        "subgroups": []
       }
     ],
     "mobileTabContent": [
@@ -1337,7 +1354,8 @@
           "sliderMobileDevGroupTitleFontSize",
           "sliderMobileDevSettingTitleFontSize",
           "sliderMobileDevButtonHeight"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Main Button",
@@ -1352,7 +1370,8 @@
           "sliderMobileButtonReleaseMs",
           "sliderMobileButtonX",
           "sliderMobileButtonY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Shadow",
@@ -1365,7 +1384,8 @@
           "sliderMobileShadowElongationIntensity",
           "sliderMobileShadowElongationAngle",
           "sliderMobileShadowRotate"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Click Burst",
@@ -1385,11 +1405,13 @@
           "inputMobileClickBurstRightCeilingDeg",
           "inputMobileClickBurstLeftFloorDeg",
           "inputMobileClickBurstLeftCeilingDeg"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
-        "rowKeys": []
+        "rowKeys": [],
+        "subgroups": []
       },
       {
         "key": "mobile:Start/Try Again Button",
@@ -1405,7 +1427,8 @@
           "selectMobileStartTextValign",
           "sliderMobileTextX",
           "sliderMobileTextY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Rotation Animation",
@@ -1419,7 +1442,8 @@
           "sliderMobileTryAgainQuestionMarkOverallBorderThickness",
           "sliderMobileTryAgainQuestionMarkX",
           "sliderMobileTryAgainQuestionMarkY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Round Text",
@@ -1435,7 +1459,8 @@
           "sliderMobileRoundDockY",
           "selectMobileRoundTextAlign",
           "selectMobileRoundTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Win/Lose Text",
@@ -1452,7 +1477,8 @@
           "sliderMobileResultLineHeight",
           "selectMobileResultTextAlign",
           "selectMobileResultTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:New Group (2)",
@@ -1460,7 +1486,8 @@
           "sliderMobileResultLoseFontSize",
           "sliderMobileResultLoseX",
           "sliderMobileResultLoseY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Target Count Display",
@@ -1476,7 +1503,8 @@
           "sliderMobileTargetLineHeight",
           "selectMobileTargetTextAlign",
           "selectMobileTargetTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Speed Display (max ms between taps)",
@@ -1492,7 +1520,8 @@
           "sliderMobileSpeedY",
           "selectMobileSpeedTextAlign",
           "selectMobileSpeedTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:Ms/Click Display",
@@ -1508,7 +1537,8 @@
           "sliderMobileMsPerClickY",
           "selectMobileMsPerClickTextAlign",
           "selectMobileMsPerClickTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "mobile:New Group",
@@ -1527,7 +1557,8 @@
           "checkboxMobileResultLoseScaleWithBrowser",
           "sliderMobileResultLoseFontSizeVw",
           "sliderMobileResultLoseLetterSpacing"
-        ]
+        ],
+        "subgroups": []
       }
     ],
     "landscapeTabContent": [
@@ -1541,7 +1572,8 @@
           "sliderLandscapeDevGroupTitleFontSize",
           "sliderLandscapeDevSettingTitleFontSize",
           "sliderLandscapeDevButtonHeight"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Main Button",
@@ -1554,7 +1586,8 @@
           "sliderLandscapeButtonReleaseMs",
           "sliderLandscapeButtonX",
           "sliderLandscapeButtonY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Shadow",
@@ -1567,7 +1600,8 @@
           "sliderLandscapeShadowElongationIntensity",
           "sliderLandscapeShadowElongationAngle",
           "sliderLandscapeShadowRotate"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Click Burst",
@@ -1587,11 +1621,13 @@
           "inputLandscapeClickBurstRightCeilingDeg",
           "inputLandscapeClickBurstLeftFloorDeg",
           "inputLandscapeClickBurstLeftCeilingDeg"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)",
-        "rowKeys": []
+        "rowKeys": [],
+        "subgroups": []
       },
       {
         "key": "landscape:Start/Try Again Button",
@@ -1607,7 +1643,8 @@
           "selectLandscapeStartTextValign",
           "sliderLandscapeTextX",
           "sliderLandscapeTextY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Rotation Animation",
@@ -1621,7 +1658,8 @@
           "sliderLandscapeTryAgainQuestionMarkOverallBorderThickness",
           "sliderLandscapeTryAgainQuestionMarkX",
           "sliderLandscapeTryAgainQuestionMarkY"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Round Text",
@@ -1637,7 +1675,8 @@
           "sliderLandscapeRoundDockY",
           "selectLandscapeRoundTextAlign",
           "selectLandscapeRoundTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Win/Lose Text",
@@ -1654,7 +1693,8 @@
           "sliderLandscapeResultLineHeight",
           "selectLandscapeResultTextAlign",
           "selectLandscapeResultTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:New Group (2)",
@@ -1665,7 +1705,8 @@
           "sliderLandscapeResultLoseX",
           "sliderLandscapeResultLoseY",
           "sliderLandscapeResultLoseLetterSpacing"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Target Count Display",
@@ -1681,7 +1722,8 @@
           "sliderLandscapeTargetLineHeight",
           "selectLandscapeTargetTextAlign",
           "selectLandscapeTargetTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Speed Display (max ms between taps)",
@@ -1697,7 +1739,8 @@
           "sliderLandscapeSpeedY",
           "selectLandscapeSpeedTextAlign",
           "selectLandscapeSpeedTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:Ms/Click Display",
@@ -1713,7 +1756,8 @@
           "sliderLandscapeMsPerClickY",
           "selectLandscapeMsPerClickTextAlign",
           "selectLandscapeMsPerClickTextValign"
-        ]
+        ],
+        "subgroups": []
       },
       {
         "key": "landscape:New Group",
@@ -1729,7 +1773,8 @@
           "sliderLandscapeTryAgainTextLineHeight",
           "sliderLandscapeTryAgainTextX",
           "sliderLandscapeTryAgainTextY"
-        ]
+        ],
+        "subgroups": []
       }
     ]
   },
