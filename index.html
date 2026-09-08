@@ -3663,7 +3663,7 @@
                      comment for how the class this toggles is consumed. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxBaseFollowsResultColor" onchange="document.querySelector('.game-container').classList.toggle('base-follows-result-color', this.checked); cssVars['--base-follows-result-color'] = this.checked ? 1 : 0;">
+                        <input type="checkbox" id="checkboxBaseFollowsResultColor" onchange="document.querySelector('.game-container').classList.toggle('base-follows-result-color', this.checked); cssVars['--base-follows-result-color'] = this.checked ? 1 : 0; if (resultText.classList.contains('result-lose')) applyGameplayResultColor('lose');">
                         <span class="dev-label" style="min-width:auto;">Base Follows Win/Lose Color</span>
                     </label>
                 </div>
@@ -7699,6 +7699,12 @@
                 // explicit revert here (applyExtrusionStyles() above only
                 // covers extrusion/color, not this SVG filter).
                 applyLightLevels(cssVars['--button-light-levels'], cssVars['--button-light-levels-contrast'], cssVars['--button-light-levels-floor'], cssVars['--button-light-levels-ceiling'], 'buttonGrayscaleTint');
+                // Same revert for the base filter - harmless/a no-op if
+                // --base-follows-result-color was never on (the base's own
+                // filter was never touched in that case, so this just
+                // reapplies the same normal values it already had), but
+                // required when it WAS on (see the 'lose' branch below).
+                applyLightLevels(cssVars['--base-light-levels'], cssVars['--base-light-levels-contrast'], cssVars['--base-light-levels-floor'], cssVars['--base-light-levels-ceiling'], 'baseGrayscaleTint');
                 return;
             }
             const root = document.documentElement.style;
@@ -7717,6 +7723,19 @@
             // sliders actually asked for.
             if (state === 'lose') {
                 applyLightLevels(cssVars['--button-lose-lightness'], cssVars['--button-lose-contrast'], cssVars['--button-light-levels-floor'], cssVars['--button-light-levels-ceiling'], 'buttonGrayscaleTint');
+                // Base Follows Win/Lose Color (per direct follow-up request,
+                // "that should include the Button Lose Contrasts and Button
+                // Lose Lightnss") - when that checkbox is on, the SAME Lose
+                // override also drives the base's own filter, not just the
+                // button's. Reuses the button's own Lose Contrast/Lightness
+                // sliders (no separate Base-specific pair - "include" means
+                // apply the same values, not add new ones), but the BASE's
+                // own Floor/Ceiling, matching how the button branch above
+                // uses the button's own Floor/Ceiling rather than the
+                // Lose-specific pair not existing for that either.
+                if (cssVars['--base-follows-result-color']) {
+                    applyLightLevels(cssVars['--button-lose-lightness'], cssVars['--button-lose-contrast'], cssVars['--base-light-levels-floor'], cssVars['--base-light-levels-ceiling'], 'baseGrayscaleTint');
+                }
             }
             root.setProperty('--target-fill-color', textColor);
             root.setProperty('--speed-fill-color', textColor);
