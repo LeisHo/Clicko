@@ -2253,6 +2253,24 @@
             display: block;
             margin-left: 5px;
         }
+        /* Nested group styling - per direct request ("make it so that i
+           can have setting groups within setting groups"), capped at one
+           level. Pure structural selector (a .dev-section whose direct
+           parent is a .dev-section-content, i.e. it's inside ANOTHER
+           group rather than sitting directly under a tab) - no JS class-
+           toggling needed to keep this in sync as groups get dragged in
+           and out of nesting; the DOM structure itself already says
+           whether a group is nested, so the CSS just reads that directly.
+           A left border + slightly smaller title is enough to read as
+           "inside another group" at a glance without a heavy visual
+           treatment. */
+        .dev-section-content > .dev-section {
+            padding-left: 10px;
+            border-left: 2px solid rgba(0, 255, 255, 0.25);
+        }
+        .dev-section-content > .dev-section > .dev-section-title {
+            font-size: calc(var(--dev-group-title-font-size-px) * 0.85px);
+        }
         /* An empty group (a freshly added custom one, or every existing
            setting dragged out of it) collapses to 0 height with nothing to
            drop into, drag-target-wise - a real, generic-CSS-based problem
@@ -9897,7 +9915,22 @@
                     // and Mobile settings are different elements entirely -
                     // crossing between tabs would be meaningless).
                     const tabRoot = dragging.closest('#desktopTabContent, #mobileTabContent, #landscapeTabContent');
-                    const containers = Array.from(tabRoot.querySelectorAll(crossContainerSelector));
+                    // crossContainerSelector is normally a plain CSS
+                    // selector string (querySelectorAll'd against tabRoot,
+                    // as before - the settings-row case). Groups-within-
+                    // groups (see setupDragReorder's own group-drag call
+                    // site) needs a container list that also includes
+                    // tabRoot ITSELF (to allow un-nesting back to the top
+                    // level) - querySelectorAll can never return its own
+                    // context node, only descendants, so a plain selector
+                    // string can't express "this element, plus some of its
+                    // descendants" in one query. Accepting a FUNCTION here
+                    // instead, for that one case, sidesteps that limitation
+                    // cleanly rather than bolting a special case onto the
+                    // string path.
+                    const containers = typeof crossContainerSelector === 'function'
+                        ? crossContainerSelector(tabRoot, dragging)
+                        : Array.from(tabRoot.querySelectorAll(crossContainerSelector));
                     let targetContainer = containers.find(c => {
                         const r = c.getBoundingClientRect();
                         return e.clientY >= r.top && e.clientY <= r.bottom;
@@ -9980,7 +10013,30 @@
             // falls back to live text for any title that somehow lacks it
             // (shouldn't happen, but keeps this from ever mis-keying instead
             // of just degrading to the pre-data-sid behavior).
-            return tab + ':' + (titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, ''));
+            const ownName = titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, '');
+            // Groups within groups (one level, per direct request "make it
+            // so that i can have setting groups within setting groups") -
+            // a NESTED group's title sits inside its PARENT's own
+            // .dev-section-content (titleEl's PARENT is its own
+            // .dev-section, a sibling of that content div, not a
+            // descendant of it - so .closest('.dev-section-content')
+            // starting from titleEl correctly climbs PAST titleEl's own
+            // section to find an ANCESTOR content div only when nested;
+            // returns null for a genuine top-level title, which has no
+            // such ancestor). Prefixing the parent's own key (recursively -
+            // harmless no-op for the always-1-level-deep case this project
+            // actually builds, but correct at any depth) guarantees a
+            // subgroup can never collide in key with a same-named
+            // TOP-LEVEL group or a same-named subgroup under a DIFFERENT
+            // parent - addDevGroup()'s existing name-uniqueness check
+            // (scoped to top-level siblings only) stays correct as a
+            // result, with no separate fix needed for subgroups.
+            const parentContent = titleEl.closest('.dev-section-content');
+            if (parentContent) {
+                const parentTitle = parentContent.parentElement.querySelector(':scope > .dev-section-title');
+                if (parentTitle) return getSectionKey(parentTitle) + '>' + ownName;
+            }
+            return tab + ':' + ownName;
         }
         function captureSectionCollapseState() {
             const state = {};
@@ -10018,20 +10074,33 @@
         // per CLAUDE.md Section 12e ("that order is saved state"). Captured/
         // applied together with collapse state in one combined object so
         // Copy/Save/Load only need one field for all of §12e's layout state.
+        // Captures one group's own direct rowKeys, plus (one level deep
+        // only) any subgroups it directly contains - per direct request
+        // ("make it so that i can have setting groups within setting
+        // groups"). ALL queries here are :scope-scoped (direct children
+        // only) - a plain descendant selector like '.dev-section-content
+        // .dev-row' would incorrectly also match rows belonging to a
+        // NESTED subgroup's own separate content div (they're still
+        // descendants of this section, just one level further in), double-
+        // counting/misattributing them to the wrong group.
+        function captureSection(sec) {
+            const titleEl = sec.querySelector(':scope > .dev-section-title');
+            const content = sec.querySelector(':scope > .dev-section-content');
+            const rows = Array.from(content.querySelectorAll(':scope > .dev-row'));
+            const subSections = Array.from(content.querySelectorAll(':scope > .dev-section'));
+            return {
+                key: getSectionKey(titleEl),
+                rowKeys: rows.map((row, i) => getRowKey(row, i)),
+                subgroups: subSections.map(sub => captureSection(sub)),
+            };
+        }
         function captureSectionOrder() {
             const result = {};
             ['desktopTabContent', 'mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
                 const tabEl = document.getElementById(tabId);
                 if (!tabEl) return;
                 const sections = Array.from(tabEl.querySelectorAll(':scope > .dev-section'));
-                result[tabId] = sections.map(sec => {
-                    const titleEl = sec.querySelector('.dev-section-title');
-                    const rows = Array.from(sec.querySelectorAll('.dev-section-content > .dev-row'));
-                    return {
-                        key: getSectionKey(titleEl),
-                        rowKeys: rows.map((row, i) => getRowKey(row, i)),
-                    };
-                });
+                result[tabId] = sections.map(sec => captureSection(sec));
             });
             return result;
         }
@@ -10041,9 +10110,14 @@
                 const tabEl = document.getElementById(tabId);
                 const savedSections = order[tabId];
                 if (!tabEl || !savedSections) return;
+                // ALL groups anywhere in this tab (top-level AND nested,
+                // one level - see captureSection()'s own comment), not just
+                // tabEl's direct children - an EXISTING nested group
+                // (created by a previous drag-to-nest + save) needs to be
+                // FOUND here too, not recreated as a duplicate alongside it.
                 const sectionsByKey = {};
-                tabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
-                    sectionsByKey[getSectionKey(sec.querySelector('.dev-section-title'))] = sec;
+                tabEl.querySelectorAll('.dev-section').forEach(sec => {
+                    sectionsByKey[getSectionKey(sec.querySelector(':scope > .dev-section-title'))] = sec;
                 });
                 // Built ONCE, across every row in the whole tab regardless of
                 // which section currently contains it - not per-section, the
@@ -10060,26 +10134,38 @@
                 tabEl.querySelectorAll('.dev-section-content > .dev-row').forEach((row, i) => {
                     rowsByKey[getRowKey(row, i)] = row;
                 });
-                savedSections.forEach(({ key, rowKeys }) => {
-                    let sec = sectionsByKey[key];
+                // Places one saved group (and, one level deep, its own
+                // subgroups) into parentContainer - either tabEl itself
+                // (top-level) or another group's own .dev-section-content
+                // (nested). Recursive so the same logic builds both levels,
+                // though only ever actually called 2 deep (savedSections
+                // directly, then once more for each group's own subgroups
+                // array) - matches captureSection()'s own 1-level cap.
+                function placeSection(savedSec, parentContainer) {
+                    let sec = sectionsByKey[savedSec.key];
                     if (!sec) {
                         // Not a built-in group missing by mistake - this is
                         // how a CUSTOM group (see addDevGroup()) survives a
                         // reload: it doesn't exist in this page's static
                         // HTML at all, only in the saved order, so it has to
                         // be created fresh here rather than skipped. name is
-                        // key minus its "tab:" prefix (see getSectionKey()).
-                        const name = key.replace(/^(desktop|mobile|landscape):/, '');
+                        // the LAST segment of the key (after any '>' parent
+                        // prefixes and the leading "tab:" prefix - see
+                        // getSectionKey()'s own comment on how a subgroup's
+                        // key is built).
+                        const name = savedSec.key.split('>').pop().replace(/^(desktop|mobile|landscape):/, '');
                         sec = createDevGroupElement(name);
-                        sectionsByKey[key] = sec;
+                        sectionsByKey[savedSec.key] = sec;
                     }
-                    tabEl.appendChild(sec); // moves to the end, in saved order -> reproduces the full saved sequence
-                    const content = sec.querySelector('.dev-section-content');
-                    (rowKeys || []).forEach(rowKey => {
+                    parentContainer.appendChild(sec); // moves to the end, in saved order -> reproduces the full saved sequence
+                    const content = sec.querySelector(':scope > .dev-section-content');
+                    (savedSec.rowKeys || []).forEach(rowKey => {
                         const row = rowsByKey[rowKey];
                         if (row) content.appendChild(row);
                     });
-                });
+                    (savedSec.subgroups || []).forEach(sub => placeSection(sub, content));
+                }
+                savedSections.forEach(savedSec => placeSection(savedSec, tabEl));
             });
         }
 
@@ -10128,6 +10214,26 @@
         // DOM container id ('mobileTabContent'/'landscapeTabContent'),
         // tabPrefix is the id-infix ('Mobile'/'Landscape') and key-prefix
         // (lowercased, e.g. 'mobile:'/'landscape:') this tab's rows/groups use.
+        // KNOWN LIMITATION, deliberately not fixed here: this function
+        // predates groups-within-groups (see captureSection()/
+        // applySectionOrder()'s own comments) and does not look at a
+        // Desktop group's own `subgroups` at all - a subgroup's rows are
+        // still correctly excluded from its PARENT's own rowKeys (that fix
+        // lives in captureSection() itself, upstream of this function), but
+        // the subgroup itself, and its rows, are simply never mirrored into
+        // Mobile/Landscape by this pass. This is a safe, non-destructive
+        // gap, not a corruption risk - anything this function doesn't
+        // explicitly reference is left exactly where it already sits in
+        // the DOM (see applySectionOrder()'s own "only moves what's
+        // listed" behavior), so an existing Mobile/Landscape nested group
+        // (built independently on that tab) is untouched, not scrambled,
+        // by a Desktop-side sync that doesn't know about it. Left this way
+        // deliberately: this function already has a documented history of
+        // subtle bugs (see the stripParen()/"New Group (2)" collision
+        // comment below) from a much simpler flat structure - extending it
+        // to correctly and safely mirror nesting too would need its own
+        // dedicated pass and testing, not a rushed addition alongside the
+        // rest of this feature.
         function syncTabOrderToDesktop(tabContentId, tabPrefix) {
             const keyPrefix = tabPrefix.toLowerCase() + ':';
             const desktopOrder = captureSectionOrder().desktopTabContent;
@@ -13614,7 +13720,22 @@
         setupClickBurstTextInputs();
         // No onDrop action needed - the DOM order itself IS the live state;
         // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
-        setupDragReorder('.dev-section-title', '.dev-section', null);
+        // Groups within groups (one level) - per direct request ("make it
+        // so that i can have setting groups within setting groups").
+        // Eligible drop targets: tabRoot itself (drag a nested group back
+        // out to the top level) plus every TOP-LEVEL group's own content
+        // (nest a group INTO it) - deliberately excludes any group's
+        // content that's itself already nested (capping at one level: a
+        // subgroup's own .dev-section-content is never offered as a
+        // nesting target for another drag) and excludes the DRAGGED
+        // group's own content (can't nest a group inside itself). See
+        // setupDragReorder's own comment on why this needs a function
+        // instead of the plain-string selector the settings-row call uses.
+        setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => [
+            tabRoot,
+            ...Array.from(tabRoot.querySelectorAll(':scope > .dev-section > .dev-section-content'))
+                .filter(content => content.parentElement !== dragging),
+        ]);
         setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, '.dev-section-content');
         makeDevValuesEditable();
         resolvePositionSentinels();
