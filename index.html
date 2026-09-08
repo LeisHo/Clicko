@@ -9756,8 +9756,18 @@
 
         function addDevGroup(tab) {
             const tabEl = document.getElementById(tab + 'TabContent');
+            // Considers EVERY group in the tab, not just top-level siblings
+            // - now that groups-within-groups exists (see getSectionKey()'s
+            // own comment on why group KEYS stay flat/unprefixed rather
+            // than depending on current nesting), a new top-level group's
+            // name still needs to be unique against an EXISTING NESTED
+            // group's name too, or the two would collide in captured
+            // sectionOrder despite being genuinely different groups. A new
+            // group created here is always placed at the top level
+            // regardless (drag it into another group afterward to nest
+            // it) - this only widens which EXISTING names get checked.
             const existingNames = new Set(
-                Array.from(tabEl.querySelectorAll(':scope > .dev-section > .dev-section-title'))
+                Array.from(tabEl.querySelectorAll('.dev-section > .dev-section-title'))
                     .map(t => t.dataset.sid)
             );
             let name = 'New Group';
@@ -10013,30 +10023,25 @@
             // falls back to live text for any title that somehow lacks it
             // (shouldn't happen, but keeps this from ever mis-keying instead
             // of just degrading to the pre-data-sid behavior).
-            const ownName = titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, '');
-            // Groups within groups (one level, per direct request "make it
-            // so that i can have setting groups within setting groups") -
-            // a NESTED group's title sits inside its PARENT's own
-            // .dev-section-content (titleEl's PARENT is its own
-            // .dev-section, a sibling of that content div, not a
-            // descendant of it - so .closest('.dev-section-content')
-            // starting from titleEl correctly climbs PAST titleEl's own
-            // section to find an ANCESTOR content div only when nested;
-            // returns null for a genuine top-level title, which has no
-            // such ancestor). Prefixing the parent's own key (recursively -
-            // harmless no-op for the always-1-level-deep case this project
-            // actually builds, but correct at any depth) guarantees a
-            // subgroup can never collide in key with a same-named
-            // TOP-LEVEL group or a same-named subgroup under a DIFFERENT
-            // parent - addDevGroup()'s existing name-uniqueness check
-            // (scoped to top-level siblings only) stays correct as a
-            // result, with no separate fix needed for subgroups.
-            const parentContent = titleEl.closest('.dev-section-content');
-            if (parentContent) {
-                const parentTitle = parentContent.parentElement.querySelector(':scope > .dev-section-title');
-                if (parentTitle) return getSectionKey(parentTitle) + '>' + ownName;
-            }
-            return tab + ':' + ownName;
+            // Deliberately NOT parent-prefixed for a nested group, despite
+            // groups-within-groups now existing (see captureSection()'s own
+            // comment) - an EARLIER version of this function prefixed a
+            // subgroup's key with its CURRENT parent's key, which is
+            // unstable: applySectionOrder() looks up a group by the key
+            // ITS SAVED ENTRY was captured with, but on a fresh load (or
+            // right after un-nesting) the group is CURRENTLY sitting
+            // top-level in the DOM, so calling this function on it right
+            // then computes the UNPREFIXED key instead - the two calls
+            // disagree, the lookup misses, and applySectionOrder silently
+            // creates a DUPLICATE group instead of moving the real one.
+            // Caught via a direct capture->scramble->apply round-trip test
+            // before shipping, not assumed safe. Kept simple/stable
+            // instead: same tab+name key regardless of current nesting.
+            // The resulting (rare) collision risk - a subgroup and some
+            // other group sharing a name - is closed on the CREATION side
+            // instead, in addDevGroup()'s own uniqueness check, which now
+            // considers every group in the tab, not just top-level ones.
+            return tab + ':' + (titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, ''));
         }
         function captureSectionCollapseState() {
             const state = {};
