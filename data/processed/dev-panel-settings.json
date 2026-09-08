@@ -27,7 +27,7 @@
     "--base-follows-result-color": 1,
     "--base-blend-mode": "color",
     "--button-blend-mode": "color",
-    "--thin-base-enabled": 1,
+    "--thin-base-enabled": 0,
     "--hide-button-enabled": 0,
     "--hide-base-enabled": 0,
     "--hide-backing-svg-enabled": 0,
@@ -984,7 +984,7 @@
   "sectionCollapseState": {
     "desktop:Dev Panel": true,
     "desktop:Main Button": true,
-    "desktop:New Group (3)": true,
+    "desktop:New Group (3)": false,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
