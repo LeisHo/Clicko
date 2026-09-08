@@ -5584,7 +5584,23 @@
         // front-to-back band on all sides, which is what "wraps the text and
         // the extrusion combined" needs (a ring only at the front and back
         // faces would leave the diagonal sides unbordered).
-        function buildBorderRingShadow(depthPx, thicknessPx, borderColor) {
+        // angleDeg (added alongside Win/Lose text's own adjustable Extrusion
+        // Angle): the ring used to always sweep along the fixed classic
+        // diagonal (step i added directly to both x and y, i.e. the same
+        // as angleDeg=45) regardless of what angle the extrusion trail
+        // itself was using - harmless while every extruded element shared
+        // one fixed direction, but once Win/Lose text got its own
+        // adjustable angle, the ring kept sweeping down-right at every
+        // depth while the trail correctly rotated to the new angle,
+        // producing 2 differently-angled effects layered on the same
+        // glyph (confirmed live: isolating each in a side-by-side test
+        // element showed the ring's own accumulated sweep forming a solid
+        // down-right blob completely independent of the trail's actual
+        // direction). Mirrors buildExtrusionShadow's own angleDeg==null||
+        // ===45 special case exactly, so every OTHER element (which never
+        // passes a custom angle) renders byte-for-byte the same numbers
+        // as before - only Win/Lose text's own ring direction changes.
+        function buildBorderRingShadow(depthPx, thicknessPx, borderColor, angleDeg) {
             const steps = Math.round(depthPx);
             const thickness = Math.round(thicknessPx);
             if (thickness <= 0) return '';
@@ -5592,10 +5608,16 @@
                 [thickness, 0], [-thickness, 0], [0, thickness], [0, -thickness],
                 [thickness, thickness], [thickness, -thickness], [-thickness, thickness], [-thickness, -thickness],
             ];
+            let stepX = 1, stepY = 1;
+            if (angleDeg != null && angleDeg !== 45) {
+                const rad = angleDeg * Math.PI / 180;
+                stepX = Math.SQRT2 * Math.cos(rad);
+                stepY = Math.SQRT2 * Math.sin(rad);
+            }
             const layers = [];
             for (let i = 0; i <= steps; i++) {
                 for (const [dx, dy] of directions) {
-                    layers.push(`${i + dx}px ${i + dy}px 0 ${borderColor}`);
+                    layers.push(`${(i * stepX + dx).toFixed(3)}px ${(i * stepY + dy).toFixed(3)}px 0 ${borderColor}`);
                 }
             }
             return layers.join(', ');
@@ -5609,7 +5631,7 @@
         function buildCombinedShadow(depthPx, extrusionColor, thicknessPx, ringColor, enabled, angleDeg) {
             const parts = [];
             if (enabled) {
-                const ring = buildBorderRingShadow(depthPx, thicknessPx, ringColor);
+                const ring = buildBorderRingShadow(depthPx, thicknessPx, ringColor, angleDeg);
                 if (ring) parts.push(ring);
             }
             const extrusion = buildExtrusionShadow(depthPx, extrusionColor, angleDeg);
