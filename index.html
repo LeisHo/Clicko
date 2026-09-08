@@ -3564,14 +3564,6 @@
                      dropped rather than erroring - see
                      parseHideShadowSpec()/resolveHideShadowPosition() in
                      spawnClickBurstSide(). -->
-                <div class="dev-row">
-                    <span class="dev-label">Hide Shadow (Left) - Frame Positions:</span>
-                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputClickBurstHideShadowIndexA" value="0=>2">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Hide Shadow (Right) - Frame Positions:</span>
-                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputClickBurstHideShadowIndexB" value="-2=>-1">
-                </div>
                 <!-- Guide-curve angle filter, per side - 4 typed angles
                      (not sliders, per explicit request). Per explicit
                      clarification: these define which STRETCH of that
@@ -3587,22 +3579,6 @@
                      in spawnClickBurstSide(). Now mobile-split (see the
                      Mobile Overrides section's own copies), per explicit
                      request - same for the Hide Shadow inputs above. -->
-                <div class="dev-row">
-                    <span class="dev-label">Right Floor Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputClickBurstRightFloorDeg" step="1" value="20">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Right Ceiling Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputClickBurstRightCeilingDeg" step="1" value="135">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Left Floor Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputClickBurstLeftFloorDeg" step="1" value="230">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Left Ceiling Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputClickBurstLeftCeilingDeg" step="1" value="340">
-                </div>
                 <!-- Final scale-down applied to the click-burst shadow
                      containers (clickBurstShadowContainerRight/Left), AFTER
                      every existing modifier in buildTransform() - the
@@ -4098,30 +4074,6 @@
                      curve angle inputs (see their own desktop-section
                      comments) - per explicit request that mobile and
                      desktop get independent values here. -->
-                <div class="dev-row">
-                    <span class="dev-label">Hide Shadow (Left) - Frame Positions:</span>
-                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputMobileClickBurstHideShadowIndexA" value="0=>2">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Hide Shadow (Right) - Frame Positions:</span>
-                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputMobileClickBurstHideShadowIndexB" value="-2=>-1">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Right Floor Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputMobileClickBurstRightFloorDeg" step="1" value="20">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Right Ceiling Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputMobileClickBurstRightCeilingDeg" step="1" value="135">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Left Floor Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputMobileClickBurstLeftFloorDeg" step="1" value="230">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Left Ceiling Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputMobileClickBurstLeftCeilingDeg" step="1" value="340">
-                </div>
             </div>
         </div>
 
@@ -4459,30 +4411,6 @@
                      curve angle inputs (see their own desktop-section
                      comments) - per explicit request that landscape and
                      desktop get independent values here. -->
-                <div class="dev-row">
-                    <span class="dev-label">Hide Shadow (Left) - Frame Positions:</span>
-                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputLandscapeClickBurstHideShadowIndexA" value="0=>2">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Hide Shadow (Right) - Frame Positions:</span>
-                    <input type="text" class="dev-text-input dev-text-input-wide" id="inputLandscapeClickBurstHideShadowIndexB" value="-2=>-1">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Right Floor Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstRightFloorDeg" step="1" value="20">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Right Ceiling Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstRightCeilingDeg" step="1" value="135">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Left Floor Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstLeftFloorDeg" step="1" value="230">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Left Ceiling Angle (deg):</span>
-                    <input type="number" class="dev-text-input" id="inputLandscapeClickBurstLeftCeilingDeg" step="1" value="340">
-                </div>
             </div>
         </div>
 
@@ -7560,40 +7488,7 @@
                     // every other restore step above (including the
                     // click-burst frame-set re-derivation), so it reads
                     // final, settled values.
-                    [CSS_VAR_SLIDER_MAP, EXTRUSION_SLIDER_MAP].forEach(map => {
-                        const isExtrusionMap = map === EXTRUSION_SLIDER_MAP;
-                        Object.keys(map).forEach(desktopId => {
-                            const key = map[desktopId];
-                            [desktopId, desktopId.replace(/^(slider|color|select|checkbox)/, '$1Mobile'), desktopId.replace(/^(slider|color|select|checkbox)/, '$1Landscape')].forEach(id => {
-                                const el = document.getElementById(id);
-                                if (!el) return;
-                                const { device } = resolveDevControlId(id);
-                                const source = isExtrusionMap
-                                    ? (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)
-                                    : (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars);
-                                const value = source[key];
-                                if (value === undefined) return;
-                                // Auto-expand whichever bound a restored
-                                // out-of-range value crosses, same rule and
-                                // same +/-20% margin as the click-to-type
-                                // commit path above (CLAUDE.md Section 12h) -
-                                // otherwise a restored value past the
-                                // slider's hardcoded min/max pins the handle
-                                // at that extreme, and dragging further in
-                                // that direction visibly does nothing (a
-                                // concrete way "the slider does nothing"
-                                // could actually happen).
-                                if (typeof value === 'number') {
-                                    const min = parseFloat(el.min);
-                                    const max = parseFloat(el.max);
-                                    if (!isNaN(max) && value > max) el.max = String(value + Math.abs(value) * 0.2);
-                                    if (!isNaN(min) && value < min) el.min = String(value - Math.abs(value) * 0.2);
-                                }
-                                el.value = value;
-                                applySliderValue(el, value);
-                            });
-                        });
-                    });
+                    syncSlidersFromState();
                     // Generic color-picker DOM-value sync - same gap-closing
                     // shape as the slider sync loop just above, see
                     // syncColorPickersFromState()'s own comment.
@@ -8631,76 +8526,134 @@
             { group: 'Ms/Click Display', id: 'sliderMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Background', id: 'colorBg', type: 'color', label: 'Color:', value: '#ffffff' },
         ];
-        function buildUniformControlRow(ctrl) {
+        // Resolves a group's .dev-section-content by data-sid, warning on
+        // either 0 matches (group not found) or 2+ matches (a data-sid
+        // collision - the same shape of bug as the "New Group"/"New Group
+        // (2)" order-sync collision this session already hit once, just on
+        // the render side instead of the reorder side). Shared by every
+        // render*Controls() function below instead of each repeating its
+        // own querySelector call with only the missing-group case checked.
+        function findGroupContent(tabId, groupSid, callerName, ctrlId) {
+            const matches = document.querySelectorAll('#' + tabId + 'TabContent > .dev-section > .dev-section-title[data-sid="' + groupSid.replace(/"/g, '\\"') + '"]');
+            if (matches.length === 0) {
+                console.warn(callerName + ': group not found', groupSid, ctrlId);
+                return null;
+            }
+            if (matches.length > 1) {
+                console.warn(callerName + ': ' + matches.length + ' groups share this data-sid (using the first) - a rename/duplication collision', groupSid, ctrlId);
+            }
+            return matches[0].nextElementSibling;
+        }
+        // Split into one builder per control type (was a single function
+        // with 4 stacked type-branches, growing by one branch each time a
+        // new control shape showed up this session - slider/color, then
+        // select, then checkbox) + a thin dispatch table, per this
+        // session's own architecture review. buildUniformControlRow(ctrl)
+        // keeps its exact same signature/behavior for every existing call
+        // site - this is a pure reorganization, no output change.
+        function buildSliderRow(ctrl) {
             const row = document.createElement('div');
             row.className = 'dev-row';
-            // Checkboxes use an inverted shape vs every other control here -
-            // a <label> wraps the checkbox FIRST, then a dev-label span for
-            // the text AFTER - so they skip the shared label-first branch below.
-            if (ctrl.type === 'checkbox') {
-                const wrapLabel = document.createElement('label');
-                wrapLabel.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer;';
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.id = ctrl.id;
-                wrapLabel.appendChild(input);
-                const span = document.createElement('span');
-                span.className = 'dev-label';
-                span.style.minWidth = 'auto';
-                span.textContent = ctrl.label;
-                wrapLabel.appendChild(span);
-                row.appendChild(wrapLabel);
-                return row;
-            }
             const label = document.createElement('span');
             label.className = 'dev-label';
             label.textContent = ctrl.label;
             row.appendChild(label);
-            if (ctrl.type === 'slider') {
-                const input = document.createElement('input');
-                input.type = 'range';
-                input.className = 'dev-slider';
-                input.id = ctrl.id;
-                input.min = ctrl.min;
-                input.max = ctrl.max;
-                input.step = ctrl.step;
-                input.value = ctrl.value;
-                row.appendChild(input);
-                const value = document.createElement('span');
-                value.className = 'dev-value';
-                value.id = ctrl.id.replace(/^slider/, 'value');
-                value.textContent = ctrl.value;
-                row.appendChild(value);
-            } else if (ctrl.type === 'color') {
-                const input = document.createElement('input');
-                input.type = 'color';
-                input.className = 'dev-color-picker';
-                input.id = ctrl.id;
-                input.value = ctrl.value;
-                row.appendChild(input);
-                // Optional small descriptive note (e.g. "(grayscale + tint)")
-                // some color pickers have instead of a normal value readout.
-                if (ctrl.note) {
-                    const note = document.createElement('span');
-                    note.className = 'dev-value';
-                    note.style.fontSize = '9px';
-                    note.style.color = '#888';
-                    note.textContent = ctrl.note;
-                    row.appendChild(note);
-                }
-            } else if (ctrl.type === 'select') {
-                const select = document.createElement('select');
-                select.className = 'dev-select';
-                select.id = ctrl.id;
-                ctrl.options.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt.value;
-                    option.textContent = opt.text;
-                    select.appendChild(option);
-                });
-                row.appendChild(select);
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.className = 'dev-slider';
+            input.id = ctrl.id;
+            input.min = ctrl.min;
+            input.max = ctrl.max;
+            input.step = ctrl.step;
+            input.value = ctrl.value;
+            row.appendChild(input);
+            const value = document.createElement('span');
+            value.className = 'dev-value';
+            value.id = ctrl.id.replace(/^slider/, 'value');
+            value.textContent = ctrl.value;
+            row.appendChild(value);
+            return row;
+        }
+        function buildColorRow(ctrl) {
+            const row = document.createElement('div');
+            row.className = 'dev-row';
+            const label = document.createElement('span');
+            label.className = 'dev-label';
+            label.textContent = ctrl.label;
+            row.appendChild(label);
+            const input = document.createElement('input');
+            input.type = 'color';
+            input.className = 'dev-color-picker';
+            input.id = ctrl.id;
+            input.value = ctrl.value;
+            row.appendChild(input);
+            // Optional small descriptive note (e.g. "(grayscale + tint)")
+            // some color pickers have instead of a normal value readout.
+            if (ctrl.note) {
+                const note = document.createElement('span');
+                note.className = 'dev-value';
+                note.style.fontSize = '9px';
+                note.style.color = '#888';
+                note.textContent = ctrl.note;
+                row.appendChild(note);
             }
             return row;
+        }
+        function buildSelectRow(ctrl) {
+            const row = document.createElement('div');
+            row.className = 'dev-row';
+            const label = document.createElement('span');
+            label.className = 'dev-label';
+            label.textContent = ctrl.label;
+            row.appendChild(label);
+            const select = document.createElement('select');
+            select.className = 'dev-select';
+            select.id = ctrl.id;
+            ctrl.options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.text;
+                select.appendChild(option);
+            });
+            row.appendChild(select);
+            return row;
+        }
+        // Checkboxes use an inverted shape vs every other control here - a
+        // <label> wraps the checkbox FIRST, then a dev-label span for the
+        // text AFTER - so this doesn't share the label-first row skeleton
+        // the other 3 builders use.
+        function buildCheckboxRow(ctrl) {
+            const row = document.createElement('div');
+            row.className = 'dev-row';
+            const wrapLabel = document.createElement('label');
+            wrapLabel.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer;';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = ctrl.id;
+            wrapLabel.appendChild(input);
+            const span = document.createElement('span');
+            span.className = 'dev-label';
+            span.style.minWidth = 'auto';
+            span.textContent = ctrl.label;
+            wrapLabel.appendChild(span);
+            row.appendChild(wrapLabel);
+            return row;
+        }
+        const UNIFORM_ROW_BUILDERS = {
+            slider: buildSliderRow,
+            color: buildColorRow,
+            select: buildSelectRow,
+            checkbox: buildCheckboxRow,
+        };
+        function buildUniformControlRow(ctrl) {
+            const builder = UNIFORM_ROW_BUILDERS[ctrl.type];
+            if (!builder) {
+                console.error('buildUniformControlRow: unknown control type', ctrl.type, ctrl.id);
+                const row = document.createElement('div');
+                row.className = 'dev-row';
+                return row;
+            }
+            return builder(ctrl);
         }
         // Appends each generated row into its matching group's
         // .dev-section-content, found by data-sid (the group's frozen
@@ -8715,12 +8668,9 @@
         // custom drag-created groups.
         function renderDesktopUniformControls() {
             DESKTOP_UNIFORM_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#desktopTabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\\"') + '"]');
-                if (!titleEl) {
-                    console.warn('renderDesktopUniformControls: group not found', ctrl.group, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent('desktop', ctrl.group, 'renderDesktopUniformControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderDesktopUniformControls();
@@ -8810,12 +8760,9 @@
         ];
         function renderMobileUniformControls() {
             MOBILE_UNIFORM_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#mobileTabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\\"') + '"]');
-                if (!titleEl) {
-                    console.warn('renderMobileUniformControls: group not found', ctrl.group, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent('mobile', ctrl.group, 'renderMobileUniformControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderMobileUniformControls();
@@ -8899,12 +8846,9 @@
         ];
         function renderLandscapeUniformControls() {
             LANDSCAPE_UNIFORM_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#landscapeTabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\\"') + '"]');
-                if (!titleEl) {
-                    console.warn('renderLandscapeUniformControls: group not found', ctrl.group, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent('landscape', ctrl.group, 'renderLandscapeUniformControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderLandscapeUniformControls();
@@ -9014,12 +8958,9 @@
         }
         function renderCompoundOffsetControls() {
             COMPOUND_OFFSET_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#' + ctrl.tab + 'TabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\\"') + '"]');
-                if (!titleEl) {
-                    console.warn('renderCompoundOffsetControls: group not found', ctrl.tab, ctrl.group, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildCompoundOffsetRow(ctrl));
+                const content = findGroupContent(ctrl.tab, ctrl.group, 'renderCompoundOffsetControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildCompoundOffsetRow(ctrl));
             });
         }
         renderCompoundOffsetControls();
@@ -9067,12 +9008,9 @@
         ];
         function renderDevPanelStyleControls() {
             DEVPANEL_STYLE_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#' + ctrl.tab + 'TabContent > .dev-section > .dev-section-title[data-sid="Dev Panel"]');
-                if (!titleEl) {
-                    console.warn('renderDevPanelStyleControls: group not found', ctrl.tab, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent(ctrl.tab, 'Dev Panel', 'renderDevPanelStyleControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderDevPanelStyleControls();
@@ -9091,12 +9029,9 @@
         ];
         function renderSpecialColorControls() {
             SPECIAL_COLOR_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#desktopTabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\"') + '"]');
-                if (!titleEl) {
-                    console.warn('renderSpecialColorControls: group not found', ctrl.group, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent('desktop', ctrl.group, 'renderSpecialColorControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderSpecialColorControls();
@@ -9124,12 +9059,9 @@
         ];
         function renderGameMechanicsControls() {
             GAME_MECHANICS_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#desktopTabContent > .dev-section > .dev-section-title[data-sid="Game Mechanics"]');
-                if (!titleEl) {
-                    console.warn('renderGameMechanicsControls: group not found', ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent('desktop', 'Game Mechanics', 'renderGameMechanicsControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderGameMechanicsControls();
@@ -9164,15 +9096,59 @@
         ];
         function renderDevPanelMiscControls() {
             DEVPANEL_MISC_CONTROLS.forEach(ctrl => {
-                const titleEl = document.querySelector('#' + ctrl.tab + 'TabContent > .dev-section > .dev-section-title[data-sid="Dev Panel"]');
-                if (!titleEl) {
-                    console.warn('renderDevPanelMiscControls: group not found', ctrl.tab, ctrl.id);
-                    return;
-                }
-                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+                const content = findGroupContent(ctrl.tab, 'Dev Panel', 'renderDevPanelMiscControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildUniformControlRow(ctrl));
             });
         }
         renderDevPanelMiscControls();
+
+        // Click Burst's 6 text/number inputs (all 3 tabs = 18 total) - the
+        // last remaining category from the "finish it all" Method B port.
+        // Different shape from every prior port: plain text/number inputs
+        // (no slider, no value-readout span), read/written generically by
+        // ID via CLICK_BURST_TEXT_INPUT_MAP/setupClickBurstTextInputs(), not
+        // the CSS_VAR_SLIDER_MAP family - unaffected by how the row was
+        // created, same principle as every other port in this file.
+        function buildTextInputRow(ctrl) {
+            const row = document.createElement('div');
+            row.className = 'dev-row';
+            const label = document.createElement('span');
+            label.className = 'dev-label';
+            label.textContent = ctrl.label;
+            row.appendChild(label);
+            const input = document.createElement('input');
+            input.type = ctrl.inputType;
+            input.className = 'dev-text-input' + (ctrl.wide ? ' dev-text-input-wide' : '');
+            input.id = ctrl.id;
+            if (ctrl.inputType === 'number' && ctrl.step !== undefined) input.step = ctrl.step;
+            input.value = ctrl.value;
+            row.appendChild(input);
+            return row;
+        }
+        const CLICK_BURST_TEXT_INPUT_CONTROLS = (() => {
+            const perTab = (tab, idPrefix) => [
+                { tab, group: 'Click Burst', id: idPrefix + 'HideShadowIndexA', label: 'Hide Shadow (Left) - Frame Positions:', inputType: 'text', wide: true, value: '0=>2' },
+                { tab, group: 'Click Burst', id: idPrefix + 'HideShadowIndexB', label: 'Hide Shadow (Right) - Frame Positions:', inputType: 'text', wide: true, value: '-2=>-1' },
+                { tab, group: 'Click Burst', id: idPrefix + 'RightFloorDeg', label: 'Right Floor Angle (deg):', inputType: 'number', step: 1, value: 20 },
+                { tab, group: 'Click Burst', id: idPrefix + 'RightCeilingDeg', label: 'Right Ceiling Angle (deg):', inputType: 'number', step: 1, value: 135 },
+                { tab, group: 'Click Burst', id: idPrefix + 'LeftFloorDeg', label: 'Left Floor Angle (deg):', inputType: 'number', step: 1, value: 230 },
+                { tab, group: 'Click Burst', id: idPrefix + 'LeftCeilingDeg', label: 'Left Ceiling Angle (deg):', inputType: 'number', step: 1, value: 340 },
+            ];
+            return [
+                ...perTab('desktop', 'inputClickBurst'),
+                ...perTab('mobile', 'inputMobileClickBurst'),
+                ...perTab('landscape', 'inputLandscapeClickBurst'),
+            ];
+        })();
+        function renderClickBurstTextInputControls() {
+            CLICK_BURST_TEXT_INPUT_CONTROLS.forEach(ctrl => {
+                const content = findGroupContent(ctrl.tab, ctrl.group, 'renderClickBurstTextInputControls', ctrl.id);
+                if (!content) return;
+                content.appendChild(buildTextInputRow(ctrl));
+            });
+        }
+        renderClickBurstTextInputControls();
 
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
@@ -10356,6 +10332,49 @@
         // styling colors are likewise already covered by
         // DEV_PANEL_STYLE_CONTROL_IDS's own restore loop and simply won't
         // match either map below, so they're harmlessly skipped too.
+        // Generic .dev-slider DOM-value sync from live state (cssVars/
+        // mobileCssVars/landscapeCssVars/extrusionVars/etc, via
+        // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP) - extracted from
+        // applyLoadedSettings()'s own inline loop (still called from there,
+        // unchanged) so it can ALSO run once synchronously right after
+        // setupDevSliders(), before loadSettings()'s async fetch resolves.
+        // Closes the brief window where a Method-B-generated control's
+        // initial DOM value comes from its own config array's separately-
+        // typed `value:` literal (which can drift from the real live
+        // default - the same class of dual-source-of-truth risk flagged
+        // during this session's own architecture review) - this makes that
+        // literal purely a fallback for the instant before this runs,
+        // never the value a user actually sees for more than one paint.
+        function syncSlidersFromState() {
+            [CSS_VAR_SLIDER_MAP, EXTRUSION_SLIDER_MAP].forEach(map => {
+                const isExtrusionMap = map === EXTRUSION_SLIDER_MAP;
+                Object.keys(map).forEach(desktopId => {
+                    const key = map[desktopId];
+                    [desktopId, desktopId.replace(/^(slider|color|select|checkbox)/, '$1Mobile'), desktopId.replace(/^(slider|color|select|checkbox)/, '$1Landscape')].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        const { device } = resolveDevControlId(id);
+                        const source = isExtrusionMap
+                            ? (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)
+                            : (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars);
+                        const value = source[key];
+                        if (value === undefined) return;
+                        // Auto-expand whichever bound crosses, same rule as
+                        // the click-to-type commit path (CLAUDE.md Section
+                        // 12h) - otherwise a live value past the slider's
+                        // hardcoded min/max pins the handle at that extreme.
+                        if (typeof value === 'number') {
+                            const min = parseFloat(el.min);
+                            const max = parseFloat(el.max);
+                            if (!isNaN(max) && value > max) el.max = String(value + Math.abs(value) * 0.2);
+                            if (!isNaN(min) && value < min) el.min = String(value - Math.abs(value) * 0.2);
+                        }
+                        el.value = value;
+                        applySliderValue(el, value);
+                    });
+                });
+            });
+        }
         function syncColorPickersFromState() {
             const SPECIAL_CASED_IDS = ['colorButton', 'colorBase', 'colorButtonWin', 'colorButtonLose'];
             document.querySelectorAll('.dev-color-picker').forEach(picker => {
@@ -10371,6 +10390,77 @@
                     picker.value = (device === 'landscape' ? landscapeColorVars : device === 'mobile' ? mobileColorVars : colorVars)[varName];
                 }
             });
+        }
+
+        // Startup validation: every generic slider/color config array entry
+        // must resolve to a real key in whichever map actually drives it
+        // (CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP for sliders, COLOR_VAR_
+        // MAP/EXTRUSION_COLOR_MAP/the special-cased button-color ids for
+        // colors) - a typo'd id here would otherwise silently render a
+        // control that moves nothing, with no error until someone notices
+        // the setting doesn't do anything (per this session's own
+        // architecture review). Scoped to the "uniform-shaped" config
+        // arrays (Desktop/Mobile/Landscape uniform, compound-offset,
+        // special-colors) - Dev Panel style/Game Mechanics/select-checkbox
+        // controls have their own dedicated, explicitly-named wiring
+        // instead of generic map lookup, so a mismatch there is already a
+        // hard no-op/ReferenceError at that specific call site, not a
+        // silent one needing this same kind of check.
+        function validateDevControlMappings() {
+            const SPECIAL_COLOR_IDS = ['colorButton', 'colorBase', 'colorButtonWin', 'colorButtonLose'];
+            const arrays = [
+                ['DESKTOP_UNIFORM_CONTROLS', DESKTOP_UNIFORM_CONTROLS],
+                ['MOBILE_UNIFORM_CONTROLS', MOBILE_UNIFORM_CONTROLS],
+                ['LANDSCAPE_UNIFORM_CONTROLS', LANDSCAPE_UNIFORM_CONTROLS],
+                ['COMPOUND_OFFSET_CONTROLS', COMPOUND_OFFSET_CONTROLS],
+                ['SPECIAL_COLOR_CONTROLS', SPECIAL_COLOR_CONTROLS],
+            ];
+            let badCount = 0;
+            arrays.forEach(([name, arr]) => {
+                arr.forEach(ctrl => {
+                    const { desktopId } = resolveDevControlId(ctrl.id);
+                    if (ctrl.type === 'slider') {
+                        if (!(desktopId in CSS_VAR_SLIDER_MAP) && !(desktopId in EXTRUSION_SLIDER_MAP)) {
+                            console.error('validateDevControlMappings: unmapped slider id', name, ctrl.id, '(resolved to', desktopId + ')');
+                            badCount++;
+                        }
+                    } else if (ctrl.type === 'color') {
+                        if (!SPECIAL_COLOR_IDS.includes(desktopId) && !(desktopId in COLOR_VAR_MAP) && !(desktopId in EXTRUSION_COLOR_MAP)) {
+                            console.error('validateDevControlMappings: unmapped color id', name, ctrl.id, '(resolved to', desktopId + ')');
+                            badCount++;
+                        }
+                    }
+                });
+            });
+            if (badCount > 0) console.error('validateDevControlMappings: ' + badCount + ' control(s) have no live mapping - see errors above.');
+            return badCount;
+        }
+
+        // Load-order tripwire: every render*Controls() call must run before
+        // this point (right before setupDevSliders() sets up the generic
+        // event-wiring, which is currently enforced only by where each call
+        // physically sits in this file). If a future edit ever inserts a
+        // new render call AFTER setupDevSliders() by mistake, the controls
+        // it creates would exist in the DOM but never get wired up, with no
+        // error - this checks every config-array control actually made it
+        // into the DOM by this point, so that kind of ordering mistake
+        // fails loudly instead of silently.
+        function assertDevControlsRendered() {
+            const allArrays = [
+                DESKTOP_UNIFORM_CONTROLS, MOBILE_UNIFORM_CONTROLS, LANDSCAPE_UNIFORM_CONTROLS,
+                COMPOUND_OFFSET_CONTROLS, DEVPANEL_STYLE_CONTROLS, SPECIAL_COLOR_CONTROLS,
+                GAME_MECHANICS_CONTROLS, DEVPANEL_MISC_CONTROLS, CLICK_BURST_TEXT_INPUT_CONTROLS,
+            ];
+            let missing = 0;
+            allArrays.forEach(arr => {
+                arr.forEach(ctrl => {
+                    if (!document.getElementById(ctrl.id)) missing++;
+                });
+            });
+            if (missing > 0) {
+                console.error('assertDevControlsRendered: ' + missing + ' generated control(s) missing from the DOM at setup time - a render*Controls() call may be missing, misordered, or its group lookup failed (see findGroupContent warnings above).');
+            }
+            return missing;
         }
 
         function setupDevSliders() {
@@ -12522,6 +12612,18 @@
         // interactive/visible. loadSettings() re-applies on top of this,
         // below, once (if) it actually has something to restore.
         setupDevSliders();
+        // Sync every generated slider/color-picker's initial DOM value from
+        // the live state objects right now, synchronously, before
+        // loadSettings()'s async fetch below even starts - closes the brief
+        // flash where a Method-B-generated control's config-array `value:`
+        // literal (a separate, hand-typed copy of the real default) is
+        // what's actually on screen. applyLoadedSettings() calls both of
+        // these again later too, once (if) the fetch resolves with real
+        // saved data - safe/idempotent, not a duplicate side effect.
+        syncSlidersFromState();
+        syncColorPickersFromState();
+        validateDevControlMappings();
+        assertDevControlsRendered();
         setupTextAlignSelects();
         setupOffsetUnitCheckboxes();
         setupTextEdgeLockCheckboxes();
