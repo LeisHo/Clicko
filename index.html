@@ -11248,18 +11248,6 @@
             // Win/Lose text, so it's hidden right here instead, before the
             // announcement even starts.
             resultText.classList.add('hidden');
-            // Every new round (a fresh game's first round via startGame(), OR
-            // the next round after a win via endGame()'s own setTimeout) must
-            // clear whatever win/lose tint the LAST round left behind - the
-            // button's Win/Lose tint is driven purely by resultText carrying
-            // .result-win/.result-lose (see the :has() CSS rule's own
-            // comment), which endGame() adds but never removes; hiding
-            // resultText above only affects visibility, not this class, so
-            // without this the button would stay green/red for the rest of
-            // the game (or forever, across future games) instead of
-            // returning to the normal Color tint the moment new gameplay
-            // starts - per direct report.
-            resultText.classList.remove('result-win', 'result-lose');
             // Per explicit request ("provide me a checkbox, when selected,
             // all 3 of those texts will flash along with the round
             // number") - when the flash checkbox is on, don't flatly hide
@@ -11642,6 +11630,25 @@
             // showRoundText()'s own setTimeout (see there) and stays visible
             // throughout gameplay instead of disappearing.
             resultText.classList.add('hidden');
+            // The next round genuinely begins here - this is the single
+            // choke point every code path funnels through (the fast path
+            // in showRoundText() itself, and both branches of
+            // runRoundBlinkSequence()'s own completion) - so it's also
+            // where the button/base's Win/Lose tint (driven purely by
+            // resultText carrying .result-win/.result-lose, see the
+            // :has() CSS rule's own comment) should revert, not any
+            // earlier. Per direct report ("the button and base color
+            // looks wrong after i click try again... should stay the
+            // same color as the gameplay lose colors [through the
+            // announcement]"): this used to run at the very START of
+            // showRoundText(), the instant Try Again was clicked - firing
+            // well before the round announcement/blink sequence even
+            // began, while every OTHER lose-tint mechanism (Target/Speed/
+            // Ms-per-click/Round Text's fill color, the button/base's own
+            // Light Levels contrast/lightness override just below) stayed
+            // tinted correctly until this exact point. Moved here so
+            // every gameplay-result-color mechanism reverts in lockstep.
+            resultText.classList.remove('result-win', 'result-lose');
             // The next round begins here - reverts Target/Speed/Ms-per-
             // click back to their normal (untinted) color, per explicit
             // request (any flash-with-round-number toggling started during
