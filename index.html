@@ -3433,11 +3433,6 @@
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorButton" value="#eb2027">
-                    <span class="dev-value" style="font-size:9px;color:#888;">(grayscale + tint)</span>
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">Blend Mode (Color):</span>
                     <select class="dev-select" id="selectButtonBlendMode">
                         <option value="overlay" selected>Overlay</option>
@@ -3457,21 +3452,6 @@
                         <option value="color">Color</option>
                         <option value="luminosity">Luminosity</option>
                     </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Win Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorButtonWin" value="#22dd44">
-                    <span class="dev-value" style="font-size:9px;color:#888;">(button tint on Win)</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Lose Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorButtonLose" value="#dd2222">
-                    <span class="dev-value" style="font-size:9px;color:#888;">(button tint on Lose)</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Base Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorBase" value="#eb2027">
-                    <span class="dev-value" style="font-size:9px;color:#888;">(grayscale + tint)</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Blend Mode (Base Color):</span>
@@ -8725,6 +8705,16 @@
                 input.id = ctrl.id;
                 input.value = ctrl.value;
                 row.appendChild(input);
+                // Optional small descriptive note (e.g. "(grayscale + tint)")
+                // some color pickers have instead of a normal value readout.
+                if (ctrl.note) {
+                    const note = document.createElement('span');
+                    note.className = 'dev-value';
+                    note.style.fontSize = '9px';
+                    note.style.color = '#888';
+                    note.textContent = ctrl.note;
+                    row.appendChild(note);
+                }
             }
             return row;
         }
@@ -9102,6 +9092,30 @@
             });
         }
         renderDevPanelStyleControls();
+
+        // Desktop's 4 special-cased color pickers - each with its own
+        // "(...)" descriptive note instead of a plain value readout, and
+        // each read by ID inside setupDevSliders()'s generic color-picker
+        // handler (colorButton/colorBase trigger a hue-rotate refresh,
+        // colorButtonWin/-Lose are plain cssVar writes) - unaffected by
+        // how the row was created, same as every other port.
+        const SPECIAL_COLOR_CONTROLS = [
+            { group: 'Main Button', id: 'colorButton', type: 'color', label: 'Color:', value: '#eb2027', note: '(grayscale + tint)' },
+            { group: 'Main Button', id: 'colorButtonWin', type: 'color', label: 'Win Color:', value: '#22dd44', note: '(button tint on Win)' },
+            { group: 'Main Button', id: 'colorButtonLose', type: 'color', label: 'Lose Color:', value: '#dd2222', note: '(button tint on Lose)' },
+            { group: 'Main Button', id: 'colorBase', type: 'color', label: 'Base Color:', value: '#eb2027', note: '(grayscale + tint)' },
+        ];
+        function renderSpecialColorControls() {
+            SPECIAL_COLOR_CONTROLS.forEach(ctrl => {
+                const titleEl = document.querySelector('#desktopTabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\"') + '"]');
+                if (!titleEl) {
+                    console.warn('renderSpecialColorControls: group not found', ctrl.group, ctrl.id);
+                    return;
+                }
+                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+            });
+        }
+        renderSpecialColorControls();
 
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
