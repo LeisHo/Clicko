@@ -3385,46 +3385,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
             <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Font (All Text):</span>
-                    <select class="dev-select" id="selectDevPanelFontFamily">
-                        <option value="Arial, Helvetica, sans-serif">Arial</option>
-                        <option value="Helvetica, Arial, sans-serif">Helvetica</option>
-                        <option value="'Segoe UI', Arial, sans-serif">Segoe UI</option>
-                        <option value="Verdana, Geneva, sans-serif">Verdana</option>
-                        <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
-                        <option value="'Trebuchet MS', Arial, sans-serif">Trebuchet MS</option>
-                        <option value="'Century Gothic', Arial, sans-serif">Century Gothic</option>
-                        <option value="Calibri, Arial, sans-serif">Calibri</option>
-                        <option value="'Lucida Sans Unicode', Arial, sans-serif">Lucida Sans</option>
-                        <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
-                        <option value="Futura, 'Century Gothic', Arial, sans-serif">Futura</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxDevCapsButtonText">
-                        <span class="dev-label" style="min-width:auto;">Capitalize Button Text</span>
-                    </label>
-                </div>
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxDevCapsTabText">
-                        <span class="dev-label" style="min-width:auto;">Capitalize Tab Text</span>
-                    </label>
-                </div>
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxDevCapsGroupNames">
-                        <span class="dev-label" style="min-width:auto;">Capitalize Group Names</span>
-                    </label>
-                </div>
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxDevCapsSettingsText">
-                        <span class="dev-label" style="min-width:auto;">Capitalize Settings Text</span>
-                    </label>
-                </div>
             </div>
         </div>
 
@@ -8614,6 +8574,24 @@
         function buildUniformControlRow(ctrl) {
             const row = document.createElement('div');
             row.className = 'dev-row';
+            // Checkboxes use an inverted shape vs every other control here -
+            // a <label> wraps the checkbox FIRST, then a dev-label span for
+            // the text AFTER - so they skip the shared label-first branch below.
+            if (ctrl.type === 'checkbox') {
+                const wrapLabel = document.createElement('label');
+                wrapLabel.style.cssText = 'display:flex; align-items:center; gap:6px; cursor:pointer;';
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = ctrl.id;
+                wrapLabel.appendChild(input);
+                const span = document.createElement('span');
+                span.className = 'dev-label';
+                span.style.minWidth = 'auto';
+                span.textContent = ctrl.label;
+                wrapLabel.appendChild(span);
+                row.appendChild(wrapLabel);
+                return row;
+            }
             const label = document.createElement('span');
             label.className = 'dev-label';
             label.textContent = ctrl.label;
@@ -8650,6 +8628,17 @@
                     note.textContent = ctrl.note;
                     row.appendChild(note);
                 }
+            } else if (ctrl.type === 'select') {
+                const select = document.createElement('select');
+                select.className = 'dev-select';
+                select.id = ctrl.id;
+                ctrl.options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.text;
+                    select.appendChild(option);
+                });
+                row.appendChild(select);
             }
             return row;
         }
@@ -9084,6 +9073,46 @@
             });
         }
         renderGameMechanicsControls();
+
+        // Desktop-only "Dev Panel" group tail: the font-family select and 4
+        // capitalization checkboxes. Different control shapes from every
+        // other port above (a <select> with fixed options; checkboxes whose
+        // <label> wraps the input FIRST then a text span, inverted from the
+        // label-first convention used everywhere else) - handled by the
+        // 'select'/'checkbox' branches added to buildUniformControlRow().
+        // Read generically by ID elsewhere (setupDevPanelStyleControls()'s
+        // font-family wiring, the caps-checkbox id map) - unaffected by how
+        // the row was created.
+        const DEVPANEL_MISC_CONTROLS = [
+            { tab: 'desktop', id: 'selectDevPanelFontFamily', type: 'select', label: 'Font (All Text):', options: [
+                { value: "Arial, Helvetica, sans-serif", text: 'Arial' },
+                { value: "Helvetica, Arial, sans-serif", text: 'Helvetica' },
+                { value: "'Segoe UI', Arial, sans-serif", text: 'Segoe UI' },
+                { value: "Verdana, Geneva, sans-serif", text: 'Verdana' },
+                { value: "Tahoma, Geneva, sans-serif", text: 'Tahoma' },
+                { value: "'Trebuchet MS', Arial, sans-serif", text: 'Trebuchet MS' },
+                { value: "'Century Gothic', Arial, sans-serif", text: 'Century Gothic' },
+                { value: "Calibri, Arial, sans-serif", text: 'Calibri' },
+                { value: "'Lucida Sans Unicode', Arial, sans-serif", text: 'Lucida Sans' },
+                { value: "'Open Sans', Arial, sans-serif", text: 'Open Sans' },
+                { value: "Futura, 'Century Gothic', Arial, sans-serif", text: 'Futura' },
+            ] },
+            { tab: 'desktop', id: 'checkboxDevCapsButtonText', type: 'checkbox', label: 'Capitalize Button Text' },
+            { tab: 'desktop', id: 'checkboxDevCapsTabText', type: 'checkbox', label: 'Capitalize Tab Text' },
+            { tab: 'desktop', id: 'checkboxDevCapsGroupNames', type: 'checkbox', label: 'Capitalize Group Names' },
+            { tab: 'desktop', id: 'checkboxDevCapsSettingsText', type: 'checkbox', label: 'Capitalize Settings Text' },
+        ];
+        function renderDevPanelMiscControls() {
+            DEVPANEL_MISC_CONTROLS.forEach(ctrl => {
+                const titleEl = document.querySelector('#' + ctrl.tab + 'TabContent > .dev-section > .dev-section-title[data-sid="Dev Panel"]');
+                if (!titleEl) {
+                    console.warn('renderDevPanelMiscControls: group not found', ctrl.tab, ctrl.id);
+                    return;
+                }
+                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+            });
+        }
+        renderDevPanelMiscControls();
 
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
