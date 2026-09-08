@@ -2541,7 +2541,18 @@
                         </feComponentTransfer>
                         <feFlood class="base-tint-flood" result="tintColor"/>
                         <feBlend id="baseTintBlend" in="tintColor" in2="levels" mode="overlay" result="tinted"/>
-                        <feComposite in="tinted" in2="SourceGraphic" operator="in"/>
+                        <!-- Saturation - per explicit request ("give me a
+                             saturation slider for both button and base").
+                             1 = unchanged (matches feColorMatrix type=
+                             "saturate"'s own spec default), 0 = fully
+                             desaturates the tinted result back to gray,
+                             >1 oversaturates. Applied to "tinted" (the
+                             final overlay-blended color), not SourceGraphic,
+                             since SourceGraphic is already forced fully
+                             grayscale earlier in this same filter (see
+                             above) - saturating that would be a no-op. -->
+                        <feColorMatrix id="baseSaturationMatrix" type="saturate" values="1" in="tinted" result="saturated"/>
+                        <feComposite in="saturated" in2="SourceGraphic" operator="in"/>
                     </filter>
                     <filter id="buttonGrayscaleTint" color-interpolation-filters="sRGB">
                         <feColorMatrix type="matrix" values="
@@ -2556,7 +2567,9 @@
                         </feComponentTransfer>
                         <feFlood class="button-tint-flood" result="tintColor"/>
                         <feBlend id="buttonTintBlend" in="tintColor" in2="levels" mode="overlay" result="tinted"/>
-                        <feComposite in="tinted" in2="SourceGraphic" operator="in"/>
+                        <!-- See baseSaturationMatrix's own comment above. -->
+                        <feColorMatrix id="buttonSaturationMatrix" type="saturate" values="1" in="tinted" result="saturated"/>
+                        <feComposite in="saturated" in2="SourceGraphic" operator="in"/>
                     </filter>
                 </defs>
             </svg>
@@ -4961,6 +4974,13 @@
             '--button-light-levels-contrast': 1.19,
             '--button-light-levels-floor': 0,
             '--button-light-levels-ceiling': 1,
+            // Saturation - per explicit request ("give me a saturation
+            // slider for both button and base"). 1 = unchanged, matching
+            // feColorMatrix type="saturate"'s own spec default - see
+            // applySaturation()/the matching filter primitives' own
+            // comments.
+            '--base-saturation': 1,
+            '--button-saturation': 1,
             // Lose-only OVERRIDE for the button's own contrast/level (floor/
             // ceiling stay whatever --button-light-levels-floor/-ceiling
             // above are set to) - per direct request ("provide me 2 sliders
@@ -6991,6 +7011,7 @@
             applyLightLevels(cssVars['--base-light-levels'], cssVars['--base-light-levels-contrast'], cssVars['--base-light-levels-floor'], cssVars['--base-light-levels-ceiling'], 'baseGrayscaleTint');
             applyLightLevels(cssVars['--button-light-levels'], cssVars['--button-light-levels-contrast'], cssVars['--button-light-levels-floor'], cssVars['--button-light-levels-ceiling'], 'buttonGrayscaleTint');
             applyBlendModes(cssVars['--base-blend-mode'], cssVars['--button-blend-mode']);
+            applySaturation(cssVars['--base-saturation'], cssVars['--button-saturation']);
             applyThinBaseState();
             // The 8-bit extrusion system (color/depth/border) is mobile-
             // split too (see mobileExtrusionVars) - re-apply it here so a
@@ -8415,10 +8436,12 @@
             { group: 'Main Button', id: 'sliderBaseLightLevelsContrast', type: 'slider', label: 'Base Contrast:', min: 0, max: 3, step: 0.01, value: 1 },
             { group: 'Main Button', id: 'sliderBaseLightLevelFloor', type: 'slider', label: 'Base Light Level Floor:', min: 0, max: 1, step: 0.01, value: 0 },
             { group: 'Main Button', id: 'sliderBaseLightLevelCeiling', type: 'slider', label: 'Base Light Level Ceiling:', min: 0, max: 1, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderBaseSaturation', type: 'slider', label: 'Base Saturation (x):', min: 0, max: 3, step: 0.01, value: 1 },
             { group: 'Main Button', id: 'sliderButtonLightLevels', type: 'slider', label: 'Button Light Levels:', min: -1, max: 1, step: 0.01, value: 0 },
             { group: 'Main Button', id: 'sliderButtonLightLevelsContrast', type: 'slider', label: 'Button Contrast:', min: 0, max: 3, step: 0.01, value: 1 },
             { group: 'Main Button', id: 'sliderButtonLightLevelFloor', type: 'slider', label: 'Button Light Level Floor:', min: 0, max: 1, step: 0.01, value: 0 },
             { group: 'Main Button', id: 'sliderButtonLightLevelCeiling', type: 'slider', label: 'Button Light Level Ceiling:', min: 0, max: 1, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderButtonSaturation', type: 'slider', label: 'Button Saturation (x):', min: 0, max: 3, step: 0.01, value: 1 },
             { group: 'Main Button', id: 'sliderButtonLoseContrast', type: 'slider', label: 'Button Lose Contrast:', min: 0, max: 3, step: 0.01, value: 1 },
             { group: 'Main Button', id: 'sliderButtonLoseLightness', type: 'slider', label: 'Button Lose Lightness:', min: -1, max: 1, step: 0.01, value: 0 },
             { group: 'Shadow', id: 'sliderShadowX', type: 'slider', label: 'Shadow X (% of button width):', min: -55.15, max: 128.68, step: 0.1, value: 32.5368 },
@@ -9171,10 +9194,12 @@
             'sliderBaseLightLevelsContrast': '--base-light-levels-contrast',
             'sliderBaseLightLevelFloor': '--base-light-levels-floor',
             'sliderBaseLightLevelCeiling': '--base-light-levels-ceiling',
+            'sliderBaseSaturation': '--base-saturation',
             'sliderButtonLightLevels': '--button-light-levels',
             'sliderButtonLightLevelsContrast': '--button-light-levels-contrast',
             'sliderButtonLightLevelFloor': '--button-light-levels-floor',
             'sliderButtonLightLevelCeiling': '--button-light-levels-ceiling',
+            'sliderButtonSaturation': '--button-saturation',
             'sliderButtonLoseContrast': '--button-lose-contrast',
             'sliderButtonLoseLightness': '--button-lose-lightness',
             'sliderClickBurstSpeed': '--click-burst-speed-ms',
@@ -10740,6 +10765,14 @@
         function applyBlendModes(baseMode, buttonMode) {
             document.getElementById('baseTintBlend').setAttribute('mode', baseMode);
             document.getElementById('buttonTintBlend').setAttribute('mode', buttonMode);
+        }
+
+        // Saturation (Base/Button) - per explicit request. See the matching
+        // feColorMatrix primitives' own comment for why this targets the
+        // already-tinted result rather than SourceGraphic.
+        function applySaturation(baseSat, buttonSat) {
+            document.getElementById('baseSaturationMatrix').setAttribute('values', baseSat);
+            document.getElementById('buttonSaturationMatrix').setAttribute('values', buttonSat);
         }
 
         // Thin vs Regular base+backing artwork - per explicit request.
