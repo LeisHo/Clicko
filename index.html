@@ -3513,46 +3513,6 @@
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Diameter (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonDiameter" min="5" max="60" step="0.5" value="42.5">
-                    <span class="dev-value" id="valueButtonDiameter">42.5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Min Diameter (px, floor on narrow windows):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonMinDiameter" min="0" max="500" step="5" value="380">
-                    <span class="dev-value" id="valueButtonMinDiameter">380</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Height (offset, % of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonHeight" min="-30" max="30" step="0.5" value="-4.5">
-                    <span class="dev-value" id="valueButtonHeight">-4.5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Press Intensity (% of diameter):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonPressIntensity" min="0" max="30" step="0.5" value="8">
-                    <span class="dev-value" id="valueButtonPressIntensity">8</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Press Speed (ms, 0=instant):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonPressMs" min="0" max="200" step="5" value="10">
-                    <span class="dev-value" id="valueButtonPressMs">10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Release Speed (ms, 0=instant):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonReleaseMs" min="0" max="200" step="5" value="10">
-                    <span class="dev-value" id="valueButtonReleaseMs">10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Max Button Scale (x, at 1280px+ width):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonMaxScale" min="0.5" max="2" step="0.01" value="1">
-                    <span class="dev-value" id="valueButtonMaxScale">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Min Button Scale (x, at 768px width):</span>
-                    <input type="range" class="dev-slider" id="sliderButtonMinScale" min="0.1" max="2" step="0.01" value="1">
-                    <span class="dev-value" id="valueButtonMinScale">1</span>
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">Color:</span>
                     <input type="color" class="dev-color-picker" id="colorButton" value="#eb2027">
                     <span class="dev-value" style="font-size:9px;color:#888;">(grayscale + tint)</span>
@@ -3628,46 +3588,6 @@
                      primitives all along (just always driven by the same
                      shared slider values until now) - see
                      applyLightLevels()'s own updated comment. -->
-                <div class="dev-row">
-                    <span class="dev-label">Base Light Levels:</span>
-                    <input type="range" class="dev-slider" id="sliderBaseLightLevels" min="-1" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueBaseLightLevels">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Base Contrast:</span>
-                    <input type="range" class="dev-slider" id="sliderBaseLightLevelsContrast" min="0" max="3" step="0.01" value="1">
-                    <span class="dev-value" id="valueBaseLightLevelsContrast">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Base Light Level Floor:</span>
-                    <input type="range" class="dev-slider" id="sliderBaseLightLevelFloor" min="0" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueBaseLightLevelFloor">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Base Light Level Ceiling:</span>
-                    <input type="range" class="dev-slider" id="sliderBaseLightLevelCeiling" min="0" max="1" step="0.01" value="1">
-                    <span class="dev-value" id="valueBaseLightLevelCeiling">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Light Levels:</span>
-                    <input type="range" class="dev-slider" id="sliderButtonLightLevels" min="-1" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueButtonLightLevels">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Contrast:</span>
-                    <input type="range" class="dev-slider" id="sliderButtonLightLevelsContrast" min="0" max="3" step="0.01" value="1">
-                    <span class="dev-value" id="valueButtonLightLevelsContrast">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Light Level Floor:</span>
-                    <input type="range" class="dev-slider" id="sliderButtonLightLevelFloor" min="0" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueButtonLightLevelFloor">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Light Level Ceiling:</span>
-                    <input type="range" class="dev-slider" id="sliderButtonLightLevelCeiling" min="0" max="1" step="0.01" value="1">
-                    <span class="dev-value" id="valueButtonLightLevelCeiling">1</span>
-                </div>
                 <!-- Lose-only OVERRIDE for the button's own Contrast/Level
                      (Floor/Ceiling stay the normal Button ones above) - per
                      direct request ("provide me 2 sliders to control the
@@ -3678,16 +3598,6 @@
                      moment the next round begins (applyGameplayResultColor(
                      null), called from showTargetAndSpeed()). See that
                      function's own updated comment. -->
-                <div class="dev-row">
-                    <span class="dev-label">Button Lose Contrast:</span>
-                    <input type="range" class="dev-slider" id="sliderButtonLoseContrast" min="0" max="3" step="0.01" value="1">
-                    <span class="dev-value" id="valueButtonLoseContrast">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Lose Lightness:</span>
-                    <input type="range" class="dev-slider" id="sliderButtonLoseLightness" min="-1" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueButtonLoseLightness">0</span>
-                </div>
                 <!-- Per direct request ("provide a checkbox that allows me
                      to turn on the base changing color with the button on a
                      win or lose") - the button's own tint already follows
@@ -3729,31 +3639,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Shadow">▼ Shadow</div>
             <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Shadow X (% of button width):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowX" min="-55.15" max="128.68" step="0.1" value="32.5368">
-                    <span class="dev-value" id="valueShadowX">32.5368</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Y (% of button width):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowY" min="-73.53" max="36.76" step="0.1" value="20.7721">
-                    <span class="dev-value" id="valueShadowY">20.7721</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Blur (px):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowBlur" min="0" max="60" step="1" value="0">
-                    <span class="dev-value" id="valueShadowBlur">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowScale" min="0.1" max="3" step="0.05" value="0.6">
-                    <span class="dev-value" id="valueShadowScale">0.6</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Skew (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowSkew" min="-90" max="0" step="1" value="-22">
-                    <span class="dev-value" id="valueShadowSkew">-22</span>
-                </div>
                 <!-- Replaces the previous 3 separate axis-locked stretch
                      sliders (Y/X/45deg) with a single continuous-angle
                      elongation, per explicit request. Angle 0 = vertical
@@ -3761,21 +3646,6 @@
                      rotate()'s own rotation direction in between - see the
                      comment on --shadow-elongation-angle in cssVars for the
                      rotate/scaleY/rotate-back math. -->
-                <div class="dev-row">
-                    <span class="dev-label">Elongation Intensity:</span>
-                    <input type="range" class="dev-slider" id="sliderShadowElongationIntensity" min="0" max="3" step="0.1" value="2">
-                    <span class="dev-value" id="valueShadowElongationIntensity">2</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Elongation Angle (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowElongationAngle" min="0" max="360" step="1" value="0">
-                    <span class="dev-value" id="valueShadowElongationAngle">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Rotate (deg):</span>
-                    <input type="range" class="dev-slider" id="sliderShadowRotate" min="-90" max="135" step="1" value="41">
-                    <span class="dev-value" id="valueShadowRotate">41</span>
-                </div>
             </div>
         </div>
 
@@ -3791,46 +3661,6 @@
                         <option value="CLICK3" selected>Click 3</option>
                         <option value="CLICK4">Click 4</option>
                     </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Animation Speed (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstSpeed" min="80" max="1000" step="10" value="150">
-                    <span class="dev-value" id="valueClickBurstSpeed">150</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Frame Size (scale):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstScale" min="0" max="1" step="0.01" value="0.32">
-                    <span class="dev-value" id="valueClickBurstScale">0.32</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Distance Out (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstDistance" min="10" max="300" step="5" value="115">
-                    <span class="dev-value" id="valueClickBurstDistance">115</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Height / Lift (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstHeight" min="0" max="200" step="5" value="0">
-                    <span class="dev-value" id="valueClickBurstHeight">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Curve Offset (px):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCurveOffset" min="0" max="150" step="5" value="80">
-                    <span class="dev-value" id="valueClickBurstCurveOffset">80</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Flight Path Curviness (x):</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCurveAmount" min="0" max="3" step="0.05" value="0">
-                    <span class="dev-value" id="valueClickBurstCurveAmount">0.00</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Count Per Side - Floor:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCountMin" min="1" max="8" step="1" value="3">
-                    <span class="dev-value" id="valueClickBurstCountMin">3</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Count Per Side - Ceiling:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstCountMax" min="1" max="8" step="1" value="5">
-                    <span class="dev-value" id="valueClickBurstCountMax">5</span>
                 </div>
                 <!-- A applies to the LEFT side only, B to the RIGHT only -
                      per explicit request (previously both applied to both
@@ -3901,11 +3731,6 @@
                      Shadow group's own sliders it's chained after, not a
                      per-sprite-style tuning value like Frame Size/Distance/
                      etc. above. Default 1 = no change from today's look. -->
-                <div class="dev-row">
-                    <span class="dev-label">Shadow Final Scale:</span>
-                    <input type="range" class="dev-slider" id="sliderClickBurstShadowFinalScale" min="0" max="1" step="0.01" value="1">
-                    <span class="dev-value" id="valueClickBurstShadowFinalScale">1</span>
-                </div>
             </div>
         </div>
 
@@ -3943,11 +3768,6 @@
                         <option value="Jacquard 24">Jacquard 24</option>
                     </select>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Trim Adjust:</span>
-                    <input type="range" class="dev-slider" id="sliderExtrusionFontTrimAdjust" min="-1" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueExtrusionFontTrimAdjust">0</span>
-                </div>
             </div>
         </div>
 
@@ -3972,38 +3792,10 @@
                      the same relative pattern, then the "?" flash timing
                      last. -->
                 <div class="dev-row">
-                    <span class="dev-label">Button Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTextFontSize" min="10" max="400" step="0.01" value="197.38">
-                    <span class="dev-value" id="valueTextFontSize">12.94</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTextScaleWithBrowser', '--text-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTextFontSizeVw" min="1" max="60" step="0.01" value="15.42">
-                    <span class="dev-value" id="valueTextFontSizeVw">15.42</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundExtrusionDepth" min="0" max="20" step="1" value="9">
-                    <span class="dev-value" id="valueRoundExtrusionDepth">9</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundExtrusionBorder" value="#c41516">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundOverallBorderThickness" min="0" max="20" step="1" value="7">
-                    <span class="dev-value" id="valueRoundOverallBorderThickness">7</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundOverallBorder" value="#5c191d">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Button X Offset (vw):</span>
@@ -4016,16 +3808,6 @@
                     <input type="range" class="dev-slider" id="sliderTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTextY">-13.75</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTextYOffsetUnitPx" data-slider="sliderTextY" data-flag-var="--text-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTextLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueTextLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Button Line Spacing:</span>
-                    <input type="range" class="dev-slider" id="sliderTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueTextLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4049,38 +3831,10 @@
                      thickness - independent from Start's above, per
                      explicit request. -->
                 <div class="dev-row">
-                    <span class="dev-label">Try Again Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSize" min="10" max="400" step="0.01" value="165.63">
-                    <span class="dev-value" id="valueTryAgainTextFontSize">12.94</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextFontSizeVw" min="1" max="60" step="0.01" value="12.94">
-                    <span class="dev-value" id="valueTryAgainTextFontSizeVw">12.94</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainExtrusionDepth" min="0" max="20" step="1" value="9">
-                    <span class="dev-value" id="valueTryAgainExtrusionDepth">9</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTryAgainExtrusionBorder" value="#c41516">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainOverallBorderThickness" min="0" max="20" step="1" value="7">
-                    <span class="dev-value" id="valueTryAgainOverallBorderThickness">7</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTryAgainOverallBorder" value="#5c191d">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again X Offset (vw):</span>
@@ -4093,16 +3847,6 @@
                     <input type="range" class="dev-slider" id="sliderTryAgainTextY" min="-50" max="50" step="0.01" value="-13.75">
                     <span class="dev-value" id="valueTryAgainTextY">-13.75</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTryAgainTextYOffsetUnitPx" data-slider="sliderTryAgainTextY" data-flag-var="--try-again-text-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextLetterSpacing" min="-10" max="20" step="0.5" value="10">
-                    <span class="dev-value" id="valueTryAgainTextLetterSpacing">10</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again Line Height:</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainTextLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueTryAgainTextLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Try Again Text Align:</span>
@@ -4127,16 +3871,6 @@
                      mobile-split, like every other timing-only slider (Game
                      Mechanics durations, Round Text's own blink-sequence
                      sliders) - see startTryAgainFlash(). -->
-                <div class="dev-row">
-                    <span class="dev-label">Try Again "?" Flash Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainFlashDuration" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueTryAgainFlashDuration">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Try Again "?" Hold Duration (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainHoldDuration" min="0" max="3000" step="10" value="1000">
-                    <span class="dev-value" id="valueTryAgainHoldDuration">1000</span>
-                </div>
             </div>
         </div>
 
@@ -4158,11 +3892,6 @@
                     </select>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Rotation Speed (ms per cycle):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainRotateSpeed" min="200" max="5000" step="50" value="1500">
-                    <span class="dev-value" id="valueTryAgainRotateSpeed">1500</span>
-                </div>
-                <div class="dev-row">
                     <span class="dev-label">Tweening of Rotation:</span>
                     <select class="dev-select" id="selectTryAgainTweening" onchange="cssVars['--try-again-rotate-tweening'] = this.value;">
                         <option value="linear" selected>Linear</option>
@@ -4171,11 +3900,6 @@
                         <option value="easeOut">Ease Out</option>
                     </select>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Minimum Width of Rotated Text:</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainRotateMinWidth" min="0" max="1" step="0.01" value="0">
-                    <span class="dev-value" id="valueTryAgainRotateMinWidth">0</span>
-                </div>
                 <!-- The "?" glyph's own size/color/position - independent
                      from the "Try again" text (which keeps its own separate
                      controls up in Start/Try Again Button) - per explicit
@@ -4183,24 +3907,10 @@
                      of just these 4, further down) - Mode/Speed/Tweening/
                      Min Width above stay single/shared. -->
                 <div class="dev-row">
-                    <span class="dev-label">"?" Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkFontSize" min="10" max="500" step="0.01" value="257.15">
-                    <span class="dev-value" id="valueTryAgainQuestionMarkFontSize">12.94</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkFontSizeVw" min="1" max="60" step="0.01" value="20.09">
-                    <span class="dev-value" id="valueTryAgainQuestionMarkFontSizeVw">20.09</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">"?" Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTryAgainQuestionMarkFill" value="#ffffff">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">"?" X Offset (vw):</span>
@@ -4232,20 +3942,6 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainQuestionMarkTextValignEdgeLock" data-var="--try-again-question-mark-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">"?" Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkExtrusionDepth" min="0" max="30" step="1" value="9">
-                    <span class="dev-value" id="valueTryAgainQuestionMarkExtrusionDepth">9</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">"?" Overall Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainQuestionMarkOverallBorderThickness" min="0" max="30" step="1" value="17">
-                    <span class="dev-value" id="valueTryAgainQuestionMarkOverallBorderThickness">17</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">"?" Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTryAgainQuestionMarkOverallBorder" value="#59181b">
-                </div>
                 <!-- Checked (default): extrusion/border follows the glyph's
                      own scaleX exactly - the whole token transforms as one
                      unit. Unchecked: extrusion/border still tracks the
@@ -4257,11 +3953,6 @@
                         <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" checked onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
                         <span class="dev-label" style="min-width:auto;">Extrusion/Border Scales/Mirrors With Text</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Rotation Axis Offset (% of width):</span>
-                    <input type="range" class="dev-slider" id="sliderTryAgainRotateAxisOffset" min="-50" max="50" step="1" value="0">
-                    <span class="dev-value" id="valueTryAgainRotateAxisOffset">0</span>
                 </div>
             </div>
         </div>
@@ -4281,38 +3972,10 @@
                      text settings share one consistent order - the unique
                      blink-sequence fields stay grouped at the end. -->
                 <div class="dev-row">
-                    <span class="dev-label">Text Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundFontSize" min="5" max="200" step="0.01" value="89.34">
-                    <span class="dev-value" id="valueRoundFontSize">3.3</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundScaleWithBrowser', '--round-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundFontSizeVw" min="1" max="60" step="0.01" value="6.98">
-                    <span class="dev-value" id="valueRoundFontSizeVw">6.98</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockExtrusionDepth" min="0" max="20" step="1" value="2">
-                    <span class="dev-value" id="valueRoundDockExtrusionDepth">2</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundDockExtrusionBorder" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundDockOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueRoundDockOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorRoundDockOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text X Offset (vw):</span>
@@ -4325,16 +3988,6 @@
                     <input type="range" class="dev-slider" id="sliderRoundDockY" min="-50" max="50" step="0.01" value="42.7">
                     <span class="dev-value" id="valueRoundDockY">42.7</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxRoundDockYOffsetUnitPx" data-slider="sliderRoundDockY" data-flag-var="--round-dock-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueRoundLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Line Spacing:</span>
-                    <input type="range" class="dev-slider" id="sliderRoundLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueRoundLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4362,46 +4015,6 @@
                      sliders. Replaces the earlier single Flash Duration
                      slider (one hide->new-number swap) entirely - see
                      runRoundBlinkSequence(). -->
-                <div class="dev-row">
-                    <span class="dev-label">Blink 1 - Disappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink1Hide" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink1Hide">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Blink 1 - Reappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink1Show" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink1Show">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Blink 2 - Disappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink2Hide" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink2Hide">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Blink 2 - Reappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink2Show" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink2Show">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Blink 3 - Disappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink3Hide" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink3Hide">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Blink 3 - Reappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink3Show" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink3Show">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Blink 4 - Disappear (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundBlink4Hide" min="0" max="1500" step="10" value="250">
-                    <span class="dev-value" id="valueRoundBlink4Hide">250</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">New Number Hold (ms):</span>
-                    <input type="range" class="dev-slider" id="sliderRoundPostBlinkHold" min="0" max="2000" step="10" value="1300">
-                    <span class="dev-value" id="valueRoundPostBlinkHold">1300</span>
-                </div>
             </div>
         </div>
 
@@ -4419,20 +4032,10 @@
                      then the unique Win/Lose colors) per explicit request
                      that all text settings share one consistent order. -->
                 <div class="dev-row">
-                    <span class="dev-label">Win Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultWinFontSize" min="5" max="300" step="0.01" value="172.8">
-                    <span class="dev-value" id="valueResultWinFontSize">172.8</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderResultWinFontSizeVw" min="1" max="60" step="0.01" value="13.5">
-                    <span class="dev-value" id="valueResultWinFontSizeVw">13.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Win X Offset (vw):</span>
@@ -4447,25 +4050,10 @@
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxResultWinYOffsetUnitPx" data-slider="sliderResultWinY" data-flag-var="--result-win-y-offset-unit-is-px">Px</label>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">Win Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultWinLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueResultWinLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Lose Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultLoseFontSize" min="5" max="300" step="0.01" value="172.8">
-                    <span class="dev-value" id="valueResultLoseFontSize">172.8</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultLoseScaleWithBrowser" data-css-var="--result-lose-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultLoseScaleWithBrowser', '--result-lose-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderResultLoseFontSizeVw" min="1" max="60" step="0.01" value="13.5">
-                    <span class="dev-value" id="valueResultLoseFontSizeVw">13.5</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Lose X Offset (vw):</span>
@@ -4478,31 +4066,6 @@
                     <input type="range" class="dev-slider" id="sliderResultLoseY" min="-50" max="50" step="0.01" value="-13">
                     <span class="dev-value" id="valueResultLoseY">-13</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxResultLoseYOffsetUnitPx" data-slider="sliderResultLoseY" data-flag-var="--result-lose-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Lose Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultLoseLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueResultLoseLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultExtrusionDepth" min="0" max="30" step="1" value="5">
-                    <span class="dev-value" id="valueResultExtrusionDepth">5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderResultOverallBorderThickness" min="0" max="20" step="1" value="5">
-                    <span class="dev-value" id="valueResultOverallBorderThickness">5</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Angle (Deg):</span>
-                    <input type="range" class="dev-slider" id="sliderResultExtrusionAngle" min="0" max="360" step="1" value="45">
-                    <span class="dev-value" id="valueResultExtrusionAngle">45</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Line Spacing:</span>
-                    <input type="range" class="dev-slider" id="sliderResultLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueResultLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4522,42 +4085,10 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxResultTextValignEdgeLock" data-var="--result-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Win Fill Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultWinFill" value="#f0fff4">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Win Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultWinBorder" value="#22dd44">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Lose Fill Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultLoseFill" value="#d3a7a7">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Lose Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorResultLoseBorder" value="#2c99dd">
-                </div>
                 <!-- Target/Speed/Ms-per-click no longer disappear on win/
                      lose - they tint instead, per explicit request. Shared
                      across all 3 elements (not per-element), matching
                      "Provide me 4 sliders" (not 12). -->
-                <div class="dev-row">
-                    <span class="dev-label">Gameplay Win Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorGameplayWinText" value="#22dd44">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Gameplay Win Border/Extrusion Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorGameplayWinBorder" value="#22dd44">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Gameplay Lose Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorGameplayLoseText" value="#dd3333">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Gameplay Lose Border/Extrusion Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorGameplayLoseBorder" value="#dd3333">
-                </div>
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="checkboxGameplayResultFlashWithRound" checked onchange="cssVars['--gameplay-result-flash-with-round'] = this.checked ? 1 : 0">
@@ -4572,43 +4103,15 @@
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFontSize" min="10" max="500" step="0.01" value="309.76">
-                    <span class="dev-value" id="valueTargetFontSize">11.74</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetScaleWithBrowser', '--target-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetFontSizeVw" min="1" max="60" step="0.01" value="24.2">
-                    <span class="dev-value" id="valueTargetFontSizeVw">24.2</span>
-                </div>
                 <!-- Font dropdown removed - Target now shares the ONE
                      8-Bit Text Style font (select8BitFont), per explicit
                      request that every 8-bit-capable text share a single
                      font control rather than each having its own. -->
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetExtrusionDepth" min="0" max="20" step="1" value="4">
-                    <span class="dev-value" id="valueTargetExtrusionDepth">4</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTargetExtrusionBorder" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetOverallBorderThickness" min="0" max="20" step="1" value="4">
-                    <span class="dev-value" id="valueTargetOverallBorderThickness">4</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorTargetOverallBorder" value="#000000">
-                </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
                     <input type="range" class="dev-slider" id="sliderTargetX" min="-50" max="50" step="0.01" value="39.5">
@@ -4620,16 +4123,6 @@
                     <input type="range" class="dev-slider" id="sliderTargetY" min="-50" max="50" step="0.01" value="-32.71">
                     <span class="dev-value" id="valueTargetY">-32.71</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxTargetYOffsetUnitPx" data-slider="sliderTargetY" data-flag-var="--target-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderTargetLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueTargetLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Line Spacing:</span>
-                    <input type="range" class="dev-slider" id="sliderTargetLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueTargetLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4657,38 +4150,10 @@
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Speed Display (max ms between taps)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedFontSize" min="5" max="300" step="0.01" value="89.34">
-                    <span class="dev-value" id="valueSpeedFontSize">3.3</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxSpeedScaleWithBrowser" data-css-var="--speed-scale-with-browser" onchange="updateScaleWithBrowser('checkboxSpeedScaleWithBrowser', '--speed-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedFontSizeVw" min="1" max="60" step="0.01" value="6.98">
-                    <span class="dev-value" id="valueSpeedFontSizeVw">6.98</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedExtrusionDepth" min="0" max="20" step="1" value="19">
-                    <span class="dev-value" id="valueSpeedExtrusionDepth">19</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorSpeedExtrusionBorder" value="#000000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueSpeedOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorSpeedOverallBorder" value="#000000">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -4701,16 +4166,6 @@
                     <input type="range" class="dev-slider" id="sliderSpeedY" min="-50" max="50" step="0.01" value="-14.85">
                     <span class="dev-value" id="valueSpeedY">-14.85</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxSpeedYOffsetUnitPx" data-slider="sliderSpeedY" data-flag-var="--speed-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueSpeedLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Line Spacing:</span>
-                    <input type="range" class="dev-slider" id="sliderSpeedLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueSpeedLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4740,38 +4195,10 @@
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
-                    <span class="dev-label">Font Size (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSize" min="5" max="300" step="0.01" value="69.89">
-                    <span class="dev-value" id="valueMsPerClickFontSize">2</span>
-                </div>
-                <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Font Size (vw):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickFontSizeVw" min="1" max="60" step="0.01" value="5.46">
-                    <span class="dev-value" id="valueMsPerClickFontSizeVw">5.46</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Extrusion Depth (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickExtrusionDepth" min="0" max="20" step="1" value="8">
-                    <span class="dev-value" id="valueMsPerClickExtrusionDepth">8</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Text Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMsPerClickExtrusionBorder" value="#ff0000">
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Border Thickness (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickOverallBorderThickness" min="0" max="20" step="1" value="1">
-                    <span class="dev-value" id="valueMsPerClickOverallBorderThickness">1</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Overall Border Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorMsPerClickOverallBorder" value="#cc1b20">
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">X Offset (vw):</span>
@@ -4784,16 +4211,6 @@
                     <input type="range" class="dev-slider" id="sliderMsPerClickY" min="-50" max="50" step="0.01" value="-14.88">
                     <span class="dev-value" id="valueMsPerClickY">-14.88</span>
                     <label class="dev-offset-unit-label"><input type="checkbox" class="dev-offset-unit-checkbox" id="checkboxMsPerClickYOffsetUnitPx" data-slider="sliderMsPerClickY" data-flag-var="--ms-per-click-y-offset-unit-is-px">Px</label>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Letter Spacing (px):</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickLetterSpacing" min="-10" max="20" step="0.5" value="0">
-                    <span class="dev-value" id="valueMsPerClickLetterSpacing">0</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Line Spacing:</span>
-                    <input type="range" class="dev-slider" id="sliderMsPerClickLineHeight" min="0.5" max="3" step="0.05" value="1.2">
-                    <span class="dev-value" id="valueMsPerClickLineHeight">1.2</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
@@ -4915,10 +4332,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Background">▼ Background</div>
             <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">Color:</span>
-                    <input type="color" class="dev-color-picker" id="colorBg" value="#ffffff">
-                </div>
             </div>
         </div>
         </div>
@@ -10386,6 +9799,207 @@
             'colorSpeedOverallBorder': 'speedOverallBorderColor',
             'colorMsPerClickOverallBorder': 'msPerClickOverallBorderColor',
         };
+
+        // Desktop tab's "uniform" controls (plain CSS-var/extrusion-var
+        // sliders and color pickers, each with exactly one input and no
+        // extra bundled elements) - generated at runtime instead of
+        // hand-written HTML, per direct request to port the dev panel to
+        // the same "config array + generic builder" pattern DickoClicko/
+        // HANDO use. Deliberately narrower than a full port: the ~54
+        // BESPOKE controls (Dev Panel's own styling, Game Mechanics,
+        // Click Burst text inputs, and every X/Y-offset slider that has a
+        // bundled px/vw-unit checkbox in the same row) stay exactly as
+        // hand-written HTML for now - see the AskUserQuestion-confirmed
+        // scope decision before this was built. Extracted from the
+        // ORIGINAL static HTML via an automated script (not hand-
+        // transcribed) specifically to avoid transcription errors across
+        // 122 individually-tuned min/max/step/value numbers.
+        //
+        // The event-wiring/save/load/sync machinery below (setupDevSliders(),
+        // the load-time DOM-sync loop, syncColorPickersFromState(), etc.)
+        // already operates generically over whatever .dev-slider/
+        // .dev-color-picker elements exist in the DOM by id - it does not
+        // care whether an element was hand-written or generated, so none
+        // of that code needed to change. This only changes HOW the HTML
+        // gets into the DOM, not how it's read/written/persisted.
+        const DESKTOP_UNIFORM_CONTROLS = [
+            { group: 'Main Button', id: 'sliderButtonDiameter', type: 'slider', label: 'Diameter (vw):', min: 5, max: 60, step: 0.5, value: 42.5 },
+            { group: 'Main Button', id: 'sliderButtonMinDiameter', type: 'slider', label: 'Min Diameter (px, floor on narrow windows):', min: 0, max: 500, step: 5, value: 380 },
+            { group: 'Main Button', id: 'sliderButtonHeight', type: 'slider', label: 'Height (offset, % of diameter):', min: -30, max: 30, step: 0.5, value: -4.5 },
+            { group: 'Main Button', id: 'sliderButtonPressIntensity', type: 'slider', label: 'Press Intensity (% of diameter):', min: 0, max: 30, step: 0.5, value: 8 },
+            { group: 'Main Button', id: 'sliderButtonPressMs', type: 'slider', label: 'Press Speed (ms, 0=instant):', min: 0, max: 200, step: 5, value: 10 },
+            { group: 'Main Button', id: 'sliderButtonReleaseMs', type: 'slider', label: 'Release Speed (ms, 0=instant):', min: 0, max: 200, step: 5, value: 10 },
+            { group: 'Main Button', id: 'sliderButtonMaxScale', type: 'slider', label: 'Max Button Scale (x, at 1280px+ width):', min: 0.5, max: 2, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderButtonMinScale', type: 'slider', label: 'Min Button Scale (x, at 768px width):', min: 0.1, max: 2, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderBaseLightLevels', type: 'slider', label: 'Base Light Levels:', min: -1, max: 1, step: 0.01, value: 0 },
+            { group: 'Main Button', id: 'sliderBaseLightLevelsContrast', type: 'slider', label: 'Base Contrast:', min: 0, max: 3, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderBaseLightLevelFloor', type: 'slider', label: 'Base Light Level Floor:', min: 0, max: 1, step: 0.01, value: 0 },
+            { group: 'Main Button', id: 'sliderBaseLightLevelCeiling', type: 'slider', label: 'Base Light Level Ceiling:', min: 0, max: 1, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderButtonLightLevels', type: 'slider', label: 'Button Light Levels:', min: -1, max: 1, step: 0.01, value: 0 },
+            { group: 'Main Button', id: 'sliderButtonLightLevelsContrast', type: 'slider', label: 'Button Contrast:', min: 0, max: 3, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderButtonLightLevelFloor', type: 'slider', label: 'Button Light Level Floor:', min: 0, max: 1, step: 0.01, value: 0 },
+            { group: 'Main Button', id: 'sliderButtonLightLevelCeiling', type: 'slider', label: 'Button Light Level Ceiling:', min: 0, max: 1, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderButtonLoseContrast', type: 'slider', label: 'Button Lose Contrast:', min: 0, max: 3, step: 0.01, value: 1 },
+            { group: 'Main Button', id: 'sliderButtonLoseLightness', type: 'slider', label: 'Button Lose Lightness:', min: -1, max: 1, step: 0.01, value: 0 },
+            { group: 'Shadow', id: 'sliderShadowX', type: 'slider', label: 'Shadow X (% of button width):', min: -55.15, max: 128.68, step: 0.1, value: 32.5368 },
+            { group: 'Shadow', id: 'sliderShadowY', type: 'slider', label: 'Shadow Y (% of button width):', min: -73.53, max: 36.76, step: 0.1, value: 20.7721 },
+            { group: 'Shadow', id: 'sliderShadowBlur', type: 'slider', label: 'Shadow Blur (px):', min: 0, max: 60, step: 1, value: 0 },
+            { group: 'Shadow', id: 'sliderShadowScale', type: 'slider', label: 'Shadow Size (scale):', min: 0.1, max: 3, step: 0.05, value: 0.6 },
+            { group: 'Shadow', id: 'sliderShadowSkew', type: 'slider', label: 'Shadow Skew (deg):', min: -90, max: 0, step: 1, value: -22 },
+            { group: 'Shadow', id: 'sliderShadowElongationIntensity', type: 'slider', label: 'Elongation Intensity:', min: 0, max: 3, step: 0.1, value: 2 },
+            { group: 'Shadow', id: 'sliderShadowElongationAngle', type: 'slider', label: 'Elongation Angle (deg):', min: 0, max: 360, step: 1, value: 0 },
+            { group: 'Shadow', id: 'sliderShadowRotate', type: 'slider', label: 'Shadow Rotate (deg):', min: -90, max: 135, step: 1, value: 41 },
+            { group: 'Click Burst', id: 'sliderClickBurstSpeed', type: 'slider', label: 'Animation Speed (ms):', min: 80, max: 1000, step: 10, value: 150 },
+            { group: 'Click Burst', id: 'sliderClickBurstScale', type: 'slider', label: 'Frame Size (scale):', min: 0, max: 1, step: 0.01, value: 0.32 },
+            { group: 'Click Burst', id: 'sliderClickBurstDistance', type: 'slider', label: 'Distance Out (px):', min: 10, max: 300, step: 5, value: 115 },
+            { group: 'Click Burst', id: 'sliderClickBurstHeight', type: 'slider', label: 'Height / Lift (px):', min: 0, max: 200, step: 5, value: 0 },
+            { group: 'Click Burst', id: 'sliderClickBurstCurveOffset', type: 'slider', label: 'Curve Offset (px):', min: 0, max: 150, step: 5, value: 80 },
+            { group: 'Click Burst', id: 'sliderClickBurstCurveAmount', type: 'slider', label: 'Flight Path Curviness (x):', min: 0, max: 3, step: 0.05, value: 0 },
+            { group: 'Click Burst', id: 'sliderClickBurstCountMin', type: 'slider', label: 'Count Per Side - Floor:', min: 1, max: 8, step: 1, value: 3 },
+            { group: 'Click Burst', id: 'sliderClickBurstCountMax', type: 'slider', label: 'Count Per Side - Ceiling:', min: 1, max: 8, step: 1, value: 5 },
+            { group: 'Click Burst', id: 'sliderClickBurstShadowFinalScale', type: 'slider', label: 'Shadow Final Scale:', min: 0, max: 1, step: 0.01, value: 1 },
+            { group: '8-Bit Text Style (Start/Try Again/Round/Win-Lose)', id: 'sliderExtrusionFontTrimAdjust', type: 'slider', label: 'Font Trim Adjust:', min: -1, max: 1, step: 0.01, value: 0 },
+            { group: 'Start/Try Again Button', id: 'sliderTextFontSize', type: 'slider', label: 'Button Font Size (px):', min: 10, max: 400, step: 0.01, value: 197.38 },
+            { group: 'Start/Try Again Button', id: 'sliderTextFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 15.42 },
+            { group: 'Start/Try Again Button', id: 'sliderRoundExtrusionDepth', type: 'slider', label: 'Button Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'Start/Try Again Button', id: 'colorRoundExtrusionBorder', type: 'color', label: 'Button Text Color:', value: '#c41516' },
+            { group: 'Start/Try Again Button', id: 'sliderRoundOverallBorderThickness', type: 'slider', label: 'Button Border Thickness (px):', min: 0, max: 20, step: 1, value: 7 },
+            { group: 'Start/Try Again Button', id: 'colorRoundOverallBorder', type: 'color', label: 'Button Overall Border Color:', value: '#5c191d' },
+            { group: 'Start/Try Again Button', id: 'sliderTextLetterSpacing', type: 'slider', label: 'Button Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Start/Try Again Button', id: 'sliderTextLineHeight', type: 'slider', label: 'Button Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainTextFontSize', type: 'slider', label: 'Try Again Font Size (px):', min: 10, max: 400, step: 0.01, value: 165.63 },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainTextFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 12.94 },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainExtrusionDepth', type: 'slider', label: 'Try Again Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'Start/Try Again Button', id: 'colorTryAgainExtrusionBorder', type: 'color', label: 'Try Again Text Color:', value: '#c41516' },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainOverallBorderThickness', type: 'slider', label: 'Try Again Border Thickness (px):', min: 0, max: 20, step: 1, value: 7 },
+            { group: 'Start/Try Again Button', id: 'colorTryAgainOverallBorder', type: 'color', label: 'Try Again Overall Border Color:', value: '#5c191d' },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainTextLetterSpacing', type: 'slider', label: 'Try Again Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 10 },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainTextLineHeight', type: 'slider', label: 'Try Again Line Height:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainFlashDuration', type: 'slider', label: 'Try Again "?" Flash Duration (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Start/Try Again Button', id: 'sliderTryAgainHoldDuration', type: 'slider', label: 'Try Again "?" Hold Duration (ms):', min: 0, max: 3000, step: 10, value: 1000 },
+            { group: 'Rotation Animation', id: 'sliderTryAgainRotateSpeed', type: 'slider', label: 'Rotation Speed (ms per cycle):', min: 200, max: 5000, step: 50, value: 1500 },
+            { group: 'Rotation Animation', id: 'sliderTryAgainRotateMinWidth', type: 'slider', label: 'Minimum Width of Rotated Text:', min: 0, max: 1, step: 0.01, value: 0 },
+            { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkFontSize', type: 'slider', label: '"?" Font Size (px):', min: 10, max: 500, step: 0.01, value: 257.15 },
+            { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 20.09 },
+            { group: 'Rotation Animation', id: 'colorTryAgainQuestionMarkFill', type: 'color', label: '"?" Color:', value: '#ffffff' },
+            { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkExtrusionDepth', type: 'slider', label: '"?" Extrusion Depth (px):', min: 0, max: 30, step: 1, value: 9 },
+            { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkOverallBorderThickness', type: 'slider', label: '"?" Overall Border Thickness (px):', min: 0, max: 30, step: 1, value: 17 },
+            { group: 'Rotation Animation', id: 'colorTryAgainQuestionMarkOverallBorder', type: 'color', label: '"?" Overall Border Color:', value: '#59181b' },
+            { group: 'Rotation Animation', id: 'sliderTryAgainRotateAxisOffset', type: 'slider', label: 'Rotation Axis Offset (% of width):', min: -50, max: 50, step: 1, value: 0 },
+            { group: 'Round Text', id: 'sliderRoundFontSize', type: 'slider', label: 'Text Font Size (px):', min: 5, max: 200, step: 0.01, value: 89.34 },
+            { group: 'Round Text', id: 'sliderRoundFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 6.98 },
+            { group: 'Round Text', id: 'sliderRoundDockExtrusionDepth', type: 'slider', label: 'Text Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 2 },
+            { group: 'Round Text', id: 'colorRoundDockExtrusionBorder', type: 'color', label: 'Text Color:', value: '#000000' },
+            { group: 'Round Text', id: 'sliderRoundDockOverallBorderThickness', type: 'slider', label: 'Text Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
+            { group: 'Round Text', id: 'colorRoundDockOverallBorder', type: 'color', label: 'Text Overall Border Color:', value: '#000000' },
+            { group: 'Round Text', id: 'sliderRoundLetterSpacing', type: 'slider', label: 'Text Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Text', id: 'sliderRoundLineHeight', type: 'slider', label: 'Text Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Round Text', id: 'sliderRoundBlink1Hide', type: 'slider', label: 'Blink 1 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundBlink1Show', type: 'slider', label: 'Blink 1 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundBlink2Hide', type: 'slider', label: 'Blink 2 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundBlink2Show', type: 'slider', label: 'Blink 2 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundBlink3Hide', type: 'slider', label: 'Blink 3 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundBlink3Show', type: 'slider', label: 'Blink 3 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundBlink4Hide', type: 'slider', label: 'Blink 4 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'Round Text', id: 'sliderRoundPostBlinkHold', type: 'slider', label: 'New Number Hold (ms):', min: 0, max: 2000, step: 10, value: 1300 },
+            { group: 'Win/Lose Text', id: 'sliderResultWinFontSize', type: 'slider', label: 'Win Font Size (px):', min: 5, max: 300, step: 0.01, value: 172.8 },
+            { group: 'Win/Lose Text', id: 'sliderResultWinFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 13.5 },
+            { group: 'Win/Lose Text', id: 'sliderResultWinLetterSpacing', type: 'slider', label: 'Win Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Win/Lose Text', id: 'sliderResultLoseFontSize', type: 'slider', label: 'Lose Font Size (px):', min: 5, max: 300, step: 0.01, value: 172.8 },
+            { group: 'Win/Lose Text', id: 'sliderResultLoseFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 13.5 },
+            { group: 'Win/Lose Text', id: 'sliderResultLoseLetterSpacing', type: 'slider', label: 'Lose Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Win/Lose Text', id: 'sliderResultExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 30, step: 1, value: 5 },
+            { group: 'Win/Lose Text', id: 'sliderResultOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 5 },
+            { group: 'Win/Lose Text', id: 'sliderResultExtrusionAngle', type: 'slider', label: 'Extrusion Angle (Deg):', min: 0, max: 360, step: 1, value: 45 },
+            { group: 'Win/Lose Text', id: 'sliderResultLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Win/Lose Text', id: 'colorResultWinFill', type: 'color', label: 'Win Fill Color:', value: '#f0fff4' },
+            { group: 'Win/Lose Text', id: 'colorResultWinBorder', type: 'color', label: 'Win Border Color:', value: '#22dd44' },
+            { group: 'Win/Lose Text', id: 'colorResultLoseFill', type: 'color', label: 'Lose Fill Color:', value: '#d3a7a7' },
+            { group: 'Win/Lose Text', id: 'colorResultLoseBorder', type: 'color', label: 'Lose Border Color:', value: '#2c99dd' },
+            { group: 'Win/Lose Text', id: 'colorGameplayWinText', type: 'color', label: 'Gameplay Win Text Color:', value: '#22dd44' },
+            { group: 'Win/Lose Text', id: 'colorGameplayWinBorder', type: 'color', label: 'Gameplay Win Border/Extrusion Color:', value: '#22dd44' },
+            { group: 'Win/Lose Text', id: 'colorGameplayLoseText', type: 'color', label: 'Gameplay Lose Text Color:', value: '#dd3333' },
+            { group: 'Win/Lose Text', id: 'colorGameplayLoseBorder', type: 'color', label: 'Gameplay Lose Border/Extrusion Color:', value: '#dd3333' },
+            { group: 'Target Count Display', id: 'sliderTargetFontSize', type: 'slider', label: 'Font Size (px):', min: 10, max: 500, step: 0.01, value: 309.76 },
+            { group: 'Target Count Display', id: 'sliderTargetFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 24.2 },
+            { group: 'Target Count Display', id: 'sliderTargetExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
+            { group: 'Target Count Display', id: 'colorTargetExtrusionBorder', type: 'color', label: 'Text Color:', value: '#000000' },
+            { group: 'Target Count Display', id: 'sliderTargetOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 4 },
+            { group: 'Target Count Display', id: 'colorTargetOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#000000' },
+            { group: 'Target Count Display', id: 'sliderTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Target Count Display', id: 'sliderTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 89.34 },
+            { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 6.98 },
+            { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 19 },
+            { group: 'Speed Display (max ms between taps)', id: 'colorSpeedExtrusionBorder', type: 'color', label: 'Text Color:', value: '#000000' },
+            { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
+            { group: 'Speed Display (max ms between taps)', id: 'colorSpeedOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#000000' },
+            { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 69.89 },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.46 },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Ms/Click Display', id: 'colorMsPerClickExtrusionBorder', type: 'color', label: 'Text Color:', value: '#ff0000' },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
+            { group: 'Ms/Click Display', id: 'colorMsPerClickOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#cc1b20' },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Background', id: 'colorBg', type: 'color', label: 'Color:', value: '#ffffff' },
+        ];
+        function buildUniformControlRow(ctrl) {
+            const row = document.createElement('div');
+            row.className = 'dev-row';
+            const label = document.createElement('span');
+            label.className = 'dev-label';
+            label.textContent = ctrl.label;
+            row.appendChild(label);
+            if (ctrl.type === 'slider') {
+                const input = document.createElement('input');
+                input.type = 'range';
+                input.className = 'dev-slider';
+                input.id = ctrl.id;
+                input.min = ctrl.min;
+                input.max = ctrl.max;
+                input.step = ctrl.step;
+                input.value = ctrl.value;
+                row.appendChild(input);
+                const value = document.createElement('span');
+                value.className = 'dev-value';
+                value.id = ctrl.id.replace(/^slider/, 'value');
+                value.textContent = ctrl.value;
+                row.appendChild(value);
+            } else if (ctrl.type === 'color') {
+                const input = document.createElement('input');
+                input.type = 'color';
+                input.className = 'dev-color-picker';
+                input.id = ctrl.id;
+                input.value = ctrl.value;
+                row.appendChild(input);
+            }
+            return row;
+        }
+        // Appends each generated row into its matching group's
+        // .dev-section-content, found by data-sid (the group's frozen
+        // original title - see getSectionKey()'s own comment). Must run
+        // BEFORE setupDevSliders()/etc below so the generic event-wiring
+        // loops see these elements already in the DOM. Insertion order
+        // within a group doesn't need to match the original interleaving
+        // with bespoke rows - captureSectionOrder()/applySectionOrder()
+        // (via loadSettings(), which runs right after this) re-derives the
+        // real display order from saved data by row id regardless of
+        // where a row was inserted, the same way it already does for
+        // custom drag-created groups.
+        function renderDesktopUniformControls() {
+            DESKTOP_UNIFORM_CONTROLS.forEach(ctrl => {
+                const titleEl = document.querySelector('#desktopTabContent > .dev-section > .dev-section-title[data-sid="' + ctrl.group.replace(/"/g, '\\"') + '"]');
+                if (!titleEl) {
+                    console.warn('renderDesktopUniformControls: group not found', ctrl.group, ctrl.id);
+                    return;
+                }
+                titleEl.nextElementSibling.appendChild(buildUniformControlRow(ctrl));
+            });
+        }
+        renderDesktopUniformControls();
 
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
