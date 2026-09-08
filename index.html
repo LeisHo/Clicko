@@ -1853,22 +1853,41 @@
         .dev-panel-resize-corner.corner-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
         .dev-panel-resize-corner.corner-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
 
-        /* All 4 corners get the same visible grip icon (previously only
-           bottom-right) - per explicit request. Same diagonal-stripe
-           pattern reused for all 4 rather than 4 differently-rotated
-           variants, matching this panel's existing "not cluttered" look. */
+        /* All 4 corners get a visible grip icon - per explicit request.
+           Halved from the original 14px to 7px, and repositioned so the
+           icon sits fully INSIDE the panel's real edge rather than
+           straddling it like the invisible hit-target handle above does -
+           per direct report/request. The handle itself starts at -6px
+           (see corner-tl/etc above), so an 8px offset from the handle's
+           own box lands the icon 2px inside the panel edge (-6+8=2),
+           comfortably clear of the boundary with the icon's own 7px size. */
         .dev-panel-resize-corner::after {
             content: '';
             position: absolute;
-            width: 14px;
-            height: 14px;
-            background-image: repeating-linear-gradient(135deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
+            width: 7px;
+            height: 7px;
             opacity: 0.7;
         }
-        .dev-panel-resize-corner.corner-tl::after { top: 2px; left: 2px; }
-        .dev-panel-resize-corner.corner-tr::after { top: 2px; right: 2px; }
-        .dev-panel-resize-corner.corner-bl::after { bottom: 2px; left: 2px; }
-        .dev-panel-resize-corner.corner-br::after { bottom: 2px; right: 2px; }
+        .dev-panel-resize-corner.corner-tl::after { top: 8px; left: 8px; }
+        .dev-panel-resize-corner.corner-tr::after { top: 8px; right: 8px; }
+        .dev-panel-resize-corner.corner-bl::after { bottom: 8px; left: 8px; }
+        .dev-panel-resize-corner.corner-br::after { bottom: 8px; right: 8px; }
+        /* Stripe direction now matches each corner's OWN resize diagonal
+           instead of copying corner-tl's pattern onto all 4 (the previous,
+           unmirrored version) - per direct request to mirror tr/bl. tl/br
+           use cursor:nwse-resize (a "\" diagonal) and keep the original
+           135deg "\" stripe pattern; tr/bl use cursor:nesw-resize (a "/"
+           diagonal) and get the mirrored 45deg "/" pattern instead, so the
+           icon visually points along the direction that corner actually
+           resizes in. */
+        .dev-panel-resize-corner.corner-tl::after,
+        .dev-panel-resize-corner.corner-br::after {
+            background-image: repeating-linear-gradient(135deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
+        }
+        .dev-panel-resize-corner.corner-tr::after,
+        .dev-panel-resize-corner.corner-bl::after {
+            background-image: repeating-linear-gradient(45deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
+        }
 
         /* Matching grip marks at the center of each edge strip - per
            explicit request for "a similar visual but on the center of the
