@@ -10133,7 +10133,23 @@
             const desktopOrder = captureSectionOrder().desktopTabContent;
             const mobileTabEl = document.getElementById(tabContentId);
             if (!desktopOrder || !mobileTabEl) return;
-            const stripParen = title => title.replace(/\s*\([^)]*\)\s*$/, '').trim();
+            // Strips a trailing descriptive parenthetical for cross-tab
+            // title matching (e.g. "8-Bit Text Style (Start/Try Again/
+            // Round/Win-Lose)" on Desktop vs "(Start/Try Again/Win-Lose)"
+            // on Mobile - same conceptual group). The negative lookahead
+            // specifically EXCLUDES a purely-numeric parenthetical like
+            // "(2)"/"(3)" - addDevGroup()'s own disambiguator for multiple
+            // same-named custom groups (see its own "New Group (2)"
+            // generation) - from being stripped too. Without this
+            // exclusion, "New Group" and "New Group (2)" both normalized
+            // to the identical "New Group" key, colliding in
+            // mobileSectionsByNormTitle below (whichever DOM section got
+            // inserted into that lookup last silently won, the other
+            // became unreachable) - a real bug found via direct report,
+            // confirmed live via getting genuinely different wrong section
+            // orders on repeated calls (the DOM-iteration-order-dependent
+            // overwrite race producing different results each time).
+            const stripParen = title => title.replace(/\s*\((?!\d+\)\s*$)[^)]*\)\s*$/, '').trim();
 
             const mobileSectionsByNormTitle = {};
             mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
