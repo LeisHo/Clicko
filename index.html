@@ -556,6 +556,18 @@
             filter: url(#baseGrayscaleTint);
         }
 
+        /* Per direct request - 4 dev-panel checkboxes to independently hide
+           each of the button assembly's 4 own visual layers (Hide Button/
+           Hide Base/Hide Backing SVG/Hide White SVG, see
+           #checkboxHideButton and its 3 siblings). display:none (not
+           visibility:hidden) - fully removes each from layout/hit-testing,
+           not just paint, since #gameButton itself is one of the 4 and
+           hiding it should also stop it from intercepting clicks. */
+        .button-assembly.hide-button #gameButton { display: none; }
+        .button-assembly.hide-base .base-svg-layer { display: none; }
+        .button-assembly.hide-backing-svg .basebg-svg-layer { display: none; }
+        .button-assembly.hide-white-svg .whitebg-svg-layer { display: none; }
+
         /* Button - backmost layer, tucked under the base; shifts up/down via height
            offset and press intensity.
 
@@ -3480,6 +3492,35 @@
                         <span class="dev-label" style="min-width:auto;">Thin Base</span>
                     </label>
                 </div>
+                <!-- Per direct request - 4 independent checkboxes to hide
+                     each of the button assembly's own visual layers. Same
+                     shape as Thin Base above (a class toggled on
+                     #buttonAssembly, a cssVars flag for persistence) -
+                     see the matching CSS rules' own comment. -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxHideButton" onchange="cssVars['--hide-button-enabled'] = this.checked ? 1 : 0; buttonAssembly.classList.toggle('hide-button', this.checked);">
+                        <span class="dev-label" style="min-width:auto;">Hide Button</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxHideBase" onchange="cssVars['--hide-base-enabled'] = this.checked ? 1 : 0; buttonAssembly.classList.toggle('hide-base', this.checked);">
+                        <span class="dev-label" style="min-width:auto;">Hide Base</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxHideBackingSvg" onchange="cssVars['--hide-backing-svg-enabled'] = this.checked ? 1 : 0; buttonAssembly.classList.toggle('hide-backing-svg', this.checked);">
+                        <span class="dev-label" style="min-width:auto;">Hide Backing SVG</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxHideWhiteSvg" onchange="cssVars['--hide-white-svg-enabled'] = this.checked ? 1 : 0; buttonAssembly.classList.toggle('hide-white-svg', this.checked);">
+                        <span class="dev-label" style="min-width:auto;">Hide White SVG</span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -5018,6 +5059,13 @@
             // Regular (false/0) vs Thin (true/1) base+backing artwork - per
             // explicit request, single/shared like the base tint above.
             '--thin-base-enabled': 0,
+            // 4 independent layer-visibility toggles (Hide Button/Base/
+            // Backing SVG/White SVG) - per explicit request, all off by
+            // default. Single/shared like Thin Base above.
+            '--hide-button-enabled': 0,
+            '--hide-base-enabled': 0,
+            '--hide-backing-svg-enabled': 0,
+            '--hide-white-svg-enabled': 0,
             '--click-burst-speed-ms': 250,
             '--click-burst-scale': 0.32,
             '--click-burst-distance-px': 115,
@@ -7579,6 +7627,18 @@
                         document.getElementById('checkboxBaseFollowsResultColor').checked = baseFollowsChecked;
                         document.querySelector('.game-container').classList.toggle('base-follows-result-color', baseFollowsChecked);
                     }
+                    // Same gap, for the 4 Hide Button/Base/Backing SVG/White
+                    // SVG checkboxes.
+                    [
+                        ['checkboxHideButton', '--hide-button-enabled', 'hide-button'],
+                        ['checkboxHideBase', '--hide-base-enabled', 'hide-base'],
+                        ['checkboxHideBackingSvg', '--hide-backing-svg-enabled', 'hide-backing-svg'],
+                        ['checkboxHideWhiteSvg', '--hide-white-svg-enabled', 'hide-white-svg'],
+                    ].forEach(([id, varName, className]) => {
+                        const checked = !!cssVars[varName];
+                        document.getElementById(id).checked = checked;
+                        buttonAssembly.classList.toggle(className, checked);
+                    });
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
