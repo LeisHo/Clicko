@@ -5456,7 +5456,6 @@
             // exactly (see buildExtrusionShadow()'s own comment on why 45
             // is special-cased, not just the trig formula's own limit).
             resultExtrusionAngle: 45,
-            resultOverallBorderColor: '#401013',
             // Overall border/outline wrapping the combined text+extrusion
             // silhouette (not just the glyph) - one shared on/off toggle
             // for everyone, but color now mirrors thickness: shared for
@@ -5519,7 +5518,6 @@
             resultDepth: 5,
             resultOverallBorderThickness: 3,
             resultExtrusionAngle: 45,
-            resultOverallBorderColor: '#000000',
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
@@ -5714,7 +5712,7 @@
             'questionMarkOverallBorderColor', 'roundDockBorderColor', 'roundDockOverallBorderColor',
             'targetBorderColor', 'targetOverallBorderColor', 'speedBorderColor', 'speedOverallBorderColor',
             'msPerClickBorderColor', 'msPerClickOverallBorderColor', 'winFillColor', 'winBorderColor',
-            'loseFillColor', 'loseBorderColor', 'resultOverallBorderColor', 'overallBorderColor',
+            'loseFillColor', 'loseBorderColor', 'overallBorderColor',
             'gameplayWinTextColor', 'gameplayWinBorderColor',
             'gameplayLoseTextColor', 'gameplayLoseBorderColor',
         ];
@@ -5743,9 +5741,18 @@
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-win-fill-color', ext.winFillColor);
-            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.resultDepth, ext.winBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
+            // Overall Border ring now reuses each state's OWN Border Color
+            // (winBorderColor/loseBorderColor) for both the extrusion trail
+            // AND the ring, instead of a separate shared "Overall Border
+            // Color (Win+Lose)" picker - per direct request ("Win has its
+            // own color picker for that, and so does Lose. use that
+            // input"). Removes the mismatched-color problem at its root
+            // (the ring and trail can no longer disagree, by construction)
+            // rather than requiring the shared picker to be kept in sync by
+            // hand.
+            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.resultDepth, ext.winBorderColor, ext.resultOverallBorderThickness, ext.winBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
             root.setProperty('--result-lose-fill-color', ext.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.resultDepth, ext.loseBorderColor, ext.resultOverallBorderThickness, ext.resultOverallBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.resultDepth, ext.loseBorderColor, ext.resultOverallBorderThickness, ext.loseBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
             // Each element's own "Text Color" picker now IS its glyph's real
             // fill, not just the extrusion/shadow layer's color - per direct
             // report ("my text currently shows as white" - the glyph was
@@ -8413,7 +8420,6 @@
             'colorGameplayWinBorder': 'gameplayWinBorderColor',
             'colorGameplayLoseText': 'gameplayLoseTextColor',
             'colorGameplayLoseBorder': 'gameplayLoseBorderColor',
-            'colorResultOverallBorder': 'resultOverallBorderColor',
             'colorOverallBorder': 'overallBorderColor',
             'colorRoundExtrusionBorder': 'roundBorderColor',
             'colorTryAgainExtrusionBorder': 'tryAgainBorderColor',
@@ -8549,7 +8555,6 @@
             { group: 'Win/Lose Text', id: 'colorResultWinBorder', type: 'color', label: 'Win Border Color:', value: '#22dd44' },
             { group: 'Win/Lose Text', id: 'colorResultLoseFill', type: 'color', label: 'Lose Fill Color:', value: '#d3a7a7' },
             { group: 'Win/Lose Text', id: 'colorResultLoseBorder', type: 'color', label: 'Lose Border Color:', value: '#2c99dd' },
-            { group: 'Win/Lose Text', id: 'colorResultOverallBorder', type: 'color', label: 'Overall Border Color (Win+Lose):', value: '#401013' },
             { group: 'Win/Lose Text', id: 'colorGameplayWinText', type: 'color', label: 'Gameplay Win Text Color:', value: '#22dd44' },
             { group: 'Win/Lose Text', id: 'colorGameplayWinBorder', type: 'color', label: 'Gameplay Win Border/Extrusion Color:', value: '#22dd44' },
             { group: 'Win/Lose Text', id: 'colorGameplayLoseText', type: 'color', label: 'Gameplay Lose Text Color:', value: '#dd3333' },
