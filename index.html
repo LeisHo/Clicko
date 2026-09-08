@@ -3495,7 +3495,7 @@
                      comment for how the class this toggles is consumed. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxBaseFollowsResultColor" onchange="document.querySelector('.game-container').classList.toggle('base-follows-result-color', this.checked); cssVars['--base-follows-result-color'] = this.checked ? 1 : 0; if (resultText.classList.contains('result-lose')) applyGameplayResultColor('lose');">
+                        <input type="checkbox" id="checkboxBaseFollowsResultColor" checked onchange="document.querySelector('.game-container').classList.toggle('base-follows-result-color', this.checked); cssVars['--base-follows-result-color'] = this.checked ? 1 : 0; if (resultText.classList.contains('result-lose')) applyGameplayResultColor('lose');">
                         <span class="dev-label" style="min-width:auto;">Base Follows Win/Lose Color</span>
                     </label>
                 </div>
@@ -4992,13 +4992,13 @@
             // (active only while resultText carries .result-lose).
             '--button-lose-contrast': 1.19,
             '--button-lose-lightness': 0,
-            // Per direct request ("provide a checkbox that allows me to
-            // turn on the base changing color with the button on a win or
-            // lose") - off by default (0), matching the button's own
-            // win/lose tint's default-on behavior NOT being extended to
-            // the base unless explicitly opted into. See the matching CSS
+            // Originally opt-in/off by default; per direct follow-up
+            // request ("upon win or lose, the base will change color when
+            // the button changes color") this is now the default - the
+            // base always tracks the button's own win/lose tint unless
+            // explicitly turned off via the checkbox. See the matching CSS
             // rule's own comment.
-            '--base-follows-result-color': 0,
+            '--base-follows-result-color': 1,
             // Blend mode for each filter's own tint step (feBlend) - per
             // explicit request for a dropdown. 'overlay' matches the
             // existing hardcoded default until changed.
@@ -5833,6 +5833,13 @@
             root.setProperty('--target-fill-color', textColor);
             root.setProperty('--speed-fill-color', textColor);
             root.setProperty('--ms-per-click-fill-color', textColor);
+            // Round Text ("ROUND X") joins the same tint - per direct
+            // request ("the Round number should also change color to
+            // match the other numbers"), on both win and lose. Reverted
+            // for free by the !state branch above (applyExtrusionStyles()
+            // already recomputes --round-dock-fill-color/-extrusion-shadow
+            // from scratch), same as Target/Speed/Ms-per-click.
+            root.setProperty('--round-dock-fill-color', textColor);
             // buildCombinedShadow(depthPx, extrusionColor, thicknessPx,
             // ringColor, enabled) takes TWO separate colors - the extrusion
             // depth trail (arg 2) and the outer "Overall Border" ring (arg
@@ -5852,6 +5859,7 @@
             root.setProperty('--target-extrusion-shadow', buildCombinedShadow(deviceExt.targetDepth, borderColor, deviceExt.targetOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(deviceExt.speedDepth, borderColor, deviceExt.speedOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(deviceExt.msPerClickDepth, borderColor, deviceExt.msPerClickOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(deviceExt.roundDockDepth, borderColor, deviceExt.roundDockOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
         }
 
         // Mobile overrides - same shape as cssVars/colorVars, applied
@@ -11208,6 +11216,22 @@
         // nothing left to toggle between.
         function showRoundText(roundNum) {
             gameState.canTap = false;
+            // Captured BEFORE resultText's own .result-lose class gets
+            // cleared below - per direct report ("when a player loses, and
+            // they click try again, the numbers flashing animation should
+            // also occur"). Try Again always resets gameState.currentRound
+            // to 1 (see startGame()), which very often EQUALS whatever
+            // round the player just lost on (most commonly round 1 itself,
+            // the single most frequent case) - hadPreviousRound below only
+            // triggers the blink/flash sequence when the displayed number
+            // actually differs from the new one, so a same-number reset
+            // silently skipped the whole sequence, flash checkbox and all.
+            // Forces it back on specifically for a Lose->Try Again
+            // transition, regardless of whether the number happens to
+            // match - a genuinely fresh page load (nothing shown yet) is
+            // still correctly excluded, since gameTextNumber.textContent
+            // is empty at that point either way.
+            const wasLoseTransition = resultText.classList.contains('result-lose');
             gameText.classList.remove('hidden');
             // Hidden here explicitly (not left for showTargetAndSpeed() to
             // hide later) - a REAL pre-existing overlap, found while
@@ -11251,7 +11275,7 @@
             // comment).
             gameTextLabel.textContent = overrideOr('roundLabel');
 
-            const hadPreviousRound = !!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum);
+            const hadPreviousRound = (!!gameTextNumber.textContent && gameTextNumber.textContent !== String(roundNum)) || wasLoseTransition;
             if (!hadPreviousRound) {
                 // Nothing to blink away from (very first round of a game,
                 // or already showing this exact round) - just show it and
