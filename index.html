@@ -13520,6 +13520,16 @@
             // override on top - safe/idempotent if called again later.
             applyDevTextOverrides();
         }
+        // .dev-panel is visible by default for any dev-allowed visitor,
+        // no D-press/DEV-button-click needed (see html.dev-mode's own CSS
+        // comment) - so a dev-allowed visitor must get the panel actually
+        // built right away too, or they'd see the empty shell (just the
+        // header/Copy/Reset/Save buttons, no rows) until they happened to
+        // press D or click DEV, confirmed via a real screenshot showing
+        // exactly that gap. Real (non-dev) visitors are unaffected - this
+        // only runs for isDevAllowed, so the lazy-build win for them
+        // (the entire point of this change) is untouched.
+        if (isDevAllowed) ensureDevPanelBuilt();
         setupTextEditMode();
         setupTextEditPanelTriggers();
         setupDevPanelTextEdit();
