@@ -127,14 +127,14 @@
     "--target-y-offset-vh": 50,
     "--target-y-offset-unit-is-px": 0,
     "--target-prefix-font-size-px": 150,
-    "--target-prefix-x-offset-px": 0,
+    "--target-prefix-x-offset-px": -2,
     "--target-prefix-y-offset-px": 0,
     "--target-number-font-size-px": 500,
     "--target-number-x-offset-px": 0,
-    "--target-number-y-offset-px": 0,
-    "--target-suffix-font-size-px": 150,
-    "--target-suffix-x-offset-px": 0,
-    "--target-suffix-y-offset-px": 0,
+    "--target-number-y-offset-px": 100,
+    "--target-suffix-font-size-px": 243,
+    "--target-suffix-x-offset-px": -90,
+    "--target-suffix-y-offset-px": 100,
     "--target-prefix-hidden": 0,
     "--target-suffix-hidden": 0,
     "--target-letter-spacing-px": -7,
@@ -1036,9 +1036,9 @@
     "desktop:New Group (2)": true,
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
-    "desktop:Round Text": false,
-    "desktop:New Group (4)": false,
-    "desktop:Target Count Display": true,
+    "desktop:New Group (4)": true,
+    "desktop:Round Text": true,
+    "desktop:Target Count Display": false,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
     "desktop:Game Mechanics": true,
@@ -1295,6 +1295,20 @@
         "subgroups": []
       },
       {
+        "key": "desktop:New Group (4)",
+        "rowKeys": [
+          "sliderRoundBlink1Hide",
+          "sliderRoundBlink1Show",
+          "sliderRoundBlink2Hide",
+          "sliderRoundBlink2Show",
+          "sliderRoundBlink3Hide",
+          "sliderRoundBlink3Show",
+          "sliderRoundBlink4Hide",
+          "sliderRoundPostBlinkHold"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "desktop:Round Text",
         "rowKeys": [
           "sliderRoundNumberXOffset",
@@ -1311,20 +1325,6 @@
           "sliderRoundDockY",
           "selectRoundTextAlign",
           "selectRoundTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "desktop:New Group (4)",
-        "rowKeys": [
-          "sliderRoundBlink1Hide",
-          "sliderRoundBlink1Show",
-          "sliderRoundBlink2Hide",
-          "sliderRoundBlink2Show",
-          "sliderRoundBlink3Hide",
-          "sliderRoundBlink3Show",
-          "sliderRoundBlink4Hide",
-          "sliderRoundPostBlinkHold"
         ],
         "subgroups": []
       },
