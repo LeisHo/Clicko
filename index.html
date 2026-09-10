@@ -4007,7 +4007,7 @@
              (see loadHighScore()/checkHighScore()) - "local" specifically,
              per direct clarification, not the git-tracked settings sync. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreText">▼ High Score</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreLabel">▼ High Score</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
@@ -4432,7 +4432,7 @@
              comment. No Hide checkbox here - that's single/shared,
              declared once on Desktop only. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreText">▼ High Score</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreLabel">▼ High Score</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
@@ -4802,7 +4802,7 @@
              comment. No Hide checkbox here - that's single/shared,
              declared once on Desktop only. -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreText">▼ High Score</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreLabel">▼ High Score</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
@@ -10411,7 +10411,7 @@
                 getSlot: () => 'roundLabel',
                 render: () => { gameTextLabel.textContent = overrideOr('roundLabel'); },
             },
-            highScoreText: {
+            highScoreLabel: {
                 getSlot: () => 'highScoreLabel',
                 render: () => { highScoreLabel.textContent = overrideOr('highScoreLabel'); },
             },
