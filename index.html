@@ -8811,26 +8811,25 @@
         // DOM container id ('mobileTabContent'/'landscapeTabContent'),
         // tabPrefix is the id-infix ('Mobile'/'Landscape') and key-prefix
         // (lowercased, e.g. 'mobile:'/'landscape:') this tab's rows/groups use.
-        // KNOWN LIMITATION, deliberately not fixed here: this function
-        // predates groups-within-groups (see captureSection()/
-        // applySectionOrder()'s own comments) and does not look at a
-        // Desktop group's own `subgroups` at all - a subgroup's rows are
-        // still correctly excluded from its PARENT's own rowKeys (that fix
-        // lives in captureSection() itself, upstream of this function), but
-        // the subgroup itself, and its rows, are simply never mirrored into
-        // Mobile/Landscape by this pass. This is a safe, non-destructive
-        // gap, not a corruption risk - anything this function doesn't
-        // explicitly reference is left exactly where it already sits in
-        // the DOM (see applySectionOrder()'s own "only moves what's
-        // listed" behavior), so an existing Mobile/Landscape nested group
-        // (built independently on that tab) is untouched, not scrambled,
-        // by a Desktop-side sync that doesn't know about it. Left this way
-        // deliberately: this function already has a documented history of
-        // subtle bugs (see the stripParen()/"New Group (2)" collision
-        // comment below) from a much simpler flat structure - extending it
-        // to correctly and safely mirror nesting too would need its own
-        // dedicated pass and testing, not a rushed addition alongside the
-        // rest of this feature.
+        // Nested groups (one level - see captureSection()'s own cap) ARE
+        // mirrored - per direct follow-up report ("How come [nested groups
+        // aren't] automatically matched in the Mobile and Landscape tabs?"
+        // after using the group-into-group nesting feature). The matching/
+        // translation logic below is otherwise UNCHANGED from the original
+        // flat-only version (title-strip matching, row-id prefix
+        // translation, rename carry-over, leftover-row/leftover-group
+        // passthrough) - restructured around 2 small recursive helpers
+        // (translateGroup/appendLeftoverRows) so the exact same logic
+        // naturally applies at both the top level and one level of nesting,
+        // rather than duplicating each pass by hand. Every DOM query below
+        // that used to be :scope-scoped to tabEl's direct children is now a
+        // plain (tab-wide) query instead, deliberately - a Desktop group's
+        // Mobile/Landscape counterpart may itself currently be sitting
+        // nested, top-level, or under a different parent than Desktop's;
+        // title-matching has to find it wherever it currently lives, and
+        // applySectionOrder() (unchanged, already nesting-aware since it
+        // was built for the manual-drag nesting feature) moves it into the
+        // newly-derived position regardless of where that lookup found it.
         function syncTabOrderToDesktop(tabContentId, tabPrefix) {
             const keyPrefix = tabPrefix.toLowerCase() + ':';
             const desktopOrder = captureSectionOrder().desktopTabContent;
@@ -8854,73 +8853,121 @@
             // overwrite race producing different results each time).
             const stripParen = title => title.replace(/\s*\((?!\d+\)\s*$)[^)]*\)\s*$/, '').trim();
 
+            // Tab-wide (not :scope-scoped) - see this function's own top
+            // comment on why nested groups need this.
             const mobileSectionsByNormTitle = {};
-            mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
-                const titleEl = sec.querySelector('.dev-section-title');
+            mobileTabEl.querySelectorAll('.dev-section').forEach(sec => {
+                const titleEl = sec.querySelector(':scope > .dev-section-title');
                 const rawTitle = (titleEl.dataset.sid || titleEl.textContent.replace(/^[▼▶]\s*/, '')).trim();
                 mobileSectionsByNormTitle[stripParen(rawTitle)] = sec;
             });
+            // Already tab-wide even before this change (a plain descendant
+            // selector from mobileTabEl, not :scope-anchored) - nested rows
+            // were always included here.
             const mobileRowIdSet = new Set();
             mobileTabEl.querySelectorAll('.dev-section-content > .dev-row [id]').forEach(el => mobileRowIdSet.add(el.id));
             const placedRowIds = new Set();
-
-            const newMobileOrder = [];
+            const placedGroupKeys = new Set();
             let overridesChanged = false;
-            desktopOrder.forEach(({ key: desktopKey, rowKeys: desktopRowKeys }) => {
-                const desktopTitle = desktopKey.replace(/^desktop:/, '');
+
+            // Translates ONE Desktop group into its Mobile/Landscape
+            // equivalent - matches by title, translates its own rowKeys,
+            // and recurses into `subgroups` (naturally bottoms out at one
+            // level, since the nesting UI itself never allows a subgroup to
+            // contain its own subgroup - see setupDragReorder()'s own
+            // crossContainerSelector comment). Returns null only when the
+            // group is genuinely Desktop-only with nothing at all to
+            // mirror (no rows AND no subgroups either).
+            function translateGroup(desktopGroup) {
+                const desktopTitle = desktopGroup.key.replace(/^desktop:/, '');
                 const mobileSec = mobileSectionsByNormTitle[stripParen(desktopTitle)];
                 const mobileRowKeys = [];
-                desktopRowKeys.forEach(desktopRowId => {
+                desktopGroup.rowKeys.forEach(desktopRowId => {
                     const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1' + tabPrefix);
                     if (mobileRowIdSet.has(mobileRowId) && !placedRowIds.has(mobileRowId)) {
                         mobileRowKeys.push(mobileRowId);
                         placedRowIds.add(mobileRowId);
                     }
                 });
+                const translatedSubgroups = (desktopGroup.subgroups || []).map(translateGroup).filter(Boolean);
+
+                let mobileKey;
                 if (!mobileSec) {
-                    if (mobileRowKeys.length === 0) return; // truly Desktop-only (Game Mechanics, Background) - nothing to mirror
-                    const newMobileKey = keyPrefix + desktopTitle;
-                    newMobileOrder.push({ key: newMobileKey, rowKeys: mobileRowKeys });
-                    if (devTextOverrides[desktopKey] != null && devTextOverrides[newMobileKey] == null) {
-                        devTextOverrides[newMobileKey] = devTextOverrides[desktopKey];
-                    }
+                    if (mobileRowKeys.length === 0 && translatedSubgroups.length === 0) return null; // truly Desktop-only (Game Mechanics, Background) - nothing to mirror
+                    mobileKey = keyPrefix + desktopTitle;
+                } else {
+                    mobileKey = getSectionKey(mobileSec.querySelector(':scope > .dev-section-title'));
+                }
+                placedGroupKeys.add(mobileKey);
+                // Same rename carry-over regardless of whether this group
+                // was newly created or matched an existing one - e.g.
+                // Desktop's "Win/Lose Text" renamed to "WIN" should show
+                // "WIN" here too, unless this tab already has its own
+                // independent rename.
+                if (devTextOverrides[desktopGroup.key] != null && devTextOverrides[mobileKey] == null) {
+                    devTextOverrides[mobileKey] = devTextOverrides[desktopGroup.key];
                     overridesChanged = true;
+                }
+                return { key: mobileKey, rowKeys: mobileRowKeys, subgroups: translatedSubgroups };
+            }
+            const newMobileOrder = desktopOrder.map(translateGroup).filter(Boolean);
+
+            // Any group (top-level OR nested) with no Desktop counterpart
+            // passes through untouched, preserving its CURRENT nesting: a
+            // top-level Mobile/Landscape-only group is appended at the end
+            // of newMobileOrder; a NESTED Mobile/Landscape-only group is
+            // appended into its current parent's translated subgroups list
+            // if that parent survived translation, else (the parent itself
+            // was Desktop-only and got dropped) it surfaces at the top
+            // level instead of silently vanishing.
+            function findTranslated(key) {
+                for (const g of newMobileOrder) {
+                    if (g.key === key) return g;
+                    for (const sub of g.subgroups) if (sub.key === key) return sub;
+                }
+                return null;
+            }
+            mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(topSec => {
+                const topKey = getSectionKey(topSec.querySelector(':scope > .dev-section-title'));
+                if (!placedGroupKeys.has(topKey)) {
+                    newMobileOrder.push(captureSection(topSec));
+                    placedGroupKeys.add(topKey);
                     return;
                 }
-                const mobileKey = getSectionKey(mobileSec.querySelector('.dev-section-title'));
-                newMobileOrder.push({ key: mobileKey, rowKeys: mobileRowKeys });
-                // Same rename carry-over as the newly-created branch above,
-                // for an EXISTING title-matched group - e.g. Desktop's
-                // "Win/Lose Text" renamed to "WIN" should show "WIN" here
-                // too, not the raw original title, unless this tab already
-                // has its own independent rename.
-                if (devTextOverrides[desktopKey] != null && devTextOverrides[mobileKey] == null) {
-                    devTextOverrides[mobileKey] = devTextOverrides[desktopKey];
-                    overridesChanged = true;
-                }
-            });
-            // Any group with no Desktop counterpart passes through
-            // untouched, appended after the translated groups.
-            mobileTabEl.querySelectorAll(':scope > .dev-section').forEach(sec => {
-                const key = getSectionKey(sec.querySelector('.dev-section-title'));
-                if (!newMobileOrder.some(g => g.key === key)) {
-                    const rows = Array.from(sec.querySelectorAll('.dev-section-content > .dev-row'));
-                    newMobileOrder.push({ key, rowKeys: rows.map((row, i) => getRowKey(row, i)) });
-                }
-            });
-            // Rows within a translated group with no Desktop counterpart get
-            // appended at the end, preserving their prior relative order.
-            newMobileOrder.forEach(group => {
-                const sec = mobileSectionsByNormTitle[stripParen(group.key.replace(new RegExp('^' + keyPrefix), ''))];
-                if (!sec) return;
-                Array.from(sec.querySelectorAll('.dev-section-content > .dev-row')).forEach((row, i) => {
-                    const rowKey = getRowKey(row, i);
-                    if (!placedRowIds.has(rowKey)) {
-                        group.rowKeys.push(rowKey);
-                        placedRowIds.add(rowKey);
+                const translatedParent = findTranslated(topKey);
+                const content = topSec.querySelector(':scope > .dev-section-content');
+                content.querySelectorAll(':scope > .dev-section').forEach(subSec => {
+                    const subKey = getSectionKey(subSec.querySelector(':scope > .dev-section-title'));
+                    if (!placedGroupKeys.has(subKey)) {
+                        (translatedParent ? translatedParent.subgroups : newMobileOrder).push(captureSection(subSec));
+                        placedGroupKeys.add(subKey);
                     }
                 });
             });
+            // Rows within a translated group with no Desktop counterpart get
+            // appended at the end, preserving their prior relative order -
+            // applied at every level (top and nested) via recursion.
+            // :scope-scoped (unlike the original flat version's plain
+            // descendant selector) so a nested subgroup's own rows are never
+            // mistakenly swept into its PARENT's leftover pass - the
+            // subgroup's own translateGroup/appendLeftoverRows call already
+            // owns them.
+            function appendLeftoverRows(group) {
+                const rawTitle = group.key.replace(new RegExp('^' + keyPrefix), '');
+                const sec = mobileSectionsByNormTitle[stripParen(rawTitle)];
+                if (sec) {
+                    const content = sec.querySelector(':scope > .dev-section-content');
+                    Array.from(content.querySelectorAll(':scope > .dev-row')).forEach((row, i) => {
+                        const rowKey = getRowKey(row, i);
+                        if (!placedRowIds.has(rowKey)) {
+                            group.rowKeys.push(rowKey);
+                            placedRowIds.add(rowKey);
+                        }
+                    });
+                }
+                group.subgroups.forEach(appendLeftoverRows);
+            }
+            newMobileOrder.forEach(appendLeftoverRows);
             applySectionOrder({ [tabContentId]: newMobileOrder });
             // A newly-created group (see above) is painted with its raw
             // internal name by createDevGroupElement()/applySectionOrder() -
