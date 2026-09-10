@@ -10985,7 +10985,29 @@
             if (wasHidden) el.classList.remove('hidden');
             const slot = cfg.getSlot();
             const prefix = cfg.getPrefix ? cfg.getPrefix() : null;
-            const originalHTML = el.innerHTML;
+            // Saved as the actual ORIGINAL CHILD NODE OBJECTS, not an
+            // innerHTML string - per direct bug report ("right-click-
+            // editing either the Ms/Click Display or the Speed Display...
+            // permanently removes its child spans... after committing").
+            // Root cause: msPerClickDisplay/speedDisplay are 2-child
+            // wrapper targets (elId is the WRAPPER, not the editable span
+            // itself - see their own TEXT_EDIT_TARGETS comment) whose
+            // render() writes into cached top-level references
+            // (speedDisplayNumber/-Suffix etc, also read directly by other
+            // code like runRoundBlinkSequence's flash array) - clearing
+            // via innerHTML='' detaches those exact node OBJECTS from the
+            // DOM, and restoring from an innerHTML STRING (the old
+            // approach) would create brand-new elements instead of
+            // reattaching the same ones, permanently stranding every
+            // cached reference. Reattaching the SAME node objects by
+            // identity (replaceChildren with the saved array, not a
+            // string) keeps every existing cached reference valid again
+            // the moment they're put back, before render() writes into
+            // them - this is what actually fixes the bug, not the
+            // textarea-swap mechanism itself, which is otherwise
+            // unchanged and stays correct for every other (single-
+            // element, elId-is-the-span) target too.
+            const originalChildren = Array.from(el.childNodes);
             // <textarea>, not <input> - Shift+Enter needs to insert
             // an actual newline, which a single-line <input> can
             // never hold, per explicit request.
@@ -10993,8 +11015,7 @@
             input.className = 'text-edit-input';
             input.rows = 1;
             input.value = overrideOr(slot);
-            el.innerHTML = '';
-            el.appendChild(input);
+            el.replaceChildren(input);
             input.focus();
             input.select();
             let settled = false;
@@ -11006,13 +11027,22 @@
                 // (viewport width at commit time), never both - see
                 // activeTextOverrides().
                 activeTextOverrides()[slot] = (typed === '' || typed === TEXT_OVERRIDE_DEFAULTS[slot]) ? null : typed;
+                // Reattach the original nodes BEFORE rendering (see this
+                // function's own comment above) - for a multi-child
+                // wrapper target this restores speedDisplayNumber/-Suffix
+                // (etc) to a live, attached state again so render()'s
+                // write into them actually shows up; for every other
+                // (single-element) target this is a harmless no-op
+                // immediately overwritten by render()'s own textContent
+                // assignment.
+                el.replaceChildren(...originalChildren);
                 cfg.render(slot, prefix);
                 if (wasHidden) el.classList.add('hidden');
             }
             function cancel() {
                 if (settled) return;
                 settled = true;
-                el.innerHTML = originalHTML;
+                el.replaceChildren(...originalChildren);
                 if (wasHidden) el.classList.add('hidden');
             }
             input.addEventListener('blur', commit);
