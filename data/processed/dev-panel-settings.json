@@ -205,10 +205,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 353,
-    "--dev-panel-left-px": 1130,
-    "--dev-panel-top-px": 296,
-    "--dev-panel-height-px": 341,
+    "--dev-panel-width-px": 350,
+    "--dev-panel-left-px": 33,
+    "--dev-panel-top-px": 6,
+    "--dev-panel-height-px": 420,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -254,14 +254,14 @@
     "--click-burst-count-max": 5,
     "--click-burst-curve-amount": 0.2,
     "--click-burst-shadow-final-scale": 1,
-    "--shadow-x-offset": 27.4286,
+    "--shadow-x-offset": 21,
     "--shadow-y-offset": 18.1818,
     "--shadow-blur": 0,
-    "--shadow-scale": 0.65,
-    "--shadow-skew": -37,
-    "--shadow-elongation-intensity": 1,
-    "--shadow-elongation-angle": 0,
-    "--shadow-rotate": 11,
+    "--shadow-scale": 0.55,
+    "--shadow-skew": -8,
+    "--shadow-elongation-intensity": 1.6,
+    "--shadow-elongation-angle": 76,
+    "--shadow-rotate": 0,
     "--text-font-size-px": 199.17,
     "--text-font-size-vw": 38.67,
     "--text-scale-with-browser": 1,
@@ -1114,7 +1114,7 @@
     "desktop:Dev Panel": true,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
-    "desktop:Shadow": true,
+    "desktop:Shadow": false,
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:High Score": true,
@@ -1130,21 +1130,21 @@
     "desktop:Ms/Click Display": true,
     "desktop:Game Mechanics": true,
     "desktop:Background": true,
-    "mobile:High Score": false,
     "mobile:Dev Panel": true,
     "mobile:Main Button": true,
-    "mobile:Shadow": true,
+    "mobile:Shadow": false,
     "mobile:Click Burst": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
+    "mobile:High Score": true,
     "mobile:Start/Try Again Button": true,
-    "mobile:Rotation Animation": false,
-    "mobile:Round Text": true,
     "mobile:Win/Lose Text": true,
-    "mobile:New Group (2)": false,
-    "mobile:Target Count Display": true,
-    "mobile:Speed Display (max ms between taps)": false,
-    "mobile:Ms/Click Display": true,
+    "mobile:New Group (2)": true,
     "mobile:New Group": true,
+    "mobile:Rotation Animation": true,
+    "mobile:Round Text": true,
+    "mobile:Target Count Display": true,
+    "mobile:Speed Display (max ms between taps)": true,
+    "mobile:Ms/Click Display": true,
     "landscape:High Score": false,
     "landscape:Dev Panel": true,
     "landscape:Main Button": true,
@@ -1539,23 +1539,6 @@
     ],
     "mobileTabContent": [
       {
-        "key": "mobile:High Score",
-        "rowKeys": [
-          "checkboxMobileHighScoreScaleWithBrowser",
-          "selectMobileHighScoreTextAlign",
-          "selectMobileHighScoreTextValign",
-          "sliderMobileHighScoreFontSize",
-          "sliderMobileHighScoreFontSizeVw",
-          "sliderMobileHighScoreExtrusionDepth",
-          "sliderMobileHighScoreOverallBorderThickness",
-          "sliderMobileHighScoreLetterSpacing",
-          "sliderMobileHighScoreLineHeight",
-          "sliderMobileHighScoreX",
-          "sliderMobileHighScoreY"
-        ],
-        "subgroups": []
-      },
-      {
         "key": "mobile:Dev Panel",
         "rowKeys": [
           "sliderMobileDevButtonTextBorder",
@@ -1571,11 +1554,11 @@
       {
         "key": "mobile:Main Button",
         "rowKeys": [
+          "sliderMobileButtonDiameter",
+          "sliderMobileButtonMinDiameter",
           "sliderMobileButtonMaxScale",
           "sliderMobileButtonMinScale",
           "sliderMobileButtonPressMs",
-          "sliderMobileButtonDiameter",
-          "sliderMobileButtonMinDiameter",
           "sliderMobileButtonHeight",
           "sliderMobileButtonPressIntensity",
           "sliderMobileButtonReleaseMs",
@@ -1625,6 +1608,23 @@
         "subgroups": []
       },
       {
+        "key": "mobile:High Score",
+        "rowKeys": [
+          "checkboxMobileHighScoreScaleWithBrowser",
+          "selectMobileHighScoreTextAlign",
+          "selectMobileHighScoreTextValign",
+          "sliderMobileHighScoreFontSize",
+          "sliderMobileHighScoreFontSizeVw",
+          "sliderMobileHighScoreExtrusionDepth",
+          "sliderMobileHighScoreOverallBorderThickness",
+          "sliderMobileHighScoreLetterSpacing",
+          "sliderMobileHighScoreLineHeight",
+          "sliderMobileHighScoreX",
+          "sliderMobileHighScoreY"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "mobile:Start/Try Again Button",
         "rowKeys": [
           "checkboxMobileTextScaleWithBrowser",
@@ -1638,6 +1638,53 @@
           "selectMobileStartTextValign",
           "sliderMobileTextX",
           "sliderMobileTextY"
+        ],
+        "subgroups": []
+      },
+      {
+        "key": "mobile:Win/Lose Text",
+        "rowKeys": [
+          "sliderMobileResultWinLetterSpacing",
+          "sliderMobileResultExtrusionAngle",
+          "checkboxMobileResultWinScaleWithBrowser",
+          "sliderMobileResultWinFontSizeVw",
+          "sliderMobileResultWinFontSize",
+          "sliderMobileResultExtrusionDepth",
+          "sliderMobileResultOverallBorderThickness",
+          "sliderMobileResultWinX",
+          "sliderMobileResultWinY",
+          "sliderMobileResultLineHeight",
+          "selectMobileResultTextAlign",
+          "selectMobileResultTextValign"
+        ],
+        "subgroups": []
+      },
+      {
+        "key": "mobile:New Group (2)",
+        "rowKeys": [
+          "checkboxMobileResultLoseScaleWithBrowser",
+          "sliderMobileResultLoseFontSizeVw",
+          "sliderMobileResultLoseFontSize",
+          "sliderMobileResultLoseX",
+          "sliderMobileResultLoseY",
+          "sliderMobileResultLoseLetterSpacing"
+        ],
+        "subgroups": []
+      },
+      {
+        "key": "mobile:New Group",
+        "rowKeys": [
+          "selectMobileTryAgainTextValign",
+          "selectMobileTryAgainTextAlign",
+          "checkboxMobileTryAgainTextScaleWithBrowser",
+          "sliderMobileTryAgainTextFontSize",
+          "sliderMobileTryAgainTextFontSizeVw",
+          "sliderMobileTryAgainExtrusionDepth",
+          "sliderMobileTryAgainOverallBorderThickness",
+          "sliderMobileTryAgainTextLetterSpacing",
+          "sliderMobileTryAgainTextLineHeight",
+          "sliderMobileTryAgainTextX",
+          "sliderMobileTryAgainTextY"
         ],
         "subgroups": []
       },
@@ -1671,33 +1718,6 @@
           "sliderMobileRoundDockY",
           "selectMobileRoundTextAlign",
           "selectMobileRoundTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "mobile:Win/Lose Text",
-        "rowKeys": [
-          "sliderMobileResultWinLetterSpacing",
-          "sliderMobileResultExtrusionAngle",
-          "checkboxMobileResultWinScaleWithBrowser",
-          "sliderMobileResultWinFontSizeVw",
-          "sliderMobileResultWinFontSize",
-          "sliderMobileResultExtrusionDepth",
-          "sliderMobileResultOverallBorderThickness",
-          "sliderMobileResultWinX",
-          "sliderMobileResultWinY",
-          "sliderMobileResultLineHeight",
-          "selectMobileResultTextAlign",
-          "selectMobileResultTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "mobile:New Group (2)",
-        "rowKeys": [
-          "sliderMobileResultLoseFontSize",
-          "sliderMobileResultLoseX",
-          "sliderMobileResultLoseY"
         ],
         "subgroups": []
       },
@@ -1763,26 +1783,6 @@
           "sliderMobileMsPerClickY",
           "selectMobileMsPerClickTextAlign",
           "selectMobileMsPerClickTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "mobile:New Group",
-        "rowKeys": [
-          "selectMobileTryAgainTextValign",
-          "selectMobileTryAgainTextAlign",
-          "checkboxMobileTryAgainTextScaleWithBrowser",
-          "sliderMobileTryAgainTextFontSize",
-          "sliderMobileTryAgainTextFontSizeVw",
-          "sliderMobileTryAgainExtrusionDepth",
-          "sliderMobileTryAgainOverallBorderThickness",
-          "sliderMobileTryAgainTextLetterSpacing",
-          "sliderMobileTryAgainTextLineHeight",
-          "sliderMobileTryAgainTextX",
-          "sliderMobileTryAgainTextY",
-          "checkboxMobileResultLoseScaleWithBrowser",
-          "sliderMobileResultLoseFontSizeVw",
-          "sliderMobileResultLoseLetterSpacing"
         ],
         "subgroups": []
       }
