@@ -1219,6 +1219,45 @@
             transform: translateX(calc(var(--round-number-x-offset-px, 0) * 1px));
         }
 
+        /* High Score - per direct request ("Add a Highscore text with its
+           own font settings like the others... make it its own settings
+           group. It should have color settings as well as extrusion
+           settings etc"). Same Label+Number split as .game-text/
+           #gameTextLabel/#gameTextNumber above (see their own comments) -
+           the label word must never shift position when the number's own
+           digit count changes width. */
+        .high-score-text {
+            position: absolute;
+            left: calc(var(--high-score-x-base, 50%) + var(--high-score-x-sign, 1) * var(--high-score-x-offset-vw) * var(--high-score-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--high-score-y-base, 50%) + var(--high-score-y-sign, 1) * var(--high-score-y-offset-vh) * var(--high-score-y-unit, var(--cq-vh, 1vh)));
+            transform: translate(-50%, var(--anchor-ty, -50%));
+            font-size: calc((1 - var(--high-score-scale-with-browser, 0)) * var(--high-score-font-size-px) * 1px + var(--high-score-scale-with-browser, 0) * var(--high-score-font-size-vw, 10) * var(--cq-vw, 1vw));
+            letter-spacing: calc(var(--high-score-letter-spacing-px) * 1px);
+            line-height: var(--high-score-line-height, 1.2);
+            font-weight: 700;
+            font-family: var(--extrusion-font);
+            color: var(--high-score-fill-color);
+            text-shadow: var(--high-score-shadow);
+            text-align: var(--high-score-text-align, center);
+            white-space: pre-wrap;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .high-score-text.hidden {
+            display: none !important;
+        }
+        #highScoreLabel {
+            position: relative;
+            display: inline-block;
+        }
+        #highScoreNumber {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 0.25em;
+            white-space: nowrap;
+        }
+
         /* Win/Lose message text - split out from .game-text (which now only
            ever shows "ROUND X") so the two can be sized/positioned
            independently. Font/depth are shared with the rest of the 8-bit
@@ -3346,6 +3385,11 @@
         <div class="ms-per-click-display" id="msPerClickDisplay"><span id="msPerClickDisplayNumber"></span><span id="msPerClickDisplaySuffix"></span></div>
         <div class="speed-display" id="speedDisplay"><span id="speedDisplayNumber"></span><span id="speedDisplaySuffix"></span></div>
         <div class="click-counter hidden" id="clickCounter">0</div>
+        <!-- High Score - persisted via localStorage (per direct request,
+             "local" specifically - see loadHighScore()/checkHighScore()).
+             Same Label+Number split as gameText/gameTextLabel/
+             gameTextNumber above - see .high-score-text's own CSS comment. -->
+        <div class="high-score-text" id="highScoreText"><span id="highScoreLabel"></span><span id="highScoreNumber"></span></div>
         <div class="tap-diagnostic-panel hidden" id="tapDiagnosticPanel">
             <div class="tap-diagnostic-header">
                 <span>TAP LOG</span>
@@ -3956,6 +4000,52 @@
             </div>
         </div>
 
+        <!-- High Score Section - per direct request ("Add a Highscore
+             text with its own font settings like the others... make it
+             its own settings group. It should have color settings as
+             well as extrusion settings etc"), persisted via localStorage
+             (see loadHighScore()/checkHighScore()) - "local" specifically,
+             per direct clarification, not the git-tracked settings sync. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreText">▼ High Score</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxHighScoreScaleWithBrowser" data-css-var="--high-score-scale-with-browser" onchange="updateScaleWithBrowser('checkboxHighScoreScaleWithBrowser', '--high-score-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectHighScoreTextAlign" data-var="--high-score-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxHighScoreTextAlignEdgeLock" data-var="--high-score-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectHighScoreTextValign" data-var="--high-score-text-valign">
+                        <option value="top" selected>Top</option>
+                        <option value="center">Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxHighScoreTextValignEdgeLock" data-var="--high-score-text-valign-edge-lock">Edge Lock</label>
+                </div>
+                <!-- Per direct mid-turn request ("also provide a checkbox
+                     to hide the Highscore text") - same shape as the
+                     existing Hide Button/Base/Backing SVG/White SVG
+                     checkboxes (see their own CSS rule's comment). -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="checkboxHideHighScore" onchange="cssVars['--hide-high-score-enabled'] = this.checked ? 1 : 0; highScoreText.classList.toggle('hidden', this.checked);">
+                        <span class="dev-label" style="min-width:auto;">Hide High Score</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
         <!-- Win/Lose Text Section - font and extrusion depth are shared with
              the rest of the 8-bit style (see that section above), and
              size/position are its own like before, but fill/border color
@@ -4338,6 +4428,39 @@
             </div>
         </div>
 
+        <!-- High Score Section (Mobile) - see the Desktop section's own
+             comment. No Hide checkbox here - that's single/shared,
+             declared once on Desktop only. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreText">▼ High Score</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileHighScoreScaleWithBrowser" data-css-var="--high-score-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileHighScoreScaleWithBrowser', '--high-score-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileHighScoreTextAlign" data-var="--high-score-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileHighScoreTextAlignEdgeLock" data-var="--high-score-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileHighScoreTextValign" data-var="--high-score-text-valign">
+                        <option value="top" selected>Top</option>
+                        <option value="center">Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileHighScoreTextValignEdgeLock" data-var="--high-score-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
         <!-- Win/Lose Text Section -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
@@ -4671,6 +4794,39 @@
                         <option value="bottom">Bottom</option>
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeRoundTextValignEdgeLock" data-var="--round-text-valign-edge-lock">Edge Lock</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- High Score Section (Landscape) - see the Desktop section's own
+             comment. No Hide checkbox here - that's single/shared,
+             declared once on Desktop only. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreText">▼ High Score</div>
+            <div class="dev-section-content">
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeHighScoreScaleWithBrowser" data-css-var="--high-score-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeHighScoreScaleWithBrowser', '--high-score-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeHighScoreTextAlign" data-var="--high-score-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeHighScoreTextAlignEdgeLock" data-var="--high-score-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeHighScoreTextValign" data-var="--high-score-text-valign">
+                        <option value="top" selected>Top</option>
+                        <option value="center">Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeHighScoreTextValignEdgeLock" data-var="--high-score-text-valign-edge-lock">Edge Lock</label>
                 </div>
             </div>
         </div>
@@ -5274,6 +5430,25 @@
             '--round-text-valign': 'bottom',
             '--round-text-align-edge-lock': 1,
             '--round-text-valign-edge-lock': 1,
+            // High Score - per direct request ("Add a Highscore text with
+            // its own font settings like the others... make it its own
+            // settings group"). Same field shape as Round Text above.
+            '--high-score-x-offset-vw': 0,
+            '--high-score-x-offset-unit-is-px': 0,
+            '--high-score-y-offset-vh': -42,
+            '--high-score-y-offset-unit-is-px': 0,
+            '--high-score-font-size-px': 60,
+            '--high-score-font-size-vw': 5,
+            '--high-score-scale-with-browser': 0,
+            '--high-score-letter-spacing-px': 0,
+            '--high-score-line-height': 1.2,
+            '--high-score-text-align': 'center',
+            '--high-score-text-valign': 'top',
+            '--high-score-text-align-edge-lock': 0,
+            '--high-score-text-valign-edge-lock': 0,
+            // Hide High Score - per direct request. Single/shared like the
+            // Hide Button/Base/Backing SVG/White SVG checkboxes.
+            '--hide-high-score-enabled': 0,
             // The "?" in "Try again?" blinks while that text is shown - per
             // explicit request. Flash = how long it's HIDDEN; Hold = how
             // long it's VISIBLE before the next flash - see
@@ -5546,6 +5721,13 @@
             roundDockBorderColor: '#ffffff',
             roundDockOverallBorderThickness: 8,
             roundDockOverallBorderColor: '#bd0d07',
+            // High Score - per direct request. Same field shape as
+            // roundDock* above (colors forced-desktop, see
+            // EXTRUSION_COLOR_FIELD_NAMES).
+            highScoreDepth: 9,
+            highScoreBorderColor: '#ffffff',
+            highScoreOverallBorderThickness: 8,
+            highScoreOverallBorderColor: '#bd0d07',
             targetDepth: 26,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
@@ -5636,6 +5818,12 @@
             roundDockBorderColor: '#c41516',
             roundDockOverallBorderThickness: 9,
             roundDockOverallBorderColor: '#c41516',
+            // High Score - colors are forced-desktop (see
+            // EXTRUSION_COLOR_FIELD_NAMES), only depth/thickness matter here.
+            highScoreDepth: 9,
+            highScoreBorderColor: '#c41516',
+            highScoreOverallBorderThickness: 9,
+            highScoreOverallBorderColor: '#c41516',
             targetDepth: 20,
             targetBorderColor: '#ff0000',
             targetOverallBorderColor: '#cc1b20',
@@ -5848,6 +6036,7 @@
             'fillColor', 'borderColor', 'roundBorderColor', 'roundOverallBorderColor',
             'tryAgainBorderColor', 'tryAgainOverallBorderColor', 'questionMarkFillColor',
             'questionMarkOverallBorderColor', 'roundDockBorderColor', 'roundDockOverallBorderColor',
+            'highScoreBorderColor', 'highScoreOverallBorderColor',
             'targetBorderColor', 'targetOverallBorderColor', 'speedBorderColor', 'speedOverallBorderColor',
             'msPerClickBorderColor', 'msPerClickOverallBorderColor', 'winFillColor', 'winBorderColor',
             'loseFillColor', 'loseBorderColor', 'overallBorderColor',
@@ -5875,6 +6064,7 @@
             // Round Text's one permanent extrusion look - read directly by
             // .game-text's CSS, unconditionally.
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--high-score-shadow', buildCombinedShadow(ext.highScoreDepth, ext.highScoreBorderColor, ext.highScoreOverallBorderThickness, ext.highScoreOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--target-extrusion-shadow', buildCombinedShadow(ext.targetDepth, ext.targetBorderColor, ext.targetOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
@@ -5904,6 +6094,7 @@
             root.setProperty('--try-again-fill-color', ext.tryAgainBorderColor);
             root.setProperty('--try-again-question-mark-fill-color', ext.questionMarkFillColor);
             root.setProperty('--round-dock-fill-color', ext.roundDockBorderColor);
+            root.setProperty('--high-score-fill-color', ext.highScoreBorderColor);
             root.setProperty('--target-fill-color', ext.targetBorderColor);
             root.setProperty('--speed-fill-color', ext.speedBorderColor);
             root.setProperty('--ms-per-click-fill-color', ext.msPerClickBorderColor);
@@ -6130,6 +6321,22 @@
             '--round-text-valign': 'bottom',
             '--round-text-align-edge-lock': 1,
             '--round-text-valign-edge-lock': 1,
+            // High Score - see the matching desktop cssVars block's own
+            // comment. --hide-high-score-enabled is NOT repeated here -
+            // single/shared, declared once in desktop cssVars only.
+            '--high-score-x-offset-vw': 0,
+            '--high-score-x-offset-unit-is-px': 0,
+            '--high-score-y-offset-vh': -35,
+            '--high-score-y-offset-unit-is-px': 0,
+            '--high-score-font-size-px': 30,
+            '--high-score-font-size-vw': 7,
+            '--high-score-scale-with-browser': 0,
+            '--high-score-letter-spacing-px': 0,
+            '--high-score-line-height': 1.2,
+            '--high-score-text-align': 'center',
+            '--high-score-text-valign': 'top',
+            '--high-score-text-align-edge-lock': 0,
+            '--high-score-text-valign-edge-lock': 0,
             '--target-font-size-px': 238.44,
             '--target-font-size-vw': 47.23,
             '--target-scale-with-browser': 1,
@@ -6457,6 +6664,30 @@
         const roundBreakdownTable = document.getElementById('roundBreakdownTable');
         const devPanel = document.getElementById('devPanel');
         const clickCounter = document.getElementById('clickCounter');
+        const highScoreText = document.getElementById('highScoreText');
+        const highScoreLabel = document.getElementById('highScoreLabel');
+        const highScoreNumber = document.getElementById('highScoreNumber');
+        // High Score - per direct request, persisted via localStorage
+        // specifically ("okay yeah i want that localStorage type"), NOT
+        // the git-tracked dev-panel-settings.json sync (that's for dev
+        // panel tuning, commits on every save - completely wrong for a
+        // value that changes every time someone plays). "Achieved" round
+        // is gameState.currentRound at the moment of loss (round they
+        // reached, not necessarily completed) - see endGame()'s lose
+        // branch, where this is checked before that value resets to 0.
+        const HIGH_SCORE_KEY = 'clicko-high-score';
+        let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY), 10) || 0;
+        function updateHighScoreDisplay() {
+            highScoreNumber.textContent = highScore;
+        }
+        function checkHighScore(round) {
+            if (round > highScore) {
+                highScore = round;
+                localStorage.setItem(HIGH_SCORE_KEY, String(highScore));
+                updateHighScoreDisplay();
+            }
+        }
+        updateHighScoreDisplay();
         const buttonAssembly = document.getElementById('buttonAssembly');
         const clickBurstContainer = document.getElementById('clickBurstContainer');
         const clickBurstShadowContainerRight = document.getElementById('clickBurstShadowContainerRight');
@@ -7767,6 +7998,12 @@
                         document.getElementById(id).checked = checked;
                         buttonAssembly.classList.toggle(className, checked);
                     });
+                    // Same gap, for the Hide High Score checkbox.
+                    {
+                        const hideHighScoreChecked = !!cssVars['--hide-high-score-enabled'];
+                        document.getElementById('checkboxHideHighScore').checked = hideHighScoreChecked;
+                        highScoreText.classList.toggle('hidden', hideHighScoreChecked);
+                    }
                     // Same gap, for the Hide "Click"/Hide "x" (Target Text
                     // Prefix/Suffix) checkboxes.
                     [
@@ -8617,6 +8854,8 @@
             'colorRoundOverallBorder': 'roundOverallBorderColor',
             'colorRoundDockExtrusionBorder': 'roundDockBorderColor',
             'colorRoundDockOverallBorder': 'roundDockOverallBorderColor',
+            'colorHighScoreExtrusionBorder': 'highScoreBorderColor',
+            'colorHighScoreOverallBorder': 'highScoreOverallBorderColor',
             'colorTargetOverallBorder': 'targetOverallBorderColor',
             'colorSpeedOverallBorder': 'speedOverallBorderColor',
             'colorMsPerClickOverallBorder': 'msPerClickOverallBorderColor',
@@ -8719,6 +8958,14 @@
             { group: 'Round Text', id: 'sliderRoundLetterSpacing', type: 'slider', label: 'Text Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Round Text', id: 'sliderRoundLineHeight', type: 'slider', label: 'Text Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Text', id: 'sliderRoundNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
+            { group: 'High Score', id: 'sliderHighScoreFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 200, step: 0.01, value: 60 },
+            { group: 'High Score', id: 'sliderHighScoreFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5 },
+            { group: 'High Score', id: 'sliderHighScoreExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'High Score', id: 'colorHighScoreExtrusionBorder', type: 'color', label: 'Text Color:', value: '#ffffff' },
+            { group: 'High Score', id: 'sliderHighScoreOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'High Score', id: 'colorHighScoreOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#bd0d07' },
+            { group: 'High Score', id: 'sliderHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'High Score', id: 'sliderHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Text', id: 'sliderRoundBlink1Hide', type: 'slider', label: 'Blink 1 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
             { group: 'Round Text', id: 'sliderRoundBlink1Show', type: 'slider', label: 'Blink 1 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
             { group: 'Round Text', id: 'sliderRoundBlink2Hide', type: 'slider', label: 'Blink 2 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
@@ -8988,6 +9235,12 @@
             { group: 'Round Text', id: 'sliderMobileRoundLetterSpacing', type: 'slider', label: 'Text Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Round Text', id: 'sliderMobileRoundLineHeight', type: 'slider', label: 'Text Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Text', id: 'sliderMobileRoundNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
+            { group: 'High Score', id: 'sliderMobileHighScoreFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 200, step: 0.01, value: 30 },
+            { group: 'High Score', id: 'sliderMobileHighScoreFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 7 },
+            { group: 'High Score', id: 'sliderMobileHighScoreExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'High Score', id: 'sliderMobileHighScoreOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'High Score', id: 'sliderMobileHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'High Score', id: 'sliderMobileHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultWinFontSize', type: 'slider', label: 'Win Font Size (px):', min: 5, max: 300, step: 0.01, value: 18.6 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultWinFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 4.77 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultWinLetterSpacing', type: 'slider', label: 'Win Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -9086,6 +9339,12 @@
             { group: 'Round Text', id: 'sliderLandscapeRoundLetterSpacing', type: 'slider', label: 'Text Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Round Text', id: 'sliderLandscapeRoundLineHeight', type: 'slider', label: 'Text Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Text', id: 'sliderLandscapeRoundNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 200, step: 0.01, value: 30 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 7 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 9 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultWinFontSize', type: 'slider', label: 'Win Font Size (px):', min: 5, max: 300, step: 0.01, value: 18.6 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultWinFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 4.77 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultWinLetterSpacing', type: 'slider', label: 'Win Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -9153,6 +9412,8 @@
             { tab: 'desktop', group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkY', label: '"?" Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 0.05, checkboxId: 'checkboxTryAgainQuestionMarkYOffsetUnitPx', checkboxFlagVar: '--try-again-question-mark-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Round Text', id: 'sliderRoundDockX', label: 'Text X Offset (vw):', min: -50, max: 50, step: 0.01, value: -43, checkboxId: 'checkboxRoundDockXOffsetUnitPx', checkboxFlagVar: '--round-dock-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Round Text', id: 'sliderRoundDockY', label: 'Text Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 42.7, checkboxId: 'checkboxRoundDockYOffsetUnitPx', checkboxFlagVar: '--round-dock-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'High Score', id: 'sliderHighScoreX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 0, checkboxId: 'checkboxHighScoreXOffsetUnitPx', checkboxFlagVar: '--high-score-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'High Score', id: 'sliderHighScoreY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -42, checkboxId: 'checkboxHighScoreYOffsetUnitPx', checkboxFlagVar: '--high-score-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Win/Lose Text', id: 'sliderResultWinX', label: 'Win X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxResultWinXOffsetUnitPx', checkboxFlagVar: '--result-win-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Win/Lose Text', id: 'sliderResultWinY', label: 'Win Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -13, checkboxId: 'checkboxResultWinYOffsetUnitPx', checkboxFlagVar: '--result-win-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Win/Lose Text', id: 'sliderResultLoseX', label: 'Lose X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxResultLoseXOffsetUnitPx', checkboxFlagVar: '--result-lose-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -9173,6 +9434,8 @@
             { tab: 'mobile', group: 'Rotation Animation', id: 'sliderMobileTryAgainQuestionMarkY', label: '"?" Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 5.05, checkboxId: 'checkboxMobileTryAgainQuestionMarkYOffsetUnitPx', checkboxFlagVar: '--try-again-question-mark-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Round Text', id: 'sliderMobileRoundDockX', label: 'Text X Offset (vw):', min: -50, max: 50, step: 0.01, value: -30, checkboxId: 'checkboxMobileRoundDockXOffsetUnitPx', checkboxFlagVar: '--round-dock-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Round Text', id: 'sliderMobileRoundDockY', label: 'Text Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 35, checkboxId: 'checkboxMobileRoundDockYOffsetUnitPx', checkboxFlagVar: '--round-dock-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'High Score', id: 'sliderMobileHighScoreX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 0, checkboxId: 'checkboxMobileHighScoreXOffsetUnitPx', checkboxFlagVar: '--high-score-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'High Score', id: 'sliderMobileHighScoreY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -35, checkboxId: 'checkboxMobileHighScoreYOffsetUnitPx', checkboxFlagVar: '--high-score-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Win/Lose Text', id: 'sliderMobileResultWinX', label: 'Win X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxMobileResultWinXOffsetUnitPx', checkboxFlagVar: '--result-win-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Win/Lose Text', id: 'sliderMobileResultWinY', label: 'Win Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 1.46, checkboxId: 'checkboxMobileResultWinYOffsetUnitPx', checkboxFlagVar: '--result-win-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Win/Lose Text', id: 'sliderMobileResultLoseX', label: 'Lose X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxMobileResultLoseXOffsetUnitPx', checkboxFlagVar: '--result-lose-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -9193,6 +9456,8 @@
             { tab: 'landscape', group: 'Rotation Animation', id: 'sliderLandscapeTryAgainQuestionMarkY', label: '"?" Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 5.05, checkboxId: 'checkboxLandscapeTryAgainQuestionMarkYOffsetUnitPx', checkboxFlagVar: '--try-again-question-mark-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Round Text', id: 'sliderLandscapeRoundDockX', label: 'Text X Offset (vw):', min: -50, max: 50, step: 0.01, value: -30, checkboxId: 'checkboxLandscapeRoundDockXOffsetUnitPx', checkboxFlagVar: '--round-dock-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Round Text', id: 'sliderLandscapeRoundDockY', label: 'Text Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 35, checkboxId: 'checkboxLandscapeRoundDockYOffsetUnitPx', checkboxFlagVar: '--round-dock-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'High Score', id: 'sliderLandscapeHighScoreX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 0, checkboxId: 'checkboxLandscapeHighScoreXOffsetUnitPx', checkboxFlagVar: '--high-score-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'High Score', id: 'sliderLandscapeHighScoreY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -35, checkboxId: 'checkboxLandscapeHighScoreYOffsetUnitPx', checkboxFlagVar: '--high-score-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Win/Lose Text', id: 'sliderLandscapeResultWinX', label: 'Win X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxLandscapeResultWinXOffsetUnitPx', checkboxFlagVar: '--result-win-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Win/Lose Text', id: 'sliderLandscapeResultWinY', label: 'Win Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 1.46, checkboxId: 'checkboxLandscapeResultWinYOffsetUnitPx', checkboxFlagVar: '--result-win-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Win/Lose Text', id: 'sliderLandscapeResultLoseX', label: 'Lose X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxLandscapeResultLoseXOffsetUnitPx', checkboxFlagVar: '--result-lose-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -9505,6 +9770,12 @@
             'sliderRoundFontSizeVw': '--round-font-size-vw',
             'sliderRoundLetterSpacing': '--round-letter-spacing-px',
             'sliderRoundLineHeight': '--round-line-height',
+            'sliderHighScoreX': '--high-score-x-offset-vw',
+            'sliderHighScoreY': '--high-score-y-offset-vh',
+            'sliderHighScoreFontSize': '--high-score-font-size-px',
+            'sliderHighScoreFontSizeVw': '--high-score-font-size-vw',
+            'sliderHighScoreLetterSpacing': '--high-score-letter-spacing-px',
+            'sliderHighScoreLineHeight': '--high-score-line-height',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
             'sliderTryAgainRotateSpeed': '--try-again-rotate-speed-ms',
@@ -9581,6 +9852,8 @@
             'sliderTryAgainOverallBorderThickness': 'tryAgainOverallBorderThickness',
             'sliderRoundDockExtrusionDepth': 'roundDockDepth',
             'sliderRoundDockOverallBorderThickness': 'roundDockOverallBorderThickness',
+            'sliderHighScoreExtrusionDepth': 'highScoreDepth',
+            'sliderHighScoreOverallBorderThickness': 'highScoreOverallBorderThickness',
             'sliderTryAgainQuestionMarkExtrusionDepth': 'questionMarkDepth',
             'sliderTryAgainQuestionMarkOverallBorderThickness': 'questionMarkOverallBorderThickness',
             'sliderResultExtrusionDepth': 'resultDepth',
@@ -9819,6 +10092,7 @@
             '--try-again-text-align': 'startButton',
             '--try-again-question-mark-text-align': 'startButtonFlashChar',
             '--round-text-align': 'gameText',
+            '--high-score-text-align': 'highScoreText',
             '--target-text-align': 'targetCount',
             '--speed-text-align': 'speedDisplay',
             '--ms-per-click-text-align': 'msPerClickDisplay',
@@ -9837,6 +10111,7 @@
             '--try-again-text-valign': 'startButton',
             '--try-again-question-mark-text-valign': 'startButtonFlashChar',
             '--round-text-valign': 'gameText',
+            '--high-score-text-valign': 'highScoreText',
             '--target-text-valign': 'targetCount',
             '--speed-text-valign': 'speedDisplay',
             '--ms-per-click-text-valign': 'msPerClickDisplay',
@@ -9903,6 +10178,7 @@
             '--try-again': 'try-again-text',
             '--try-again-question-mark': 'try-again-question-mark',
             '--round': 'round-dock',
+            '--high-score': 'high-score',
             '--target': 'target',
             '--speed': 'speed',
             '--ms-per-click': 'ms-per-click',
@@ -10060,12 +10336,12 @@
         const textOverrides = {
             startLabel: null, tryAgainLabel: 'Try\nagain', roundLabel: null,
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: ' ms\n/ \nCLICK',
-            targetPrefix: null, targetSuffix: null,
+            targetPrefix: null, targetSuffix: null, highScoreLabel: null,
         };
         const mobileTextOverrides = {
             startLabel: null, tryAgainLabel: null, roundLabel: null,
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: 'ms\n/  \nCLICK',
-            targetPrefix: null, targetSuffix: null,
+            targetPrefix: null, targetSuffix: null, highScoreLabel: null,
         };
         // Seeded from Desktop's (changed from Mobile - flip
         // mobileTextOverrides back here to revert).
@@ -10082,6 +10358,7 @@
             // right-click-editable TEXT_EDIT_TARGETS entry (targetCount
             // Prefix/Suffix below).
             targetPrefix: 'CLICK ', targetSuffix: ' X',
+            highScoreLabel: 'HIGH SCORE',
         };
         // The currently-ACTIVE override object - same isMobileActive()
         // viewport check every other per-device value in this file reads
@@ -10133,6 +10410,10 @@
             gameTextLabel: {
                 getSlot: () => 'roundLabel',
                 render: () => { gameTextLabel.textContent = overrideOr('roundLabel'); },
+            },
+            highScoreText: {
+                getSlot: () => 'highScoreLabel',
+                render: () => { highScoreLabel.textContent = overrideOr('highScoreLabel'); },
             },
             resultText: {
                 getSlot: () => resultText.classList.contains('result-win') ? 'winSymbol' : 'loseSymbol',
@@ -12351,6 +12632,12 @@
                 }, gameState.resultDuration);
             } else {
                 setButtonHue('#dd3333');
+                // High Score check - a run only truly ends on a loss (a win
+                // just continues to gameState.currentRound + 1, see above),
+                // so this is the one place a "final" round value exists.
+                // Checked before the later setTimeout resets currentRound
+                // to 0 (see below).
+                checkHighScore(gameState.currentRound);
                 // Same replacement as the win case above - plain ":(" instead
                 // of the randomized tooManyMessages/notEnoughMessages pools
                 // (and the trailing "(count/target)" suffix, which was part
