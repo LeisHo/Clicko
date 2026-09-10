@@ -1465,8 +1465,8 @@
             letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-prefix-extrusion-shadow);
             position: absolute;
-            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, -41.09) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-vh, -43.14) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, 49.20) * var(--target-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-vh, 9.19) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -1477,8 +1477,8 @@
             letter-spacing: calc(var(--target-number-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-number-extrusion-shadow);
             position: absolute;
-            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-number-x-offset-vw, -42.97) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-number-y-offset-vh, -27.91) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-number-x-offset-vw, 200.24) * var(--target-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-number-y-offset-vh, -50.00) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -1489,8 +1489,8 @@
             letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-suffix-extrusion-shadow);
             position: absolute;
-            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-vw, -38.50) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-vh, -23.94) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-vw, 324.34) * var(--target-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-vh, 11.60) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -5658,16 +5658,16 @@
             // visually a no-op until re-tuned.
             '--target-prefix-font-size-px': 150,
             '--target-prefix-font-size-vw': 11.72,
-            '--target-prefix-x-offset-vw': -41.09,
-            '--target-prefix-y-offset-vh': -43.14,
+            '--target-prefix-x-offset-vw': 49.20,
+            '--target-prefix-y-offset-vh': 9.19,
             '--target-number-font-size-px': 500,
             '--target-number-font-size-vw': 39.06,
-            '--target-number-x-offset-vw': -42.97,
-            '--target-number-y-offset-vh': -27.91,
+            '--target-number-x-offset-vw': 200.24,
+            '--target-number-y-offset-vh': -50.00,
             '--target-suffix-font-size-px': 150,
             '--target-suffix-font-size-vw': 11.72,
-            '--target-suffix-x-offset-vw': -38.50,
-            '--target-suffix-y-offset-vh': -23.94,
+            '--target-suffix-x-offset-vw': 324.34,
+            '--target-suffix-y-offset-vh': 11.60,
             // Scale With Browser - per direct request, reintroduced after
             // the earlier wrapper-level one was removed as vestigial (it
             // stopped affecting anything once Prefix/Number/Suffix each
@@ -6538,18 +6538,18 @@
             '--high-score-text-valign-edge-lock': 0,
             '--target-prefix-font-size-px': 70,
             '--target-prefix-font-size-vw': 5.47,
-            '--target-prefix-x-offset-vw': -35.93,
-            '--target-prefix-y-offset-vh': -52.37,
+            '--target-prefix-x-offset-vw': 37.50,
+            '--target-prefix-y-offset-vh': -29.31,
             '--target-prefix-letter-spacing-px': 0,
             '--target-number-font-size-px': 238.44,
             '--target-number-font-size-vw': 18.63,
-            '--target-number-x-offset-vw': -25.92,
-            '--target-number-y-offset-vh': -43.58,
+            '--target-number-x-offset-vw': 111.06,
+            '--target-number-y-offset-vh': 34.90,
             '--target-number-letter-spacing-px': 0,
             '--target-suffix-font-size-px': 70,
             '--target-suffix-font-size-vw': 5.47,
-            '--target-suffix-x-offset-vw': -18.25,
-            '--target-suffix-y-offset-vh': -42.27,
+            '--target-suffix-x-offset-vw': 165.75,
+            '--target-suffix-y-offset-vh': 16.02,
             '--target-suffix-letter-spacing-px': 0,
             '--target-scale-with-browser': 1,
             '--target-line-height': 0.65,
@@ -9266,16 +9266,16 @@
             { group: 'Target Count Display', id: 'sliderTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -100, max: 100, step: 0.01, value: -41.09 },
-            { group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -43.14 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19 },
             { group: 'Target Count Display', id: 'sliderTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
             { group: 'Target Count Display', id: 'sliderTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 39.06 },
-            { group: 'Target Count Display', id: 'sliderTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -100, max: 100, step: 0.01, value: -42.97 },
-            { group: 'Target Count Display', id: 'sliderTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -27.91 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -100, max: 100, step: 0.01, value: -38.50 },
-            { group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -23.94 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60 },
             { group: 'Target Count Display', id: 'checkboxHideTargetPrefix', type: 'checkbox', label: 'Hide "Click" (Prefix)' },
             { group: 'Target Count Display', id: 'checkboxHideTargetSuffix', type: 'checkbox', label: 'Hide "x" (Suffix)' },
             { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 89.34 },
@@ -9530,16 +9530,16 @@
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.47 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -100, max: 100, step: 0.01, value: -35.93 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -52.37 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 37.50 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -29.31 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 238.44 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 18.63 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -100, max: 100, step: 0.01, value: -25.92 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -43.58 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 111.06 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 34.90 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.47 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -100, max: 100, step: 0.01, value: -18.25 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -42.27 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 165.75 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 16.02 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 9.93 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
@@ -9641,16 +9641,16 @@
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -100, max: 100, step: 0.01, value: -41.09 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -43.14 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 39.06 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -100, max: 100, step: 0.01, value: -42.97 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -27.91 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -100, max: 100, step: 0.01, value: -38.50 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -100, max: 100, step: 0.01, value: -23.94 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 9.93 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
