@@ -3463,7 +3463,7 @@
 
     <!-- Persistent toggle so the dev panel can be reopened without a keyboard
          (D-key doesn't exist on mobile) -->
-    <button class="dev-toggle-btn" id="devToggleBtn" onclick="devPanel.classList.toggle('hidden')">DEV</button>
+    <button class="dev-toggle-btn" id="devToggleBtn" onclick="ensureDevPanelBuilt(); devPanel.classList.toggle('hidden')">DEV</button>
 
     <!-- Dev Panel -->
     <div class="dev-panel" id="devPanel">
@@ -9273,7 +9273,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderDesktopUniformControls();
 
         // Mobile tab's own uniform controls - same pattern as Desktop's
         // DESKTOP_UNIFORM_CONTROLS above, reusing the SAME buildUniformControlRow()
@@ -9387,7 +9386,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderMobileUniformControls();
 
         // Landscape tab's own uniform controls - same pattern as Desktop's/
         // Mobile's above, reusing the same buildUniformControlRow().
@@ -9495,7 +9493,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderLandscapeUniformControls();
 
         // The 60 X/Y-offset sliders (20 per tab) each bundled with their own
         // px/vw-unit-toggle checkbox in the same row - excluded from the
@@ -9613,7 +9610,6 @@
                 content.appendChild(buildCompoundOffsetRow(ctrl));
             });
         }
-        renderCompoundOffsetControls();
 
         // Dev Panel's own built-in styling group (CLAUDE.md 12i) - 31
         // sliders/colors across all 3 tabs, all matching the same simple
@@ -9663,7 +9659,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderDevPanelStyleControls();
 
         // Desktop's 4 special-cased color pickers - each with its own
         // "(...)" descriptive note instead of a plain value readout, and
@@ -9684,7 +9679,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderSpecialColorControls();
 
         // Game Mechanics group (Desktop-only, single/shared - not device-
         // split, see GAME_MECHANICS_SLIDER_IDS' own comment) - 13 sliders,
@@ -9714,7 +9708,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderGameMechanicsControls();
 
         // Desktop-only "Dev Panel" group tail: the font-family select and 4
         // capitalization checkboxes. Different control shapes from every
@@ -9751,7 +9744,6 @@
                 content.appendChild(buildUniformControlRow(ctrl));
             });
         }
-        renderDevPanelMiscControls();
 
         // Click Burst's 6 text/number inputs (all 3 tabs = 18 total) - the
         // last remaining category from the "finish it all" Method B port.
@@ -9798,7 +9790,6 @@
                 content.appendChild(buildTextInputRow(ctrl));
             });
         }
-        renderClickBurstTextInputControls();
 
         // Setup dev sliders
         // Visual/layout controls: desktop slider id -> cssVars key. Each has a
@@ -13084,6 +13075,7 @@
             const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
             if (isTyping) return;
             if (e.key.toLowerCase() === 'd' && isDevAllowed) {
+                ensureDevPanelBuilt();
                 devPanel.classList.toggle('hidden');
             }
             if (e.key.toLowerCase() === 'r' && isDevAllowed) {
@@ -13380,78 +13372,118 @@
         }
 
         // Initialize
-        setupDevPanelStyleControls();
-        // Blend Mode dropdowns (Button/Base Color) - per explicit request.
-        // cssVars-backed (single/shared, like Light Levels/Base Color
-        // itself), not a .dev-slider/.dev-color-picker, so wired directly
-        // here rather than through either of those generic loops.
-        (function setupBlendModeSelects() {
-            const baseEl = document.getElementById('selectBaseBlendMode');
-            if (baseEl) baseEl.addEventListener('change', (e) => {
-                cssVars['--base-blend-mode'] = e.target.value;
-                applyActiveVars();
-            });
-            const buttonEl = document.getElementById('selectButtonBlendMode');
-            if (buttonEl) buttonEl.addEventListener('change', (e) => {
-                cssVars['--button-blend-mode'] = e.target.value;
-                applyActiveVars();
-            });
-        })();
-        applyDevPanelOwnStyling(true);
-        // Wire up + paint with hardcoded defaults FIRST, synchronously -
-        // loadSettings() is now an async fetch (git-only settings log, not
-        // instant localStorage - see its own comment), and none of this
-        // should sit waiting on a network round-trip just to become
-        // interactive/visible. loadSettings() re-applies on top of this,
-        // below, once (if) it actually has something to restore.
-        setupDevSliders();
-        // Sync every generated slider/color-picker's initial DOM value from
-        // the live state objects right now, synchronously, before
-        // loadSettings()'s async fetch below even starts - closes the brief
-        // flash where a Method-B-generated control's config-array `value:`
-        // literal (a separate, hand-typed copy of the real default) is
-        // what's actually on screen. applyLoadedSettings() calls both of
-        // these again later too, once (if) the fetch resolves with real
-        // saved data - safe/idempotent, not a duplicate side effect.
-        syncSlidersFromState();
-        syncColorPickersFromState();
-        validateDevControlMappings();
-        assertDevControlsRendered();
-        setupTextAlignSelects();
-        setupOffsetUnitCheckboxes();
-        setupTextEdgeLockCheckboxes();
+        // Lazy dev-panel build - per direct request ("what does it take...
+        // go for it" after a load-time investigation measured a consistent
+        // ~780-880ms gap between the HTML finishing download and
+        // domInteractive, root-caused to these 9 render*Controls() calls
+        // unconditionally building 686 DOM elements - sliders/color
+        // pickers/selects/checkboxes across all 3 device tabs - via
+        // synchronous createElement/appendChild, for EVERY visitor,
+        // including real players who never open the panel (isDevAllowed
+        // only hid it with CSS afterward, never skipped building it).
+        // ensureDevPanelBuilt() now defers every piece of setup that
+        // depends on those generated rows actually existing - called from
+        // the D-key handler and the DEV toggle button's own onclick, the
+        // first (and only the first) time either is used, so the cost is
+        // paid once, on demand, by whoever actually opens the panel,
+        // instead of unconditionally by everyone on every load.
+        //
+        // What stays EAGER below (deliberately NOT moved into
+        // ensureDevPanelBuilt(), and why): setupTextEditMode() wires
+        // TEXT_EDIT_TARGETS - real GAME elements (startButton,
+        // gameTextLabel, resultText, targetCount*, highScoreLabel, etc.),
+        // zero dependency on the panel's generated rows.
+        // setupTextEditPanelTriggers() and setupDevPanelTextEdit() only
+        // need the panel's SECTION-TITLE shell (data-text-edit-target/
+        // data-sid), which is static HTML present from first paint -
+        // setupDevPanelTextEdit() specifically uses one delegated listener
+        // on #devPanel itself, so it correctly catches clicks on rows
+        // added later by ensureDevPanelBuilt() too, no re-wiring needed.
+        // resolvePositionSentinels()/applyActiveVars()/applyExtrusionStyles()
+        // touch only cssVars/extrusionVars and real game elements (the
+        // dev-panel-position sentinel resolution is a plain object-property
+        // check, not DOM). All 4 stay in their original relative order below.
+        let devPanelBuilt = false;
+        function ensureDevPanelBuilt() {
+            if (devPanelBuilt) return;
+            devPanelBuilt = true;
+            renderDesktopUniformControls();
+            renderMobileUniformControls();
+            renderLandscapeUniformControls();
+            renderCompoundOffsetControls();
+            renderDevPanelStyleControls();
+            renderSpecialColorControls();
+            renderGameMechanicsControls();
+            renderDevPanelMiscControls();
+            renderClickBurstTextInputControls();
+            setupDevPanelStyleControls();
+            // Blend Mode dropdowns (Button/Base Color) - per explicit
+            // request. cssVars-backed (single/shared, like Light
+            // Levels/Base Color itself), not a .dev-slider/.dev-color-
+            // picker, so wired directly here rather than through either
+            // of those generic loops.
+            (function setupBlendModeSelects() {
+                const baseEl = document.getElementById('selectBaseBlendMode');
+                if (baseEl) baseEl.addEventListener('change', (e) => {
+                    cssVars['--base-blend-mode'] = e.target.value;
+                    applyActiveVars();
+                });
+                const buttonEl = document.getElementById('selectButtonBlendMode');
+                if (buttonEl) buttonEl.addEventListener('change', (e) => {
+                    cssVars['--button-blend-mode'] = e.target.value;
+                    applyActiveVars();
+                });
+            })();
+            applyDevPanelOwnStyling(true);
+            setupDevSliders();
+            // Sync every generated slider/color-picker's DOM value from
+            // the live state objects (cssVars/extrusionVars/etc.) right
+            // now - correct regardless of whether this runs before or
+            // after loadSettings()'s async fetch resolves, since those
+            // objects are the real source of truth either way (see the
+            // devPanelBuilt check added to the async settings callback
+            // below, for the case where the panel is opened BEFORE the
+            // fetch resolves and needs a follow-up re-sync once it does).
+            syncSlidersFromState();
+            syncColorPickersFromState();
+            validateDevControlMappings();
+            assertDevControlsRendered();
+            setupTextAlignSelects();
+            setupOffsetUnitCheckboxes();
+            setupTextEdgeLockCheckboxes();
+            setupClickBurstTextInputs();
+            // No onDrop action needed - the DOM order itself IS the live state;
+            // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
+            // Groups within groups (one level) - per direct request ("make it
+            // so that i can have setting groups within setting groups").
+            // Eligible drop targets: tabRoot itself (drag a nested group back
+            // out to the top level) plus every TOP-LEVEL group's own content
+            // (nest a group INTO it) - deliberately excludes any group's
+            // content that's itself already nested (capping at one level: a
+            // subgroup's own .dev-section-content is never offered as a
+            // nesting target for another drag) and excludes the DRAGGED
+            // group's own content (can't nest a group inside itself). See
+            // setupDragReorder's own comment on why this needs a function
+            // instead of the plain-string selector the settings-row call uses.
+            setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => [
+                tabRoot,
+                ...Array.from(tabRoot.querySelectorAll(':scope > .dev-section > .dev-section-content'))
+                    .filter(content => content.parentElement !== dragging),
+            ]);
+            setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, '.dev-section-content');
+            makeDevValuesEditable();
+            // Captures every dev-panel label/title's TRUE original text into
+            // devTextOriginals (devTextOverrides is still empty the first
+            // time this runs pre-settings-load) and applies any restored
+            // override on top - safe/idempotent if called again later.
+            applyDevTextOverrides();
+        }
         setupTextEditMode();
         setupTextEditPanelTriggers();
         setupDevPanelTextEdit();
-        setupClickBurstTextInputs();
-        // No onDrop action needed - the DOM order itself IS the live state;
-        // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
-        // Groups within groups (one level) - per direct request ("make it
-        // so that i can have setting groups within setting groups").
-        // Eligible drop targets: tabRoot itself (drag a nested group back
-        // out to the top level) plus every TOP-LEVEL group's own content
-        // (nest a group INTO it) - deliberately excludes any group's
-        // content that's itself already nested (capping at one level: a
-        // subgroup's own .dev-section-content is never offered as a
-        // nesting target for another drag) and excludes the DRAGGED
-        // group's own content (can't nest a group inside itself). See
-        // setupDragReorder's own comment on why this needs a function
-        // instead of the plain-string selector the settings-row call uses.
-        setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => [
-            tabRoot,
-            ...Array.from(tabRoot.querySelectorAll(':scope > .dev-section > .dev-section-content'))
-                .filter(content => content.parentElement !== dragging),
-        ]);
-        setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, '.dev-section-content');
-        makeDevValuesEditable();
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();
-        // Captures every dev-panel label/title's TRUE original text into
-        // devTextOriginals (devTextOverrides is still empty at this point) -
-        // re-run below once the settings fetch resolves to actually apply
-        // any restored overrides on top of these now-known originals.
-        applyDevTextOverrides();
         // Idle/landing-screen state - resetGameplayState() was defined but
         // never actually called anywhere (confirmed via a full-file grep),
         // so gameText/targetCount/speedDisplay/msPerClickDisplay - none of
@@ -13485,13 +13517,18 @@
                 // mobileCssVars - harmless no-op re-push if nothing changed.
                 applyActiveVars();
                 applyExtrusionStyles();
-                // Apply any restored devTextOverrides now that
-                // applyLoadedSettings() (inside loadSettings() above) has
-                // had a chance to populate them - devTextOriginals is
-                // already correctly populated from the synchronous initial
-                // paint's own earlier call, so this call only ever changes
-                // text where a real override exists.
-                applyDevTextOverrides();
+                // Dev panel is now lazy-built (see ensureDevPanelBuilt()'s
+                // own comment) - only re-sync/re-apply its own DOM if it's
+                // actually been built already (the rare case: the panel was
+                // opened before this fetch resolved). If it hasn't been
+                // built yet, ensureDevPanelBuilt() itself will correctly
+                // read the now-current cssVars/extrusionVars/devTextOverrides
+                // whenever it eventually IS built - nothing to do here.
+                if (devPanelBuilt) {
+                    syncSlidersFromState();
+                    syncColorPickersFromState();
+                    applyDevTextOverrides();
+                }
                 // Apply a restored --flip-button-svg even though the checkbox
                 // itself won't visually reflect it (loadSettings() doesn't sync any
                 // control's displayed value from a restored setting - a pre-existing
