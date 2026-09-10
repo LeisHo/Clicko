@@ -1496,8 +1496,18 @@
         }
         /* Independent fine nudge for just the live number, on top of the
            whole element's own position - per direct request for its own
-           X offset slider (same pattern as #gameTextNumber above). */
+           X offset slider (same pattern as #gameTextNumber above).
+           display:inline-block is required - per direct bug report ("the
+           ms click number x offset doesn't work"), CSS transform has NO
+           effect on a plain (default) display:inline box, which #speedDisplayNumber/
+           #msPerClickDisplayNumber both were (a bare <span> with no display
+           override) - confirmed live via getBoundingClientRect() showing
+           zero movement despite a correctly-computed transform matrix.
+           #targetCountNumber already had this exact fix (see its own
+           inline-block rule) - #gameTextNumber never needed it since it's
+           display:block already. */
         #speedDisplayNumber {
+            display: inline-block;
             transform: translateX(calc(var(--speed-number-x-offset-px, 0) * 1px));
         }
 
@@ -1544,8 +1554,11 @@
             display: none !important;
         }
         /* Independent fine nudge for just the live number - same pattern
-           as #gameTextNumber/#speedDisplayNumber above. */
+           as #gameTextNumber/#speedDisplayNumber above. display:inline-block
+           required - see #speedDisplayNumber's own comment for the full
+           root-cause explanation (plain inline elements ignore transform). */
         #msPerClickDisplayNumber {
+            display: inline-block;
             transform: translateX(calc(var(--ms-per-click-number-x-offset-px, 0) * 1px));
         }
         /* Whatever follows the suffix's 2nd embedded newline (line 3 of
