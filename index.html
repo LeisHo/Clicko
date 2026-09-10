@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clicko Dicko</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&family=DotGothic16&family=Micro+5&family=Handjet&family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jersey+25&family=Jersey+10&family=Jersey+20&family=Jacquard+24&display=swap" rel="stylesheet">
+    <!-- Per direct report ("even in non dev mode... for the first half a
+         second i see a ghost of the dev panel in the center of the
+         screen"): the real isDevAllowed check/hide (further down, near the
+         very end of the ~12,800-line main script) only ran after the ENTIRE
+         inline script had downloaded and begun executing - #devPanel/
+         #devToggleBtn had no CSS-level default-hidden state at all (base
+         rule was plain `display: flex`), so a non-dev visitor briefly saw
+         them rendered with their real CSS but no JS-computed position yet
+         (--dev-panel-left-px/-top-px are only ever set via JS, no :root
+         fallback), landing wherever their unset-left/top static position
+         happened to fall. This tiny script is duplicated (not shared with
+         the main script's own later isDevAllowed, still used there for the
+         D/R key gating) specifically so it can run to completion the
+         instant the parser reaches it - before the panel's own HTML below
+         is even parsed, let alone before the giant trailing script
+         downloads - synchronously marking <html> so the CSS rules below
+         (search dev-mode) can gate visibility from the very first paint,
+         with zero dependency on when the rest of the page's JS runs. -->
+    <script>
+        (function() {
+            var isDevAllowed = location.protocol === 'file:' ||
+                location.protocol === 'data:' ||
+                location.hostname === 'localhost' ||
+                location.hostname === '127.0.0.1' ||
+                new URLSearchParams(location.search).get('dev') === '1';
+            if (isDevAllowed) document.documentElement.classList.add('dev-mode');
+        })();
+    </script>
     <style>
         * {
             margin: 0;
@@ -1660,7 +1688,13 @@
             z-index: 99999;
             font-family: var(--dev-panel-font-family, monospace);
             border-left: 2px solid var(--dev-accent-color);
-            display: flex;
+            /* Hidden by default (not `flex`) so a non-dev visitor never
+               sees this panel at all, even for a flash - see the tiny
+               early <head> script's own comment. html.dev-mode below
+               restores it; .dev-panel.hidden's own !important (search
+               there) still wins over both when the D-key/hide-button
+               toggle is used, regardless of dev-mode. */
+            display: none;
             flex-direction: column;
             /* Native CSS `resize` is NOT touch-draggable on most mobile
                browsers - its handle is either invisible or unresponsive to
@@ -1685,6 +1719,10 @@
                still scrolls the actual content. */
             resize: none;
         }
+        /* Restores visibility for a dev-allowed visitor only - see the
+           tiny early <head> script that sets this class, and the base
+           .dev-panel rule's own comment above. */
+        html.dev-mode .dev-panel { display: flex; }
         /* Extra breathing room on a genuinely narrow (mobile) viewport - the
            92vw/92vh clamp above already guarantees the panel can never
            overflow the screen, but at 92% of a ~375-428px-wide phone
@@ -2151,6 +2189,9 @@
         #topDebugLabelMs { background: #2277ff; }
 
         .dev-toggle-btn {
+            /* Hidden by default, same reasoning/mechanism as .dev-panel's
+               own comment above - html.dev-mode restores it. */
+            display: none;
             position: fixed;
             bottom: 10px;
             right: 10px;
@@ -2166,6 +2207,7 @@
             cursor: pointer;
             opacity: 0.85;
         }
+        html.dev-mode .dev-toggle-btn { display: inline-block; }
 
         .dev-toggle-btn:hover {
             opacity: 1;
@@ -12258,18 +12300,19 @@
         // Dev panel is only reachable locally (file:// or localhost) or with ?dev=1 -
         // real players on a deployed URL never see it or its keyboard shortcut.
         // Kept in the DOM either way (not removed) since game logic reads its slider
-        // values directly as the source of truth for defaults - only visibility and
-        // the D-key toggle are gated.
+        // values directly as the source of truth for defaults - only the D/R-key
+        // shortcuts are gated here now; actual PANEL VISIBILITY is gated by CSS
+        // from first paint (html.dev-mode, set by a tiny early <head> script,
+        // duplicating this same check) - per direct report of a real, visible
+        // "ghost" of the unstyled panel flashing on screen for non-dev visitors
+        // while this (correct, but far too late - this line only runs once the
+        // entire ~12,800-line script has downloaded) check used to be the ONLY
+        // thing hiding it.
         const isDevAllowed = location.protocol === 'file:' ||
             location.protocol === 'data:' ||
             location.hostname === 'localhost' ||
             location.hostname === '127.0.0.1' ||
             new URLSearchParams(location.search).get('dev') === '1';
-
-        if (!isDevAllowed) {
-            devPanel.style.setProperty('display', 'none', 'important');
-            document.getElementById('devToggleBtn').style.setProperty('display', 'none', 'important');
-        }
 
         // Resets gameplay state back to the landing screen - factored out
         // of the R-key handler so the dev panel's own RESET button (see
