@@ -1359,6 +1359,39 @@
             display: none !important;
         }
 
+        /* Prefix/Number/Suffix - each independently sized and positioned
+           (a nudge layered on top of the whole .target-count block's own
+           position, not a replacement) - per direct request ("separate
+           font size, y offset, x offset sliders for the 'Click', number,
+           and 'x'"). inline-block (not plain inline) so the Y-offset
+           half of each transform behaves predictably - plain inline
+           elements have surprising vertical-transform behavior tied to
+           line-box/baseline rules that inline-block avoids. */
+        #targetCountPrefix, #targetCountNumber, #targetCountSuffix {
+            display: inline-block;
+        }
+        #targetCountPrefix {
+            font-size: calc(var(--target-prefix-font-size-px) * 1px);
+            transform: translate(calc(var(--target-prefix-x-offset-px, 0) * 1px), calc(var(--target-prefix-y-offset-px, 0) * 1px));
+        }
+        #targetCountNumber {
+            font-size: calc(var(--target-number-font-size-px) * 1px);
+            transform: translate(calc(var(--target-number-x-offset-px, 0) * 1px), calc(var(--target-number-y-offset-px, 0) * 1px));
+        }
+        #targetCountSuffix {
+            font-size: calc(var(--target-suffix-font-size-px) * 1px);
+            transform: translate(calc(var(--target-suffix-x-offset-px, 0) * 1px), calc(var(--target-suffix-y-offset-px, 0) * 1px));
+        }
+        /* Hide Prefix/Suffix toggles - per direct request for checkboxes
+           to hide "Click" and "x" independently. The Number itself is
+           never independently hideable (it's the one thing that always
+           has to show), matching how Target Count's own whole-element
+           hide (.target-count.hidden above) already works only at the
+           block level. */
+        #targetCountPrefix.hidden, #targetCountSuffix.hidden {
+            display: none !important;
+        }
+
         /* Speed Display - same pattern as Target Count above. */
         .speed-display {
             position: absolute;
@@ -3284,7 +3317,18 @@
         <span class="hidden" id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>
         <div class="game-text" id="gameText"><span id="gameTextLabel"></span><span id="gameTextNumber"></span></div>
         <div class="result-text hidden" id="resultText"></div>
-        <div class="target-count" id="targetCount"></div>
+        <!-- Prefix/Number/Suffix split - per direct request ("I want
+             separate font size, y offset, x offset sliders for the
+             'Click', number, and 'x'" + hide checkboxes for each word).
+             Prefix keeps its existing renameable-via-Text-Edit-Mode
+             behavior (targetPrefix, unchanged); Suffix reuses the exact
+             same overrideOr() mechanism for consistency (targetSuffix,
+             default 'x') even though no dedicated click-to-rename UI is
+             wired to it yet - see TEXT_EDIT_TARGETS.targetCount's own
+             comment. Number-only blinking (runRoundBlinkSequence) now
+             targets targetCountNumber specifically, same pattern as
+             speedDisplayNumber/msPerClickDisplayNumber below. -->
+        <div class="target-count" id="targetCount"><span id="targetCountPrefix"></span><span id="targetCountNumber"></span><span id="targetCountSuffix"></span></div>
         <!-- Number/suffix split so the Round-Number-style blink sequence
              (runRoundBlinkSequence()) can blink ONLY the live number, never
              the static word suffix ("ms"/"CLICK") - per direct request ("i
@@ -5285,6 +5329,30 @@
             '--target-x-offset-unit-is-px': 0,
             '--target-y-offset-vh': -90,
             '--target-y-offset-unit-is-px': 0,
+            // Prefix/Number/Suffix independent font-size + X/Y nudge - per
+            // direct request ("separate font size, y offset, x offset
+            // sliders for the 'Click', number, and 'x'"). Number defaults
+            // to the SAME value --target-font-size-px already had, so its
+            // own visual size is unchanged by this split; Prefix/Suffix
+            // (new words, previously not shown at all) default to a
+            // smaller, visually-reasonable fraction rather than inheriting
+            // the same huge number-sized default.
+            '--target-prefix-font-size-px': 150,
+            '--target-prefix-x-offset-px': 0,
+            '--target-prefix-y-offset-px': 0,
+            '--target-number-font-size-px': 500,
+            '--target-number-x-offset-px': 0,
+            '--target-number-y-offset-px': 0,
+            '--target-suffix-font-size-px': 150,
+            '--target-suffix-x-offset-px': 0,
+            '--target-suffix-y-offset-px': 0,
+            // Hide Prefix/Suffix - per direct request for checkboxes to
+            // hide "Click"/"x" independently. Single/shared (not per-tab)
+            // like every other show/hide toggle in this file (Hide
+            // Button/Base/etc.) - a content visibility choice, not a
+            // spatial one.
+            '--target-prefix-hidden': 0,
+            '--target-suffix-hidden': 0,
             '--target-letter-spacing-px': -7,
             '--target-line-height': 1.2,
             '--target-text-align': 'left',
@@ -6062,6 +6130,15 @@
             '--target-x-offset-unit-is-px': 1,
             '--target-y-offset-vh': 20,
             '--target-y-offset-unit-is-px': 1,
+            '--target-prefix-font-size-px': 70,
+            '--target-prefix-x-offset-px': 0,
+            '--target-prefix-y-offset-px': 0,
+            '--target-number-font-size-px': 238.44,
+            '--target-number-x-offset-px': 0,
+            '--target-number-y-offset-px': 0,
+            '--target-suffix-font-size-px': 70,
+            '--target-suffix-x-offset-px': 0,
+            '--target-suffix-y-offset-px': 0,
             '--target-letter-spacing-px': 0,
             '--target-line-height': 0.65,
             '--target-text-align': 'left',
@@ -6354,6 +6431,12 @@
         const gameTextNumber = document.getElementById('gameTextNumber');
         const resultText = document.getElementById('resultText');
         const targetCount = document.getElementById('targetCount');
+        // Prefix/Number/Suffix children - see their own HTML comment,
+        // same "cache the children, every render call site sets them
+        // individually" pattern as speedDisplayNumber/Suffix below.
+        const targetCountPrefix = document.getElementById('targetCountPrefix');
+        const targetCountNumber = document.getElementById('targetCountNumber');
+        const targetCountSuffix = document.getElementById('targetCountSuffix');
         const speedDisplay = document.getElementById('speedDisplay');
         const msPerClickDisplay = document.getElementById('msPerClickDisplay');
         // Number/suffix children - see their own HTML comment. Cached here
@@ -7677,6 +7760,16 @@
                         document.getElementById(id).checked = checked;
                         buttonAssembly.classList.toggle(className, checked);
                     });
+                    // Same gap, for the Hide "Click"/Hide "x" (Target Text
+                    // Prefix/Suffix) checkboxes.
+                    [
+                        ['checkboxHideTargetPrefix', '--target-prefix-hidden', targetCountPrefix],
+                        ['checkboxHideTargetSuffix', '--target-suffix-hidden', targetCountSuffix],
+                    ].forEach(([id, varName, el]) => {
+                        const checked = !!cssVars[varName];
+                        document.getElementById(id).checked = checked;
+                        el.classList.toggle('hidden', checked);
+                    });
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -8653,6 +8746,17 @@
             { group: 'Target Count Display', id: 'colorTargetOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#000000' },
             { group: 'Target Count Display', id: 'sliderTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'checkboxHideTargetPrefix', type: 'checkbox', label: 'Hide "Click" (Prefix)' },
+            { group: 'Target Count Display', id: 'checkboxHideTargetSuffix', type: 'checkbox', label: 'Hide "x" (Suffix)' },
             { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 89.34 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 6.98 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 19 },
@@ -8893,6 +8997,15 @@
             { group: 'Target Count Display', id: 'sliderMobileTargetOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
             { group: 'Target Count Display', id: 'sliderMobileTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 238.44 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 9.93 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
@@ -8982,6 +9095,15 @@
             { group: 'Target Count Display', id: 'sliderLandscapeTargetOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 9.93 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
@@ -9395,6 +9517,15 @@
             'sliderTargetY': '--target-y-offset-vh',
             'sliderTargetLetterSpacing': '--target-letter-spacing-px',
             'sliderTargetLineHeight': '--target-line-height',
+            'sliderTargetPrefixFontSize': '--target-prefix-font-size-px',
+            'sliderTargetPrefixXOffset': '--target-prefix-x-offset-px',
+            'sliderTargetPrefixYOffset': '--target-prefix-y-offset-px',
+            'sliderTargetNumberFontSize': '--target-number-font-size-px',
+            'sliderTargetNumberXOffset': '--target-number-x-offset-px',
+            'sliderTargetNumberYOffset': '--target-number-y-offset-px',
+            'sliderTargetSuffixFontSize': '--target-suffix-font-size-px',
+            'sliderTargetSuffixXOffset': '--target-suffix-x-offset-px',
+            'sliderTargetSuffixYOffset': '--target-suffix-y-offset-px',
             'sliderSpeedFontSize': '--speed-font-size-px',
             'sliderSpeedFontSizeVw': '--speed-font-size-vw',
             'sliderSpeedX': '--speed-x-offset-vw',
@@ -9923,12 +10054,12 @@
         const textOverrides = {
             startLabel: null, tryAgainLabel: 'Try\nagain', roundLabel: null,
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: ' ms\n/ \nCLICK',
-            targetPrefix: null,
+            targetPrefix: null, targetSuffix: null,
         };
         const mobileTextOverrides = {
             startLabel: null, tryAgainLabel: null, roundLabel: null,
             winSymbol: null, loseSymbol: null, speedSuffix: null, msPerClickSuffix: 'ms\n/  \nCLICK',
-            targetPrefix: null,
+            targetPrefix: null, targetSuffix: null,
         };
         // Seeded from Desktop's (changed from Mobile - flip
         // mobileTextOverrides back here to revert).
@@ -9936,7 +10067,14 @@
         const TEXT_OVERRIDE_DEFAULTS = {
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
             winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / \nCLICK',
-            targetPrefix: '',
+            // Defaults changed from '' per direct request ("The Target
+            // Text now says 'Click ___ x'") - targetSuffix reuses the
+            // exact same overrideOr() mechanism as targetPrefix for
+            // consistency, even though no dedicated click-to-rename UI is
+            // wired to it yet (see TEXT_EDIT_TARGETS.targetCount's own
+            // comment) - both are still independently hideable via their
+            // own checkboxes regardless of wording.
+            targetPrefix: 'Click ', targetSuffix: ' x',
         };
         // The currently-ACTIVE override object - same isMobileActive()
         // viewport check every other per-device value in this file reads
@@ -10024,7 +10162,15 @@
                 // the old text still shows... new text just appends").
                 getSlot: () => 'targetPrefix',
                 getPrefix: () => String(gameState.targetCount),
-                render: (slot, liveNumber) => { targetCount.textContent = overrideOr(slot) + (liveNumber != null ? liveNumber : String(gameState.targetCount)); },
+                // Sets all 3 spans from scratch on every call - Suffix
+                // reuses overrideOr('targetSuffix') the same way Prefix
+                // always has (see TEXT_OVERRIDE_DEFAULTS's own comment on
+                // why, despite no dedicated rename-UI for it yet).
+                render: (slot, liveNumber) => {
+                    targetCountPrefix.textContent = overrideOr(slot);
+                    targetCountNumber.textContent = liveNumber != null ? liveNumber : String(gameState.targetCount);
+                    targetCountSuffix.textContent = overrideOr('targetSuffix');
+                },
             },
             msPerClickDisplay: {
                 getSlot: () => 'msPerClickSuffix',
@@ -11474,7 +11620,13 @@
                 // and visible throughout, same as "ROUND" already does
                 // alongside gameTextNumber above.
                 if (cssVars['--gameplay-result-flash-with-round']) {
-                    [targetCount, speedDisplayNumber, msPerClickDisplayNumber].forEach(el => {
+                    // targetCount used to be toggled as a whole element
+                    // here (it had no separate word to preserve, unlike
+                    // speed/msPerClick) - now that it has its own Prefix/
+                    // Suffix spans too, blinks targetCountNumber only,
+                    // same as the other 2, so "Click"/"x" stay put and
+                    // visible throughout exactly like "ms"/"CLICK" already do.
+                    [targetCountNumber, speedDisplayNumber, msPerClickDisplayNumber].forEach(el => {
                         el.style.visibility = phase.visible ? 'visible' : 'hidden';
                     });
                 }
@@ -11760,10 +11912,10 @@
             // would stay invisible forever after the very first
             // flash-with-round announcement).
             applyGameplayResultColor(null);
-            targetCount.style.visibility = 'visible';
+            targetCountNumber.style.visibility = 'visible';
             speedDisplayNumber.style.visibility = 'visible';
             msPerClickDisplayNumber.style.visibility = 'visible';
-            targetCount.textContent = gameState.targetCount;
+            targetCountNumber.textContent = gameState.targetCount;
             targetCount.classList.remove('hidden');
             // Countdown's total budget, rounded to a whole number per
             // explicit follow-up request (see startRoundCountdown()/
@@ -12615,6 +12767,19 @@
                 startButton.classList.add('hidden');
                 stopTryAgainFlash();
             }
+        });
+
+        // Hide "Click" (Prefix) / Hide "x" (Suffix) checkboxes - per direct
+        // request for checkboxes to independently hide the Target Text's
+        // prefix/suffix words. Config-array-built (buildCheckboxRow doesn't
+        // auto-wire), so wired here same as the Preview checkboxes above.
+        document.getElementById('checkboxHideTargetPrefix').addEventListener('change', (e) => {
+            cssVars['--target-prefix-hidden'] = e.target.checked ? 1 : 0;
+            targetCountPrefix.classList.toggle('hidden', e.target.checked);
+        });
+        document.getElementById('checkboxHideTargetSuffix').addEventListener('change', (e) => {
+            cssVars['--target-suffix-hidden'] = e.target.checked ? 1 : 0;
+            targetCountSuffix.classList.toggle('hidden', e.target.checked);
         });
 
         // Manually replays the round-change blink sequence (see
