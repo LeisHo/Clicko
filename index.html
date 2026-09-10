@@ -1360,14 +1360,22 @@
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-font-size-vw, 10) * var(--cq-vw, 1vw));
-            letter-spacing: calc(var(--target-letter-spacing-px) * 1px);
+            /* Font Size (px)/(vw)/Scale With Browser removed - per direct
+               report ("what does 'Font Size (vw)' do?... it doesnt seem to
+               do anything [for px]"), see the Desktop dev-panel row's own
+               removal comment for the full root-cause explanation. This
+               property now exists purely to give the (unitless)
+               line-height below a sensible pixel basis, tied to the
+               Number's own font-size (the always-present, dominant part) -
+               not itself a tunable control anymore. Letter Spacing and
+               the text-shadow extrusion below are now each independently
+               set per-part (see #targetCountPrefix/Number/Suffix) instead
+               of shared here. */
+            font-size: calc(var(--target-number-font-size-px) * 1px);
             line-height: var(--target-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--target-fill-color);
-            text-shadow: var(--target-extrusion-shadow);
             text-align: var(--target-text-align, center);
             pointer-events: none;
             z-index: 10;
@@ -1417,16 +1425,31 @@
         #targetCountPrefix, #targetCountNumber, #targetCountSuffix {
             display: inline-block;
         }
+        /* Letter Spacing and the extrusion text-shadow are now each
+           independently set per-part too (decomposed from .target-count's
+           own former shared letter-spacing/text-shadow - see that rule's
+           own comment) - per direct follow-up request ("provide me letter
+           spacing sliders for all 3 as well" + "extrusion depth and border
+           thickness for all 3"). Color stays shared (--target-fill-color,
+           inherited from .target-count; --target-border-color/-overall-
+           border-color feed all 3 shadows below) - only depth/thickness/
+           letter-spacing were asked to be independent. */
         #targetCountPrefix {
             font-size: calc(var(--target-prefix-font-size-px) * 1px);
+            letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
+            text-shadow: var(--target-prefix-extrusion-shadow);
             transform: translate(calc(var(--target-prefix-x-offset-px, 0) * 1px), calc(var(--target-prefix-y-offset-px, 0) * 1px));
         }
         #targetCountNumber {
             font-size: calc(var(--target-number-font-size-px) * 1px);
+            letter-spacing: calc(var(--target-number-letter-spacing-px, 0) * 1px);
+            text-shadow: var(--target-number-extrusion-shadow);
             transform: translate(calc(var(--target-number-x-offset-px, 0) * 1px), calc(var(--target-number-y-offset-px, 0) * 1px));
         }
         #targetCountSuffix {
             font-size: calc(var(--target-suffix-font-size-px) * 1px);
+            letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
+            text-shadow: var(--target-suffix-extrusion-shadow);
             transform: translate(calc(var(--target-suffix-x-offset-px, 0) * 1px), calc(var(--target-suffix-y-offset-px, 0) * 1px));
         }
         /* Hide Prefix/Suffix toggles - per direct request for checkboxes
@@ -4129,12 +4152,26 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetScaleWithBrowser', '--target-scale-with-browser')">
-                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
-                    </label>
-                </div>
+                <!-- Scale With Browser checkbox removed - per direct report
+                     ("since Click, Number, and X have their own font
+                     sizes, what does 'Font Size (vw)' do?... it currently
+                     seems to shift all 3 up and down. and 'Font Size (px)'
+                     doesnt seem to do anything"). Root cause: once Prefix/
+                     Number/Suffix each got their own independent Font Size
+                     (px) (see cssVars' own comment), the WRAPPER-level Font
+                     Size (px)/(vw)/this checkbox no longer resized any
+                     visible text - .target-count's own font-size was only
+                     ever read by its (unitless) line-height multiplier,
+                     so changing it just shifted the 3 parts' vertical
+                     position as a side effect, while px silently did
+                     nothing whenever this checkbox was on (as it is by
+                     default on Mobile) since the formula zeroes the px
+                     term entirely. Removed as vestigial/confusing -
+                     .target-count's font-size is now a plain expression
+                     tied to the Number's own font-size (see its CSS) so
+                     line-height still has a sensible pixel basis, with
+                     nothing left for the user to tune here.
+                -->
                 <!-- Font dropdown removed - Target now shares the ONE
                      8-Bit Text Style font (select8BitFont), per explicit
                      request that every 8-bit-capable text share a single
@@ -4531,12 +4568,9 @@
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
                      share one consistent order. -->
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTargetScaleWithBrowser', '--target-scale-with-browser')">
-                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
-                    </label>
-                </div>
+                <!-- Scale With Browser checkbox removed - now vestigial,
+                     see Desktop tab's own comment on this exact removal. -->
+
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not mobile-split), per
                      explicit request. -->
@@ -4901,12 +4935,8 @@
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
                      share one consistent order. -->
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTargetScaleWithBrowser', '--target-scale-with-browser')">
-                        <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
-                    </label>
-                </div>
+                <!-- Scale With Browser checkbox removed - now vestigial,
+                     see Desktop tab's own comment on this exact removal. -->
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not landscape-split), per
                      explicit request. -->
@@ -5527,9 +5557,6 @@
             // instead of blinking in sync with the round number the way the
             // user actually wanted.
             '--gameplay-result-flash-with-round': 1,
-            '--target-font-size-px': 500,
-            '--target-font-size-vw': 24.2,
-            '--target-scale-with-browser': 0,
             '--target-x-offset-vw': 64.97,
             '--target-x-offset-unit-is-px': 0,
             '--target-y-offset-vh': -90,
@@ -5558,7 +5585,15 @@
             // spatial one.
             '--target-prefix-hidden': 0,
             '--target-suffix-hidden': 0,
-            '--target-letter-spacing-px': -7,
+            // Letter Spacing decomposed from one shared --target-letter-
+            // spacing-px into 3 independent per-part vars - per direct
+            // follow-up request ("provide me letter spacing sliders for all
+            // 3 as well"), same decomposition as Font Size/X/Y Offset above.
+            // All 3 seeded with the OLD shared value (-7) so the deploy is
+            // visually identical until tuned.
+            '--target-prefix-letter-spacing-px': -7,
+            '--target-number-letter-spacing-px': -7,
+            '--target-suffix-letter-spacing-px': -7,
             '--target-line-height': 1.2,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
@@ -5751,13 +5786,28 @@
             highScoreBorderColor: '#ffffff',
             highScoreOverallBorderThickness: 8,
             highScoreOverallBorderColor: '#bd0d07',
-            targetDepth: 26,
             // Target/Speed now also get their OWN border/extrusion color,
             // decoupled from the shared borderColor above (fill color stays
             // shared) - per explicit request ("border colors for each of
             // the texts that have their own extrusion").
             targetBorderColor: '#ffffff',
             targetOverallBorderColor: '#b60300',
+            // Depth/Border Thickness decomposed from one shared
+            // targetDepth/targetOverallBorderThickness pair into 3
+            // independent per-part sets - per direct follow-up request
+            // ("extrusion depth and border thickness for all 3"), same
+            // decomposition already applied to Font Size/X/Y Offset and
+            // Letter Spacing above. Color (targetBorderColor/
+            // targetOverallBorderColor just above) stays SHARED - only
+            // depth/thickness were asked for. All 3 seeded with the OLD
+            // shared targetDepth(26)/targetOverallBorderThickness(8) values
+            // so the deploy is visually identical until tuned.
+            targetPrefixDepth: 26,
+            targetPrefixOverallBorderThickness: 8,
+            targetNumberDepth: 26,
+            targetNumberOverallBorderThickness: 8,
+            targetSuffixDepth: 26,
+            targetSuffixOverallBorderThickness: 8,
             speedDepth: 11,
             speedBorderColor: '#ffffff',
             speedOverallBorderColor: '#b60300',
@@ -5809,7 +5859,6 @@
             overallBorderEnabled: true,
             overallBorderColor: '#24f031',
             overallBorderThickness: 20,
-            targetOverallBorderThickness: 8,
             speedOverallBorderThickness: 8,
             msPerClickOverallBorderThickness: 8,
         };
@@ -5847,9 +5896,17 @@
             highScoreBorderColor: '#c41516',
             highScoreOverallBorderThickness: 9,
             highScoreOverallBorderColor: '#c41516',
-            targetDepth: 20,
             targetBorderColor: '#ff0000',
             targetOverallBorderColor: '#cc1b20',
+            // Seeded with the OLD shared targetDepth(20)/
+            // targetOverallBorderThickness(12) values - see desktop's own
+            // comment on this same decomposition.
+            targetPrefixDepth: 20,
+            targetPrefixOverallBorderThickness: 12,
+            targetNumberDepth: 20,
+            targetNumberOverallBorderThickness: 12,
+            targetSuffixDepth: 20,
+            targetSuffixOverallBorderThickness: 12,
             speedDepth: 8,
             speedBorderColor: '#ff0000',
             speedOverallBorderColor: '#cc1b20',
@@ -5870,7 +5927,6 @@
             overallBorderEnabled: true,
             overallBorderColor: '#000000',
             overallBorderThickness: 3,
-            targetOverallBorderThickness: 12,
             speedOverallBorderThickness: 8,
             msPerClickOverallBorderThickness: 8,
         };
@@ -6088,7 +6144,13 @@
             // .game-text's CSS, unconditionally.
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--high-score-shadow', buildCombinedShadow(ext.highScoreDepth, ext.highScoreBorderColor, ext.highScoreOverallBorderThickness, ext.highScoreOverallBorderColor, ext.overallBorderEnabled));
-            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(ext.targetDepth, ext.targetBorderColor, ext.targetOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            // Depth/thickness decomposed into 3 independent per-part shadows
+            // (Prefix/Number/Suffix each read their own --target-X-
+            // extrusion-shadow directly - see #targetCountPrefix/Number/
+            // Suffix's own CSS) - color stays shared, per direct request.
+            root.setProperty('--target-prefix-extrusion-shadow', buildCombinedShadow(ext.targetPrefixDepth, ext.targetBorderColor, ext.targetPrefixOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--target-number-extrusion-shadow', buildCombinedShadow(ext.targetNumberDepth, ext.targetBorderColor, ext.targetNumberOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--target-suffix-extrusion-shadow', buildCombinedShadow(ext.targetSuffixDepth, ext.targetBorderColor, ext.targetSuffixOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-win-fill-color', ext.winFillColor);
@@ -6215,7 +6277,14 @@
             // that BOTH parts used it. Passing borderColor for both now
             // makes "Gameplay Win/Lose Border" genuinely recolor the whole
             // extrusion+ring look, not just half of it.
-            root.setProperty('--target-extrusion-shadow', buildCombinedShadow(deviceExt.targetDepth, borderColor, deviceExt.targetOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            // Same 3-way per-part split as applyExtrusionStyles() above,
+            // each with its own depth/thickness but the shared tinted
+            // borderColor for both shadow args, same as the normal
+            // (non-tinted) call does with targetBorderColor/
+            // targetOverallBorderColor.
+            root.setProperty('--target-prefix-extrusion-shadow', buildCombinedShadow(deviceExt.targetPrefixDepth, borderColor, deviceExt.targetPrefixOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--target-number-extrusion-shadow', buildCombinedShadow(deviceExt.targetNumberDepth, borderColor, deviceExt.targetNumberOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--target-suffix-extrusion-shadow', buildCombinedShadow(deviceExt.targetSuffixDepth, borderColor, deviceExt.targetSuffixOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(deviceExt.speedDepth, borderColor, deviceExt.speedOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(deviceExt.msPerClickDepth, borderColor, deviceExt.msPerClickOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(deviceExt.roundDockDepth, borderColor, deviceExt.roundDockOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
@@ -6360,9 +6429,6 @@
             '--high-score-text-valign': 'top',
             '--high-score-text-align-edge-lock': 0,
             '--high-score-text-valign-edge-lock': 0,
-            '--target-font-size-px': 238.44,
-            '--target-font-size-vw': 47.23,
-            '--target-scale-with-browser': 1,
             '--target-x-offset-vw': 45.96,
             '--target-x-offset-unit-is-px': 1,
             '--target-y-offset-vh': 20,
@@ -6370,13 +6436,15 @@
             '--target-prefix-font-size-px': 70,
             '--target-prefix-x-offset-px': 0,
             '--target-prefix-y-offset-px': 0,
+            '--target-prefix-letter-spacing-px': 0,
             '--target-number-font-size-px': 238.44,
             '--target-number-x-offset-px': 0,
             '--target-number-y-offset-px': 0,
+            '--target-number-letter-spacing-px': 0,
             '--target-suffix-font-size-px': 70,
             '--target-suffix-x-offset-px': 0,
             '--target-suffix-y-offset-px': 0,
-            '--target-letter-spacing-px': 0,
+            '--target-suffix-letter-spacing-px': 0,
             '--target-line-height': 0.65,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
@@ -9015,14 +9083,18 @@
             { group: 'Win/Lose Text', id: 'colorGameplayWinBorder', type: 'color', label: 'Gameplay Win Border/Extrusion Color:', value: '#22dd44' },
             { group: 'Win/Lose Text', id: 'colorGameplayLoseText', type: 'color', label: 'Gameplay Lose Text Color:', value: '#dd3333' },
             { group: 'Win/Lose Text', id: 'colorGameplayLoseBorder', type: 'color', label: 'Gameplay Lose Border/Extrusion Color:', value: '#dd3333' },
-            { group: 'Target Count Display', id: 'sliderTargetFontSize', type: 'slider', label: 'Font Size (px):', min: 10, max: 500, step: 0.01, value: 309.76 },
-            { group: 'Target Count Display', id: 'sliderTargetFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 24.2 },
-            { group: 'Target Count Display', id: 'sliderTargetExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
             { group: 'Target Count Display', id: 'colorTargetExtrusionBorder', type: 'color', label: 'Text Color:', value: '#000000' },
-            { group: 'Target Count Display', id: 'sliderTargetOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 4 },
             { group: 'Target Count Display', id: 'colorTargetOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#000000' },
-            { group: 'Target Count Display', id: 'sliderTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixExtrusionDepth', type: 'slider', label: 'Prefix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixOverallBorderThickness', type: 'slider', label: 'Prefix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixLetterSpacing', type: 'slider', label: 'Prefix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberExtrusionDepth', type: 'slider', label: 'Number Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberOverallBorderThickness', type: 'slider', label: 'Number Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberLetterSpacing', type: 'slider', label: 'Number Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixExtrusionDepth', type: 'slider', label: 'Suffix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixOverallBorderThickness', type: 'slider', label: 'Suffix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
@@ -9274,12 +9346,16 @@
             { group: 'Win/Lose Text', id: 'sliderMobileResultOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 3 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultExtrusionAngle', type: 'slider', label: 'Extrusion Angle (Deg):', min: 0, max: 360, step: 1, value: 45 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetFontSize', type: 'slider', label: 'Font Size (px):', min: 10, max: 500, step: 0.01, value: 195 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 50 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixExtrusionDepth', type: 'slider', label: 'Prefix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 20 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixOverallBorderThickness', type: 'slider', label: 'Prefix Border Thickness (px):', min: 0, max: 20, step: 1, value: 12 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixLetterSpacing', type: 'slider', label: 'Prefix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberExtrusionDepth', type: 'slider', label: 'Number Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 20 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberOverallBorderThickness', type: 'slider', label: 'Number Border Thickness (px):', min: 0, max: 20, step: 1, value: 12 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberLetterSpacing', type: 'slider', label: 'Number Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixExtrusionDepth', type: 'slider', label: 'Suffix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 20 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixOverallBorderThickness', type: 'slider', label: 'Suffix Border Thickness (px):', min: 0, max: 20, step: 1, value: 12 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
@@ -9378,12 +9454,16 @@
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 3 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultExtrusionAngle', type: 'slider', label: 'Extrusion Angle (Deg):', min: 0, max: 360, step: 1, value: 45 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetFontSize', type: 'slider', label: 'Font Size (px):', min: 10, max: 500, step: 0.01, value: 195 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 50 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 1 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixExtrusionDepth', type: 'slider', label: 'Prefix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixOverallBorderThickness', type: 'slider', label: 'Prefix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixLetterSpacing', type: 'slider', label: 'Prefix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberExtrusionDepth', type: 'slider', label: 'Number Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberOverallBorderThickness', type: 'slider', label: 'Number Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberLetterSpacing', type: 'slider', label: 'Number Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixExtrusionDepth', type: 'slider', label: 'Suffix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixOverallBorderThickness', type: 'slider', label: 'Suffix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
@@ -9812,21 +9892,21 @@
             'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
             'sliderRoundBlink4Hide': '--round-blink4-hide-ms',
-            'sliderTargetFontSize': '--target-font-size-px',
-            'sliderTargetFontSizeVw': '--target-font-size-vw',
             'sliderTargetX': '--target-x-offset-vw',
             'sliderTargetY': '--target-y-offset-vh',
-            'sliderTargetLetterSpacing': '--target-letter-spacing-px',
             'sliderTargetLineHeight': '--target-line-height',
             'sliderTargetPrefixFontSize': '--target-prefix-font-size-px',
             'sliderTargetPrefixXOffset': '--target-prefix-x-offset-px',
             'sliderTargetPrefixYOffset': '--target-prefix-y-offset-px',
+            'sliderTargetPrefixLetterSpacing': '--target-prefix-letter-spacing-px',
             'sliderTargetNumberFontSize': '--target-number-font-size-px',
             'sliderTargetNumberXOffset': '--target-number-x-offset-px',
             'sliderTargetNumberYOffset': '--target-number-y-offset-px',
+            'sliderTargetNumberLetterSpacing': '--target-number-letter-spacing-px',
             'sliderTargetSuffixFontSize': '--target-suffix-font-size-px',
             'sliderTargetSuffixXOffset': '--target-suffix-x-offset-px',
             'sliderTargetSuffixYOffset': '--target-suffix-y-offset-px',
+            'sliderTargetSuffixLetterSpacing': '--target-suffix-letter-spacing-px',
             'sliderSpeedFontSize': '--speed-font-size-px',
             'sliderSpeedFontSizeVw': '--speed-font-size-vw',
             'sliderSpeedX': '--speed-x-offset-vw',
@@ -9862,11 +9942,15 @@
         const EXTRUSION_SLIDER_MAP = {
             'sliderExtrusionFontTrimAdjust': 'fontTrimAdjust',
             'sliderExtrusionDepth': 'depth',
-            'sliderTargetExtrusionDepth': 'targetDepth',
+            'sliderTargetPrefixExtrusionDepth': 'targetPrefixDepth',
+            'sliderTargetNumberExtrusionDepth': 'targetNumberDepth',
+            'sliderTargetSuffixExtrusionDepth': 'targetSuffixDepth',
             'sliderSpeedExtrusionDepth': 'speedDepth',
             'sliderMsPerClickExtrusionDepth': 'msPerClickDepth',
             'sliderOverallBorderThickness': 'overallBorderThickness',
-            'sliderTargetOverallBorderThickness': 'targetOverallBorderThickness',
+            'sliderTargetPrefixOverallBorderThickness': 'targetPrefixOverallBorderThickness',
+            'sliderTargetNumberOverallBorderThickness': 'targetNumberOverallBorderThickness',
+            'sliderTargetSuffixOverallBorderThickness': 'targetSuffixOverallBorderThickness',
             'sliderSpeedOverallBorderThickness': 'speedOverallBorderThickness',
             'sliderMsPerClickOverallBorderThickness': 'msPerClickOverallBorderThickness',
             'sliderRoundExtrusionDepth': 'roundDepth',
