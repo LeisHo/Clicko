@@ -145,7 +145,7 @@
     "--target-number-y-offset-px": 110,
     "--target-suffix-font-size-px": 160,
     "--target-suffix-x-offset-px": -258,
-    "--target-suffix-y-offset-px": 142,
+    "--target-suffix-y-offset-px": 104,
     "--target-prefix-hidden": 0,
     "--target-suffix-hidden": 0,
     "--target-prefix-letter-spacing-px": 1.5,
