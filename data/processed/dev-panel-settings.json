@@ -95,7 +95,7 @@
     "--round-font-size-px": 176.89,
     "--round-font-size-vw": 6.2,
     "--round-scale-with-browser": 1,
-    "--round-letter-spacing-px": 7,
+    "--round-letter-spacing-px": 8,
     "--round-line-height": 1.2,
     "--round-text-align": "left",
     "--round-text-valign": "bottom",
@@ -138,7 +138,7 @@
     "--speed-x-offset-unit-is-px": 0,
     "--speed-y-offset-vh": 18.2,
     "--speed-y-offset-unit-is-px": 1,
-    "--speed-letter-spacing-px": 4.5,
+    "--speed-letter-spacing-px": 6.5,
     "--speed-line-height": 1.2,
     "--speed-text-align": "right",
     "--speed-text-valign": "bottom",
@@ -178,10 +178,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 301,
-    "--dev-panel-left-px": 67,
-    "--dev-panel-top-px": 279,
-    "--dev-panel-height-px": 281,
+    "--dev-panel-width-px": 199,
+    "--dev-panel-left-px": 368,
+    "--dev-panel-top-px": 263,
+    "--dev-panel-height-px": 358,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -597,13 +597,13 @@
     "resultDepth": 12,
     "resultOverallBorderThickness": 5,
     "resultExtrusionAngle": 315,
-    "resultOverallBorderColor": "#008a17",
     "overallBorderEnabled": true,
     "overallBorderColor": "#24f031",
     "overallBorderThickness": 20,
     "targetOverallBorderThickness": 8,
     "speedOverallBorderThickness": 8,
-    "msPerClickOverallBorderThickness": 8
+    "msPerClickOverallBorderThickness": 8,
+    "resultOverallBorderColor": "#008a17"
   },
   "mobileExtrusionVars": {
     "depth": 5,
@@ -645,13 +645,13 @@
     "resultDepth": 5,
     "resultOverallBorderThickness": 3,
     "resultExtrusionAngle": 45,
-    "resultOverallBorderColor": "#000000",
     "overallBorderEnabled": true,
     "overallBorderColor": "#000000",
     "overallBorderThickness": 3,
     "targetOverallBorderThickness": 12,
     "speedOverallBorderThickness": 8,
-    "msPerClickOverallBorderThickness": 8
+    "msPerClickOverallBorderThickness": 8,
+    "resultOverallBorderColor": "#000000"
   },
   "landscapeExtrusionVars": {
     "font": "\"Micro 5\", monospace",
@@ -695,13 +695,13 @@
     "resultDepth": 8,
     "resultOverallBorderThickness": 5,
     "resultExtrusionAngle": 45,
-    "resultOverallBorderColor": "#401013",
     "overallBorderEnabled": true,
     "overallBorderColor": "#24f031",
     "overallBorderThickness": 20,
     "targetOverallBorderThickness": 8,
     "speedOverallBorderThickness": 8,
-    "msPerClickOverallBorderThickness": 8
+    "msPerClickOverallBorderThickness": 8,
+    "resultOverallBorderColor": "#401013"
   },
   "gameMechanics": {
     "sliderStartingSpeed": 500,
@@ -989,14 +989,15 @@
     "desktop:Click Burst": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:Start/Try Again Button": true,
-    "desktop:Win/Lose Text": false,
-    "desktop:New Group (2)": false,
+    "desktop:Win/Lose Text": true,
+    "desktop:New Group (2)": true,
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
-    "desktop:Round Text": true,
+    "desktop:Round Text": false,
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
+    "desktop:New Group (4)": false,
     "desktop:Game Mechanics": true,
     "desktop:Background": true,
     "mobile:Dev Panel": true,
@@ -1019,11 +1020,11 @@
     "landscape:Click Burst": true,
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
     "landscape:Start/Try Again Button": true,
-    "landscape:New Group": true,
-    "landscape:Rotation Animation": false,
-    "landscape:Round Text": true,
     "landscape:Win/Lose Text": true,
-    "landscape:New Group (2)": false,
+    "landscape:New Group (2)": true,
+    "landscape:New Group": true,
+    "landscape:Rotation Animation": true,
+    "landscape:Round Text": true,
     "landscape:Target Count Display": true,
     "landscape:Speed Display (max ms between taps)": true,
     "landscape:Ms/Click Display": true
@@ -1170,7 +1171,6 @@
       {
         "key": "desktop:Win/Lose Text",
         "rowKeys": [
-          "colorResultOverallBorder",
           "colorGameplayWinText",
           "colorGameplayWinBorder",
           "checkboxGameplayResultFlashWithRound",
@@ -1333,6 +1333,11 @@
           "selectMsPerClickTextAlign",
           "selectMsPerClickTextValign"
         ],
+        "subgroups": []
+      },
+      {
+        "key": "desktop:New Group (4)",
+        "rowKeys": [],
         "subgroups": []
       },
       {
@@ -1666,6 +1671,36 @@
         "subgroups": []
       },
       {
+        "key": "landscape:Win/Lose Text",
+        "rowKeys": [
+          "sliderLandscapeResultWinLetterSpacing",
+          "sliderLandscapeResultExtrusionAngle",
+          "checkboxLandscapeResultWinScaleWithBrowser",
+          "sliderLandscapeResultWinFontSizeVw",
+          "sliderLandscapeResultWinFontSize",
+          "sliderLandscapeResultExtrusionDepth",
+          "sliderLandscapeResultOverallBorderThickness",
+          "sliderLandscapeResultWinX",
+          "sliderLandscapeResultWinY",
+          "sliderLandscapeResultLineHeight",
+          "selectLandscapeResultTextAlign",
+          "selectLandscapeResultTextValign"
+        ],
+        "subgroups": []
+      },
+      {
+        "key": "landscape:New Group (2)",
+        "rowKeys": [
+          "checkboxLandscapeResultLoseScaleWithBrowser",
+          "sliderLandscapeResultLoseFontSizeVw",
+          "sliderLandscapeResultLoseFontSize",
+          "sliderLandscapeResultLoseX",
+          "sliderLandscapeResultLoseY",
+          "sliderLandscapeResultLoseLetterSpacing"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "landscape:New Group",
         "rowKeys": [
           "selectLandscapeTryAgainTextValign",
@@ -1711,36 +1746,6 @@
           "sliderLandscapeRoundDockY",
           "selectLandscapeRoundTextAlign",
           "selectLandscapeRoundTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Win/Lose Text",
-        "rowKeys": [
-          "sliderLandscapeResultWinLetterSpacing",
-          "sliderLandscapeResultExtrusionAngle",
-          "checkboxLandscapeResultWinScaleWithBrowser",
-          "sliderLandscapeResultWinFontSizeVw",
-          "sliderLandscapeResultWinFontSize",
-          "sliderLandscapeResultExtrusionDepth",
-          "sliderLandscapeResultOverallBorderThickness",
-          "sliderLandscapeResultWinX",
-          "sliderLandscapeResultWinY",
-          "sliderLandscapeResultLineHeight",
-          "selectLandscapeResultTextAlign",
-          "selectLandscapeResultTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:New Group (2)",
-        "rowKeys": [
-          "checkboxLandscapeResultLoseScaleWithBrowser",
-          "sliderLandscapeResultLoseFontSizeVw",
-          "sliderLandscapeResultLoseFontSize",
-          "sliderLandscapeResultLoseX",
-          "sliderLandscapeResultLoseY",
-          "sliderLandscapeResultLoseLetterSpacing"
         ],
         "subgroups": []
       },
@@ -1877,7 +1882,8 @@
     "sliderDevPanelOpacity": "Dev  Panel Opacity:",
     "colorDevPanelBg": "Dev  Panel Background Color:",
     "colorDevPanelAccent": "Dev  Panel Accent Color:",
-    "sliderDevButtonHeight": "Dev  Panel Buttons Height (px):"
+    "sliderDevButtonHeight": "Dev  Panel Buttons Height (px):",
+    "desktop:New Group (4)": "# FLASHING"
   },
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
