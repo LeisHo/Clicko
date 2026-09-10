@@ -1730,8 +1730,31 @@
            of the actual game's visual output. */
         .dev-panel {
             position: fixed;
-            left: calc(var(--dev-panel-left-px) * 1px);
-            top: calc(var(--dev-panel-top-px) * 1px);
+            /* Fallback values (26/6/178/120 below) match cssVars' own JS
+               defaults exactly - per direct report ("on startup... there is
+               a half second flash of the dev panel in the center of the
+               screen, then it goes to the main startup page"), STILL
+               reproducing after the html.dev-mode visibility race was fixed
+               (search "STILL reproducing" above) because that fix only
+               closed the SHOW/HIDE race for non-dev visitors - it never
+               addressed dev-mode visitors' own POSITION race. Root cause,
+               proven via direct reasoning + a live before/after computed-
+               style check (removing these 4 custom properties and reading
+               getComputedStyle right back): these var()s had no fallback,
+               so before the ~970KB trailing script parses/runs far enough
+               to call setProperty() with the real saved position, they're
+               unset -> invalid at computed-value time -> left/top/width/
+               height fall back to their CSS initial values (auto) - and an
+               auto-positioned `position:fixed` element's static position
+               inherits its flex-item alignment from its ancestor
+               (.game-container is display:flex; justify-content/align-
+               items:center), landing it dead center - exactly the reported
+               symptom, exactly the same underlying bug SHAPE as the
+               already-fixed html.dev-mode race (a JS-only value with no
+               CSS-level default, racing first paint), just on the panel's
+               POSITION instead of its VISIBILITY. */
+            left: calc(var(--dev-panel-left-px, 26) * 1px);
+            top: calc(var(--dev-panel-top-px, 6) * 1px);
             /* Background/text colors, opacity, and every font-size below
                are the built-in "Dev Panel" settings group - CLAUDE.md
                Section 12i, independent per Desktop/Mobile TAB (not tied to
@@ -1754,8 +1777,8 @@
                stretch to cover the whole viewport width. max-width caps it so
                even a wide dev-panel-width-px setting can't exceed the actual
                screen on a narrow device. */
-            width: calc(var(--dev-panel-width-px) * 1px);
-            height: calc(var(--dev-panel-height-px) * 1px);
+            width: calc(var(--dev-panel-width-px, 178) * 1px);
+            height: calc(var(--dev-panel-height-px, 120) * 1px);
             min-width: 160px;
             min-height: 120px;
             max-width: 92vw;
