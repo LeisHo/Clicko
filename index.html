@@ -7068,6 +7068,25 @@
             // own wording is now active, same as everything else in this
             // function.
             refreshAllTextOverrides();
+            // Re-establish the active Win/Lose tint if one is currently
+            // showing - per direct report ("if im playing in desktop or
+            // mobile mode, lose, if i switch to landscape mode, the
+            // button/base color isnt correct"). The Light Levels reset
+            // just above (baseGrayscaleTint/buttonGrayscaleTint) always
+            // applies the NORMAL (non-result) filter unconditionally, on
+            // every resize/orientation-change event - including rotating
+            // into Landscape while a Lose/Win state is still on screen.
+            // Nothing was re-triggering applyGameplayResultColor()
+            // afterward to restore the override, so a device-profile
+            // change mid-result silently wiped the button/base tint back
+            // to normal with no code path to bring it back (the comment
+            // 2 lines above this block already assumed
+            // applyGameplayResultColor() would run again "right after
+            // this," which is only true when gameplay state itself
+            // changes - a pure resize/rotation was never one of those
+            // triggers).
+            if (resultText.classList.contains('result-win')) applyGameplayResultColor('win');
+            else if (resultText.classList.contains('result-lose')) applyGameplayResultColor('lose');
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
