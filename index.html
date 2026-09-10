@@ -7594,10 +7594,24 @@
         // tab will determine all color selection"), the Mobile-tab copies
         // of these pickers are removed entirely.
         function refreshButtonHue() {
-            setButtonHue(document.getElementById('colorButton').value);
+            // Null-guarded (same convention used throughout this file) -
+            // colorButton is one of the panel's own generated color
+            // pickers (renderSpecialColorControls(), inside
+            // ensureDevPanelBuilt()) and applyActiveVars() - which calls
+            // this - can run before the panel has been built (isDevAllowed
+            // visitors trigger ensureDevPanelBuilt() eagerly, but a resize/
+            // breakpoint-crossing applyActiveVars() call can still land in
+            // the narrow window before that finishes). Nothing to refresh
+            // FROM yet if the picker doesn't exist - setButtonHue() already
+            // ran with its own hardcoded default elsewhere, and
+            // syncColorPickersFromState() correctly re-syncs everything
+            // once the panel is actually built.
+            const el = document.getElementById('colorButton');
+            if (el) setButtonHue(el.value);
         }
         function refreshBaseHue() {
-            setBaseHue(document.getElementById('colorBase').value);
+            const el = document.getElementById('colorBase');
+            if (el) setBaseHue(el.value);
         }
 
         // Game Mechanics dev-panel sliders aren't cssVars/extrusionVars - they
@@ -13409,7 +13423,13 @@
         // not here - see that declaration's own comment for why.
         function ensureDevPanelBuilt() {
             if (devPanelBuilt) return;
-            devPanelBuilt = true;
+            // Set at the END of this function, not here - if anything
+            // inside throws partway through, devPanelBuilt staying false
+            // means the NEXT call (e.g. a later D-press) retries the whole
+            // build instead of being permanently stuck half-built forever
+            // (setting this flag first, before the work runs, was a real
+            // bug: a mid-build exception left it true while the panel was
+            // still genuinely incomplete).
             renderDesktopUniformControls();
             renderMobileUniformControls();
             renderLandscapeUniformControls();
@@ -13519,6 +13539,7 @@
             // time this runs pre-settings-load) and applies any restored
             // override on top - safe/idempotent if called again later.
             applyDevTextOverrides();
+            devPanelBuilt = true;
         }
         // .dev-panel is visible by default for any dev-allowed visitor,
         // no D-press/DEV-button-click needed (see html.dev-mode's own CSS
