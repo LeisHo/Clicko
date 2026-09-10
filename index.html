@@ -2,27 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clicko Dicko</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&family=DotGothic16&family=Micro+5&family=Handjet&family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jersey+25&family=Jersey+10&family=Jersey+20&family=Jacquard+24&display=swap" rel="stylesheet">
     <!-- Per direct report ("even in non dev mode... for the first half a
          second i see a ghost of the dev panel in the center of the
-         screen"): the real isDevAllowed check/hide (further down, near the
-         very end of the ~12,800-line main script) only ran after the ENTIRE
-         inline script had downloaded and begun executing - #devPanel/
-         #devToggleBtn had no CSS-level default-hidden state at all (base
-         rule was plain `display: flex`), so a non-dev visitor briefly saw
-         them rendered with their real CSS but no JS-computed position yet
-         (--dev-panel-left-px/-top-px are only ever set via JS, no :root
-         fallback), landing wherever their unset-left/top static position
-         happened to fall. This tiny script is duplicated (not shared with
-         the main script's own later isDevAllowed, still used there for the
-         D/R key gating) specifically so it can run to completion the
-         instant the parser reaches it - before the panel's own HTML below
-         is even parsed, let alone before the giant trailing script
-         downloads - synchronously marking <html> so the CSS rules below
-         (search dev-mode) can gate visibility from the very first paint,
-         with zero dependency on when the rest of the page's JS runs. -->
+         screen") - STILL reproducing after an earlier attempt at this fix
+         placed the gating script/class further down, after the Google
+         Fonts <link rel="stylesheet"> below. Root cause of THAT gap: a
+         classic (non-async/defer) <script> following a <link
+         rel="stylesheet"> is spec-required to wait for that stylesheet to
+         finish loading before it executes (the engine can't rule out the
+         script querying computed style that depends on it) - so on a slow
+         or cold-cache font-CSS fetch, html.dev-mode could still land after
+         the browser's first paint, reopening the exact race this was
+         meant to close. Moved here - literally the first thing in <head>,
+         before EVERY other tag, with its own tiny inline <style> right
+         alongside it - so both the class-setting script and the critical
+         hide rules are available before any external network request
+         (the Google Fonts stylesheet included) could possibly block or
+         delay them. This duplicates (doesn't replace) the full .dev-panel/
+         .dev-toggle-btn rules and isDevAllowed check further down (search
+         dev-mode) - those stay as the authoritative, fully-styled
+         definitions; these two are deliberately minimal, self-contained,
+         and dependency-free, existing purely to win the very first paint. -->
     <script>
         (function() {
             var isDevAllowed = location.protocol === 'file:' ||
@@ -33,6 +33,14 @@
             if (isDevAllowed) document.documentElement.classList.add('dev-mode');
         })();
     </script>
+    <style>
+        .dev-panel, .dev-toggle-btn { display: none; }
+        html.dev-mode .dev-panel { display: flex; }
+        html.dev-mode .dev-toggle-btn { display: inline-block; }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clicko Dicko</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&family=DotGothic16&family=Micro+5&family=Handjet&family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jersey+25&family=Jersey+10&family=Jersey+20&family=Jacquard+24&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
