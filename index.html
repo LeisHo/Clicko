@@ -6275,6 +6275,13 @@
             // already recomputes --round-dock-fill-color/-extrusion-shadow
             // from scratch), same as Target/Speed/Ms-per-click.
             root.setProperty('--round-dock-fill-color', textColor);
+            // High Score joins the same tint, on both win and lose - per
+            // direct request ("Highscore number changes the same time as
+            // when the win text is shown... will also change the same
+            // color as the other numbers" / "On lose screen, Highscore and
+            // number will change color like the other text"). Reverted for
+            // free by the !state branch above, same as Round Text.
+            root.setProperty('--high-score-fill-color', textColor);
             // buildCombinedShadow(depthPx, extrusionColor, thicknessPx,
             // ringColor, enabled) takes TWO separate colors - the extrusion
             // depth trail (arg 2) and the outer "Overall Border" ring (arg
@@ -6302,6 +6309,7 @@
             root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(deviceExt.speedDepth, borderColor, deviceExt.speedOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(deviceExt.msPerClickDepth, borderColor, deviceExt.msPerClickOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
             root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(deviceExt.roundDockDepth, borderColor, deviceExt.roundDockOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
+            root.setProperty('--high-score-shadow', buildCombinedShadow(deviceExt.highScoreDepth, borderColor, deviceExt.highScoreOverallBorderThickness, borderColor, deviceExt.overallBorderEnabled));
         }
 
         // Mobile overrides - same shape as cssVars/colorVars, applied
@@ -10657,10 +10665,43 @@
                 getPrefix: () => msPerClickDisplayNumber.textContent || gameState.maxTimeMs.toFixed(0),
                 render: (slot, prefix) => {
                     msPerClickDisplayNumber.textContent = prefix != null ? prefix : gameState.maxTimeMs.toFixed(0);
-                    msPerClickDisplaySuffix.textContent = overrideOr(slot);
+                    renderMsPerClickSuffix(overrideOr(slot));
                 },
             },
         };
+
+        // The suffix text can hold 2 embedded newlines (e.g. default
+        // "ms / \nCLICK" on Desktop, "ms\n/  \nCLICK" on Mobile - see
+        // TEXT_OVERRIDE_DEFAULTS.msPerClickSuffix) rendered via
+        // white-space:pre-wrap, giving a 3-line layout: line 1 is the
+        // number + the suffix's first segment, line 2 is the text between
+        // the two newlines, line 3 is whatever follows the second newline.
+        // A single CSS line-height applies the SAME gap to every line
+        // pair - per direct request ("the current slider controls the
+        // spacing between line 1 and 2, the 2nd will control the spacing
+        // between line 2 and 3"), the text after the 2nd newline is split
+        // into its own block-level child span here so a second, additive
+        // CSS var (--ms-per-click-line2-gap-px, see its own CSS/slider)
+        // can nudge just that one line-pair's gap without touching the
+        // shared line-height. Uses raw DOM text nodes (not innerHTML
+        // string-concat) so no HTML-escaping is needed for arbitrary typed
+        // text. Text Edit Mode's own textarea round-trip is unaffected -
+        // it reads/writes the override STRING directly (see
+        // openTextEditFor()/commit()), never this rendered DOM structure.
+        function renderMsPerClickSuffix(text) {
+            msPerClickDisplaySuffix.textContent = '';
+            const firstNl = text.indexOf('\n');
+            const secondNl = firstNl === -1 ? -1 : text.indexOf('\n', firstNl + 1);
+            if (secondNl === -1) {
+                msPerClickDisplaySuffix.appendChild(document.createTextNode(text));
+                return;
+            }
+            msPerClickDisplaySuffix.appendChild(document.createTextNode(text.slice(0, secondNl + 1)));
+            const line3 = document.createElement('span');
+            line3.className = 'ms-per-click-extra-line';
+            line3.textContent = text.slice(secondNl + 1);
+            msPerClickDisplaySuffix.appendChild(line3);
+        }
 
         function refreshAllTextOverrides() {
             Object.keys(TEXT_EDIT_TARGETS).forEach(elId => {
@@ -12107,10 +12148,12 @@
                     // targetCount used to be toggled as a whole element
                     // here (it had no separate word to preserve, unlike
                     // speed/msPerClick) - now that it has its own Prefix/
-                    // Suffix spans too, blinks targetCountNumber only,
-                    // same as the other 2, so "Click"/"x" stay put and
-                    // visible throughout exactly like "ms"/"CLICK" already do.
-                    [targetCountNumber, speedDisplayNumber, msPerClickDisplayNumber].forEach(el => {
+                    // Suffix spans too, blinks targetCountNumber AND
+                    // targetCountSuffix ("x") together - per direct request
+                    // ("the Target 'x' should flash with the Target
+                    // number"), same as "ms"/"CLICK" stay static alongside
+                    // their own numbers.
+                    [targetCountNumber, targetCountSuffix, speedDisplayNumber, msPerClickDisplayNumber].forEach(el => {
                         el.style.visibility = phase.visible ? 'visible' : 'hidden';
                     });
                 }
@@ -13555,44 +13598,97 @@
             });
             // No onDrop action needed - the DOM order itself IS the live state;
             // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
-            // Groups within groups (one level) - per direct request ("make it
-            // so that i can have setting groups within setting groups").
-            // Eligible drop targets: tabRoot itself (drag a nested group back
-            // out to the top level) plus every TOP-LEVEL group's own content
-            // (nest a group INTO it) - deliberately excludes any group's
-            // content that's itself already nested (capping at one level: a
-            // subgroup's own .dev-section-content is never offered as a
-            // nesting target for another drag) and excludes the DRAGGED
-            // group's own content (can't nest a group inside itself). See
-            // setupDragReorder's own comment on why this needs a function
-            // instead of the plain-string selector the settings-row call uses.
-            // tabRoot MUST be last in this array, not first - per direct
-            // report ("it doesnt seem to work"). Root cause, confirmed via a
-            // live instrumented drag: setupDragReorder's own direct hit-test
-            // is `containers.find(c => pointerY is within c's own rect)` -
-            // tabRoot's rect always SPANS every nested group's own (much
-            // smaller) content rect, since every group is its descendant, so
-            // with tabRoot listed first, Array.prototype.find() matched it
-            // for every single pointermove of every drag, before a nested
-            // group's own smaller rect ever got a chance - making it
-            // structurally impossible to ever hit-test into a nested group,
-            // 100% of the time, regardless of how precisely the pointer was
-            // positioned over it. Moving tabRoot to the END fixes this:
-            // find() now prefers whichever SPECIFIC (smaller) group content
-            // rect contains the pointer first, falling through to tabRoot
-            // only when the pointer is genuinely outside every group's own
-            // content (a title bar, or empty space) - which is exactly the
-            // un-nest case this was meant to support. Verified both
-            // directions with a live instrumented drag before shipping:
-            // nesting into a group's content now succeeds, and dragging a
-            // nested group back out to a title-bar-level Y position still
-            // correctly un-nests it to tabRoot.
-            setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => [
-                ...Array.from(tabRoot.querySelectorAll(':scope > .dev-section > .dev-section-content'))
-                    .filter(content => content.parentElement !== dragging),
-                tabRoot,
-            ]);
-            setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, '.dev-section-content');
+            // Counts how many .dev-section ancestors a given .dev-section-
+            // content element has within tabRoot - used below to order
+            // cross-container drag candidates DEEPEST-first, so
+            // setupDragReorder's direct hit-test (`containers.find(c =>
+            // pointerY is within c's own rect)`) naturally prefers the most
+            // specific (smallest, most nested) container whenever the
+            // pointer sits within several nested candidates at once. An
+            // outer group's content rect always geometrically contains
+            // every one of its own nested groups' content rects (same
+            // shape as the tabRoot-vs-top-level bug fixed earlier the same
+            // day - see that fix's own history below) - generalized here to
+            // every nesting level, not just the top one, now that nesting
+            // depth is unbounded (see the group-drag call's own comment).
+            function devGroupNestingDepth(contentEl, tabRoot) {
+                let depth = 0;
+                let cur = contentEl.parentElement;
+                while (cur && cur !== tabRoot) {
+                    if (cur.classList.contains('dev-section')) depth++;
+                    cur = cur.parentElement;
+                }
+                return depth;
+            }
+            // Groups within groups, now UNLIMITED depth - per direct follow-
+            // up request ("how hard would it be to allow infinite groups in
+            // groups" -> "yes[, implement it]"), lifting the original one-
+            // level cap ("make it so that i can have setting groups within
+            // setting groups"). Eligible drop targets: tabRoot itself (drag
+            // a nested group back out to the top level) plus EVERY group's
+            // own content anywhere in the tab, at any depth (nest a group
+            // INTO it) - previously restricted to top-level-only content
+            // (":scope > .dev-section > .dev-section-content"), which is
+            // exactly what made 2+ levels impossible; that restriction is
+            // gone now that a depth-sorted hit-test (below) makes it safe to
+            // offer every level as a target. Excludes the DRAGGED group's
+            // own content AND every one of its descendants' content
+            // (`dragging.contains(content)`) - can't nest a group inside
+            // itself OR inside its own child, a real cycle risk that
+            // couldn't happen under the old 1-level cap (a nested group's
+            // content was never offered as a target at all) but has to be
+            // checked explicitly now. See setupDragReorder's own comment on
+            // why this needs a function instead of the plain-string selector
+            // form.
+            // tabRoot MUST be last, and every group content candidate MUST
+            // be sorted deepest-first before it - per direct report ("it
+            // doesnt seem to work") against the ORIGINAL 2-level (tabRoot vs
+            // top-level) version of this bug: setupDragReorder's own direct
+            // hit-test is `containers.find(c => pointerY is within c's own
+            // rect)` - tabRoot's rect always SPANS every nested group's own
+            // (much smaller) content rect, since every group is its
+            // descendant, so with tabRoot listed first, Array.prototype.
+            // find() matched it for every single pointermove of every drag,
+            // before a nested group's own smaller rect ever got a chance -
+            // making it structurally impossible to ever hit-test into a
+            // nested group, 100% of the time, regardless of how precisely
+            // the pointer was positioned over it. The SAME shadowing shape
+            // recurs at every level once depth is unbounded (a depth-1
+            // group's content also fully contains a depth-2 child's own
+            // content) - devGroupNestingDepth() above generalizes the fix
+            // from "tabRoot last" to "every candidate sorted deepest-first,
+            // tabRoot last of all", so find() always prefers the most
+            // specific match at whatever depth the pointer actually is,
+            // falling through to a shallower (or eventually tabRoot) match
+            // only when the pointer is genuinely outside every deeper
+            // candidate - which is exactly the un-nest-by-one-or-more-levels
+            // case this ordering exists to support.
+            setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => {
+                const groupContents = Array.from(tabRoot.querySelectorAll('.dev-section > .dev-section-content'))
+                    .filter(content => !dragging.contains(content));
+                groupContents.sort((a, b) => devGroupNestingDepth(b, tabRoot) - devGroupNestingDepth(a, tabRoot));
+                return [...groupContents, tabRoot];
+            });
+            // Settings-row cross-group drag - per explicit request ("make it
+            // so that i can drag settings between groups"). Converted from a
+            // plain '.dev-section-content' string selector to the same
+            // function form as the group-drag call above, and given the
+            // same deepest-first ordering (devGroupNestingDepth()) - a
+            // latent instance of the identical shadowing bug (an outer
+            // group's content always contains a nested group's own content)
+            // was flagged but deliberately left unfixed in 2 earlier same-
+            // day commits as a narrower, out-of-scope edge case; now
+            // directly in scope, since unlimited group nesting depth is
+            // only actually useful if a setting can also be reliably
+            // dropped into a DEEPLY nested group, not just a top-level or
+            // once-nested one. No cycle check needed here (unlike the group-
+            // drag call above) - a setting row is never itself a container,
+            // so it can never contain the group it's being dropped into.
+            setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, (tabRoot, dragging) => {
+                const groupContents = Array.from(tabRoot.querySelectorAll('.dev-section-content'));
+                groupContents.sort((a, b) => devGroupNestingDepth(b, tabRoot) - devGroupNestingDepth(a, tabRoot));
+                return groupContents;
+            });
             makeDevValuesEditable();
             // Captures every dev-panel label/title's TRUE original text into
             // devTextOriginals (devTextOverrides is still empty the first
