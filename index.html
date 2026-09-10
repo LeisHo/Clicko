@@ -13465,10 +13465,31 @@
             // group's own content (can't nest a group inside itself). See
             // setupDragReorder's own comment on why this needs a function
             // instead of the plain-string selector the settings-row call uses.
+            // tabRoot MUST be last in this array, not first - per direct
+            // report ("it doesnt seem to work"). Root cause, confirmed via a
+            // live instrumented drag: setupDragReorder's own direct hit-test
+            // is `containers.find(c => pointerY is within c's own rect)` -
+            // tabRoot's rect always SPANS every nested group's own (much
+            // smaller) content rect, since every group is its descendant, so
+            // with tabRoot listed first, Array.prototype.find() matched it
+            // for every single pointermove of every drag, before a nested
+            // group's own smaller rect ever got a chance - making it
+            // structurally impossible to ever hit-test into a nested group,
+            // 100% of the time, regardless of how precisely the pointer was
+            // positioned over it. Moving tabRoot to the END fixes this:
+            // find() now prefers whichever SPECIFIC (smaller) group content
+            // rect contains the pointer first, falling through to tabRoot
+            // only when the pointer is genuinely outside every group's own
+            // content (a title bar, or empty space) - which is exactly the
+            // un-nest case this was meant to support. Verified both
+            // directions with a live instrumented drag before shipping:
+            // nesting into a group's content now succeeds, and dragging a
+            // nested group back out to a title-bar-level Y position still
+            // correctly un-nests it to tabRoot.
             setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => [
-                tabRoot,
                 ...Array.from(tabRoot.querySelectorAll(':scope > .dev-section > .dev-section-content'))
                     .filter(content => content.parentElement !== dragging),
+                tabRoot,
             ]);
             setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, '.dev-section-content');
             makeDevValuesEditable();
