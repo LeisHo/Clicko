@@ -13388,6 +13388,20 @@
         }
 
         // Initialize
+        // renderGameMechanicsControls() is deliberately NOT deferred into
+        // ensureDevPanelBuilt() below with the other 8 render*Controls()
+        // calls - a real, gameplay-breaking bug found via live testing:
+        // startGame()/endGame()'s lose branch both read
+        // gameState.maxTimeMs directly from document.getElementById(
+        // 'sliderStartingSpeed').value (a Game Mechanics control) as their
+        // actual source of truth, not from a separate JS default - a real
+        // player who never opens the dev panel would otherwise be unable
+        // to start a game at all. Kept eager and unconditional, for every
+        // visitor, matching its original pre-lazy-build behavior exactly -
+        // only 13 Desktop-only controls, a small, cheap exception that
+        // doesn't meaningfully change the overall win (686 total controls,
+        // minus these 13, still lazy for everyone who isn't isDevAllowed).
+        renderGameMechanicsControls();
         // Lazy dev-panel build - per direct request ("what does it take...
         // go for it" after a load-time investigation measured a consistent
         // ~780-880ms gap between the HTML finishing download and
@@ -13436,7 +13450,6 @@
             renderCompoundOffsetControls();
             renderDevPanelStyleControls();
             renderSpecialColorControls();
-            renderGameMechanicsControls();
             renderDevPanelMiscControls();
             renderClickBurstTextInputControls();
             setupDevPanelStyleControls();
