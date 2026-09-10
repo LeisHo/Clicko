@@ -7728,7 +7728,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -7795,7 +7795,7 @@
         // falling back to this same localStorage key when that's
         // unreachable.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -8150,6 +8150,13 @@
                     // matching every other settings.X -> liveState Object.assign
                     // above.
                     if (settings.devTextOverrides) Object.assign(devTextOverrides, settings.devTextOverrides);
+                    // Restores which of those overrides were typed directly
+                    // on their own tab (vs. auto-carried from Desktop by
+                    // syncTabOrderToDesktop()) - see devTextOverridesManual's
+                    // own comment. Falls back to an empty set for settings
+                    // saved before this field existed, same convention as
+                    // every other settings.X-missing case in this function.
+                    if (settings.devTextOverridesManual) devTextOverridesManual = new Set(settings.devTextOverridesManual);
                     // Generic slider display-sync-after-load - every
                     // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP-driven slider's
                     // underlying value already restores correctly via the
@@ -8972,6 +8979,25 @@
             // crossContainerSelector comment). Returns null only when the
             // group is genuinely Desktop-only with nothing at all to
             // mirror (no rows AND no subgroups either).
+            // Mirrors ONE rename from its Desktop key onto its Mobile/
+            // Landscape counterpart key, live, every sync - not just the
+            // first time the counterpart is created. Skips a key this tab
+            // has been independently renamed on directly (devTextOverridesManual
+            // - see its own comment), so a deliberate Mobile/Landscape-only
+            // name is never clobbered; otherwise keeps re-copying Desktop's
+            // current value (including clearing it back to null when
+            // Desktop's own rename is cleared), so a LATER Desktop rename
+            // - not just the group's original creation - now actually
+            // reaches Mobile/Landscape on the next tab switch. Used for both
+            // group titles and individual setting/row labels below.
+            function syncRename(desktopKey, mobileKey) {
+                if (devTextOverridesManual.has(mobileKey)) return;
+                const desktopVal = devTextOverrides[desktopKey] != null ? devTextOverrides[desktopKey] : null;
+                if (devTextOverrides[mobileKey] !== desktopVal) {
+                    devTextOverrides[mobileKey] = desktopVal;
+                    overridesChanged = true;
+                }
+            }
             function translateGroup(desktopGroup) {
                 const desktopTitle = desktopGroup.key.replace(/^desktop:/, '');
                 const mobileSec = mobileSectionsByNormTitle[stripParen(desktopTitle)];
@@ -8981,6 +9007,13 @@
                     if (mobileRowIdSet.has(mobileRowId) && !placedRowIds.has(mobileRowId)) {
                         mobileRowKeys.push(mobileRowId);
                         placedRowIds.add(mobileRowId);
+                        // Setting/row-label rename mirroring - previously
+                        // only group TITLES carried over here, never
+                        // individual setting names, so a Desktop row rename
+                        // never reached its Mobile/Landscape counterpart at
+                        // all (found via direct report - "setting names
+                        // dont sync"). Same manual-override guard as titles.
+                        syncRename(desktopRowId, mobileRowId);
                     }
                 });
                 const translatedSubgroups = (desktopGroup.subgroups || []).map(translateGroup).filter(Boolean);
@@ -8993,15 +9026,7 @@
                     mobileKey = getSectionKey(mobileSec.querySelector(':scope > .dev-section-title'));
                 }
                 placedGroupKeys.add(mobileKey);
-                // Same rename carry-over regardless of whether this group
-                // was newly created or matched an existing one - e.g.
-                // Desktop's "Win/Lose Text" renamed to "WIN" should show
-                // "WIN" here too, unless this tab already has its own
-                // independent rename.
-                if (devTextOverrides[desktopGroup.key] != null && devTextOverrides[mobileKey] == null) {
-                    devTextOverrides[mobileKey] = devTextOverrides[desktopGroup.key];
-                    overridesChanged = true;
-                }
+                syncRename(desktopGroup.key, mobileKey);
                 return { key: mobileKey, rowKeys: mobileRowKeys, subgroups: translatedSubgroups };
             }
             const newMobileOrder = desktopOrder.map(translateGroup).filter(Boolean);
@@ -11183,6 +11208,17 @@
         // directly, since every real .dev-label already sits in a .dev-row
         // with exactly one [id] element.
         let devTextOverrides = {};
+        // Tracks which devTextOverrides keys were typed directly into that
+        // exact tab (via commit() below), as opposed to carried over by
+        // syncTabOrderToDesktop()'s own group/row-rename mirroring. Needed
+        // so the sync can tell "Mobile/Landscape still has its auto-carried
+        // Desktop name, keep following Desktop" apart from "the user
+        // independently renamed this on Mobile/Landscape itself, leave it
+        // alone" - both looked identical as a bare non-null devTextOverrides
+        // entry before this, which is why a Desktop rename only ever landed
+        // once (the very first sync) and never again after that - see
+        // syncTabOrderToDesktop()'s own comment on this fix.
+        let devTextOverridesManual = new Set();
         // Captured once, the first time each key is actually seen - the
         // un-overridden text to fall back to and to offer for editing when
         // no override is stored yet. Derived from the DOM itself (there are
@@ -11258,6 +11294,13 @@
                 settled = true;
                 const typed = input.value;
                 devTextOverrides[key] = (typed === '' || typed === original) ? null : typed;
+                // A real, direct edit on THIS tab marks the key manual (so
+                // syncTabOrderToDesktop() stops overwriting it from
+                // Desktop); clearing it back to the original text un-marks
+                // it, reverting to auto-following Desktop's own name again -
+                // see devTextOverridesManual's own comment.
+                if (devTextOverrides[key] != null) devTextOverridesManual.add(key);
+                else devTextOverridesManual.delete(key);
                 el.textContent = arrow + (devTextOverrides[key] != null ? devTextOverrides[key] : original);
             }
             function cancel() {
