@@ -3327,13 +3327,12 @@
         <div class="result-text hidden" id="resultText"></div>
         <!-- Prefix/Number/Suffix split - per direct request ("I want
              separate font size, y offset, x offset sliders for the
-             'Click', number, and 'x'" + hide checkboxes for each word).
-             Prefix keeps its existing renameable-via-Text-Edit-Mode
-             behavior (targetPrefix, unchanged); Suffix reuses the exact
-             same overrideOr() mechanism for consistency (targetSuffix,
-             default 'x') even though no dedicated click-to-rename UI is
-             wired to it yet - see TEXT_EDIT_TARGETS.targetCount's own
-             comment. Number-only blinking (runRoundBlinkSequence) now
+             'Click', number, and 'x'" + hide checkboxes for each word),
+             later split further into 3 fully independent Text Edit Mode
+             targets (targetCountPrefix/targetCountNumber/targetCountSuffix
+             - see TEXT_EDIT_TARGETS's own comments) per a follow-up report
+             that the original combined single-entry edit "looked stuck"
+             after commit. Number-only blinking (runRoundBlinkSequence) now
              targets targetCountNumber specifically, same pattern as
              speedDisplayNumber/msPerClickDisplayNumber below. -->
         <div class="target-count" id="targetCount"><span id="targetCountPrefix"></span><span id="targetCountNumber"></span><span id="targetCountSuffix"></span></div>
@@ -4015,7 +4014,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
@@ -4381,7 +4380,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -4718,7 +4717,7 @@
 
         <!-- Target Count Section -->
         <div class="dev-section">
-            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCount">▼ Target Count Display</div>
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
@@ -10046,9 +10045,8 @@
         // depending on game state (Start/Try Again, Win/Lose) and two show
         // a static suffix beside a LIVE number (Speed/Ms-per-click) that
         // must keep updating - editing overrides only the static wording,
-        // never freezes a live value. Target Count has no static wording at
-        // all (just the bare number) so it has no edit slot here - it still
-        // gets its own Text Align dropdown above, a separate concern.
+        // never freezes a live value. Target Count's Prefix/Suffix wording
+        // ("CLICK "/" X") are each their own editable slot below.
         let textEditModeEnabled = false;
         // Desktop and Mobile now have their own independent text overrides
         // - per explicit request ("if i edit text for desktop, it wont edit
@@ -10076,13 +10074,14 @@
             startLabel: 'START', tryAgainLabel: 'Try again', roundLabel: 'ROUND',
             winSymbol: ':)', loseSymbol: ':(', speedSuffix: ' ms', msPerClickSuffix: 'ms / \nCLICK',
             // Defaults changed from '' per direct request ("The Target
-            // Text now says 'Click ___ x'") - targetSuffix reuses the
-            // exact same overrideOr() mechanism as targetPrefix for
-            // consistency, even though no dedicated click-to-rename UI is
-            // wired to it yet (see TEXT_EDIT_TARGETS.targetCount's own
-            // comment) - both are still independently hideable via their
-            // own checkboxes regardless of wording.
-            targetPrefix: 'Click ', targetSuffix: ' x',
+            // Text now says 'Click ___ x'"), then capitalized per explicit
+            // follow-up request - targetSuffix reuses the exact same
+            // overrideOr() mechanism as targetPrefix for consistency. Both
+            // are independently hideable via their own checkboxes
+            // regardless of wording, and each is now its own directly
+            // right-click-editable TEXT_EDIT_TARGETS entry (targetCount
+            // Prefix/Suffix below).
+            targetPrefix: 'CLICK ', targetSuffix: ' X',
         };
         // The currently-ACTIVE override object - same isMobileActive()
         // viewport check every other per-device value in this file reads
@@ -10152,33 +10151,51 @@
                     speedDisplaySuffix.textContent = overrideOr(slot);
                 },
             },
-            targetCount: {
-                // Target Count has no static wording at all normally (just
-                // the bare number) - this adds an optional PREFIX (default
-                // '', reproducing today's bare-number look exactly) so it's
-                // still renameable like every other text, per explicit
-                // follow-up request. Wording goes BEFORE the live number
-                // here, unlike Speed/Ms-per-click's suffix-after pattern.
-                // Reads the live number straight from gameState rather than
-                // regex-scraping it back out of the rendered textContent -
-                // the old regex (trailing digits) couldn't tell a numeric
-                // PREFIX apart from the live number once both were digits
-                // with no separator between them (e.g. prefix "5" + live "0"
-                // rendered as "50", and re-editing matched the whole "50" as
-                // if it were the live number) - confirmed via direct bug
-                // report ("edited it again and deleted all the text, but
-                // the old text still shows... new text just appends").
+            // Target Count's Prefix ("CLICK ") and Suffix (" X") are each
+            // their own independent TEXT_EDIT_TARGETS entry, one per real
+            // DOM span - per direct report that editing them while they
+            // shared one combined entry (keyed to the whole #targetCount
+            // div, wrapping all 3 spans) "looked stuck" after commit. Root
+            // cause: openTextEditFor() wipes the target element's innerHTML
+            // to inject its textarea, then on commit calls render() to
+            // rebuild it - but the combined entry's render() wrote into the
+            // targetCountPrefix/Number/Suffix span REFERENCES directly,
+            // which by then were the ORIGINAL span nodes already detached
+            // from the DOM by that innerHTML wipe (only #targetCount's own
+            // children got cleared, not reattached), so the edit silently
+            // wrote into 3 orphaned nodes while the leftover, never-removed
+            // textarea stayed visible in the actual DOM. Splitting into
+            // one-el-per-slot entries (matching every other simple target
+            // in this map, e.g. gameTextLabel/resultText) avoids the whole
+            // class of bug: el IS the span, so innerHTML-wipe-then-
+            // textContent-rebuild always targets the same live node.
+            targetCountPrefix: {
                 getSlot: () => 'targetPrefix',
-                getPrefix: () => String(gameState.targetCount),
-                // Sets all 3 spans from scratch on every call - Suffix
-                // reuses overrideOr('targetSuffix') the same way Prefix
-                // always has (see TEXT_OVERRIDE_DEFAULTS's own comment on
-                // why, despite no dedicated rename-UI for it yet).
-                render: (slot, liveNumber) => {
-                    targetCountPrefix.textContent = overrideOr(slot);
-                    targetCountNumber.textContent = liveNumber != null ? liveNumber : String(gameState.targetCount);
-                    targetCountSuffix.textContent = overrideOr('targetSuffix');
-                },
+                render: (slot) => { targetCountPrefix.textContent = overrideOr(slot); },
+            },
+            // The Number is live gameplay data (gameState.targetCount), not
+            // static wording - per explicit direct decision, it gets its
+            // own bounding box/position handling in Text Edit Mode (for
+            // visual consistency with Prefix/Suffix, and it already has its
+            // own font-size/X/Y sliders) but stays non-right-click-editable,
+            // matching how every other live number in this file (Round,
+            // Speed, Ms-per-click) is never itself a rename target - only
+            // the wording around it is. editable:false is read by
+            // setupTextEditMode()'s contextmenu handler below to skip
+            // opening an editor for this one entry while still giving it a
+            // bounding box (updateTextEditBoundingBoxes() doesn't check the
+            // flag) and blocking stray gameplay clicks during edit mode
+            // (setupTextEditMode()'s pointerdown/up/click guard doesn't
+            // check it either - both are correct/desired for a non-editable
+            // target too).
+            targetCountNumber: {
+                editable: false,
+                getSlot: () => null,
+                render: () => { targetCountNumber.textContent = String(gameState.targetCount); },
+            },
+            targetCountSuffix: {
+                getSlot: () => 'targetSuffix',
+                render: (slot) => { targetCountSuffix.textContent = overrideOr(slot); },
             },
             msPerClickDisplay: {
                 getSlot: () => 'msPerClickSuffix',
@@ -10321,7 +10338,7 @@
         // change needed.
         const textEditWrapWidths = {
             startButton: null, gameTextLabel: null, resultText: null,
-            speedDisplay: 540.1875, targetCount: null, msPerClickDisplay: 188.640625,
+            speedDisplay: 540.1875, targetCountPrefix: null, targetCountNumber: null, targetCountSuffix: null, msPerClickDisplay: 188.640625,
         };
         const TEXT_EDIT_WRAP_MIN_PX = 20;
         function applyTextEditWrapWidth(elId) {
@@ -10482,6 +10499,11 @@
                     if (!textEditModeEnabled) return;
                     e.stopPropagation();
                     e.preventDefault();
+                    // editable:false (targetCountNumber - see its own
+                    // comment) still gets the bounding box/click-guard
+                    // above, just no editor - it's live gameplay data, not
+                    // static wording.
+                    if (TEXT_EDIT_TARGETS[elId].editable === false) return;
                     openTextEditFor(elId);
                 });
             });
