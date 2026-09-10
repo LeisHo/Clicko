@@ -208,7 +208,7 @@
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 251,
     "--dev-panel-left-px": 26,
-    "--dev-panel-top-px": 222,
+    "--dev-panel-top-px": 135.046875,
     "--dev-panel-height-px": 271,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
