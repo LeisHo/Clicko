@@ -5051,6 +5051,20 @@
     </div>
 
     <script>
+        // Dev panel lazy-build flag - declared here, first thing in the
+        // main script, deliberately far from ensureDevPanelBuilt()'s own
+        // definition (near the bottom, in "Initialize") - a `let` binding
+        // stays in its temporal dead zone until this exact line executes,
+        // and the DEV toggle button's onclick can fire the instant its own
+        // HTML is parsed (line ~3466), long before this ~568KB script has
+        // finished executing far enough to reach a declaration placed near
+        // the end. Confirmed via a real reproduction (not just reasoned
+        // about): clicking the DEV button immediately after navigation hit
+        // "Cannot access 'devPanelBuilt' before initialization" every
+        // time. Declaring it in the first few lines of the script instead
+        // means it initializes within microseconds of the script starting,
+        // effectively closing the window entirely.
+        let devPanelBuilt = false;
         // CSS Variables initialization
         // Built-in "Dev Panel" panel-styling settings - CLAUDE.md Section
         // 12i. Independent per TAB (not per real device viewport, unlike
@@ -13185,18 +13199,6 @@
             }
         });
 
-        // Hide "Click" (Prefix) / Hide "x" (Suffix) checkboxes - per direct
-        // request for checkboxes to independently hide the Target Text's
-        // prefix/suffix words. Config-array-built (buildCheckboxRow doesn't
-        // auto-wire), so wired here same as the Preview checkboxes above.
-        document.getElementById('checkboxHideTargetPrefix').addEventListener('change', (e) => {
-            cssVars['--target-prefix-hidden'] = e.target.checked ? 1 : 0;
-            targetCountPrefix.classList.toggle('hidden', e.target.checked);
-        });
-        document.getElementById('checkboxHideTargetSuffix').addEventListener('change', (e) => {
-            cssVars['--target-suffix-hidden'] = e.target.checked ? 1 : 0;
-            targetCountSuffix.classList.toggle('hidden', e.target.checked);
-        });
 
         // Manually replays the round-change blink sequence (see
         // runRoundBlinkSequence()) without needing to actually play through
@@ -13403,7 +13405,8 @@
         // touch only cssVars/extrusionVars and real game elements (the
         // dev-panel-position sentinel resolution is a plain object-property
         // check, not DOM). All 4 stay in their original relative order below.
-        let devPanelBuilt = false;
+        // devPanelBuilt itself is declared at the very TOP of this script,
+        // not here - see that declaration's own comment for why.
         function ensureDevPanelBuilt() {
             if (devPanelBuilt) return;
             devPanelBuilt = true;
@@ -13452,6 +13455,24 @@
             setupOffsetUnitCheckboxes();
             setupTextEdgeLockCheckboxes();
             setupClickBurstTextInputs();
+            // Hide "Click" (Prefix) / Hide "x" (Suffix) checkboxes - per
+            // direct request for checkboxes to independently hide the
+            // Target Text's prefix/suffix words. Config-array-built
+            // (buildCheckboxRow doesn't auto-wire), so wired here same as
+            // the Preview checkboxes' own pattern - moved into
+            // ensureDevPanelBuilt() since these 2 specific checkboxes are
+            // generated (unlike the static Preview checkboxes), so wiring
+            // them eagerly (their original position) threw
+            // "addEventListener of null" the instant the panel stopped
+            // being built unconditionally on every load.
+            document.getElementById('checkboxHideTargetPrefix').addEventListener('change', (e) => {
+                cssVars['--target-prefix-hidden'] = e.target.checked ? 1 : 0;
+                targetCountPrefix.classList.toggle('hidden', e.target.checked);
+            });
+            document.getElementById('checkboxHideTargetSuffix').addEventListener('change', (e) => {
+                cssVars['--target-suffix-hidden'] = e.target.checked ? 1 : 0;
+                targetCountSuffix.classList.toggle('hidden', e.target.checked);
+            });
             // No onDrop action needed - the DOM order itself IS the live state;
             // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
             // Groups within groups (one level) - per direct request ("make it
