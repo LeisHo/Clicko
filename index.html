@@ -1360,18 +1360,16 @@
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-x-offset-vw) * var(--target-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-y-offset-vh) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
-            /* Font Size (px)/(vw)/Scale With Browser removed - per direct
-               report ("what does 'Font Size (vw)' do?... it doesnt seem to
-               do anything [for px]"), see the Desktop dev-panel row's own
-               removal comment for the full root-cause explanation. This
-               property now exists purely to give the (unitless)
+            /* This property exists purely to give the (unitless)
                line-height below a sensible pixel basis, tied to the
                Number's own font-size (the always-present, dominant part) -
-               not itself a tunable control anymore. Letter Spacing and
-               the text-shadow extrusion below are now each independently
-               set per-part (see #targetCountPrefix/Number/Suffix) instead
-               of shared here. */
-            font-size: calc(var(--target-number-font-size-px) * 1px);
+               not itself a tunable control. Letter Spacing and the
+               text-shadow extrusion below are each independently set
+               per-part (see #targetCountPrefix/Number/Suffix) instead of
+               shared here. Mirrors Number's own blended px/vw formula
+               (below) so line-height's basis stays accurate whenever
+               Scale With Browser is on, not just the fixed px value. */
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * var(--cq-vw, 1vw));
             line-height: var(--target-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
@@ -1435,19 +1433,23 @@
            border-color feed all 3 shadows below) - only depth/thickness/
            letter-spacing were asked to be independent. */
         #targetCountPrefix {
-            font-size: calc(var(--target-prefix-font-size-px) * 1px);
+            /* See .target-count's own Scale With Browser comment above -
+               same blended px/vw formula pattern used by every other
+               element's Font Size, sharing ONE checkbox across all 3
+               parts (not 3 independent ones). */
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-prefix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-prefix-font-size-vw, 11.72) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-prefix-extrusion-shadow);
             transform: translate(calc(var(--target-prefix-x-offset-px, 0) * 1px), calc(var(--target-prefix-y-offset-px, 0) * 1px));
         }
         #targetCountNumber {
-            font-size: calc(var(--target-number-font-size-px) * 1px);
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-number-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-number-extrusion-shadow);
             transform: translate(calc(var(--target-number-x-offset-px, 0) * 1px), calc(var(--target-number-y-offset-px, 0) * 1px));
         }
         #targetCountSuffix {
-            font-size: calc(var(--target-suffix-font-size-px) * 1px);
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-suffix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-suffix-font-size-vw, 11.72) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-suffix-extrusion-shadow);
             transform: translate(calc(var(--target-suffix-x-offset-px, 0) * 1px), calc(var(--target-suffix-y-offset-px, 0) * 1px));
@@ -1545,6 +1547,14 @@
            as #gameTextNumber/#speedDisplayNumber above. */
         #msPerClickDisplayNumber {
             transform: translateX(calc(var(--ms-per-click-number-x-offset-px, 0) * 1px));
+        }
+        /* Whatever follows the suffix's 2nd embedded newline (line 3 of
+           the 3-line layout - see renderMsPerClickSuffix()'s own comment)
+           - a second, additive line-spacing control independent from the
+           shared --ms-per-click-line-height above, per direct request. */
+        .ms-per-click-extra-line {
+            display: block;
+            margin-top: calc(var(--ms-per-click-line2-gap-px, 0) * 1px);
         }
 
         /* Click Counter - debug display next to the button, toggled from dev panel */
@@ -4152,26 +4162,19 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
-                <!-- Scale With Browser checkbox removed - per direct report
-                     ("since Click, Number, and X have their own font
-                     sizes, what does 'Font Size (vw)' do?... it currently
-                     seems to shift all 3 up and down. and 'Font Size (px)'
-                     doesnt seem to do anything"). Root cause: once Prefix/
-                     Number/Suffix each got their own independent Font Size
-                     (px) (see cssVars' own comment), the WRAPPER-level Font
-                     Size (px)/(vw)/this checkbox no longer resized any
-                     visible text - .target-count's own font-size was only
-                     ever read by its (unitless) line-height multiplier,
-                     so changing it just shifted the 3 parts' vertical
-                     position as a side effect, while px silently did
-                     nothing whenever this checkbox was on (as it is by
-                     default on Mobile) since the formula zeroes the px
-                     term entirely. Removed as vestigial/confusing -
-                     .target-count's font-size is now a plain expression
-                     tied to the Number's own font-size (see its CSS) so
-                     line-height still has a sensible pixel basis, with
-                     nothing left for the user to tune here.
-                -->
+                <!-- Scale With Browser reintroduced per direct request -
+                     the earlier WRAPPER-level one (see git history) went
+                     vestigial once Prefix/Number/Suffix each got their own
+                     independent px-only font-size and was removed. This is
+                     a different mechanism: ONE shared checkbox blends ALL
+                     3 parts' own new Font Size (vw) pair against their
+                     existing px value (same calc() shape as every other
+                     element's Scale With Browser - see each part's own
+                     CSS), not a revival of the old wrapper-level control. -->
+                <div class="dev-row">
+                    <span class="dev-label">Scale With Browser:</span>
+                    <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxTargetScaleWithBrowser', '--target-scale-with-browser')">
+                </div>
                 <!-- Font dropdown removed - Target now shares the ONE
                      8-Bit Text Style font (select8BitFont), per explicit
                      request that every 8-bit-capable text share a single
@@ -4568,8 +4571,12 @@
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
                      share one consistent order. -->
-                <!-- Scale With Browser checkbox removed - now vestigial,
-                     see Desktop tab's own comment on this exact removal. -->
+                <!-- Scale With Browser reintroduced - see Desktop tab's
+                     own comment on this exact re-add. -->
+                <div class="dev-row">
+                    <span class="dev-label">Scale With Browser:</span>
+                    <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxMobileTargetScaleWithBrowser', '--target-scale-with-browser')">
+                </div>
 
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not mobile-split), per
@@ -4935,8 +4942,12 @@
                 <!-- Reordered to match every other text section's established
                      field order per explicit request that all text settings
                      share one consistent order. -->
-                <!-- Scale With Browser checkbox removed - now vestigial,
-                     see Desktop tab's own comment on this exact removal. -->
+                <!-- Scale With Browser reintroduced - see Desktop tab's
+                     own comment on this exact re-add. -->
+                <div class="dev-row">
+                    <span class="dev-label">Scale With Browser:</span>
+                    <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxLandscapeTargetScaleWithBrowser', '--target-scale-with-browser')">
+                </div>
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not landscape-split), per
                      explicit request. -->
@@ -5584,14 +5595,25 @@
             // smaller, visually-reasonable fraction rather than inheriting
             // the same huge number-sized default.
             '--target-prefix-font-size-px': 150,
+            '--target-prefix-font-size-vw': 11.72,
             '--target-prefix-x-offset-px': 0,
             '--target-prefix-y-offset-px': 0,
             '--target-number-font-size-px': 500,
+            '--target-number-font-size-vw': 39.06,
             '--target-number-x-offset-px': 0,
             '--target-number-y-offset-px': 0,
             '--target-suffix-font-size-px': 150,
+            '--target-suffix-font-size-vw': 11.72,
             '--target-suffix-x-offset-px': 0,
             '--target-suffix-y-offset-px': 0,
+            // Scale With Browser - per direct request, reintroduced after
+            // the earlier wrapper-level one was removed as vestigial (it
+            // stopped affecting anything once Prefix/Number/Suffix each
+            // got their own px-only font-size). One shared flag blends
+            // ALL 3 parts' own px/vw pair together (not 3 independent
+            // checkboxes) - matches the single checkbox actually asked
+            // for. Defaults ON per explicit follow-up request.
+            '--target-scale-with-browser': 1,
             // Hide Prefix/Suffix - per direct request for checkboxes to
             // hide "Click"/"x" independently. Single/shared (not per-tab)
             // like every other show/hide toggle in this file (Hide
@@ -5642,6 +5664,7 @@
             '--ms-per-click-y-offset-unit-is-px': 0,
             '--ms-per-click-letter-spacing-px': 7.5,
             '--ms-per-click-line-height': 0.9,
+            '--ms-per-click-line2-gap-px': 0,
             '--ms-per-click-text-align': 'right',
             '--ms-per-click-text-valign': 'top',
             '--ms-per-click-text-align-edge-lock': 1,
@@ -6456,17 +6479,21 @@
             '--target-y-offset-vh': 20,
             '--target-y-offset-unit-is-px': 1,
             '--target-prefix-font-size-px': 70,
+            '--target-prefix-font-size-vw': 5.47,
             '--target-prefix-x-offset-px': 0,
             '--target-prefix-y-offset-px': 0,
             '--target-prefix-letter-spacing-px': 0,
             '--target-number-font-size-px': 238.44,
+            '--target-number-font-size-vw': 18.63,
             '--target-number-x-offset-px': 0,
             '--target-number-y-offset-px': 0,
             '--target-number-letter-spacing-px': 0,
             '--target-suffix-font-size-px': 70,
+            '--target-suffix-font-size-vw': 5.47,
             '--target-suffix-x-offset-px': 0,
             '--target-suffix-y-offset-px': 0,
             '--target-suffix-letter-spacing-px': 0,
+            '--target-scale-with-browser': 1,
             '--target-line-height': 0.65,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
@@ -6496,6 +6523,7 @@
             '--ms-per-click-y-offset-unit-is-px': 1,
             '--ms-per-click-letter-spacing-px': -0.5,
             '--ms-per-click-line-height': 0.65,
+            '--ms-per-click-line2-gap-px': 0,
             '--ms-per-click-text-align': 'right',
             '--ms-per-click-text-valign': 'top',
             '--ms-per-click-text-align-edge-lock': 1,
@@ -9179,12 +9207,15 @@
             { group: 'Target Count Display', id: 'sliderTargetSuffixOverallBorderThickness', type: 'slider', label: 'Suffix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 39.06 },
             { group: 'Target Count Display', id: 'sliderTargetNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'checkboxHideTargetPrefix', type: 'checkbox', label: 'Hide "Click" (Prefix)' },
@@ -9207,6 +9238,7 @@
             { group: 'Ms/Click Display', id: 'sliderMsPerClickLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Ms/Click Display', id: 'sliderMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
             { group: 'Background', id: 'colorBg', type: 'color', label: 'Color:', value: '#ffffff' },
         ];
         // Resolves a group's .dev-section-content by data-sid, warning on
@@ -9439,12 +9471,15 @@
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixOverallBorderThickness', type: 'slider', label: 'Suffix Border Thickness (px):', min: 0, max: 20, step: 1, value: 12 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.47 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 238.44 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 18.63 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.47 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
@@ -9461,6 +9496,7 @@
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
         ];
         function renderMobileUniformControls() {
             MOBILE_UNIFORM_CONTROLS.forEach(ctrl => {
@@ -9546,12 +9582,15 @@
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixOverallBorderThickness', type: 'slider', label: 'Suffix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 39.06 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (Px):', min: -100, max: 100, step: 1, value: 0 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
@@ -9568,6 +9607,7 @@
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
         ];
         function renderLandscapeUniformControls() {
             LANDSCAPE_UNIFORM_CONTROLS.forEach(ctrl => {
@@ -9970,14 +10010,17 @@
             'sliderTargetY': '--target-y-offset-vh',
             'sliderTargetLineHeight': '--target-line-height',
             'sliderTargetPrefixFontSize': '--target-prefix-font-size-px',
+            'sliderTargetPrefixFontSizeVw': '--target-prefix-font-size-vw',
             'sliderTargetPrefixXOffset': '--target-prefix-x-offset-px',
             'sliderTargetPrefixYOffset': '--target-prefix-y-offset-px',
             'sliderTargetPrefixLetterSpacing': '--target-prefix-letter-spacing-px',
             'sliderTargetNumberFontSize': '--target-number-font-size-px',
+            'sliderTargetNumberFontSizeVw': '--target-number-font-size-vw',
             'sliderTargetNumberXOffset': '--target-number-x-offset-px',
             'sliderTargetNumberYOffset': '--target-number-y-offset-px',
             'sliderTargetNumberLetterSpacing': '--target-number-letter-spacing-px',
             'sliderTargetSuffixFontSize': '--target-suffix-font-size-px',
+            'sliderTargetSuffixFontSizeVw': '--target-suffix-font-size-vw',
             'sliderTargetSuffixXOffset': '--target-suffix-x-offset-px',
             'sliderTargetSuffixYOffset': '--target-suffix-y-offset-px',
             'sliderTargetSuffixLetterSpacing': '--target-suffix-letter-spacing-px',
@@ -9995,6 +10038,7 @@
             'sliderMsPerClickNumberXOffset': '--ms-per-click-number-x-offset-px',
             'sliderMsPerClickLetterSpacing': '--ms-per-click-letter-spacing-px',
             'sliderMsPerClickLineHeight': '--ms-per-click-line-height',
+            'sliderMsPerClickLine2Gap': '--ms-per-click-line2-gap-px',
             'sliderResultWinFontSize': '--result-win-font-size-px',
             'sliderResultWinFontSizeVw': '--result-win-font-size-vw',
             'sliderResultWinX': '--result-win-x-offset-vw',
@@ -12458,7 +12502,7 @@
             // explicit request, since the countdown itself only shows the
             // TOTAL round budget now.
             msPerClickDisplayNumber.textContent = gameState.maxTimeMs.toFixed(0);
-            msPerClickDisplaySuffix.textContent = overrideOr('msPerClickSuffix');
+            renderMsPerClickSuffix(overrideOr('msPerClickSuffix'));
             msPerClickDisplay.classList.remove('hidden');
             // Target/Speed/Ms-per-click were just revealed from hidden -
             // re-run so their align/edge-lock/unit vars (set by
