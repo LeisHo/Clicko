@@ -8336,6 +8336,18 @@
                 el.addEventListener('input', () => {
                     store[key] = (el.type === 'number') ? parseFloat(el.value) : el.value;
                 });
+                // These are plain, always-present inputs (no click-to-
+                // create/commit step like the dev panel's other 2 text-
+                // entry mechanisms) - previously had no keydown handling
+                // at all, so Enter did nothing but the field stayed
+                // focused. Same scroll guard as those other 2 (see
+                // preserveDevPanelScroll's own comment - reported mobile-
+                // only, most likely the on-screen keyboard closing), plus
+                // Enter now blurs for consistency with every other dev-
+                // panel text box instead of being the one place it didn't.
+                el.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') { ev.preventDefault(); preserveDevPanelScroll(() => el.blur()); }
+                });
             });
         }
         function applyClickBurstTextInputs() {
@@ -11262,6 +11274,38 @@
             });
         }
 
+        // Guards against the dev panel's own scroll position jumping when
+        // committing a text-box edit - direct report ("when i type into a
+        // text box and press enter. It scrolls me to the bottom of the dev
+        // panel"), confirmed mobile-only (a real Enter keypress against all
+        // 3 dev-panel text-entry mechanisms below - the slider value box,
+        // the group/label rename box, and the Click Burst frame-position
+        // boxes - produced zero scroll change when tested live on desktop).
+        // The most likely real cause is the on-screen keyboard closing on
+        // Enter/blur and the browser's own keyboard-avoidance logic
+        // re-settling scroll position against the panel's own small (~80px
+        // tall) .dev-panel-scroll-content once the visual viewport grows
+        // back - not reproducible here since this environment has no real
+        // virtual keyboard to trigger that resize. Rather than chase one
+        // specific mobile browser's exact timing, this just captures the
+        // panel's scrollTop before the commit and forces it back
+        // afterward, repeatedly over the ~300ms a keyboard-close animation
+        // typically takes (iOS/Android both land in the low hundreds of
+        // ms) - covers a synchronous jump (restored on the same tick and
+        // next frame) and a delayed one (the keyboard's own resize event
+        // firing after its close animation finishes) alike, regardless of
+        // which one is actually responsible.
+        function preserveDevPanelScroll(fn) {
+            const scroller = document.querySelector('.dev-panel-scroll-content');
+            const before = scroller ? scroller.scrollTop : null;
+            fn();
+            if (!scroller || before == null) return;
+            const restore = () => { scroller.scrollTop = before; };
+            restore();
+            requestAnimationFrame(restore);
+            [50, 150, 300].forEach(ms => setTimeout(restore, ms));
+        }
+
         // Generic dev-panel text editor - same textarea-swap UX as
         // openTextEditFor() above, without that function's slot/prefix
         // machinery (nothing here has more than one possible string).
@@ -11308,7 +11352,7 @@
                 settled = true;
                 el.innerHTML = originalHTML;
             }
-            input.addEventListener('blur', commit);
+            input.addEventListener('blur', () => preserveDevPanelScroll(commit));
             input.addEventListener('keydown', (ev) => {
                 if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); input.blur(); }
                 else if (ev.key === 'Escape') cancel();
@@ -11661,9 +11705,9 @@
                     settled = true;
                     valueEl.textContent = originalText;
                 }
-                input.addEventListener('blur', commit);
+                input.addEventListener('blur', () => preserveDevPanelScroll(commit));
                 input.addEventListener('keydown', (ev) => {
-                    if (ev.key === 'Enter') input.blur();
+                    if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
                     else if (ev.key === 'Escape') cancel();
                 });
                 // The click that opened this input would otherwise also
