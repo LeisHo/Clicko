@@ -12619,14 +12619,24 @@
             // every remove('hidden') below unconditionally makes them
             // visible again anyway, AND the explicit style.visibility resets
             // just below undo runRoundBlinkSequence()'s own toggling of
-            // those same 3 elements - its last phase always ends on
+            // those same elements - its last phase always ends on
             // visible:false, and classList.remove('hidden') alone doesn't
             // touch a separate inline style.visibility, so without this
-            // reset targetCount/speedDisplayNumber/msPerClickDisplayNumber
-            // would stay invisible forever after the very first
-            // flash-with-round announcement).
+            // reset targetCount/targetCountSuffix/speedDisplayNumber/
+            // msPerClickDisplayNumber would stay invisible forever after
+            // the very first flash-with-round announcement). targetCountSuffix
+            // (the "x") is included here per direct bug report ("after a
+            // round, the 'x' dissappears") - it was added to
+            // runRoundBlinkSequence()'s own toggle array later (per "the
+            // Target 'x' should flash with the Target number") but this
+            // restore was never updated to match, so once the flash-with-
+            // round checkbox is on (the default), the very first round
+            // transition left it hidden permanently - the other 3 elements'
+            // own restore already worked, so it looked selectively broken
+            // rather than absent.
             applyGameplayResultColor(null);
             targetCountNumber.style.visibility = 'visible';
+            targetCountSuffix.style.visibility = 'visible';
             speedDisplayNumber.style.visibility = 'visible';
             msPerClickDisplayNumber.style.visibility = 'visible';
             targetCountNumber.textContent = gameState.targetCount;
