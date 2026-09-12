@@ -2343,6 +2343,38 @@
             color: #000;
         }
 
+        /* "+ Add Group" - styled like the tab buttons above (border/font/
+           bold/height), but background is the group-label-bar's own
+           color (--dev-group-label-bg-color, also driving .dev-section-title
+           below) instead of the tabs' plain #222 - per direct request
+           ("stylize the Add Group button the same as the Desktop Mobile
+           Landscape buttons, BUT the background color should be the
+           color of the Settings group label bar"). Margin top/bottom
+           both 10px so the gap either side of it matches the gap
+           between the tab row and the Copy/Sync/Reset row above it
+           (also per direct request) - replaces the plain wrapping
+           .dev-buttons div this button used to sit in. */
+        .dev-add-group-btn {
+            display: flex;
+            width: 100%;
+            background: var(--dev-group-label-bg-color, #134e4a);
+            color: var(--dev-accent-color);
+            border: 1px solid var(--dev-accent-color);
+            border-radius: 3px;
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            padding-top: calc(var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+            align-items: center;
+            justify-content: center;
+            font-family: var(--dev-panel-font-family, monospace);
+            font-size: calc(var(--dev-tab-font-size-px) * 1px);
+            font-weight: bold;
+            letter-spacing: calc(var(--dev-tab-text-letter-spacing-px) * 1px);
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .dev-add-group-btn:hover { filter: brightness(1.3); }
+
         /* Persistent reopen toggle - visible whenever the dev panel is allowed at
            all (gated by isDevAllowed in JS), regardless of the panel's own hidden
            state, so it can always be brought back without a keyboard on mobile. */
@@ -2487,7 +2519,7 @@
             cursor: pointer;
             user-select: none;
             padding: 5px;
-            background: rgba(0, 255, 255, 0.1);
+            background: var(--dev-group-label-bg-color, #134e4a);
             border-radius: 3px;
             /* Drag handle for reordering groups (CLAUDE.md Section 12e).
                Deliberately NOT touch-action:none, unlike the panel's own
@@ -2506,7 +2538,7 @@
         }
 
         .dev-section-title:hover {
-            background: rgba(0, 255, 255, 0.2);
+            filter: brightness(1.3);
         }
 
         .dev-section-content {
@@ -2613,7 +2645,7 @@
             min-width: 45px;
             color: var(--dev-accent-color);
             text-align: right;
-            font-size: 10px;
+            font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
         }
         /* Applied at init (see makeDevValuesEditable() in the script) only to
            .dev-value spans that actually correspond to a range slider - the
@@ -2632,7 +2664,7 @@
             color: var(--dev-accent-color);
             border: 1px solid var(--dev-accent-color);
             font-family: var(--dev-panel-font-family, monospace);
-            font-size: 10px;
+            font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
             text-align: right;
             padding: 0;
         }
@@ -3546,8 +3578,21 @@
         <div class="dev-buttons">
             <button onclick="copySettings()">COPY</button>
             <button onclick="resetDevSettings()">RESET</button>
-            <button onclick="saveSettings()">SAVE</button>
+            <button onclick="saveSettings()">SYNC</button>
             <span id="saveSyncStatus" class="dev-save-sync-status"></span>
+        </div>
+
+        <!-- Named Setting States (Save/Use/Delete/Set as Default) - per
+             direct request, modeled on the Hando project's own preset
+             picker generalized to the whole panel's state - see
+             saveNamedDevPanelState()'s own comment for the full account.
+             Sits right under Copy/Sync/Reset per that same request. -->
+        <select class="dev-select" id="devSavedStatesSelect" style="width:100%; margin-bottom:5px;"></select>
+        <div class="dev-buttons">
+            <button onclick="saveNamedDevPanelState()">SAVE</button>
+            <button onclick="useNamedDevPanelState()">USE</button>
+            <button onclick="deleteNamedDevPanelState()">DELETE</button>
+            <button onclick="setNamedDevPanelStateAsDefault()">SET DEFAULT</button>
         </div>
 
         <div class="dev-row">
@@ -3661,9 +3706,7 @@
              draggable, collapsible, and renameable via Text Edit Mode (its
              title's click handler is the same toggleSection() every other
              title uses) with no special-casing needed anywhere else. -->
-        <div class="dev-buttons">
-            <button onclick="addDevGroup('desktop')">+ Add Group</button>
-        </div>
+        <button class="dev-add-group-btn" onclick="addDevGroup('desktop')">+ Add Group</button>
         <!-- Built-in "Dev Panel" settings group - CLAUDE.md Section 12i.
              Standing scaffolding, part of the panel itself, not per-project -
              independent per tab (this copy only affects the panel's look
@@ -4362,9 +4405,7 @@
              they were never duplicated into Mobile Overrides either. -->
 
         <div id="mobileTabContent" class="hidden">
-        <div class="dev-buttons">
-            <button onclick="addDevGroup('mobile')">+ Add Group</button>
-        </div>
+        <button class="dev-add-group-btn" onclick="addDevGroup('mobile')">+ Add Group</button>
         <!-- Same controls as the Desktop tab, but only take effect on a
              mobile-width viewport (auto-detected via matchMedia, live -
              resizing the browser or rotating a phone switches
@@ -4733,9 +4774,7 @@
              in applyActiveVars(). -->
         </div>
         <div id="landscapeTabContent" class="hidden">
-        <div class="dev-buttons">
-            <button onclick="addDevGroup('landscape')">+ Add Group</button>
-        </div>
+        <button class="dev-add-group-btn" onclick="addDevGroup('landscape')">+ Add Group</button>
         <!-- Same controls as the Desktop tab, but only take effect on a
              landscape-width viewport (auto-detected via matchMedia, live -
              resizing the browser or rotating a phone switches
@@ -5218,6 +5257,16 @@
             // and Collapse/Hide's old fixed 22px, both landed close to this).
             buttonHeight: 21,
             bodyFontSize: 11,
+            // Setting-number readout/click-to-edit boxes (.dev-value/
+            // .dev-value-edit-input) - per explicit request ("provide a
+            // font size slider for all setting number displays"). Per-tab
+            // like every other font size above, not desktop-only.
+            valueFontSize: 10,
+            // Also drives the "+ Add Group" button's own background
+            // (styled like the Desktop/Mobile/Landscape tab buttons
+            // otherwise - see .dev-add-group-btn) so both stay visually
+            // tied to the same color - per explicit request.
+            groupLabelBgColor: '#134e4a',
         };
         // Mobile deliberately does NOT inherit the desktop tuning above via
         // this clone - a "set defaults" dump had Mobile's own tab showing
@@ -5267,6 +5316,8 @@
             tabTextLetterSpacing: '--dev-tab-text-letter-spacing-px',
             groupTextLetterSpacing: '--dev-group-text-letter-spacing-px',
             settingsTextLetterSpacing: '--dev-settings-text-letter-spacing-px',
+            valueFontSize: '--dev-value-font-size-px',
+            groupLabelBgColor: '--dev-group-label-bg-color',
         };
 
         // Opacity + all 4 colors are desktop-only now - per explicit
@@ -5278,7 +5329,7 @@
         // desktop-only bucket - cosmetic/non-spatial settings, same
         // category as the colors/opacity already here, not something that
         // needs its own Mobile-tab copy.
-        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing'];
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor'];
         // The 4 capitalize toggles apply as CSS classes (text-transform has
         // no "conditional on a custom property" form), not as raw CSS
         // variable values - kept out of DEV_PANEL_STYLE_VAR_MAP for that
@@ -8177,6 +8228,15 @@
                     // shape as the slider sync loop just above, see
                     // syncColorPickersFromState()'s own comment.
                     syncColorPickersFromState();
+                    // Same gap, for the Dev Panel's OWN style controls
+                    // (its font-size/color/opacity/caps sliders and
+                    // pickers) - these live in devPanelStyle/mobile.../
+                    // landscape... (a separate object system from
+                    // cssVars/CSS_VAR_SLIDER_MAP), so neither sync above
+                    // ever touches them - see syncDevPanelStyleControlsFromState()'s
+                    // own comment for the full account (found while
+                    // porting the Named Setting States feature).
+                    syncDevPanelStyleControlsFromState();
                     // Same gap, for the "Scale With Browser" checkboxes -
                     // the CSS var they drive already applies correctly via
                     // applyActiveVars() regardless (the actual font-size
@@ -8237,6 +8297,122 @@
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
+        }
+
+        // Named Setting States (Save/Use/Delete/Set as Default) - multiple
+        // named, full-panel-state snapshots to switch between without
+        // losing the actual synced settings - per direct request ("I want
+        // to try different UI settings but dont want to overwrite old
+        // settings... Refer to Hando project for this Save Use Delete Set
+        // Default functionality"). Generalizes Hando's own buildListPickerRow()
+        // (Save/Use/Rename/Delete for ONE named-item control, e.g. its
+        // Camera/Pose presets - see its own devPanel.js) up to the WHOLE
+        // panel's state instead - "different setting states" (plural,
+        // whole states), not a per-control preset list. Reuses this
+        // file's OWN existing settings shape/plumbing directly (the exact
+        // object copySettings()/saveSettings() already build, and
+        // applyLoadedSettings()) rather than a parallel capture system -
+        // ported from .claude/TEMPLATE_DEV_PANEL.html's own [JS-13b],
+        // adapted to call this project's real save pipeline (git-sync-or-
+        // localStorage, CLAUDE.md Section 12l) for "Set as Default"
+        // instead of the template's plain-localStorage-only version.
+        // Local-only (localStorage) regardless of whether the real Save/
+        // Sync pipeline is git-backed - these are draft/trial states, not
+        // meant to sync across devices themselves; only "Set as Default"
+        // ever reaches the git-tracked log, via the normal saveSettings().
+        //
+        // Save: prompts for a name, snapshots the current settings under
+        // it - asks before overwriting an existing name (the same fix
+        // Hando's own picker needed after a real duplicate-name bug, see
+        // its own comment: saving under a name that already existed used
+        // to silently create a 2nd, separate item instead of updating it).
+        // Use: applies the selected saved state to the live game/panel
+        // WITHOUT touching whatever Sync/Reset would restore - a
+        // reversible "try it", exactly the ask. Delete: removes the
+        // selected saved state only. Set as Default: applies the selected
+        // state, THEN runs it straight through saveSettings() - THAT's
+        // what actually replaces what Reset/a fresh load restores; Use
+        // alone never does.
+        const CLICKO_SAVED_STATES_KEY = 'clickoSavedDevPanelStates';
+        function getSavedDevPanelStates() {
+            try {
+                const raw = localStorage.getItem(CLICKO_SAVED_STATES_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) { return {}; }
+        }
+        function setSavedDevPanelStates(states) {
+            // Silently no-ops on a storage failure (full/unavailable) -
+            // same tolerance as saveSettings()'s own file:// fallback.
+            try { localStorage.setItem(CLICKO_SAVED_STATES_KEY, JSON.stringify(states)); } catch (e) { /* ignore */ }
+        }
+        function renderSavedDevPanelStatesList() {
+            const select = document.getElementById('devSavedStatesSelect');
+            if (!select) return;
+            const states = getSavedDevPanelStates();
+            const prevValue = select.value;
+            select.innerHTML = '';
+            Object.keys(states).forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+            if (states[prevValue]) select.value = prevValue;
+        }
+        // Same settings shape copySettings()/saveSettings() build - kept
+        // as its own (3rd) copy of that object literal rather than
+        // factored out, consistent with how this file already duplicates
+        // it between those 2 existing functions.
+        function captureCurrentSettingsSnapshot() {
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+        }
+        function saveNamedDevPanelState() {
+            const name = prompt('Save current settings as:');
+            if (!name) return;
+            const states = getSavedDevPanelStates();
+            if (states[name] && !confirm('"' + name + '" already exists. Overwrite it?')) return;
+            states[name] = JSON.parse(JSON.stringify(captureCurrentSettingsSnapshot()));
+            setSavedDevPanelStates(states);
+            renderSavedDevPanelStatesList();
+            const select = document.getElementById('devSavedStatesSelect');
+            if (select) select.value = name;
+        }
+        // Shared by Use and Set as Default - applies a saved snapshot to
+        // the live game/panel via this file's own real apply function,
+        // then re-pushes the actual visual effect (applyLoadedSettings()
+        // itself only updates state objects + DOM control values, same
+        // as the async settings-load path this mirrors).
+        function applyNamedDevPanelState(state) {
+            applyLoadedSettings(state);
+            applyActiveVars();
+            applyExtrusionStyles();
+        }
+        function useNamedDevPanelState() {
+            const select = document.getElementById('devSavedStatesSelect');
+            const name = select && select.value;
+            if (!name) return;
+            const states = getSavedDevPanelStates();
+            if (states[name]) applyNamedDevPanelState(states[name]);
+        }
+        function deleteNamedDevPanelState() {
+            const select = document.getElementById('devSavedStatesSelect');
+            const name = select && select.value;
+            if (!name) return;
+            if (!confirm('Delete "' + name + '"?')) return;
+            const states = getSavedDevPanelStates();
+            delete states[name];
+            setSavedDevPanelStates(states);
+            renderSavedDevPanelStatesList();
+        }
+        function setNamedDevPanelStateAsDefault() {
+            const select = document.getElementById('devSavedStatesSelect');
+            const name = select && select.value;
+            if (!name) return;
+            const states = getSavedDevPanelStates();
+            const state = states[name];
+            if (!state) return;
+            applyNamedDevPanelState(state);
+            saveSettings();
         }
 
         // Update font functions - mobile counterparts write into mobileFontVars
@@ -9844,11 +10020,13 @@
             { tab: 'desktop', id: 'colorDevPanelNonTitleText', type: 'color', label: 'Settings Title Text Color:', value: '#ffffff' },
             { tab: 'desktop', id: 'colorDevPanelAccent', type: 'color', label: 'Accent Color (Buttons/UI):', value: '#00ff00' },
             { tab: 'desktop', id: 'colorDevPanelSliderColor', type: 'color', label: 'Slider Color:', value: '#3b82f6' },
+            { tab: 'desktop', id: 'colorDevPanelGroupLabelBg', type: 'color', label: 'Group Label Background Color:', value: '#134e4a' },
             { tab: 'desktop', id: 'sliderDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
             { tab: 'desktop', id: 'sliderDevButtonTextLetterSpacing', type: 'slider', label: 'Button Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevTabTextLetterSpacing', type: 'slider', label: 'Tab Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevGroupTextLetterSpacing', type: 'slider', label: 'Group Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevSettingsTextLetterSpacing', type: 'slider', label: 'Settings Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
+            { tab: 'desktop', id: 'sliderDevValueFontSize', type: 'slider', label: 'Setting Number Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
             { tab: 'mobile', id: 'sliderMobileDevPanelTitleFontSize', type: 'slider', label: 'Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
             { tab: 'mobile', id: 'sliderMobileDevTabFontSize', type: 'slider', label: 'Tab Font Size (px):', min: 6, max: 30, step: 1, value: 12 },
             { tab: 'mobile', id: 'sliderMobileDevGroupTitleFontSize', type: 'slider', label: 'Group Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
@@ -9856,6 +10034,7 @@
             { tab: 'mobile', id: 'sliderMobileDevButtonTextBorder', type: 'slider', label: 'Button Text Border (px):', min: 0, max: 20, step: 1, value: 0 },
             { tab: 'mobile', id: 'sliderMobileDevScrollStrength', type: 'slider', label: 'Scroll Strength (x):', min: 0.2, max: 5, step: 0.1, value: 1 },
             { tab: 'mobile', id: 'sliderMobileDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
+            { tab: 'mobile', id: 'sliderMobileDevValueFontSize', type: 'slider', label: 'Setting Number Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
             { tab: 'landscape', id: 'sliderLandscapeDevPanelTitleFontSize', type: 'slider', label: 'Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
             { tab: 'landscape', id: 'sliderLandscapeDevTabFontSize', type: 'slider', label: 'Tab Font Size (px):', min: 6, max: 30, step: 1, value: 12 },
             { tab: 'landscape', id: 'sliderLandscapeDevGroupTitleFontSize', type: 'slider', label: 'Group Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
@@ -9863,6 +10042,7 @@
             { tab: 'landscape', id: 'sliderLandscapeDevButtonTextBorder', type: 'slider', label: 'Button Text Border (px):', min: 0, max: 20, step: 1, value: 0 },
             { tab: 'landscape', id: 'sliderLandscapeDevScrollStrength', type: 'slider', label: 'Scroll Strength (x):', min: 0.2, max: 5, step: 0.1, value: 1 },
             { tab: 'landscape', id: 'sliderLandscapeDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
+            { tab: 'landscape', id: 'sliderLandscapeDevValueFontSize', type: 'slider', label: 'Setting Number Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
         ];
         function renderDevPanelStyleControls() {
             DEVPANEL_STYLE_CONTROLS.forEach(ctrl => {
@@ -11452,6 +11632,82 @@
             });
         }
 
+        // Restores the Dev Panel's OWN style controls' DOM state (slider
+        // handle + its .dev-value readout, color swatch, font <select>,
+        // every checkbox) from devPanelStyle/mobileDevPanelStyle/
+        // landscapeDevPanelStyle - a real, pre-existing gap found while
+        // porting the Named Setting States feature (Save/Use/Delete/Set
+        // as Default) from the shared dev-panel template: these controls
+        // live in their own separate object system (not CSS_VAR_SLIDER_
+        // MAP/COLOR_VAR_MAP), so syncSlidersFromState()/
+        // syncColorPickersFromState() (which only cover those 2 maps)
+        // silently skip every one of them - confirmed live, same
+        // underlying pattern already flagged in this file's own comment
+        // a few lines above ("loadSettings() doesn't sync any control's
+        // displayed value from a restored setting - a pre-existing gap
+        // affecting every dev-panel control, not specific to this one"),
+        // just for THIS specific sub-system rather than every checkbox in
+        // general (a bigger, separately-scoped problem, not fixed here).
+        // Reset already silently had this bug; it only became visible
+        // once Named Setting States' "Use" made restoring saved state on
+        // demand (not just on page load) an actual user-facing action.
+        // Same id/key lists as setupDevPanelStyleControls()'s own wiring
+        // arrays, kept as an intentionally separate copy here rather than
+        // hoisting those (function-local) arrays out - lower-risk on this
+        // scale of file than refactoring an already-working function.
+        function syncDevPanelStyleControlsFromState() {
+            const sliderKeys = [
+                ['titleFontSize', 'sliderDevPanelTitleFontSize', 'sliderMobileDevPanelTitleFontSize', 'sliderLandscapeDevPanelTitleFontSize'],
+                ['tabFontSize', 'sliderDevTabFontSize', 'sliderMobileDevTabFontSize', 'sliderLandscapeDevTabFontSize'],
+                ['groupTitleFontSize', 'sliderDevGroupTitleFontSize', 'sliderMobileDevGroupTitleFontSize', 'sliderLandscapeDevGroupTitleFontSize'],
+                ['settingTitleFontSize', 'sliderDevSettingTitleFontSize', 'sliderMobileDevSettingTitleFontSize', 'sliderLandscapeDevSettingTitleFontSize'],
+                ['buttonTextBorder', 'sliderDevButtonTextBorder', 'sliderMobileDevButtonTextBorder', 'sliderLandscapeDevButtonTextBorder'],
+                ['scrollStrength', 'sliderDevScrollStrength', 'sliderMobileDevScrollStrength', 'sliderLandscapeDevScrollStrength'],
+                ['buttonHeight', 'sliderDevButtonHeight', 'sliderMobileDevButtonHeight', 'sliderLandscapeDevButtonHeight'],
+                ['buttonTextLetterSpacing', 'sliderDevButtonTextLetterSpacing', null, null],
+                ['tabTextLetterSpacing', 'sliderDevTabTextLetterSpacing', null, null],
+                ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
+                ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
+                ['valueFontSize', 'sliderDevValueFontSize', 'sliderMobileDevValueFontSize', 'sliderLandscapeDevValueFontSize'],
+            ];
+            sliderKeys.forEach(([key, deskId, mobId, landId]) => {
+                [[deskId, devPanelStyle], [mobId, mobileDevPanelStyle], [landId, landscapeDevPanelStyle]].forEach(([id, store]) => {
+                    if (!id) return;
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.value = store[key];
+                    const valEl = document.getElementById(id.replace('slider', 'value'));
+                    if (valEl && !valEl.querySelector('input')) valEl.textContent = el.value;
+                });
+            });
+            const opacityEl = document.getElementById('sliderDevPanelOpacity');
+            if (opacityEl) {
+                opacityEl.value = devPanelStyle.opacity;
+                const valEl = document.getElementById('valueDevPanelOpacity');
+                if (valEl && !valEl.querySelector('input')) valEl.textContent = opacityEl.value;
+            }
+            const colorKeys = [
+                ['bgColor', 'colorDevPanelBg'], ['titleTextColor', 'colorDevPanelTitleText'], ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
+                ['accentColor', 'colorDevPanelAccent'], ['sliderColor', 'colorDevPanelSliderColor'], ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
+            ];
+            colorKeys.forEach(([key, id]) => {
+                const el = document.getElementById(id);
+                if (el) el.value = devPanelStyle[key];
+            });
+            const fontEl = document.getElementById('selectDevPanelFontFamily');
+            if (fontEl) fontEl.value = devPanelStyle.fontFamily;
+            const capsCheckboxKeys = [
+                ['capsButtonText', 'checkboxDevCapsButtonText'], ['capsTabText', 'checkboxDevCapsTabText'],
+                ['capsGroupNames', 'checkboxDevCapsGroupNames'], ['capsSettingsText', 'checkboxDevCapsSettingsText'],
+            ];
+            capsCheckboxKeys.forEach(([key, id]) => {
+                const el = document.getElementById(id);
+                if (el) el.checked = !!devPanelStyle[key];
+            });
+            const textEditEl = document.getElementById('checkboxTextEditMode');
+            if (textEditEl) textEditEl.checked = textEditModeEnabled;
+        }
+
         // Startup validation: every generic slider/color config array entry
         // must resolve to a real key in whichever map actually drives it
         // (CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP for sliders, COLOR_VAR_
@@ -12075,6 +12331,10 @@
             handle.addEventListener('lostpointercapture', end);
         }
 
+        // Named Setting States - static/eager markup (same as Copy/Sync/
+        // Reset above it), not gated behind ensureDevPanelBuilt()'s lazy
+        // build, so its own list needs populating here too.
+        renderSavedDevPanelStatesList();
         setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeTop'), null, 'top');
         setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeBottom'), null, 'bottom');
         setupPanelResizeHandle(devPanel, document.getElementById('devPanelResizeLeft'), 'left', null);
@@ -13605,6 +13865,7 @@
                 ['tabTextLetterSpacing', 'sliderDevTabTextLetterSpacing', null, null],
                 ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
                 ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
+                ['valueFontSize', 'sliderDevValueFontSize', 'sliderMobileDevValueFontSize', 'sliderLandscapeDevValueFontSize'],
             ];
             sliderKeys.forEach(([key, deskId, mobId, landId]) => {
                 const deskEl = document.getElementById(deskId);
@@ -13644,6 +13905,7 @@
                 ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
                 ['accentColor', 'colorDevPanelAccent'],
                 ['sliderColor', 'colorDevPanelSliderColor'],
+                ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
             ];
             colorKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
@@ -13813,6 +14075,7 @@
             // fetch resolves and needs a follow-up re-sync once it does).
             syncSlidersFromState();
             syncColorPickersFromState();
+            syncDevPanelStyleControlsFromState();
             validateDevControlMappings();
             assertDevControlsRendered();
             setupTextAlignSelects();
@@ -13997,6 +14260,7 @@
                 if (devPanelBuilt) {
                     syncSlidersFromState();
                     syncColorPickersFromState();
+                    syncDevPanelStyleControlsFromState();
                     applyDevTextOverrides();
                 }
                 // Apply a restored --flip-button-svg even though the checkbox
