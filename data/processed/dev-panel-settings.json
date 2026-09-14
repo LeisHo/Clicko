@@ -1123,7 +1123,7 @@
     "desktop:New Group (9)": false,
     "desktop:New Group (10)": true,
     "desktop:New Group (11)": true,
-    "desktop:New Group (8)": false,
+    "desktop:New Group (8)": true,
     "desktop:New Group (15)": true,
     "desktop:New Group (14)": true,
     "desktop:New Group (5)": true,
@@ -1148,12 +1148,15 @@
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
     "mobile:Dev Panel": false,
-    "mobile:New Group (9)": true,
+    "mobile:New Group (13)": true,
+    "mobile:New Group (12)": true,
+    "mobile:New Group (9)": false,
     "mobile:New Group (10)": true,
     "mobile:New Group (11)": true,
     "mobile:New Group (8)": true,
     "mobile:New Group (5)": true,
     "mobile:Main Button": false,
+    "mobile:New Group (3)": false,
     "mobile:Shadow": true,
     "mobile:Click Burst": true,
     "mobile:New Group (6)": false,
@@ -1164,27 +1167,35 @@
     "mobile:Target Count Display": true,
     "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": false,
-    "mobile:New Group (3)": false,
     "mobile:New Group (7)": true,
     "mobile:Win/Lose Text": true,
     "mobile:New Group (2)": true,
     "mobile:New Group": true,
     "mobile:Rotation Animation": true,
-    "landscape:High Score": false,
-    "landscape:Dev Panel": true,
+    "landscape:Dev Panel": false,
+    "landscape:New Group (13)": true,
+    "landscape:New Group (12)": true,
+    "landscape:New Group (9)": false,
+    "landscape:New Group (10)": true,
+    "landscape:New Group (11)": true,
+    "landscape:New Group (8)": true,
+    "landscape:New Group (5)": true,
     "landscape:Main Button": true,
     "landscape:Shadow": true,
     "landscape:Click Burst": true,
+    "landscape:New Group (6)": true,
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": false,
+    "landscape:High Score": false,
     "landscape:Start/Try Again Button": true,
-    "landscape:Win/Lose Text": true,
-    "landscape:New Group (2)": true,
-    "landscape:New Group": true,
-    "landscape:Rotation Animation": true,
     "landscape:Round Text": true,
     "landscape:Target Count Display": true,
     "landscape:Speed Display (max ms between taps)": true,
-    "landscape:Ms/Click Display": true
+    "landscape:Ms/Click Display": true,
+    "landscape:New Group (7)": false,
+    "landscape:Win/Lose Text": true,
+    "landscape:New Group (2)": true,
+    "landscape:New Group": true,
+    "landscape:Rotation Animation": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1637,40 +1648,51 @@
     "mobileTabContent": [
       {
         "key": "mobile:Dev Panel",
-        "rowKeys": [
-          "sliderMobileDevValueFontSize",
-          "sliderMobileDevButtonTextBorder"
-        ],
+        "rowKeys": [],
         "subgroups": [
           {
-            "key": "mobile:New Group (9)",
+            "key": "mobile:New Group (13)",
             "rowKeys": [
-              "sliderMobileDevScrollStrength",
+              "sliderMobileDevScrollStrength"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "mobile:New Group (12)",
+            "rowKeys": [
               "sliderMobileDevButtonHeight"
             ],
             "subgroups": []
           },
           {
-            "key": "mobile:New Group (10)",
-            "rowKeys": [
-              "sliderMobileDevPanelTitleFontSize",
-              "sliderMobileDevTabFontSize"
-            ],
-            "subgroups": []
-          },
-          {
-            "key": "mobile:New Group (11)",
-            "rowKeys": [
-              "sliderMobileDevGroupTitleFontSize"
-            ],
-            "subgroups": []
-          },
-          {
-            "key": "mobile:New Group (8)",
-            "rowKeys": [
-              "sliderMobileDevSettingTitleFontSize"
-            ],
-            "subgroups": []
+            "key": "mobile:New Group (9)",
+            "rowKeys": [],
+            "subgroups": [
+              {
+                "key": "mobile:New Group (10)",
+                "rowKeys": [
+                  "sliderMobileDevButtonTextBorder",
+                  "sliderMobileDevPanelTitleFontSize",
+                  "sliderMobileDevTabFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (11)",
+                "rowKeys": [
+                  "sliderMobileDevGroupTitleFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (8)",
+                "rowKeys": [
+                  "sliderMobileDevValueFontSize",
+                  "sliderMobileDevSettingTitleFontSize"
+                ],
+                "subgroups": []
+              }
+            ]
           }
         ]
       },
@@ -1692,6 +1714,11 @@
               "sliderMobileButtonX",
               "sliderMobileButtonY"
             ],
+            "subgroups": []
+          },
+          {
+            "key": "mobile:New Group (3)",
+            "rowKeys": [],
             "subgroups": []
           },
           {
@@ -1863,11 +1890,6 @@
         ]
       },
       {
-        "key": "mobile:New Group (3)",
-        "rowKeys": [],
-        "subgroups": []
-      },
-      {
         "key": "mobile:New Group (7)",
         "rowKeys": [],
         "subgroups": [
@@ -1938,254 +1960,308 @@
     ],
     "landscapeTabContent": [
       {
-        "key": "landscape:High Score",
-        "rowKeys": [
-          "checkboxLandscapeHighScoreScaleWithBrowser",
-          "selectLandscapeHighScoreTextAlign",
-          "selectLandscapeHighScoreTextValign",
-          "sliderLandscapeHighScoreFontSize",
-          "sliderLandscapeHighScoreFontSizeVw",
-          "sliderLandscapeHighScoreExtrusionDepth",
-          "sliderLandscapeHighScoreOverallBorderThickness",
-          "sliderLandscapeHighScoreLetterSpacing",
-          "sliderLandscapeHighScoreLineHeight",
-          "sliderLandscapeHighScoreX",
-          "sliderLandscapeHighScoreY"
-        ],
-        "subgroups": []
-      },
-      {
         "key": "landscape:Dev Panel",
-        "rowKeys": [
-          "sliderLandscapeDevValueFontSize",
-          "sliderLandscapeDevButtonTextBorder",
-          "sliderLandscapeDevScrollStrength",
-          "sliderLandscapeDevPanelTitleFontSize",
-          "sliderLandscapeDevTabFontSize",
-          "sliderLandscapeDevGroupTitleFontSize",
-          "sliderLandscapeDevSettingTitleFontSize",
-          "sliderLandscapeDevButtonHeight"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Main Button",
-        "rowKeys": [
-          "sliderLandscapeButtonDiameter",
-          "sliderLandscapeButtonMinDiameter",
-          "sliderLandscapeButtonPressMs",
-          "sliderLandscapeButtonHeight",
-          "sliderLandscapeButtonPressIntensity",
-          "sliderLandscapeButtonReleaseMs",
-          "sliderLandscapeButtonX",
-          "sliderLandscapeButtonY"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Shadow",
-        "rowKeys": [
-          "sliderLandscapeShadowX",
-          "sliderLandscapeShadowY",
-          "sliderLandscapeShadowBlur",
-          "sliderLandscapeShadowScale",
-          "sliderLandscapeShadowSkew",
-          "sliderLandscapeShadowElongationIntensity",
-          "sliderLandscapeShadowElongationAngle",
-          "sliderLandscapeShadowRotate"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Click Burst",
-        "rowKeys": [
-          "sliderLandscapeClickBurstSpeed",
-          "sliderLandscapeClickBurstScale",
-          "sliderLandscapeClickBurstShadowFinalScale",
-          "sliderLandscapeClickBurstDistance",
-          "sliderLandscapeClickBurstHeight",
-          "sliderLandscapeClickBurstCurveAmount",
-          "sliderLandscapeClickBurstCountMin",
-          "sliderLandscapeClickBurstCountMax",
-          "inputLandscapeClickBurstHideShadowIndexA",
-          "inputLandscapeClickBurstHideShadowIndexB",
-          "sliderLandscapeClickBurstCurveOffset",
-          "inputLandscapeClickBurstRightFloorDeg",
-          "inputLandscapeClickBurstRightCeilingDeg",
-          "inputLandscapeClickBurstLeftFloorDeg",
-          "inputLandscapeClickBurstLeftCeilingDeg"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)",
         "rowKeys": [],
-        "subgroups": []
+        "subgroups": [
+          {
+            "key": "landscape:New Group (13)",
+            "rowKeys": [
+              "sliderLandscapeDevScrollStrength"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:New Group (12)",
+            "rowKeys": [
+              "sliderLandscapeDevButtonHeight"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:New Group (9)",
+            "rowKeys": [],
+            "subgroups": [
+              {
+                "key": "landscape:New Group (10)",
+                "rowKeys": [
+                  "sliderLandscapeDevButtonTextBorder",
+                  "sliderLandscapeDevPanelTitleFontSize",
+                  "sliderLandscapeDevTabFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "landscape:New Group (11)",
+                "rowKeys": [
+                  "sliderLandscapeDevGroupTitleFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "landscape:New Group (8)",
+                "rowKeys": [
+                  "sliderLandscapeDevValueFontSize",
+                  "sliderLandscapeDevSettingTitleFontSize"
+                ],
+                "subgroups": []
+              }
+            ]
+          }
+        ]
       },
       {
-        "key": "landscape:Start/Try Again Button",
-        "rowKeys": [
-          "checkboxLandscapeTextScaleWithBrowser",
-          "sliderLandscapeTextFontSizeVw",
-          "sliderLandscapeTextFontSize",
-          "sliderLandscapeRoundExtrusionDepth",
-          "sliderLandscapeRoundOverallBorderThickness",
-          "sliderLandscapeTextLetterSpacing",
-          "sliderLandscapeTextLineHeight",
-          "selectLandscapeStartTextAlign",
-          "selectLandscapeStartTextValign",
-          "sliderLandscapeTextX",
-          "sliderLandscapeTextY"
-        ],
-        "subgroups": []
+        "key": "landscape:New Group (5)",
+        "rowKeys": [],
+        "subgroups": [
+          {
+            "key": "landscape:Main Button",
+            "rowKeys": [
+              "sliderLandscapeButtonDiameter",
+              "sliderLandscapeButtonMinDiameter",
+              "sliderLandscapeButtonPressMs",
+              "sliderLandscapeButtonHeight",
+              "sliderLandscapeButtonPressIntensity",
+              "sliderLandscapeButtonReleaseMs",
+              "sliderLandscapeButtonX",
+              "sliderLandscapeButtonY"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Shadow",
+            "rowKeys": [
+              "sliderLandscapeShadowX",
+              "sliderLandscapeShadowY",
+              "sliderLandscapeShadowBlur",
+              "sliderLandscapeShadowScale",
+              "sliderLandscapeShadowSkew",
+              "sliderLandscapeShadowElongationIntensity",
+              "sliderLandscapeShadowElongationAngle",
+              "sliderLandscapeShadowRotate"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Click Burst",
+            "rowKeys": [
+              "sliderLandscapeClickBurstSpeed",
+              "sliderLandscapeClickBurstScale",
+              "sliderLandscapeClickBurstShadowFinalScale",
+              "sliderLandscapeClickBurstDistance",
+              "sliderLandscapeClickBurstHeight",
+              "sliderLandscapeClickBurstCurveAmount",
+              "sliderLandscapeClickBurstCountMin",
+              "sliderLandscapeClickBurstCountMax",
+              "inputLandscapeClickBurstHideShadowIndexA",
+              "inputLandscapeClickBurstHideShadowIndexB",
+              "sliderLandscapeClickBurstCurveOffset",
+              "inputLandscapeClickBurstRightFloorDeg",
+              "inputLandscapeClickBurstRightCeilingDeg",
+              "inputLandscapeClickBurstLeftFloorDeg",
+              "inputLandscapeClickBurstLeftCeilingDeg"
+            ],
+            "subgroups": []
+          }
+        ]
       },
       {
-        "key": "landscape:Win/Lose Text",
-        "rowKeys": [
-          "sliderLandscapeResultWinLetterSpacing",
-          "sliderLandscapeResultExtrusionAngle",
-          "checkboxLandscapeResultWinScaleWithBrowser",
-          "sliderLandscapeResultWinFontSizeVw",
-          "sliderLandscapeResultWinFontSize",
-          "sliderLandscapeResultExtrusionDepth",
-          "sliderLandscapeResultOverallBorderThickness",
-          "sliderLandscapeResultWinX",
-          "sliderLandscapeResultWinY",
-          "sliderLandscapeResultLineHeight",
-          "selectLandscapeResultTextAlign",
-          "selectLandscapeResultTextValign"
-        ],
-        "subgroups": []
+        "key": "landscape:New Group (6)",
+        "rowKeys": [],
+        "subgroups": [
+          {
+            "key": "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)",
+            "rowKeys": [],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:High Score",
+            "rowKeys": [
+              "checkboxLandscapeHighScoreScaleWithBrowser",
+              "selectLandscapeHighScoreTextAlign",
+              "selectLandscapeHighScoreTextValign",
+              "sliderLandscapeHighScoreFontSize",
+              "sliderLandscapeHighScoreFontSizeVw",
+              "sliderLandscapeHighScoreExtrusionDepth",
+              "sliderLandscapeHighScoreOverallBorderThickness",
+              "sliderLandscapeHighScoreLetterSpacing",
+              "sliderLandscapeHighScoreLineHeight",
+              "sliderLandscapeHighScoreX",
+              "sliderLandscapeHighScoreY"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Start/Try Again Button",
+            "rowKeys": [
+              "checkboxLandscapeTextScaleWithBrowser",
+              "sliderLandscapeTextFontSizeVw",
+              "sliderLandscapeTextFontSize",
+              "sliderLandscapeRoundExtrusionDepth",
+              "sliderLandscapeRoundOverallBorderThickness",
+              "sliderLandscapeTextLetterSpacing",
+              "sliderLandscapeTextLineHeight",
+              "selectLandscapeStartTextAlign",
+              "selectLandscapeStartTextValign",
+              "sliderLandscapeTextX",
+              "sliderLandscapeTextY"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Round Text",
+            "rowKeys": [
+              "sliderLandscapeRoundNumberXOffset",
+              "checkboxLandscapeRoundScaleWithBrowser",
+              "sliderLandscapeRoundFontSizeVw",
+              "sliderLandscapeRoundFontSize",
+              "sliderLandscapeRoundDockExtrusionDepth",
+              "sliderLandscapeRoundDockOverallBorderThickness",
+              "sliderLandscapeRoundLetterSpacing",
+              "sliderLandscapeRoundLineHeight",
+              "sliderLandscapeRoundDockX",
+              "sliderLandscapeRoundDockY",
+              "selectLandscapeRoundTextAlign",
+              "selectLandscapeRoundTextValign"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Target Count Display",
+            "rowKeys": [
+              "checkboxLandscapeTargetScaleWithBrowser",
+              "sliderLandscapeTargetPrefixFontSizeVw",
+              "sliderLandscapeTargetPrefixFontSize",
+              "sliderLandscapeTargetPrefixExtrusionDepth",
+              "sliderLandscapeTargetPrefixOverallBorderThickness",
+              "sliderLandscapeTargetPrefixLetterSpacing",
+              "sliderLandscapeTargetPrefixXOffset",
+              "sliderLandscapeTargetPrefixYOffset",
+              "sliderLandscapeTargetNumberFontSizeVw",
+              "sliderLandscapeTargetNumberFontSize",
+              "sliderLandscapeTargetNumberExtrusionDepth",
+              "sliderLandscapeTargetNumberOverallBorderThickness",
+              "sliderLandscapeTargetNumberLetterSpacing",
+              "sliderLandscapeTargetNumberXOffset",
+              "sliderLandscapeTargetNumberYOffset",
+              "sliderLandscapeTargetSuffixFontSizeVw",
+              "sliderLandscapeTargetSuffixExtrusionDepth",
+              "sliderLandscapeTargetSuffixOverallBorderThickness",
+              "sliderLandscapeTargetSuffixLetterSpacing",
+              "sliderLandscapeTargetSuffixFontSize",
+              "sliderLandscapeTargetSuffixXOffset",
+              "sliderLandscapeTargetSuffixYOffset",
+              "sliderLandscapeTargetLineHeight",
+              "selectLandscapeTargetTextAlign",
+              "selectLandscapeTargetTextValign"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Speed Display (max ms between taps)",
+            "rowKeys": [
+              "sliderLandscapeSpeedNumberXOffset",
+              "checkboxLandscapeSpeedScaleWithBrowser",
+              "sliderLandscapeSpeedFontSizeVw",
+              "sliderLandscapeSpeedFontSize",
+              "sliderLandscapeSpeedExtrusionDepth",
+              "sliderLandscapeSpeedOverallBorderThickness",
+              "sliderLandscapeSpeedLetterSpacing",
+              "sliderLandscapeSpeedLineHeight",
+              "sliderLandscapeSpeedX",
+              "sliderLandscapeSpeedY",
+              "selectLandscapeSpeedTextAlign",
+              "selectLandscapeSpeedTextValign"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Ms/Click Display",
+            "rowKeys": [
+              "sliderLandscapeMsPerClickLine2Gap",
+              "sliderLandscapeMsPerClickNumberXOffset",
+              "checkboxLandscapeMsPerClickScaleWithBrowser",
+              "sliderLandscapeMsPerClickFontSizeVw",
+              "sliderLandscapeMsPerClickFontSize",
+              "sliderLandscapeMsPerClickExtrusionDepth",
+              "sliderLandscapeMsPerClickOverallBorderThickness",
+              "sliderLandscapeMsPerClickLetterSpacing",
+              "sliderLandscapeMsPerClickLineHeight",
+              "sliderLandscapeMsPerClickX",
+              "sliderLandscapeMsPerClickY",
+              "selectLandscapeMsPerClickTextAlign",
+              "selectLandscapeMsPerClickTextValign"
+            ],
+            "subgroups": []
+          }
+        ]
       },
       {
-        "key": "landscape:New Group (2)",
-        "rowKeys": [
-          "checkboxLandscapeResultLoseScaleWithBrowser",
-          "sliderLandscapeResultLoseFontSizeVw",
-          "sliderLandscapeResultLoseFontSize",
-          "sliderLandscapeResultLoseX",
-          "sliderLandscapeResultLoseY",
-          "sliderLandscapeResultLoseLetterSpacing"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:New Group",
-        "rowKeys": [
-          "selectLandscapeTryAgainTextValign",
-          "selectLandscapeTryAgainTextAlign",
-          "checkboxLandscapeTryAgainTextScaleWithBrowser",
-          "sliderLandscapeTryAgainTextFontSize",
-          "sliderLandscapeTryAgainTextFontSizeVw",
-          "sliderLandscapeTryAgainExtrusionDepth",
-          "sliderLandscapeTryAgainOverallBorderThickness",
-          "sliderLandscapeTryAgainTextLetterSpacing",
-          "sliderLandscapeTryAgainTextLineHeight",
-          "sliderLandscapeTryAgainTextX",
-          "sliderLandscapeTryAgainTextY"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Rotation Animation",
-        "rowKeys": [
-          "selectLandscapeTryAgainQuestionMarkTextAlign",
-          "selectLandscapeTryAgainQuestionMarkTextValign",
-          "checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser",
-          "sliderLandscapeTryAgainQuestionMarkFontSizeVw",
-          "sliderLandscapeTryAgainQuestionMarkFontSize",
-          "sliderLandscapeTryAgainQuestionMarkExtrusionDepth",
-          "sliderLandscapeTryAgainQuestionMarkOverallBorderThickness",
-          "sliderLandscapeTryAgainQuestionMarkX",
-          "sliderLandscapeTryAgainQuestionMarkY"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Round Text",
-        "rowKeys": [
-          "sliderLandscapeRoundNumberXOffset",
-          "checkboxLandscapeRoundScaleWithBrowser",
-          "sliderLandscapeRoundFontSizeVw",
-          "sliderLandscapeRoundFontSize",
-          "sliderLandscapeRoundDockExtrusionDepth",
-          "sliderLandscapeRoundDockOverallBorderThickness",
-          "sliderLandscapeRoundLetterSpacing",
-          "sliderLandscapeRoundLineHeight",
-          "sliderLandscapeRoundDockX",
-          "sliderLandscapeRoundDockY",
-          "selectLandscapeRoundTextAlign",
-          "selectLandscapeRoundTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Target Count Display",
-        "rowKeys": [
-          "checkboxLandscapeTargetScaleWithBrowser",
-          "sliderLandscapeTargetPrefixFontSizeVw",
-          "sliderLandscapeTargetNumberFontSizeVw",
-          "sliderLandscapeTargetSuffixFontSizeVw",
-          "sliderLandscapeTargetPrefixExtrusionDepth",
-          "sliderLandscapeTargetPrefixOverallBorderThickness",
-          "sliderLandscapeTargetPrefixLetterSpacing",
-          "sliderLandscapeTargetNumberExtrusionDepth",
-          "sliderLandscapeTargetNumberOverallBorderThickness",
-          "sliderLandscapeTargetNumberLetterSpacing",
-          "sliderLandscapeTargetSuffixExtrusionDepth",
-          "sliderLandscapeTargetSuffixOverallBorderThickness",
-          "sliderLandscapeTargetSuffixLetterSpacing",
-          "sliderLandscapeTargetPrefixFontSize",
-          "sliderLandscapeTargetPrefixXOffset",
-          "sliderLandscapeTargetPrefixYOffset",
-          "sliderLandscapeTargetNumberFontSize",
-          "sliderLandscapeTargetNumberXOffset",
-          "sliderLandscapeTargetNumberYOffset",
-          "sliderLandscapeTargetSuffixFontSize",
-          "sliderLandscapeTargetSuffixXOffset",
-          "sliderLandscapeTargetSuffixYOffset",
-          "sliderLandscapeTargetLineHeight",
-          "selectLandscapeTargetTextAlign",
-          "selectLandscapeTargetTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Speed Display (max ms between taps)",
-        "rowKeys": [
-          "sliderLandscapeSpeedNumberXOffset",
-          "checkboxLandscapeSpeedScaleWithBrowser",
-          "sliderLandscapeSpeedFontSizeVw",
-          "sliderLandscapeSpeedFontSize",
-          "sliderLandscapeSpeedExtrusionDepth",
-          "sliderLandscapeSpeedOverallBorderThickness",
-          "sliderLandscapeSpeedLetterSpacing",
-          "sliderLandscapeSpeedLineHeight",
-          "sliderLandscapeSpeedX",
-          "sliderLandscapeSpeedY",
-          "selectLandscapeSpeedTextAlign",
-          "selectLandscapeSpeedTextValign"
-        ],
-        "subgroups": []
-      },
-      {
-        "key": "landscape:Ms/Click Display",
-        "rowKeys": [
-          "sliderLandscapeMsPerClickLine2Gap",
-          "sliderLandscapeMsPerClickNumberXOffset",
-          "checkboxLandscapeMsPerClickScaleWithBrowser",
-          "sliderLandscapeMsPerClickFontSizeVw",
-          "sliderLandscapeMsPerClickFontSize",
-          "sliderLandscapeMsPerClickExtrusionDepth",
-          "sliderLandscapeMsPerClickOverallBorderThickness",
-          "sliderLandscapeMsPerClickLetterSpacing",
-          "sliderLandscapeMsPerClickLineHeight",
-          "sliderLandscapeMsPerClickX",
-          "sliderLandscapeMsPerClickY",
-          "selectLandscapeMsPerClickTextAlign",
-          "selectLandscapeMsPerClickTextValign"
-        ],
-        "subgroups": []
+        "key": "landscape:New Group (7)",
+        "rowKeys": [],
+        "subgroups": [
+          {
+            "key": "landscape:Win/Lose Text",
+            "rowKeys": [
+              "sliderLandscapeResultWinLetterSpacing",
+              "sliderLandscapeResultExtrusionAngle",
+              "checkboxLandscapeResultWinScaleWithBrowser",
+              "sliderLandscapeResultWinFontSizeVw",
+              "sliderLandscapeResultWinFontSize",
+              "sliderLandscapeResultExtrusionDepth",
+              "sliderLandscapeResultOverallBorderThickness",
+              "sliderLandscapeResultWinX",
+              "sliderLandscapeResultWinY",
+              "sliderLandscapeResultLineHeight",
+              "selectLandscapeResultTextAlign",
+              "selectLandscapeResultTextValign"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:New Group (2)",
+            "rowKeys": [
+              "checkboxLandscapeResultLoseScaleWithBrowser",
+              "sliderLandscapeResultLoseFontSizeVw",
+              "sliderLandscapeResultLoseFontSize",
+              "sliderLandscapeResultLoseX",
+              "sliderLandscapeResultLoseY",
+              "sliderLandscapeResultLoseLetterSpacing"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:New Group",
+            "rowKeys": [
+              "selectLandscapeTryAgainTextValign",
+              "selectLandscapeTryAgainTextAlign",
+              "checkboxLandscapeTryAgainTextScaleWithBrowser",
+              "sliderLandscapeTryAgainTextFontSize",
+              "sliderLandscapeTryAgainTextFontSizeVw",
+              "sliderLandscapeTryAgainExtrusionDepth",
+              "sliderLandscapeTryAgainOverallBorderThickness",
+              "sliderLandscapeTryAgainTextLetterSpacing",
+              "sliderLandscapeTryAgainTextLineHeight",
+              "sliderLandscapeTryAgainTextX",
+              "sliderLandscapeTryAgainTextY"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "landscape:Rotation Animation",
+            "rowKeys": [
+              "selectLandscapeTryAgainQuestionMarkTextAlign",
+              "selectLandscapeTryAgainQuestionMarkTextValign",
+              "checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser",
+              "sliderLandscapeTryAgainQuestionMarkFontSizeVw",
+              "sliderLandscapeTryAgainQuestionMarkFontSize",
+              "sliderLandscapeTryAgainQuestionMarkExtrusionDepth",
+              "sliderLandscapeTryAgainQuestionMarkOverallBorderThickness",
+              "sliderLandscapeTryAgainQuestionMarkX",
+              "sliderLandscapeTryAgainQuestionMarkY"
+            ],
+            "subgroups": []
+          }
+        ]
       }
     ]
   },
@@ -2227,7 +2303,7 @@
     "mobile:Ms/Click Display": "Ms/Click TEXT",
     "checkboxShowTopDebugLines": null,
     "landscape:Main Button": "BUTTON",
-    "landscape:Click Burst": "CLICK",
+    "landscape:Click Burst": "CLICK SOUND FRAMES",
     "landscape:8-Bit Text Style (Start/Try Again/Win-Lose)": "8-BIT TEXT",
     "landscape:Start/Try Again Button": "START",
     "landscape:New Group": "TRY AGAIN",
@@ -2292,12 +2368,12 @@
     "sliderTargetPrefixFontSizeVw": "\"CLICK\" Font Size (vw):",
     "sliderTargetSuffixFontSizeVw": "\"X\" Font Size (vw):",
     "sliderMobileDevButtonTextBorder": "Dev Label Text Border (px):",
-    "sliderMobileDevScrollStrength": "Dev Panel Scroll (x):",
+    "sliderMobileDevScrollStrength": "Scroll Speed(x):",
     "sliderMobileDevPanelTitleFontSize": "Dev Labal Font Size (px):",
     "sliderMobileDevTabFontSize": "Dev Tab Font Size (px):",
     "sliderMobileDevGroupTitleFontSize": "Dev  Group Font Size (px):",
     "sliderMobileDevSettingTitleFontSize": "Dev Setting Font Size (px):",
-    "sliderMobileDevButtonHeight": "Dev  Panel Buttons Height (px):",
+    "sliderMobileDevButtonHeight": "Dev Button Height (px):",
     "mobile:Dev Panel": null,
     "sliderMobileButtonDiameter": null,
     "sliderMobileButtonMinDiameter": null,
@@ -2461,14 +2537,190 @@
     "desktop:New Group (10)": "Dev Panel Title",
     "desktop:New Group (11)": "Group Title",
     "desktop:New Group (8)": "Setting Title",
-    "mobile:New Group (9)": "Panel",
+    "mobile:New Group (9)": "TEXT",
     "mobile:New Group (10)": "Dev Panel Title",
     "mobile:New Group (11)": "Group Title",
     "mobile:New Group (8)": "Setting Title",
     "desktop:New Group (13)": "MECHANICS",
     "desktop:New Group (12)": "PANEL UI",
     "desktop:New Group (15)": "TABS",
-    "desktop:New Group (14)": "BUTTONS"
+    "desktop:New Group (14)": "BUTTONS",
+    "mobile:New Group (13)": "MECHANICS",
+    "mobile:New Group (12)": "PANEL UI",
+    "mobile:New Group (3)": "Base",
+    "sliderLandscapeDevScrollStrength": "Scroll Speed(x):",
+    "landscape:New Group (13)": "MECHANICS",
+    "sliderLandscapeDevButtonHeight": "Dev Button Height (px):",
+    "landscape:New Group (12)": "PANEL UI",
+    "sliderLandscapeDevButtonTextBorder": "Dev Label Text Border (px):",
+    "sliderLandscapeDevPanelTitleFontSize": "Dev Labal Font Size (px):",
+    "sliderLandscapeDevTabFontSize": "Dev Tab Font Size (px):",
+    "landscape:New Group (10)": "Dev Panel Title",
+    "sliderLandscapeDevGroupTitleFontSize": "Dev  Group Font Size (px):",
+    "landscape:New Group (11)": "Group Title",
+    "sliderLandscapeDevValueFontSize": null,
+    "sliderLandscapeDevSettingTitleFontSize": "Dev Setting Font Size (px):",
+    "landscape:New Group (8)": "Setting Title",
+    "landscape:New Group (9)": "TEXT",
+    "landscape:Dev Panel": null,
+    "sliderLandscapeButtonDiameter": null,
+    "sliderLandscapeButtonMinDiameter": null,
+    "sliderLandscapeButtonPressMs": null,
+    "sliderLandscapeButtonHeight": null,
+    "sliderLandscapeButtonPressIntensity": null,
+    "sliderLandscapeButtonReleaseMs": null,
+    "sliderLandscapeButtonX": null,
+    "sliderLandscapeButtonY": null,
+    "sliderLandscapeShadowX": null,
+    "sliderLandscapeShadowY": null,
+    "sliderLandscapeShadowBlur": null,
+    "sliderLandscapeShadowScale": null,
+    "sliderLandscapeShadowSkew": null,
+    "sliderLandscapeShadowElongationIntensity": null,
+    "sliderLandscapeShadowElongationAngle": null,
+    "sliderLandscapeShadowRotate": null,
+    "landscape:Shadow": null,
+    "sliderLandscapeClickBurstSpeed": null,
+    "sliderLandscapeClickBurstScale": null,
+    "sliderLandscapeClickBurstShadowFinalScale": null,
+    "sliderLandscapeClickBurstDistance": null,
+    "sliderLandscapeClickBurstHeight": null,
+    "sliderLandscapeClickBurstCurveAmount": null,
+    "sliderLandscapeClickBurstCountMin": null,
+    "sliderLandscapeClickBurstCountMax": null,
+    "inputLandscapeClickBurstHideShadowIndexA": null,
+    "inputLandscapeClickBurstHideShadowIndexB": null,
+    "sliderLandscapeClickBurstCurveOffset": null,
+    "inputLandscapeClickBurstRightFloorDeg": null,
+    "inputLandscapeClickBurstRightCeilingDeg": null,
+    "inputLandscapeClickBurstLeftFloorDeg": null,
+    "inputLandscapeClickBurstLeftCeilingDeg": null,
+    "landscape:New Group (5)": "BUTTON/BASE/SHADOW/CLICK FRAMES",
+    "checkboxLandscapeHighScoreScaleWithBrowser": null,
+    "selectLandscapeHighScoreTextAlign": null,
+    "selectLandscapeHighScoreTextValign": null,
+    "sliderLandscapeHighScoreFontSize": null,
+    "sliderLandscapeHighScoreFontSizeVw": null,
+    "sliderLandscapeHighScoreExtrusionDepth": null,
+    "sliderLandscapeHighScoreOverallBorderThickness": null,
+    "sliderLandscapeHighScoreLetterSpacing": null,
+    "sliderLandscapeHighScoreLineHeight": null,
+    "sliderLandscapeHighScoreX": null,
+    "sliderLandscapeHighScoreY": null,
+    "landscape:High Score": null,
+    "checkboxLandscapeTextScaleWithBrowser": null,
+    "sliderLandscapeTextFontSizeVw": null,
+    "sliderLandscapeTextFontSize": "START Font Size (px):",
+    "sliderLandscapeRoundExtrusionDepth": "START Extrusion Depth (px):",
+    "sliderLandscapeRoundOverallBorderThickness": "START Border Thickness (px):",
+    "sliderLandscapeTextLetterSpacing": "START Letter Spacing (px):",
+    "sliderLandscapeTextLineHeight": "START Line Spacing:",
+    "selectLandscapeStartTextAlign": null,
+    "selectLandscapeStartTextValign": null,
+    "sliderLandscapeTextX": "START X Offset (vw):",
+    "sliderLandscapeTextY": "START  Y Offset (vh):",
+    "sliderLandscapeRoundNumberXOffset": null,
+    "checkboxLandscapeRoundScaleWithBrowser": null,
+    "sliderLandscapeRoundFontSizeVw": null,
+    "sliderLandscapeRoundFontSize": null,
+    "sliderLandscapeRoundDockExtrusionDepth": null,
+    "sliderLandscapeRoundDockOverallBorderThickness": null,
+    "sliderLandscapeRoundLetterSpacing": null,
+    "sliderLandscapeRoundLineHeight": null,
+    "sliderLandscapeRoundDockX": null,
+    "sliderLandscapeRoundDockY": null,
+    "selectLandscapeRoundTextAlign": null,
+    "selectLandscapeRoundTextValign": null,
+    "checkboxLandscapeTargetScaleWithBrowser": null,
+    "sliderLandscapeTargetPrefixFontSizeVw": "\"CLICK\" Font Size (vw):",
+    "sliderLandscapeTargetPrefixFontSize": "\"CLICK\" Font Size (px):",
+    "sliderLandscapeTargetPrefixExtrusionDepth": "\"CLICK\" Extrusion Depth (px):",
+    "sliderLandscapeTargetPrefixOverallBorderThickness": "\"CLICK\" Border Thickness (px):",
+    "sliderLandscapeTargetPrefixLetterSpacing": "\"CLICK\" Letter Spacing (px):",
+    "sliderLandscapeTargetPrefixXOffset": "\"CLICK\" X Offset (Px):",
+    "sliderLandscapeTargetPrefixYOffset": "\"CLICK\" Y Offset (Px):",
+    "sliderLandscapeTargetNumberFontSizeVw": null,
+    "sliderLandscapeTargetNumberFontSize": null,
+    "sliderLandscapeTargetNumberExtrusionDepth": null,
+    "sliderLandscapeTargetNumberOverallBorderThickness": null,
+    "sliderLandscapeTargetNumberLetterSpacing": null,
+    "sliderLandscapeTargetNumberXOffset": null,
+    "sliderLandscapeTargetNumberYOffset": null,
+    "sliderLandscapeTargetSuffixFontSizeVw": "\"X\" Font Size (vw):",
+    "sliderLandscapeTargetSuffixExtrusionDepth": "\"X\" Extrusion Depth (px):",
+    "sliderLandscapeTargetSuffixOverallBorderThickness": "\"X\" Border Thickness (px):",
+    "sliderLandscapeTargetSuffixLetterSpacing": "\"X\" Letter Spacing (px):",
+    "sliderLandscapeTargetSuffixFontSize": "\"X\" Font Size (px):",
+    "sliderLandscapeTargetSuffixXOffset": "\"X\" X Offset (Px):",
+    "sliderLandscapeTargetSuffixYOffset": "\"X\" Y Offset (Px):",
+    "sliderLandscapeTargetLineHeight": null,
+    "selectLandscapeTargetTextAlign": null,
+    "selectLandscapeTargetTextValign": null,
+    "sliderLandscapeSpeedNumberXOffset": null,
+    "checkboxLandscapeSpeedScaleWithBrowser": null,
+    "sliderLandscapeSpeedFontSizeVw": null,
+    "sliderLandscapeSpeedFontSize": null,
+    "sliderLandscapeSpeedExtrusionDepth": null,
+    "sliderLandscapeSpeedOverallBorderThickness": null,
+    "sliderLandscapeSpeedLetterSpacing": null,
+    "sliderLandscapeSpeedLineHeight": null,
+    "sliderLandscapeSpeedX": null,
+    "sliderLandscapeSpeedY": null,
+    "selectLandscapeSpeedTextAlign": null,
+    "selectLandscapeSpeedTextValign": null,
+    "sliderLandscapeMsPerClickLine2Gap": null,
+    "sliderLandscapeMsPerClickNumberXOffset": null,
+    "checkboxLandscapeMsPerClickScaleWithBrowser": null,
+    "sliderLandscapeMsPerClickFontSizeVw": null,
+    "sliderLandscapeMsPerClickFontSize": null,
+    "sliderLandscapeMsPerClickExtrusionDepth": null,
+    "sliderLandscapeMsPerClickOverallBorderThickness": null,
+    "sliderLandscapeMsPerClickLetterSpacing": null,
+    "sliderLandscapeMsPerClickLineHeight": null,
+    "sliderLandscapeMsPerClickX": null,
+    "sliderLandscapeMsPerClickY": null,
+    "selectLandscapeMsPerClickTextAlign": null,
+    "selectLandscapeMsPerClickTextValign": null,
+    "landscape:New Group (6)": "UI TEXT",
+    "sliderLandscapeResultWinLetterSpacing": null,
+    "sliderLandscapeResultExtrusionAngle": null,
+    "checkboxLandscapeResultWinScaleWithBrowser": null,
+    "sliderLandscapeResultWinFontSizeVw": null,
+    "sliderLandscapeResultWinFontSize": null,
+    "sliderLandscapeResultExtrusionDepth": null,
+    "sliderLandscapeResultOverallBorderThickness": null,
+    "sliderLandscapeResultWinX": null,
+    "sliderLandscapeResultWinY": null,
+    "sliderLandscapeResultLineHeight": null,
+    "selectLandscapeResultTextAlign": null,
+    "selectLandscapeResultTextValign": null,
+    "checkboxLandscapeResultLoseScaleWithBrowser": null,
+    "sliderLandscapeResultLoseFontSizeVw": null,
+    "sliderLandscapeResultLoseFontSize": null,
+    "sliderLandscapeResultLoseX": null,
+    "sliderLandscapeResultLoseY": null,
+    "sliderLandscapeResultLoseLetterSpacing": null,
+    "selectLandscapeTryAgainTextValign": null,
+    "selectLandscapeTryAgainTextAlign": null,
+    "checkboxLandscapeTryAgainTextScaleWithBrowser": null,
+    "sliderLandscapeTryAgainTextFontSize": null,
+    "sliderLandscapeTryAgainTextFontSizeVw": null,
+    "sliderLandscapeTryAgainExtrusionDepth": null,
+    "sliderLandscapeTryAgainOverallBorderThickness": null,
+    "sliderLandscapeTryAgainTextLetterSpacing": null,
+    "sliderLandscapeTryAgainTextLineHeight": null,
+    "sliderLandscapeTryAgainTextX": null,
+    "sliderLandscapeTryAgainTextY": null,
+    "selectLandscapeTryAgainQuestionMarkTextAlign": null,
+    "selectLandscapeTryAgainQuestionMarkTextValign": null,
+    "checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser": null,
+    "sliderLandscapeTryAgainQuestionMarkFontSizeVw": null,
+    "sliderLandscapeTryAgainQuestionMarkFontSize": null,
+    "sliderLandscapeTryAgainQuestionMarkExtrusionDepth": null,
+    "sliderLandscapeTryAgainQuestionMarkOverallBorderThickness": null,
+    "sliderLandscapeTryAgainQuestionMarkX": null,
+    "sliderLandscapeTryAgainQuestionMarkY": null,
+    "landscape:New Group (7)": "WIN/ LOSE"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
