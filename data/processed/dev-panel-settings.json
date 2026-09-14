@@ -206,9 +206,9 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 350,
-    "--dev-panel-left-px": 388,
-    "--dev-panel-top-px": 127,
+    "--dev-panel-width-px": 381,
+    "--dev-panel-left-px": 60,
+    "--dev-panel-top-px": 72,
     "--dev-panel-height-px": 491,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
@@ -849,8 +849,8 @@
     "bgColor": "#000000",
     "titleTextColor": "#ffffff",
     "nonTitleTextColor": "#ffffff",
-    "accentColor": "#5b85c8",
-    "sliderColor": "#5b85c8",
+    "accentColor": "#5cc9ff",
+    "sliderColor": "#ffffff",
     "fontFamily": "Verdana, Geneva, sans-serif",
     "capsButtonText": true,
     "capsTabText": true,
@@ -861,7 +861,9 @@
     "groupTextLetterSpacing": 0,
     "settingsTextLetterSpacing": 0,
     "buttonHeight": 21,
-    "bodyFontSize": 11
+    "bodyFontSize": 11,
+    "valueFontSize": 10,
+    "groupLabelBgColor": "#3b3b3b"
   },
   "mobileDevPanelStyle": {
     "titleFontSize": 11,
@@ -886,7 +888,9 @@
     "groupTextLetterSpacing": 0,
     "settingsTextLetterSpacing": 0,
     "buttonHeight": 24,
-    "bodyFontSize": 11
+    "bodyFontSize": 11,
+    "valueFontSize": 10,
+    "groupLabelBgColor": "#134e4a"
   },
   "landscapeDevPanelStyle": {
     "titleFontSize": 22,
@@ -911,7 +915,9 @@
     "groupTextLetterSpacing": 0,
     "settingsTextLetterSpacing": 0,
     "buttonHeight": 21,
-    "bodyFontSize": 11
+    "bodyFontSize": 11,
+    "valueFontSize": 10,
+    "groupLabelBgColor": "#134e4a"
   },
   "textOverrides": {
     "startLabel": null,
@@ -1111,13 +1117,17 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": true,
+    "desktop:Dev Panel": false,
+    "desktop:New Group (9)": true,
+    "desktop:New Group (10)": true,
+    "desktop:New Group (11)": true,
+    "desktop:New Group (8)": true,
     "desktop:New Group (5)": true,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
-    "desktop:New Group (6)": false,
+    "desktop:New Group (6)": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
     "desktop:High Score": true,
@@ -1172,30 +1182,57 @@
       {
         "key": "desktop:Dev Panel",
         "rowKeys": [
+          "colorDevPanelGroupLabelBg",
+          "sliderDevValueFontSize",
           "sliderDevButtonTextLetterSpacing",
           "sliderDevTabTextLetterSpacing",
           "sliderDevGroupTextLetterSpacing",
           "sliderDevSettingsTextLetterSpacing",
           "sliderDevButtonTextBorder",
-          "sliderDevScrollStrength",
-          "selectDevPanelFontFamily",
-          "colorDevPanelSliderColor",
           "checkboxDevCapsButtonText",
           "checkboxDevCapsTabText",
           "checkboxDevCapsGroupNames",
-          "checkboxDevCapsSettingsText",
-          "sliderDevPanelTitleFontSize",
-          "sliderDevTabFontSize",
-          "sliderDevGroupTitleFontSize",
-          "sliderDevSettingTitleFontSize",
-          "sliderDevPanelOpacity",
-          "colorDevPanelBg",
-          "colorDevPanelTitleText",
-          "colorDevPanelNonTitleText",
-          "colorDevPanelAccent",
-          "sliderDevButtonHeight"
+          "checkboxDevCapsSettingsText"
         ],
-        "subgroups": []
+        "subgroups": [
+          {
+            "key": "desktop:New Group (9)",
+            "rowKeys": [
+              "sliderDevScrollStrength",
+              "selectDevPanelFontFamily",
+              "colorDevPanelSliderColor",
+              "colorDevPanelBg",
+              "colorDevPanelAccent",
+              "sliderDevButtonHeight",
+              "sliderDevPanelOpacity"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "desktop:New Group (10)",
+            "rowKeys": [
+              "sliderDevPanelTitleFontSize",
+              "sliderDevTabFontSize",
+              "colorDevPanelTitleText"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "desktop:New Group (11)",
+            "rowKeys": [
+              "sliderDevGroupTitleFontSize"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "desktop:New Group (8)",
+            "rowKeys": [
+              "sliderDevSettingTitleFontSize",
+              "colorDevPanelNonTitleText"
+            ],
+            "subgroups": []
+          }
+        ]
       },
       {
         "key": "desktop:New Group (5)",
@@ -1568,6 +1605,7 @@
       {
         "key": "mobile:Dev Panel",
         "rowKeys": [
+          "sliderMobileDevValueFontSize",
           "sliderMobileDevButtonTextBorder",
           "sliderMobileDevScrollStrength",
           "sliderMobileDevPanelTitleFontSize",
@@ -1856,6 +1894,7 @@
       {
         "key": "landscape:Dev Panel",
         "rowKeys": [
+          "sliderLandscapeDevValueFontSize",
           "sliderLandscapeDevButtonTextBorder",
           "sliderLandscapeDevScrollStrength",
           "sliderLandscapeDevPanelTitleFontSize",
@@ -2353,10 +2392,19 @@
     "sliderMobileTryAgainQuestionMarkExtrusionDepth": null,
     "sliderMobileTryAgainQuestionMarkOverallBorderThickness": null,
     "sliderMobileTryAgainQuestionMarkX": null,
-    "sliderMobileTryAgainQuestionMarkY": null
+    "sliderMobileTryAgainQuestionMarkY": null,
+    "sliderMobileDevValueFontSize": null,
+    "desktop:New Group (9)": "Panel",
+    "desktop:New Group (10)": "Dev Panel Title",
+    "desktop:New Group (11)": "Group Title",
+    "desktop:New Group (8)": "Setting Title"
   },
   "devTextOverridesManual": [
-    "mobile:Speed Display (max ms between taps)"
+    "mobile:Speed Display (max ms between taps)",
+    "desktop:New Group (9)",
+    "desktop:New Group (10)",
+    "desktop:New Group (11)",
+    "desktop:New Group (8)"
   ],
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
