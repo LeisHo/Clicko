@@ -207,8 +207,8 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 381,
-    "--dev-panel-left-px": 594,
-    "--dev-panel-top-px": 6,
+    "--dev-panel-left-px": 185,
+    "--dev-panel-top-px": 7,
     "--dev-panel-height-px": 671,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
@@ -1168,7 +1168,7 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": false,
+    "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
     "desktop:New Group (9)": true,
@@ -1177,7 +1177,7 @@
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": false,
     "desktop:New Group (14)": false,
-    "desktop:New Group (16)": false,
+    "desktop:New Group (16)": true,
     "desktop:New Group (5)": true,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
@@ -1199,7 +1199,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": false,
+    "desktop:New Group (17)": true,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -1235,6 +1235,8 @@
     "landscape:New Group (10)": true,
     "landscape:New Group (11)": true,
     "landscape:New Group (8)": true,
+    "landscape:New Group (15)": false,
+    "landscape:New Group (14)": false,
     "landscape:New Group (5)": true,
     "landscape:Main Button": true,
     "landscape:Shadow": true,
@@ -2082,9 +2084,7 @@
           },
           {
             "key": "landscape:New Group (12)",
-            "rowKeys": [
-              "sliderLandscapeDevButtonHeight"
-            ],
+            "rowKeys": [],
             "subgroups": []
           },
           {
@@ -2094,9 +2094,8 @@
               {
                 "key": "landscape:New Group (10)",
                 "rowKeys": [
-                  "sliderLandscapeDevButtonTextBorder",
                   "sliderLandscapeDevPanelTitleFontSize",
-                  "sliderLandscapeDevTabFontSize"
+                  "sliderLandscapeDevButtonTextBorder"
                 ],
                 "subgroups": []
               },
@@ -2110,8 +2109,22 @@
               {
                 "key": "landscape:New Group (8)",
                 "rowKeys": [
-                  "sliderLandscapeDevValueFontSize",
-                  "sliderLandscapeDevSettingTitleFontSize"
+                  "sliderLandscapeDevSettingTitleFontSize",
+                  "sliderLandscapeDevValueFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "landscape:New Group (15)",
+                "rowKeys": [
+                  "sliderLandscapeDevTabFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "landscape:New Group (14)",
+                "rowKeys": [
+                  "sliderLandscapeDevButtonHeight"
                 ],
                 "subgroups": []
               }
@@ -2660,16 +2673,16 @@
     "mobile:New Group (3)": "Base",
     "sliderLandscapeDevScrollStrength": "Scroll Speed(x):",
     "landscape:New Group (13)": "MECHANICS",
-    "sliderLandscapeDevButtonHeight": "Dev Button Height (px):",
+    "sliderLandscapeDevButtonHeight": null,
     "landscape:New Group (12)": "PANEL UI",
-    "sliderLandscapeDevButtonTextBorder": "Dev Label Text Border (px):",
-    "sliderLandscapeDevPanelTitleFontSize": "Dev Labal Font Size (px):",
-    "sliderLandscapeDevTabFontSize": "Dev Tab Font Size (px):",
+    "sliderLandscapeDevButtonTextBorder": "Dev Panel Title Bottom Padding (px):",
+    "sliderLandscapeDevPanelTitleFontSize": "Dev Panel Title Font Size (px):",
+    "sliderLandscapeDevTabFontSize": null,
     "landscape:New Group (10)": "Dev Panel Title",
-    "sliderLandscapeDevGroupTitleFontSize": "Dev  Group Font Size (px):",
+    "sliderLandscapeDevGroupTitleFontSize": "Group Font Size (px):",
     "landscape:New Group (11)": "Group Title",
     "sliderLandscapeDevValueFontSize": null,
-    "sliderLandscapeDevSettingTitleFontSize": "Dev Setting Font Size (px):",
+    "sliderLandscapeDevSettingTitleFontSize": "Setting Font Size (px):",
     "landscape:New Group (8)": "Setting Title",
     "landscape:New Group (9)": "TEXT",
     "landscape:Dev Panel": null,
@@ -2842,7 +2855,9 @@
     "checkboxDevBoldTitle": "Bold Title ",
     "checkboxDevCapsTitleText": "Capitalize Title",
     "mobile:New Group (15)": "TABS",
-    "mobile:New Group (14)": "BUTTONS"
+    "mobile:New Group (14)": "BUTTONS",
+    "landscape:New Group (15)": "TABS",
+    "landscape:New Group (14)": "BUTTONS"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
