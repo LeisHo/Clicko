@@ -1177,6 +1177,7 @@
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": true,
     "desktop:New Group (14)": true,
+    "desktop:New Group (17)": true,
     "desktop:New Group (16)": true,
     "desktop:New Group (5)": true,
     "desktop:Main Button": false,
@@ -1199,8 +1200,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": true,
-    "mobile:Dev Panel": false,
+    "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
     "mobile:New Group (9)": true,
@@ -1209,7 +1209,8 @@
     "mobile:New Group (8)": true,
     "mobile:New Group (15)": true,
     "mobile:New Group (14)": true,
-    "mobile:New Group (16)": false,
+    "mobile:New Group (17)": true,
+    "mobile:New Group (16)": true,
     "mobile:New Group (5)": true,
     "mobile:Main Button": false,
     "mobile:New Group (3)": false,
@@ -1229,8 +1230,7 @@
     "mobile:New Group (2)": true,
     "mobile:New Group": true,
     "mobile:Rotation Animation": true,
-    "mobile:New Group (17)": true,
-    "landscape:Dev Panel": false,
+    "landscape:Dev Panel": true,
     "landscape:New Group (13)": true,
     "landscape:New Group (12)": true,
     "landscape:New Group (9)": true,
@@ -1239,7 +1239,8 @@
     "landscape:New Group (8)": true,
     "landscape:New Group (15)": true,
     "landscape:New Group (14)": true,
-    "landscape:New Group (16)": false,
+    "landscape:New Group (17)": true,
+    "landscape:New Group (16)": true,
     "landscape:New Group (5)": true,
     "landscape:Main Button": true,
     "landscape:Shadow": true,
@@ -1252,12 +1253,11 @@
     "landscape:Target Count Display": true,
     "landscape:Speed Display (max ms between taps)": true,
     "landscape:Ms/Click Display": true,
-    "landscape:New Group (7)": false,
+    "landscape:New Group (7)": true,
     "landscape:Win/Lose Text": true,
     "landscape:New Group (2)": true,
     "landscape:New Group": true,
-    "landscape:Rotation Animation": true,
-    "landscape:New Group (17)": false
+    "landscape:Rotation Animation": true
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1356,6 +1356,14 @@
             ]
           }
         ]
+      },
+      {
+        "key": "desktop:New Group (17)",
+        "rowKeys": [
+          "checkboxClickCounter",
+          "checkboxShowTopDebugLines"
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:New Group (16)",
@@ -1735,14 +1743,6 @@
           "sliderTargetCeilingIncrease"
         ],
         "subgroups": []
-      },
-      {
-        "key": "desktop:New Group (17)",
-        "rowKeys": [
-          "checkboxClickCounter",
-          "checkboxShowTopDebugLines"
-        ],
-        "subgroups": []
       }
     ],
     "mobileTabContent": [
@@ -1815,14 +1815,22 @@
         ]
       },
       {
+        "key": "mobile:New Group (17)",
+        "rowKeys": [
+          "checkboxMobileClickCounter",
+          "checkboxMobileShowTopDebugLines"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "mobile:New Group (16)",
         "rowKeys": [
-          "triggerMobileRoundNumberFlashBtn",
           "checkboxMobilePreviewStartText",
           "checkboxMobilePreviewRoundText",
           "checkboxMobilePreviewTryAgainText",
           "checkboxMobilePreviewWinText",
-          "checkboxMobilePreviewLoseText"
+          "checkboxMobilePreviewLoseText",
+          "triggerMobileRoundNumberFlashBtn"
         ],
         "subgroups": []
       },
@@ -2092,14 +2100,6 @@
             "subgroups": []
           }
         ]
-      },
-      {
-        "key": "mobile:New Group (17)",
-        "rowKeys": [
-          "checkboxMobileClickCounter",
-          "checkboxMobileShowTopDebugLines"
-        ],
-        "subgroups": []
       }
     ],
     "landscapeTabContent": [
@@ -2172,14 +2172,22 @@
         ]
       },
       {
+        "key": "landscape:New Group (17)",
+        "rowKeys": [
+          "checkboxLandscapeClickCounter",
+          "checkboxLandscapeShowTopDebugLines"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "landscape:New Group (16)",
         "rowKeys": [
-          "triggerLandscapeRoundNumberFlashBtn",
           "checkboxLandscapePreviewStartText",
           "checkboxLandscapePreviewRoundText",
           "checkboxLandscapePreviewTryAgainText",
           "checkboxLandscapePreviewWinText",
-          "checkboxLandscapePreviewLoseText"
+          "checkboxLandscapePreviewLoseText",
+          "triggerLandscapeRoundNumberFlashBtn"
         ],
         "subgroups": []
       },
@@ -2437,14 +2445,6 @@
             "subgroups": []
           }
         ]
-      },
-      {
-        "key": "landscape:New Group (17)",
-        "rowKeys": [
-          "checkboxLandscapeClickCounter",
-          "checkboxLandscapeShowTopDebugLines"
-        ],
-        "subgroups": []
       }
     ]
   },
