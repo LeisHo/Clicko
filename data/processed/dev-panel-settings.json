@@ -1168,10 +1168,10 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": false,
+    "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
-    "desktop:New Group (9)": false,
+    "desktop:New Group (9)": true,
     "desktop:New Group (10)": true,
     "desktop:New Group (11)": true,
     "desktop:New Group (8)": true,
