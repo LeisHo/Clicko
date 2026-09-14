@@ -2257,7 +2257,7 @@
 
         .dev-hide-btn {
             background: var(--dev-accent-color);
-            color: #000;
+            color: var(--dev-panel-button-text-color);
             border: none;
             border-radius: 3px;
             width: 22px;
@@ -2290,7 +2290,7 @@
 
         .dev-collapse-btn {
             background: var(--dev-accent-color);
-            color: #000;
+            color: var(--dev-panel-button-text-color);
             border: none;
             border-radius: 3px;
             width: 22px;
@@ -2340,7 +2340,7 @@
 
         .dev-tab-btn.active {
             background: var(--dev-accent-color);
-            color: #000;
+            color: var(--dev-panel-button-text-color);
         }
 
         /* "+ Add Group" - styled like the tab buttons above (border/font/
@@ -2420,7 +2420,7 @@
             right: 10px;
             z-index: 100000;
             background: var(--dev-accent-color);
-            color: #000;
+            color: var(--dev-panel-button-text-color);
             border: none;
             border-radius: 4px;
             padding: 6px 10px;
@@ -2463,7 +2463,7 @@
             justify-content: center;
             font-size: 10px;
             background: var(--dev-accent-color);
-            color: #000;
+            color: var(--dev-panel-button-text-color);
             border: none;
             border-radius: 3px;
             cursor: pointer;
@@ -2490,7 +2490,7 @@
             align-items: center;
             justify-content: center;
             background: var(--dev-accent-color);
-            color: #000;
+            color: var(--dev-panel-button-text-color);
             border: none;
             border-radius: 3px;
             cursor: pointer;
@@ -2508,10 +2508,12 @@
         }
 
         .dev-section-title {
-            /* Was a fixed cyan (#0ff) - now the Accent Color slider, per
-               explicit request ("Dev Panel Accent color should also apply
-               to Group text"). */
-            color: var(--dev-accent-color);
+            /* Was a fixed cyan (#0ff), then Accent Color (per "Dev Panel
+               Accent color should also apply to Group text") - now its
+               own independent Group Text Color control, decoupled back
+               out per direct *D* request. See groupTextColor's own
+               comment for the full history. */
+            color: var(--dev-panel-group-text-color);
             font-weight: bold;
             font-size: calc(var(--dev-group-title-font-size-px) * 1px);
             letter-spacing: calc(var(--dev-group-text-letter-spacing-px) * 1px);
@@ -5229,6 +5231,30 @@
             // slider's own native color (previously hardcoded blue, the
             // browser default). Per explicit request.
             sliderColor: '#3b82f6',
+            // Group (section) title text color, decoupled back out from
+            // Accent Color per direct *D* request ("Group Text Color") -
+            // Accent Color had absorbed this (see accentColor's own
+            // comment above, "previously a separate hardcoded cyan")
+            // after an earlier request to fold it in; this restores an
+            // independent control instead, same decompose-don't-bundle
+            // reasoning as every other single-purpose color here. Seeded
+            // to the REAL currently-saved accentColor value (read directly
+            // from the git-tracked settings log at the moment this field
+            // was added, #5cc9ff - NOT this object's own hardcoded
+            // accentColor literal above, which is itself long stale
+            // relative to the real saved value since loadSettings()
+            // always overrides it) so .dev-section-title's own color is
+            // visually unchanged on first load after this deploys, even
+            // though this brand-new field has no entry in the saved JSON
+            // yet to override it with.
+            groupTextColor: '#5cc9ff',
+            // Text color for every dev-panel button (COPY/RESET/SAVE,
+            // Named Setting States' SAVE/USE/DELETE/SET DEFAULT, Hide,
+            // Collapse, tabs, Trigger buttons) - per direct *D* request
+            // ("Dev Panel Button Text Color"). All of these previously
+            // hardcoded color:#000 directly in their own CSS rule; seeded
+            // to that same black so nothing changes visually until tuned.
+            buttonTextColor: '#000000',
             // Applies to every bit of text inside the panel - per explicit
             // request for a font selector. Defaults to Arial now that
             // Monospace was removed as an option per explicit request
@@ -5310,6 +5336,8 @@
             nonTitleTextColor: '--dev-panel-non-title-text-color',
             accentColor: '--dev-accent-color',
             sliderColor: '--dev-slider-color',
+            groupTextColor: '--dev-panel-group-text-color',
+            buttonTextColor: '--dev-panel-button-text-color',
             fontFamily: '--dev-panel-font-family',
             buttonHeight: '--dev-button-height-px',
             buttonTextLetterSpacing: '--dev-button-text-letter-spacing-px',
@@ -5329,7 +5357,7 @@
         // desktop-only bucket - cosmetic/non-spatial settings, same
         // category as the colors/opacity already here, not something that
         // needs its own Mobile-tab copy.
-        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor'];
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor'];
         // The 4 capitalize toggles apply as CSS classes (text-transform has
         // no "conditional on a custom property" form), not as raw CSS
         // variable values - kept out of DEV_PANEL_STYLE_VAR_MAP for that
@@ -8053,6 +8081,8 @@
                         nonTitleTextColor: ['colorDevPanelNonTitleText', null, null],
                         accentColor: ['colorDevPanelAccent', null, null],
                         sliderColor: ['colorDevPanelSliderColor', null, null],
+                        groupTextColor: ['colorDevPanelGroupText', null, null],
+                        buttonTextColor: ['colorDevPanelButtonText', null, null],
                         buttonHeight: ['sliderDevButtonHeight', 'sliderMobileDevButtonHeight', 'sliderLandscapeDevButtonHeight'],
                         buttonTextLetterSpacing: ['sliderDevButtonTextLetterSpacing', null, null],
                         tabTextLetterSpacing: ['sliderDevTabTextLetterSpacing', null, null],
@@ -10021,6 +10051,8 @@
             { tab: 'desktop', id: 'colorDevPanelAccent', type: 'color', label: 'Accent Color (Buttons/UI):', value: '#00ff00' },
             { tab: 'desktop', id: 'colorDevPanelSliderColor', type: 'color', label: 'Slider Color:', value: '#3b82f6' },
             { tab: 'desktop', id: 'colorDevPanelGroupLabelBg', type: 'color', label: 'Group Label Background Color:', value: '#134e4a' },
+            { tab: 'desktop', id: 'colorDevPanelGroupText', type: 'color', label: 'Group Text Color:', value: '#5cc9ff' },
+            { tab: 'desktop', id: 'colorDevPanelButtonText', type: 'color', label: 'Button Text Color:', value: '#000000' },
             { tab: 'desktop', id: 'sliderDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
             { tab: 'desktop', id: 'sliderDevButtonTextLetterSpacing', type: 'slider', label: 'Button Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevTabTextLetterSpacing', type: 'slider', label: 'Tab Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
@@ -11689,6 +11721,7 @@
             const colorKeys = [
                 ['bgColor', 'colorDevPanelBg'], ['titleTextColor', 'colorDevPanelTitleText'], ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
                 ['accentColor', 'colorDevPanelAccent'], ['sliderColor', 'colorDevPanelSliderColor'], ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
+                ['groupTextColor', 'colorDevPanelGroupText'], ['buttonTextColor', 'colorDevPanelButtonText'],
             ];
             colorKeys.forEach(([key, id]) => {
                 const el = document.getElementById(id);
@@ -13906,6 +13939,8 @@
                 ['accentColor', 'colorDevPanelAccent'],
                 ['sliderColor', 'colorDevPanelSliderColor'],
                 ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
+                ['groupTextColor', 'colorDevPanelGroupText'],
+                ['buttonTextColor', 'colorDevPanelButtonText'],
             ];
             colorKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
