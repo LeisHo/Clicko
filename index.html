@@ -2505,6 +2505,39 @@
 
         .dev-section {
             margin-bottom: 15px;
+            /* Positioning context for .dev-group-lock-icon below - a
+               plain layout no-op on its own (no visual change), needed so
+               the icon can sit absolutely in the title bar's own corner
+               without being a DOM child of .dev-section-title itself (see
+               .dev-group-lock-icon's own comment for why that matters). */
+            position: relative;
+        }
+
+        /* Lock icon - per direct request ("add a lock icon that i can
+           select. If selected, the settings within that group cannot be
+           reordered or moved into another group"). Deliberately a SIBLING
+           of .dev-section-title (added by JS, not a child of it) rather
+           than living inside the title bar's own text - .dev-section-title's
+           rename mechanism (openDevTextEditFor()/commit()) rewrites that
+           element's entire textContent on every edit, which would silently
+           delete any child element living inside it the first time that
+           group was ever renamed. Absolutely positioned over the title
+           bar's own top-right corner instead, relying on .dev-section's
+           position:relative above - visually part of the title bar
+           without structurally being inside it. */
+        .dev-group-lock-icon {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+            z-index: 1;
+            opacity: 0.75;
+        }
+        .dev-group-lock-icon:hover {
+            opacity: 1;
         }
 
         .dev-section-title {
@@ -7807,7 +7840,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -7874,7 +7907,7 @@
         // falling back to this same localStorage key when that's
         // unreachable.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -8238,6 +8271,17 @@
                     // saved before this field existed, same convention as
                     // every other settings.X-missing case in this function.
                     if (settings.devTextOverridesManual) devTextOverridesManual = new Set(settings.devTextOverridesManual);
+                    // Same fallback convention as devTextOverridesManual
+                    // just above. injectGroupLockIcons() is re-run right
+                    // after (not just left to whatever icons ensureDevPanelBuilt()
+                    // already created) since this load can genuinely
+                    // happen AFTER the panel was already built with
+                    // lockedGroups still empty (loadSettings() is async,
+                    // ensureDevPanelBuilt() is not) - without this, every
+                    // icon would show unlocked until manually reopened,
+                    // even for a group actually saved as locked.
+                    if (settings.lockedGroups) lockedGroups = new Set(settings.lockedGroups);
+                    if (devPanelBuilt) injectGroupLockIcons();
                     // Generic slider display-sync-after-load - every
                     // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP-driven slider's
                     // underlying value already restores correctly via the
@@ -8394,7 +8438,7 @@
         // factored out, consistent with how this file already duplicates
         // it between those 2 existing functions.
         function captureCurrentSettingsSnapshot() {
-            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
         function saveNamedDevPanelState() {
             const name = prompt('Save current settings as:');
@@ -8662,7 +8706,55 @@
             content.className = 'dev-section-content';
             section.appendChild(title);
             section.appendChild(content);
+            addGroupLockIcon(section);
             return section;
+        }
+
+        // Builds and appends one group's own lock-toggle icon - a SIBLING
+        // of .dev-section-title (see .dev-group-lock-icon's own CSS
+        // comment for why it can't live inside the title itself). Shared
+        // by createDevGroupElement() (a freshly-created group) and
+        // injectGroupLockIcons() (every group already in the DOM at
+        // panel-build time) - idempotent, so calling it twice on the same
+        // section (e.g. a custom group recreated by applySectionOrder()
+        // from saved data) just replaces the old icon rather than
+        // duplicating it.
+        function addGroupLockIcon(section) {
+            const existing = section.querySelector(':scope > .dev-group-lock-icon');
+            if (existing) existing.remove();
+            const titleEl = section.querySelector(':scope > .dev-section-title');
+            if (!titleEl) return;
+            const icon = document.createElement('span');
+            icon.className = 'dev-group-lock-icon';
+            const key = getSectionKey(titleEl);
+            icon.textContent = lockedGroups.has(key) ? '🔒' : '🔓';
+            icon.title = lockedGroups.has(key) ? 'Locked - click to unlock' : 'Unlocked - click to lock';
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const k = getSectionKey(titleEl);
+                if (lockedGroups.has(k)) { lockedGroups.delete(k); icon.textContent = '🔓'; icon.title = 'Unlocked - click to lock'; }
+                else { lockedGroups.add(k); icon.textContent = '🔒'; icon.title = 'Locked - click to unlock'; }
+            });
+            // pointerdown also needs stopping - setupDragReorder() listens
+            // at the document level, and the icon visually overlaps the
+            // title bar (the group-reorder drag HANDLE), so without this a
+            // click on the icon would also arm a group-drag underneath it.
+            icon.addEventListener('pointerdown', (e) => e.stopPropagation());
+            section.appendChild(icon);
+        }
+
+        // One-time pass over every group already in the DOM when the
+        // panel is first built (createDevGroupElement() covers any group
+        // added or recreated AFTER this point - see its own call to
+        // addGroupLockIcon()). Tab-wide per tab content root, at any
+        // nesting depth (plain querySelectorAll, not :scope-limited) -
+        // nested groups need the icon too.
+        function injectGroupLockIcons() {
+            ['desktopTabContent', 'mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (!tabEl) return;
+                tabEl.querySelectorAll('.dev-section').forEach(addGroupLockIcon);
+            });
         }
 
         function addDevGroup(tab) {
@@ -8754,6 +8846,18 @@
                 if (!handle) return;
                 const item = handle.closest(itemSelector);
                 if (!item) return;
+                // Refuses to even START a drag on a .dev-row whose own
+                // group is locked - see lockedGroups' own comment. Never
+                // gates a .dev-section (group) itself, only a .dev-row
+                // (setting) - a locked group can still be dragged/
+                // reordered/nested as a whole, only its own contents are
+                // frozen. item.closest('.dev-section') is the row's OWN
+                // immediate group, not necessarily the tab root.
+                if (item.matches('.dev-row')) {
+                    const ownSection = item.closest('.dev-section');
+                    const ownTitle = ownSection && ownSection.querySelector(':scope > .dev-section-title');
+                    if (ownTitle && lockedGroups.has(getSectionKey(ownTitle))) return;
+                }
 
                 if (e.pointerType === 'touch') {
                     const startX0 = e.clientX, startY0 = e.clientY, pointerId = e.pointerId;
@@ -11443,8 +11547,21 @@
         // once (the very first sync) and never again after that - see
         // syncTabOrderToDesktop()'s own comment on this fix.
         let devTextOverridesManual = new Set();
-        // Captured once, the first time each key is actually seen - the
-        // un-overridden text to fall back to and to offer for editing when
+        // Locked groups - per direct request ("add a lock icon that i can
+        // select. If selected, the settings within that group cannot be
+        // reordered or moved into another group"). Keyed the same way as
+        // devTextOverrides/sectionCollapseState (getSectionKey(titleEl) -
+        // stable, DOM-position-independent). Deliberately scoped to ONLY
+        // the settings INSIDE a locked group, matching exactly what was
+        // asked - the locked group ITSELF can still be dragged/reordered/
+        // nested as a whole; only its own rows can't be reordered within
+        // it or dragged out to another group. Enforced in setupDragReorder()
+        // itself (search "lockedGroups.has") by refusing to even START a
+        // drag on a .dev-row whose own closest .dev-section is locked -
+        // this single check satisfies BOTH halves of the request at once,
+        // since a drag that never starts can neither reorder in place nor
+        // be dropped into a different group.
+        let lockedGroups = new Set();
         // no override is stored yet. Derived from the DOM itself (there are
         // 26 section titles + ~300 setting labels - hand-listing every
         // default the way TEXT_OVERRIDE_DEFAULTS does for the ~8 game-text
@@ -14228,6 +14345,11 @@
                 groupContents.sort((a, b) => devGroupNestingDepth(b, tabRoot) - devGroupNestingDepth(a, tabRoot));
                 return groupContents;
             });
+            // After the drag-reorder wiring above (icons need no drag
+            // setup of their own, but this keeps related one-time init
+            // calls grouped together) - see injectGroupLockIcons()'s own
+            // comment.
+            injectGroupLockIcons();
             makeDevValuesEditable();
             // Captures every dev-panel label/title's TRUE original text into
             // devTextOriginals (devTextOverrides is still empty the first
