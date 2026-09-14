@@ -2374,7 +2374,18 @@
             display: flex;
             width: 100%;
             background: var(--dev-group-label-bg-color, #134e4a);
-            color: var(--dev-accent-color);
+            /* Text color deliberately decoupled from --dev-accent-color
+               (border still uses accent, unchanged) - Accent Color and
+               Group Label Bg Color are two independently user-editable
+               pickers that can legitimately end up equal (they did:
+               both #005f8f after a real save), which made this button's
+               text invisible against its own background while the
+               accent-colored border kept it looking like a working,
+               empty button. Same fix already applied to .dev-section-title
+               (own Group Text Color control) and .dev-tab-btn (own Tab
+               Text Color control) for the identical reason - this button
+               just hadn't been brought in line with that pattern yet. */
+            color: var(--dev-panel-button-text-color);
             border: 1px solid var(--dev-accent-color);
             border-radius: 3px;
             min-height: calc(var(--dev-button-height-px) * 1px);
