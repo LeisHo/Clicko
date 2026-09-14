@@ -1168,7 +1168,7 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": false,
+    "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
     "desktop:New Group (9)": true,
@@ -1177,9 +1177,9 @@
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": true,
     "desktop:New Group (14)": true,
-    "desktop:New Group (16)": false,
-    "desktop:New Group (5)": true,
-    "desktop:Main Button": true,
+    "desktop:New Group (16)": true,
+    "desktop:New Group (5)": false,
+    "desktop:Main Button": false,
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
@@ -1281,7 +1281,8 @@
           {
             "key": "desktop:New Group (9)",
             "rowKeys": [
-              "selectDevPanelFontFamily"
+              "selectDevPanelFontFamily",
+              "checkboxPreviewStartText"
             ],
             "subgroups": [
               {
@@ -1356,6 +1357,10 @@
       {
         "key": "desktop:New Group (16)",
         "rowKeys": [
+          "checkboxPreviewRoundText",
+          "checkboxPreviewTryAgainText",
+          "checkboxPreviewWinText",
+          "checkboxPreviewLoseText",
           "triggerRoundNumberFlashBtn"
         ],
         "subgroups": []
@@ -1367,6 +1372,7 @@
           {
             "key": "desktop:Main Button",
             "rowKeys": [
+              "checkboxFlipButtonSvg",
               "checkboxHideButton",
               "checkboxHideBase",
               "checkboxHideBackingSvg",
@@ -1728,14 +1734,25 @@
       },
       {
         "key": "desktop:New Group (17)",
-        "rowKeys": [],
+        "rowKeys": [
+          "checkboxClickCounter",
+          "checkboxShowTopDebugLines"
+        ],
         "subgroups": []
       }
     ],
     "mobileTabContent": [
       {
         "key": "mobile:Dev Panel",
-        "rowKeys": [],
+        "rowKeys": [
+          "sliderMobileDevPanelTitleLetterSpacing",
+          "sliderMobileDevPanelTitleLineHeight",
+          "sliderMobileDevTabLineHeight",
+          "sliderMobileDevButtonFontSize",
+          "sliderMobileDevButtonLineHeight",
+          "sliderMobileDevSettingsLineHeight",
+          "sliderMobileDevGroupLineHeight"
+        ],
         "subgroups": [
           {
             "key": "mobile:New Group (13)",
@@ -2064,7 +2081,15 @@
     "landscapeTabContent": [
       {
         "key": "landscape:Dev Panel",
-        "rowKeys": [],
+        "rowKeys": [
+          "sliderLandscapeDevPanelTitleLetterSpacing",
+          "sliderLandscapeDevPanelTitleLineHeight",
+          "sliderLandscapeDevTabLineHeight",
+          "sliderLandscapeDevButtonFontSize",
+          "sliderLandscapeDevButtonLineHeight",
+          "sliderLandscapeDevSettingsLineHeight",
+          "sliderLandscapeDevGroupLineHeight"
+        ],
         "subgroups": [
           {
             "key": "landscape:New Group (13)",
