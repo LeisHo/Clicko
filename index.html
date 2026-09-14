@@ -5701,7 +5701,24 @@
         // desktop-only bucket - cosmetic/non-spatial settings, same
         // category as the colors/opacity already here, not something that
         // needs its own Mobile-tab copy.
-        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor', 'settingNumberColor', 'titleLetterSpacing', 'titleLineHeight', 'tabLineHeight', 'buttonLineHeight', 'settingsLineHeight', 'groupLineHeight', 'tabTextColor', 'buttonFontSize', 'titleBold', 'tabBold', 'buttonBold', 'settingsBold', 'groupBold', 'titleCapitalize'];
+        // Corrected 2026-09-14 (real bug found live, direct report: "The
+        // new Dev Panel text settigns we just added arent reflected in
+        // the Mobile and Landscape tabs") - titleLetterSpacing/
+        // titleLineHeight/tabLineHeight/buttonLineHeight/settingsLineHeight/
+        // groupLineHeight/buttonFontSize were wrongly dumped into this
+        // shared bucket when added; every one of them is a size/spacing
+        // value whose direct sibling (titleFontSize, tabFontSize,
+        // groupTitleFontSize, settingTitleFontSize, buttonHeight - none of
+        // which are in this list) is already genuinely per-tab, so being
+        // shared broke the established per-category consistency, and
+        // (more concretely) meant these 7 had no Mobile/Landscape DOM
+        // control to view or tune at all, unlike their siblings. Moved
+        // out - now genuinely per-tab, matching those siblings. The other
+        // 7 new fields (titleBold/tabBold/buttonBold/settingsBold/
+        // groupBold/titleCapitalize/tabTextColor) correctly STAY here -
+        // already consistent with their own sibling colors/caps-toggles,
+        // which were shared by deliberate original design, not a bug.
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor', 'settingNumberColor', 'tabTextColor', 'titleBold', 'tabBold', 'buttonBold', 'settingsBold', 'groupBold', 'titleCapitalize'];
         // The capitalize toggles apply as CSS classes (text-transform has
         // no "conditional on a custom property" form), not as raw CSS
         // variable values - kept out of DEV_PANEL_STYLE_VAR_MAP for that
@@ -8444,14 +8461,14 @@
                         tabTextLetterSpacing: ['sliderDevTabTextLetterSpacing', null, null],
                         groupTextLetterSpacing: ['sliderDevGroupTextLetterSpacing', null, null],
                         settingsTextLetterSpacing: ['sliderDevSettingsTextLetterSpacing', null, null],
-                        titleLetterSpacing: ['sliderDevPanelTitleLetterSpacing', null, null],
-                        titleLineHeight: ['sliderDevPanelTitleLineHeight', null, null],
-                        tabLineHeight: ['sliderDevTabLineHeight', null, null],
-                        buttonLineHeight: ['sliderDevButtonLineHeight', null, null],
-                        settingsLineHeight: ['sliderDevSettingsLineHeight', null, null],
-                        groupLineHeight: ['sliderDevGroupLineHeight', null, null],
+                        titleLetterSpacing: ['sliderDevPanelTitleLetterSpacing', 'sliderMobileDevPanelTitleLetterSpacing', 'sliderLandscapeDevPanelTitleLetterSpacing'],
+                        titleLineHeight: ['sliderDevPanelTitleLineHeight', 'sliderMobileDevPanelTitleLineHeight', 'sliderLandscapeDevPanelTitleLineHeight'],
+                        tabLineHeight: ['sliderDevTabLineHeight', 'sliderMobileDevTabLineHeight', 'sliderLandscapeDevTabLineHeight'],
+                        buttonLineHeight: ['sliderDevButtonLineHeight', 'sliderMobileDevButtonLineHeight', 'sliderLandscapeDevButtonLineHeight'],
+                        settingsLineHeight: ['sliderDevSettingsLineHeight', 'sliderMobileDevSettingsLineHeight', 'sliderLandscapeDevSettingsLineHeight'],
+                        groupLineHeight: ['sliderDevGroupLineHeight', 'sliderMobileDevGroupLineHeight', 'sliderLandscapeDevGroupLineHeight'],
                         tabTextColor: ['colorDevPanelTabText', null, null],
-                        buttonFontSize: ['sliderDevButtonFontSize', null, null],
+                        buttonFontSize: ['sliderDevButtonFontSize', 'sliderMobileDevButtonFontSize', 'sliderLandscapeDevButtonFontSize'],
                     };
                     Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId, landId]]) => {
                         const deskEl = document.getElementById(deskId);
@@ -9582,8 +9599,28 @@
                 // restored - appendChild below relocates the row from
                 // wherever it currently is, same as it already did for
                 // same-group reordering.
+                // BUG (found live, per direct report "the ordering and
+                // grouping and nesting of the Preview text boxes etc arent
+                // being reflected, even in desktop mode"): was scoped to
+                // '.dev-section-content > .dev-row' only - correctly widened
+                // to tab-wide (not :scope-limited to one section) by an
+                // earlier fix, per the comment above, but never widened to
+                // also include a LOOSE row with no .dev-section-content
+                // ancestor at all. The ~10 loose top-level rows (Preview
+                // Round/Start/Try Again/Win/Lose Text, Click Counter, etc. -
+                // see setupDragReorder()'s own comment on making them
+                // groupable) sit directly under tabEl itself, so a row
+                // dragged INTO a group from its loose starting position was
+                // captured correctly by captureSectionOrder() (confirmed
+                // live) but could never be found here to restore it into
+                // that group on the next Reset/reload - it silently stayed
+                // loose forever, looking like Sync "didn't work" even
+                // though the save itself was correct. Widened to plain
+                // '.dev-row' (every row in the tab, loose or grouped alike)
+                // - safe, since a row's real identity is its own key
+                // (getRowKey), not its current parent.
                 const rowsByKey = {};
-                tabEl.querySelectorAll('.dev-section-content > .dev-row').forEach((row, i) => {
+                tabEl.querySelectorAll('.dev-row').forEach((row, i) => {
                     rowsByKey[getRowKey(row, i)] = row;
                 });
                 // Places one saved group (and, one level deep, its own
@@ -9718,9 +9755,15 @@
             });
             // Already tab-wide even before this change (a plain descendant
             // selector from mobileTabEl, not :scope-anchored) - nested rows
-            // were always included here.
+            // were always included here. Widened further (same fix as
+            // applySectionOrder()'s own rowsByKey, see its own comment) to
+            // also include a LOOSE row with no .dev-section-content
+            // ancestor - one of the ~10 loose top-level rows, dragged into
+            // a Mobile-tab group, was otherwise invisible to this set and
+            // silently dropped out of every translated group's rowKeys on
+            // the next sync.
             const mobileRowIdSet = new Set();
-            mobileTabEl.querySelectorAll('.dev-section-content > .dev-row [id]').forEach(el => mobileRowIdSet.add(el.id));
+            mobileTabEl.querySelectorAll('.dev-row [id]').forEach(el => mobileRowIdSet.add(el.id));
             const placedRowIds = new Set();
             const placedGroupKeys = new Set();
             let overridesChanged = false;
@@ -10612,6 +10655,26 @@
             { tab: 'mobile', id: 'sliderMobileDevScrollStrength', type: 'slider', label: 'Scroll Strength (x):', min: 0.2, max: 5, step: 0.1, value: 1 },
             { tab: 'mobile', id: 'sliderMobileDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
             { tab: 'mobile', id: 'sliderMobileDevValueFontSize', type: 'slider', label: 'Setting Number Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
+            // The 7 fields below were desktop-only until now (real bug
+            // found live, direct report: "The new Dev Panel text settigns
+            // we just added arent reflected in the Mobile and Landscape
+            // tabs") - confirmed the SHARED-value propagation itself
+            // worked fine (a Desktop change correctly reached Mobile's own
+            // rendered CSS var), the actual gap was that these 7 simply
+            // had no Mobile/Landscape control to look at or tune at all,
+            // unlike every sibling font-size field in this same group,
+            // which already has one. Moved out of DEV_PANEL_STYLE_SHARED_KEYS
+            // (see its own comment) to become genuinely per-tab, matching
+            // those siblings - the other 7 new fields (5 Bold toggles, Tab
+            // Text Color, Title Capitalize) correctly stay shared, already
+            // consistent with their own sibling colors/caps-toggles.
+            { tab: 'mobile', id: 'sliderMobileDevPanelTitleLetterSpacing', type: 'slider', label: 'Title Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
+            { tab: 'mobile', id: 'sliderMobileDevPanelTitleLineHeight', type: 'slider', label: 'Title Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'mobile', id: 'sliderMobileDevTabLineHeight', type: 'slider', label: 'Tab Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'mobile', id: 'sliderMobileDevButtonFontSize', type: 'slider', label: 'Button Text Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
+            { tab: 'mobile', id: 'sliderMobileDevButtonLineHeight', type: 'slider', label: 'Button Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'mobile', id: 'sliderMobileDevSettingsLineHeight', type: 'slider', label: 'Settings Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'mobile', id: 'sliderMobileDevGroupLineHeight', type: 'slider', label: 'Group Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
             { tab: 'landscape', id: 'sliderLandscapeDevPanelTitleFontSize', type: 'slider', label: 'Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
             { tab: 'landscape', id: 'sliderLandscapeDevTabFontSize', type: 'slider', label: 'Tab Font Size (px):', min: 6, max: 30, step: 1, value: 12 },
             { tab: 'landscape', id: 'sliderLandscapeDevGroupTitleFontSize', type: 'slider', label: 'Group Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
@@ -10620,6 +10683,13 @@
             { tab: 'landscape', id: 'sliderLandscapeDevScrollStrength', type: 'slider', label: 'Scroll Strength (x):', min: 0.2, max: 5, step: 0.1, value: 1 },
             { tab: 'landscape', id: 'sliderLandscapeDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
             { tab: 'landscape', id: 'sliderLandscapeDevValueFontSize', type: 'slider', label: 'Setting Number Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
+            { tab: 'landscape', id: 'sliderLandscapeDevPanelTitleLetterSpacing', type: 'slider', label: 'Title Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
+            { tab: 'landscape', id: 'sliderLandscapeDevPanelTitleLineHeight', type: 'slider', label: 'Title Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'landscape', id: 'sliderLandscapeDevTabLineHeight', type: 'slider', label: 'Tab Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'landscape', id: 'sliderLandscapeDevButtonFontSize', type: 'slider', label: 'Button Text Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
+            { tab: 'landscape', id: 'sliderLandscapeDevButtonLineHeight', type: 'slider', label: 'Button Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'landscape', id: 'sliderLandscapeDevSettingsLineHeight', type: 'slider', label: 'Settings Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'landscape', id: 'sliderLandscapeDevGroupLineHeight', type: 'slider', label: 'Group Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
         ];
         function renderDevPanelStyleControls() {
             DEVPANEL_STYLE_CONTROLS.forEach(ctrl => {
@@ -12265,13 +12335,13 @@
                 ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
                 ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
                 ['valueFontSize', 'sliderDevValueFontSize', 'sliderMobileDevValueFontSize', 'sliderLandscapeDevValueFontSize'],
-                ['titleLetterSpacing', 'sliderDevPanelTitleLetterSpacing', null, null],
-                ['titleLineHeight', 'sliderDevPanelTitleLineHeight', null, null],
-                ['tabLineHeight', 'sliderDevTabLineHeight', null, null],
-                ['buttonFontSize', 'sliderDevButtonFontSize', null, null],
-                ['buttonLineHeight', 'sliderDevButtonLineHeight', null, null],
-                ['settingsLineHeight', 'sliderDevSettingsLineHeight', null, null],
-                ['groupLineHeight', 'sliderDevGroupLineHeight', null, null],
+                ['titleLetterSpacing', 'sliderDevPanelTitleLetterSpacing', 'sliderMobileDevPanelTitleLetterSpacing', 'sliderLandscapeDevPanelTitleLetterSpacing'],
+                ['titleLineHeight', 'sliderDevPanelTitleLineHeight', 'sliderMobileDevPanelTitleLineHeight', 'sliderLandscapeDevPanelTitleLineHeight'],
+                ['tabLineHeight', 'sliderDevTabLineHeight', 'sliderMobileDevTabLineHeight', 'sliderLandscapeDevTabLineHeight'],
+                ['buttonFontSize', 'sliderDevButtonFontSize', 'sliderMobileDevButtonFontSize', 'sliderLandscapeDevButtonFontSize'],
+                ['buttonLineHeight', 'sliderDevButtonLineHeight', 'sliderMobileDevButtonLineHeight', 'sliderLandscapeDevButtonLineHeight'],
+                ['settingsLineHeight', 'sliderDevSettingsLineHeight', 'sliderMobileDevSettingsLineHeight', 'sliderLandscapeDevSettingsLineHeight'],
+                ['groupLineHeight', 'sliderDevGroupLineHeight', 'sliderMobileDevGroupLineHeight', 'sliderLandscapeDevGroupLineHeight'],
             ];
             sliderKeys.forEach(([key, deskId, mobId, landId]) => {
                 [[deskId, devPanelStyle], [mobId, mobileDevPanelStyle], [landId, landscapeDevPanelStyle]].forEach(([id, store]) => {
@@ -14520,13 +14590,13 @@
                 ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
                 ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
                 ['valueFontSize', 'sliderDevValueFontSize', 'sliderMobileDevValueFontSize', 'sliderLandscapeDevValueFontSize'],
-                ['titleLetterSpacing', 'sliderDevPanelTitleLetterSpacing', null, null],
-                ['titleLineHeight', 'sliderDevPanelTitleLineHeight', null, null],
-                ['tabLineHeight', 'sliderDevTabLineHeight', null, null],
-                ['buttonFontSize', 'sliderDevButtonFontSize', null, null],
-                ['buttonLineHeight', 'sliderDevButtonLineHeight', null, null],
-                ['settingsLineHeight', 'sliderDevSettingsLineHeight', null, null],
-                ['groupLineHeight', 'sliderDevGroupLineHeight', null, null],
+                ['titleLetterSpacing', 'sliderDevPanelTitleLetterSpacing', 'sliderMobileDevPanelTitleLetterSpacing', 'sliderLandscapeDevPanelTitleLetterSpacing'],
+                ['titleLineHeight', 'sliderDevPanelTitleLineHeight', 'sliderMobileDevPanelTitleLineHeight', 'sliderLandscapeDevPanelTitleLineHeight'],
+                ['tabLineHeight', 'sliderDevTabLineHeight', 'sliderMobileDevTabLineHeight', 'sliderLandscapeDevTabLineHeight'],
+                ['buttonFontSize', 'sliderDevButtonFontSize', 'sliderMobileDevButtonFontSize', 'sliderLandscapeDevButtonFontSize'],
+                ['buttonLineHeight', 'sliderDevButtonLineHeight', 'sliderMobileDevButtonLineHeight', 'sliderLandscapeDevButtonLineHeight'],
+                ['settingsLineHeight', 'sliderDevSettingsLineHeight', 'sliderMobileDevSettingsLineHeight', 'sliderLandscapeDevSettingsLineHeight'],
+                ['groupLineHeight', 'sliderDevGroupLineHeight', 'sliderMobileDevGroupLineHeight', 'sliderLandscapeDevGroupLineHeight'],
             ];
             sliderKeys.forEach(([key, deskId, mobId, landId]) => {
                 const deskEl = document.getElementById(deskId);
