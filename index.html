@@ -2780,7 +2780,12 @@
 
         .dev-select {
             background: #222;
-            color: var(--dev-accent-color);
+            /* Was --dev-accent-color - now matches Setting Number Text
+               Color, per direct follow-up request ("Drop Down Text color
+               should be the same as Setting Color") - a dropdown's own
+               selected-option text reads as a "current value" the same
+               way a slider's own number readout does. */
+            color: var(--dev-value-text-color);
             border: 1px solid var(--dev-accent-color);
             padding: 4px;
             border-radius: 3px;
@@ -3635,29 +3640,55 @@
             <button onclick="setNamedDevPanelStateAsDefault()">SET DEFAULT</button>
         </div>
 
+        <!-- Desktop/Mobile tabs - per CLAUDE.md Section 12f. Everything
+             below was previously one continuous scroll with a nested
+             "MOBILE OVERRIDES" collapsible mega-section; that inner content
+             is now its own top-level tab instead of a nested group. Every
+             existing setting keeps its already-established independent-per-
+             device status (these were all deliberately tuned differently
+             per device already, matching 12f's own "Claude judges it's
+             reasonably device-specific... especially size, position, and
+             speed-related settings" clause) - this restructuring changes
+             PRESENTATION only, not which settings are shared vs independent. -->
+        <div class="dev-tabs">
+            <button class="dev-tab-btn active" id="devTabDesktopBtn" onclick="switchDevPanelTab('desktop')">Desktop</button>
+            <button class="dev-tab-btn" id="devTabMobileBtn" onclick="switchDevPanelTab('mobile')">Mobile</button>
+            <button class="dev-tab-btn" id="devTabLandscapeBtn" onclick="switchDevPanelTab('landscape')">Landscape</button>
+        </div>
+
+        <div id="desktopTabContent">
+        <!-- Global dev-tool toggles (Click Counter, SVG flip, live-preview
+             checkboxes, Trigger Round Number Flash, debug lines, Text Edit
+             Mode) - per direct request ("I want to be able to place those
+             in groups, like a normal setting" / "the trigger round number
+             flash should also be able to placed in a group"). Previously
+             ONE shared copy sitting OUTSIDE all 3 tab-contents entirely
+             (a genuine architectural mismatch with the group-drag
+             mechanism, which is inherently per-tab - dragging one of these
+             into a group requires it to already be inside SOME tab's own
+             content, which it wasn't). Given each tab its own draggable
+             COPY here - per explicit follow-up clarification, the
+             UNDERLYING state/effect stays fully SHARED across all 3 (one
+             real game UI, not 3 separate per-device ones - these toggle
+             debug/preview behavior on that single shared UI, not anything
+             actually Desktop/Mobile/Landscape-specific), wired via
+             wireSyncedCheckboxGroup() so all 3 copies of a given control
+             always show the same checked state regardless of which was
+             just clicked. Still loose (not inside any .dev-section) here,
+             same as before - drag any of them into a real group like any
+             other setting. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                 <input type="checkbox" id="checkboxClickCounter">
                 <span class="dev-label" style="min-width:auto;">Show Click Counter</span>
             </label>
         </div>
-
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxFlipButtonSvg" onchange="updateFlipButtonSvg()" checked>
+                <input type="checkbox" id="checkboxFlipButtonSvg" checked>
                 <span class="dev-label" style="min-width:auto;">Flip Normal/Pressed SVG</span>
             </label>
         </div>
-
-        <!-- Live-preview toggles for text that's normally only visible at a
-             specific moment in a real game (round announcement, a win) - per
-             explicit request ("when I change any sliders for the round
-             text, I want to see that change immediately instead of having
-             to trigger it"). Forces the element visible with sample/last
-             content so its position/size/extrusion sliders can be tuned
-             freely without playing through a round. Dev-tool-only, doesn't
-             coordinate with real gameplay's own show/hide calls - not meant
-             to be left checked during actual play. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                 <input type="checkbox" id="checkboxPreviewRoundText">
@@ -3689,56 +3720,20 @@
             </label>
         </div>
         <div class="dev-row">
-            <button class="dev-trigger-btn" onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
+            <button class="dev-trigger-btn" id="triggerRoundNumberFlashBtn" onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
         </div>
-        <!-- Direct visual proof of what the code thinks each element's own
-             rendered top edge is, vs. where it actually renders on THIS
-             real browser - per explicit request, after repeated disagreement
-             between live-measured values (via JS) and what's visually
-             showing on the user's own device. Green = Target Text, Blue =
-             Ms/Click Text - a vertical line/bar from the browser's own top
-             edge (y=0) down to the SAME Range.getBoundingClientRect() value
-             this project's own diagnostic measurements have used throughout
-             (see updateTopDebugLines()), with its own live length readout
-             printed at the label so both can be read directly instead of
-             taking any measurement's word for it. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxShowTopDebugLines" onchange="updateTopDebugLines()">
+                <input type="checkbox" id="checkboxShowTopDebugLines">
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-
-        <!-- Text Edit Mode - lets clicking a game-text element rename its
-             STATIC wording (labels/suffixes) without freezing the LIVE
-             number next to it - per explicit request ("I can click on any
-             text and change the actual text content itself"). Shared, not
-             tab-specific - editing wording isn't a device-specific concept.
-             See setupTextEditMode()/textOverrides. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxTextEditMode" onchange="setTextEditModeEnabled(this.checked);">
+                <input type="checkbox" id="checkboxTextEditMode">
                 <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
             </label>
         </div>
-
-        <!-- Desktop/Mobile tabs - per CLAUDE.md Section 12f. Everything
-             below was previously one continuous scroll with a nested
-             "MOBILE OVERRIDES" collapsible mega-section; that inner content
-             is now its own top-level tab instead of a nested group. Every
-             existing setting keeps its already-established independent-per-
-             device status (these were all deliberately tuned differently
-             per device already, matching 12f's own "Claude judges it's
-             reasonably device-specific... especially size, position, and
-             speed-related settings" clause) - this restructuring changes
-             PRESENTATION only, not which settings are shared vs independent. -->
-        <div class="dev-tabs">
-            <button class="dev-tab-btn active" id="devTabDesktopBtn" onclick="switchDevPanelTab('desktop')">Desktop</button>
-            <button class="dev-tab-btn" id="devTabMobileBtn" onclick="switchDevPanelTab('mobile')">Mobile</button>
-            <button class="dev-tab-btn" id="devTabLandscapeBtn" onclick="switchDevPanelTab('landscape')">Landscape</button>
-        </div>
-
-        <div id="desktopTabContent">
         <!-- Add Group - per explicit request ("ALLOW ME TO ADD SETTING
              GROUPS IN THE DEV PANEL. ONCE I MAKE AN EMPTY GROUP I WILL DRAG
              SETTINGS INTO IT"). addDevGroup() creates a real, empty
@@ -4445,6 +4440,67 @@
              they were never duplicated into Mobile Overrides either. -->
 
         <div id="mobileTabContent" class="hidden">
+        <!-- Mobile's own draggable copy of the global dev-tool toggles -
+             see the Desktop tab's own copy (in #desktopTabContent) for the
+             full comment. Same shared underlying state, wired together via
+             wireSyncedCheckboxGroup(). -->
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobileClickCounter">
+                <span class="dev-label" style="min-width:auto;">Show Click Counter</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobileFlipButtonSvg" checked>
+                <span class="dev-label" style="min-width:auto;">Flip Normal/Pressed SVG</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobilePreviewRoundText">
+                <span class="dev-label" style="min-width:auto;">Preview Round Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobilePreviewStartText">
+                <span class="dev-label" style="min-width:auto;">Preview Start Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobilePreviewTryAgainText">
+                <span class="dev-label" style="min-width:auto;">Preview Try Again Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobilePreviewWinText">
+                <span class="dev-label" style="min-width:auto;">Preview Win Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobilePreviewLoseText">
+                <span class="dev-label" style="min-width:auto;">Preview Lose Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <button class="dev-trigger-btn" id="triggerMobileRoundNumberFlashBtn" onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobileShowTopDebugLines">
+                <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxMobileTextEditMode">
+                <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
+            </label>
+        </div>
         <button class="dev-add-group-btn" onclick="addDevGroup('mobile')">+ Add Group</button>
         <!-- Same controls as the Desktop tab, but only take effect on a
              mobile-width viewport (auto-detected via matchMedia, live -
@@ -4814,6 +4870,67 @@
              in applyActiveVars(). -->
         </div>
         <div id="landscapeTabContent" class="hidden">
+        <!-- Landscape's own draggable copy of the global dev-tool toggles -
+             see the Desktop tab's own copy (in #desktopTabContent) for the
+             full comment. Same shared underlying state, wired together via
+             wireSyncedCheckboxGroup(). -->
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapeClickCounter">
+                <span class="dev-label" style="min-width:auto;">Show Click Counter</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapeFlipButtonSvg" checked>
+                <span class="dev-label" style="min-width:auto;">Flip Normal/Pressed SVG</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapePreviewRoundText">
+                <span class="dev-label" style="min-width:auto;">Preview Round Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapePreviewStartText">
+                <span class="dev-label" style="min-width:auto;">Preview Start Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapePreviewTryAgainText">
+                <span class="dev-label" style="min-width:auto;">Preview Try Again Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapePreviewWinText">
+                <span class="dev-label" style="min-width:auto;">Preview Win Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapePreviewLoseText">
+                <span class="dev-label" style="min-width:auto;">Preview Lose Text</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <button class="dev-trigger-btn" id="triggerLandscapeRoundNumberFlashBtn" onclick="triggerRoundTextFlash()">Trigger Round Number Flash</button>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapeShowTopDebugLines">
+                <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
+            </label>
+        </div>
+        <div class="dev-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="checkboxLandscapeTextEditMode">
+                <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
+            </label>
+        </div>
         <button class="dev-add-group-btn" onclick="addDevGroup('landscape')">+ Add Group</button>
         <!-- Same controls as the Desktop tab, but only take effect on a
              landscape-width viewport (auto-detected via matchMedia, live -
@@ -13870,15 +13987,51 @@
             }
         });
 
+        // Wires the SAME 'change' handler to all 3 devices' copies of one
+        // global dev-tool toggle (Desktop/Mobile/Landscape - see each tab's
+        // own HTML comment on why these exist as 3 draggable copies of one
+        // shared state, not 3 independent states). Whichever copy the user
+        // actually clicked drives the real effect via onChange(checked);
+        // the other 2 copies' own .checked are synced to match WITHOUT
+        // re-dispatching 'change' on them (a plain property set never
+        // fires the event), so this can't recurse or double-apply the effect.
+        function wireSyncedCheckboxGroup(ids, onChange) {
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('change', (e) => {
+                    const checked = e.target.checked;
+                    ids.forEach(otherId => {
+                        if (otherId === id) return;
+                        const other = document.getElementById(otherId);
+                        if (other) other.checked = checked;
+                    });
+                    onChange(checked);
+                });
+            });
+        }
+        // Sets every device copy's .checked directly (no 'change' event) -
+        // used for mutual-exclusivity between 2 DIFFERENT synced groups
+        // (Preview Start Text vs Preview Try Again Text below), where
+        // checking one has to un-check every copy of the OTHER control.
+        function setAllChecked(ids, checked) {
+            ids.forEach(id => { const el = document.getElementById(id); if (el) el.checked = checked; });
+        }
+
         // Click counter checkbox (also shows the tap diagnostic log)
-        document.getElementById('checkboxClickCounter').addEventListener('change', (e) => {
-            clickCounter.classList.toggle('hidden', !e.target.checked);
-            tapDiagnosticPanel.classList.toggle('hidden', !e.target.checked);
+        wireSyncedCheckboxGroup(['checkboxClickCounter', 'checkboxMobileClickCounter', 'checkboxLandscapeClickCounter'], (checked) => {
+            clickCounter.classList.toggle('hidden', !checked);
+            tapDiagnosticPanel.classList.toggle('hidden', !checked);
             // Catch the DOM up in one shot right when the panel opens, so
             // logTapDiagnostic's incremental per-tap append (see above) can
             // assume it's already caught up on every subsequent tap instead
             // of needing to check/rebuild itself.
-            if (e.target.checked) { rebuildTapDiagnosticDisplay(); }
+            if (checked) { rebuildTapDiagnosticDisplay(); }
+        });
+
+        wireSyncedCheckboxGroup(['checkboxFlipButtonSvg', 'checkboxMobileFlipButtonSvg', 'checkboxLandscapeFlipButtonSvg'], (checked) => {
+            cssVars['--flip-button-svg'] = checked ? 1 : 0;
+            gameButton.classList.toggle('flip-svg', checked);
         });
 
         // Preview Round Text checkbox - forces gameText visible with
@@ -13886,8 +14039,8 @@
         // tuned live without playing through a round (see the dev-panel row's
         // own comment). Unchecking just re-hides it - doesn't try to restore
         // whatever real gameplay state was showing before.
-        document.getElementById('checkboxPreviewRoundText').addEventListener('change', (e) => {
-            if (e.target.checked) {
+        wireSyncedCheckboxGroup(['checkboxPreviewRoundText', 'checkboxMobilePreviewRoundText', 'checkboxLandscapePreviewRoundText'], (checked) => {
+            if (checked) {
                 gameTextLabel.textContent = overrideOr('roundLabel');
                 if (!gameTextNumber.textContent) gameTextNumber.textContent = '1';
                 gameTextNumber.style.visibility = 'visible';
@@ -13899,8 +14052,8 @@
 
         // Preview Win Text checkbox - same idea, forces resultText visible
         // in its WIN look (fixed ':)' text, per its own comment in endGame()).
-        document.getElementById('checkboxPreviewWinText').addEventListener('change', (e) => {
-            if (e.target.checked) {
+        wireSyncedCheckboxGroup(['checkboxPreviewWinText', 'checkboxMobilePreviewWinText', 'checkboxLandscapePreviewWinText'], (checked) => {
+            if (checked) {
                 resultText.textContent = overrideOr('winSymbol');
                 resultText.classList.remove('result-lose');
                 resultText.classList.add('result-win');
@@ -13927,8 +14080,8 @@
         // state, the same one Text Edit Mode already falls back to) as
         // stand-in content, good enough for tuning position/size/extrusion/
         // letter-spacing without playing a round.
-        document.getElementById('checkboxPreviewLoseText').addEventListener('change', (e) => {
-            if (e.target.checked) {
+        wireSyncedCheckboxGroup(['checkboxPreviewLoseText', 'checkboxMobilePreviewLoseText', 'checkboxLandscapePreviewLoseText'], (checked) => {
+            if (checked) {
                 resultText.textContent = overrideOr('loseSymbol');
                 resultText.classList.remove('result-win');
                 resultText.classList.add('result-lose');
@@ -13947,22 +14100,24 @@
         // real state change or a Text Edit Mode commit uses) so the DOM
         // content, try-again-state class, and text-align anchors all come
         // out identical to the real thing - not a hand-rolled duplicate.
-        // The 2 checkboxes are mutually exclusive (startButton can only
-        // show one state at a time) - checking one unchecks the other
-        // rather than leaving a stale checked box next to the state it no
-        // longer reflects.
-        document.getElementById('checkboxPreviewStartText').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.getElementById('checkboxPreviewTryAgainText').checked = false;
+        // The 2 controls are mutually exclusive (startButton can only show
+        // one state at a time) - checking one un-checks every device copy
+        // of the OTHER control, not just its own same-device sibling,
+        // since state is shared across devices now (see setAllChecked()).
+        const PREVIEW_START_TEXT_IDS = ['checkboxPreviewStartText', 'checkboxMobilePreviewStartText', 'checkboxLandscapePreviewStartText'];
+        const PREVIEW_TRYAGAIN_TEXT_IDS = ['checkboxPreviewTryAgainText', 'checkboxMobilePreviewTryAgainText', 'checkboxLandscapePreviewTryAgainText'];
+        wireSyncedCheckboxGroup(PREVIEW_START_TEXT_IDS, (checked) => {
+            if (checked) {
+                setAllChecked(PREVIEW_TRYAGAIN_TEXT_IDS, false);
                 TEXT_EDIT_TARGETS.startButton.render('startLabel');
                 startButton.classList.remove('hidden');
             } else {
                 startButton.classList.add('hidden');
             }
         });
-        document.getElementById('checkboxPreviewTryAgainText').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                document.getElementById('checkboxPreviewStartText').checked = false;
+        wireSyncedCheckboxGroup(PREVIEW_TRYAGAIN_TEXT_IDS, (checked) => {
+            if (checked) {
+                setAllChecked(PREVIEW_START_TEXT_IDS, false);
                 TEXT_EDIT_TARGETS.startButton.render('tryAgainLabel');
                 startButton.classList.remove('hidden');
                 startTryAgainFlash();
@@ -13970,6 +14125,14 @@
                 startButton.classList.add('hidden');
                 stopTryAgainFlash();
             }
+        });
+
+        wireSyncedCheckboxGroup(['checkboxShowTopDebugLines', 'checkboxMobileShowTopDebugLines', 'checkboxLandscapeShowTopDebugLines'], () => {
+            updateTopDebugLines();
+        });
+
+        wireSyncedCheckboxGroup(['checkboxTextEditMode', 'checkboxMobileTextEditMode', 'checkboxLandscapeTextEditMode'], (checked) => {
+            setTextEditModeEnabled(checked);
         });
 
 
@@ -14359,7 +14522,33 @@
             // once-nested one. No cycle check needed here (unlike the group-
             // drag call above) - a setting row is never itself a container,
             // so it can never contain the group it's being dropped into.
-            setupDragReorder('.dev-section-content .dev-label', '.dev-row', null, (tabRoot, dragging) => {
+            // Handle selector widened from '.dev-section-content .dev-label'
+            // (required the row to already be INSIDE a group) to plain
+            // '.dev-label, .dev-trigger-btn' - per direct request ("the
+            // checkboxes above the Desktop Mobile etc, I want to be able to
+            // place those in groups, like a normal setting" / "the trigger
+            // round number flash should also be able to placed in a
+            // group"). The ~10 loose rows sitting directly in each tab's
+            // top-level content (Show Click Counter, Flip Normal/Pressed
+            // SVG, Preview Round/Start/Try Again/Win/Lose Text, Trigger
+            // Round Number Flash, Show Target/Ms-Click Top Debug Lines,
+            // Text Edit Mode) already use the exact same .dev-row/.dev-label
+            // shape as a real group's own settings - the ONLY thing
+            // stopping them from being draggable was this selector's own
+            // ancestor requirement (removing it is safe: item = handle.
+            // closest('.dev-row') immediately below already re-scopes to a
+            // genuine settings-row regardless of what matched the handle,
+            // so this doesn't loosen WHAT counts as draggable, only WHERE
+            // a valid drag can start from). .dev-trigger-btn added as an
+            // alternate handle too - Trigger Round Number Flash (and every
+            // other trigger button, in or out of a group) is a bare
+            // <button>, not a .dev-label, so it had no valid handle at all
+            // before this. A real .dev-trigger-btn's own onclick still
+            // fires normally on a genuine click (moved stays false, e.
+            // preventDefault() is never called) - only a real hold-and-move
+            // past THRESHOLD is treated as a drag, same disambiguation
+            // every other handle in this function already relies on.
+            setupDragReorder('.dev-label, .dev-trigger-btn', '.dev-row', null, (tabRoot, dragging) => {
                 const groupContents = Array.from(tabRoot.querySelectorAll('.dev-section-content'));
                 groupContents.sort((a, b) => devGroupNestingDepth(b, tabRoot) - devGroupNestingDepth(a, tabRoot));
                 return groupContents;
