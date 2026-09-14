@@ -2951,7 +2951,9 @@
     "checkboxLandscapeFlipButtonSvg": null,
     "checkboxLandscapeClickCounter": null,
     "checkboxLandscapeShowTopDebugLines": null,
-    "landscape:New Group (17)": "DEBUG"
+    "landscape:New Group (17)": "DEBUG",
+    "checkboxMobileTextEditMode": "TEXT EDIT MODE",
+    "checkboxLandscapeTextEditMode": "TEXT EDIT MODE"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -2988,7 +2990,9 @@
     "checkboxDevBoldTab",
     "checkboxDevBoldButton",
     "checkboxDevBoldTitle",
-    "checkboxDevCapsTitleText"
+    "checkboxDevCapsTitleText",
+    "checkboxMobileTextEditMode",
+    "checkboxLandscapeTextEditMode"
   ],
   "lockedGroups": [
     "desktop:New Group (16)"
