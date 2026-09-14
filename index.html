@@ -2681,7 +2681,9 @@
 
         .dev-value {
             min-width: 45px;
-            color: var(--dev-accent-color);
+            /* Was --dev-accent-color - now its own independent Setting
+               Number Text Color control, per direct follow-up request. */
+            color: var(--dev-value-text-color);
             text-align: right;
             font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
         }
@@ -2699,7 +2701,7 @@
         .dev-value-edit-input {
             width: 52px;
             background: #000;
-            color: var(--dev-accent-color);
+            color: var(--dev-value-text-color);
             border: 1px solid var(--dev-accent-color);
             font-family: var(--dev-panel-font-family, monospace);
             font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
@@ -5291,6 +5293,15 @@
             // hardcoded color:#000 directly in their own CSS rule; seeded
             // to that same black so nothing changes visually until tuned.
             buttonTextColor: '#000000',
+            // Setting Number (the .dev-value/.dev-value-edit-input
+            // readout next to every slider) text color - per direct
+            // follow-up request ("provide a color picker for Setting
+            // Number text"). Was tied to Accent Color with no independent
+            // control; seeded to the current accentColor value (same
+            // real-current-value approach as groupTextColor above, not
+            // this object's own stale accentColor literal) so nothing
+            // visually changes until retuned.
+            settingNumberColor: '#5cc9ff',
             // Applies to every bit of text inside the panel - per explicit
             // request for a font selector. Defaults to Arial now that
             // Monospace was removed as an option per explicit request
@@ -5374,6 +5385,7 @@
             sliderColor: '--dev-slider-color',
             groupTextColor: '--dev-panel-group-text-color',
             buttonTextColor: '--dev-panel-button-text-color',
+            settingNumberColor: '--dev-value-text-color',
             fontFamily: '--dev-panel-font-family',
             buttonHeight: '--dev-button-height-px',
             buttonTextLetterSpacing: '--dev-button-text-letter-spacing-px',
@@ -5393,7 +5405,7 @@
         // desktop-only bucket - cosmetic/non-spatial settings, same
         // category as the colors/opacity already here, not something that
         // needs its own Mobile-tab copy.
-        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor'];
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor', 'settingNumberColor'];
         // The 4 capitalize toggles apply as CSS classes (text-transform has
         // no "conditional on a custom property" form), not as raw CSS
         // variable values - kept out of DEV_PANEL_STYLE_VAR_MAP for that
@@ -8119,6 +8131,7 @@
                         sliderColor: ['colorDevPanelSliderColor', null, null],
                         groupTextColor: ['colorDevPanelGroupText', null, null],
                         buttonTextColor: ['colorDevPanelButtonText', null, null],
+                        settingNumberColor: ['colorDevPanelSettingNumber', null, null],
                         buttonHeight: ['sliderDevButtonHeight', 'sliderMobileDevButtonHeight', 'sliderLandscapeDevButtonHeight'],
                         buttonTextLetterSpacing: ['sliderDevButtonTextLetterSpacing', null, null],
                         tabTextLetterSpacing: ['sliderDevTabTextLetterSpacing', null, null],
@@ -10160,6 +10173,7 @@
             { tab: 'desktop', id: 'colorDevPanelGroupLabelBg', type: 'color', label: 'Group Label Background Color:', value: '#134e4a' },
             { tab: 'desktop', id: 'colorDevPanelGroupText', type: 'color', label: 'Group Text Color:', value: '#5cc9ff' },
             { tab: 'desktop', id: 'colorDevPanelButtonText', type: 'color', label: 'Button Text Color:', value: '#000000' },
+            { tab: 'desktop', id: 'colorDevPanelSettingNumber', type: 'color', label: 'Setting Number Text Color:', value: '#5cc9ff' },
             { tab: 'desktop', id: 'sliderDevButtonHeight', type: 'slider', label: 'Button Height (px):', min: 12, max: 60, step: 1, value: 24 },
             { tab: 'desktop', id: 'sliderDevButtonTextLetterSpacing', type: 'slider', label: 'Button Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevTabTextLetterSpacing', type: 'slider', label: 'Tab Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
@@ -11842,6 +11856,7 @@
                 ['bgColor', 'colorDevPanelBg'], ['titleTextColor', 'colorDevPanelTitleText'], ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
                 ['accentColor', 'colorDevPanelAccent'], ['sliderColor', 'colorDevPanelSliderColor'], ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
                 ['groupTextColor', 'colorDevPanelGroupText'], ['buttonTextColor', 'colorDevPanelButtonText'],
+                ['settingNumberColor', 'colorDevPanelSettingNumber'],
             ];
             colorKeys.forEach(([key, id]) => {
                 const el = document.getElementById(id);
@@ -14061,6 +14076,7 @@
                 ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
                 ['groupTextColor', 'colorDevPanelGroupText'],
                 ['buttonTextColor', 'colorDevPanelButtonText'],
+                ['settingNumberColor', 'colorDevPanelSettingNumber'],
             ];
             colorKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
