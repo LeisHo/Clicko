@@ -2253,7 +2253,16 @@
         .dev-panel-title {
             font-size: calc(var(--dev-panel-title-font-size-px) * 1px);
             color: var(--dev-panel-title-text-color);
+            letter-spacing: calc(var(--dev-panel-title-letter-spacing-px) * 1px);
+            line-height: var(--dev-panel-title-line-height);
+            /* Explicit normal, overriding .dev-header's own inherited bold -
+               Bold Title Text checkbox (default checked) restores it via
+               .dev-bold-title below, so nothing changes visually until the
+               checkbox is unchecked. */
+            font-weight: normal;
         }
+        .dev-panel.dev-bold-title .dev-panel-title { font-weight: bold; }
+        .dev-panel.dev-caps-title-text .dev-panel-title { text-transform: uppercase; }
 
         .dev-hide-btn {
             background: var(--dev-accent-color);
@@ -2267,9 +2276,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            line-height: 1;
+            font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+            font-weight: normal;
+            line-height: var(--dev-button-text-line-height);
             letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
             cursor: pointer;
             flex-shrink: 0;
@@ -2300,9 +2309,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            line-height: 1;
+            font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+            font-weight: normal;
+            line-height: var(--dev-button-text-line-height);
             letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
             cursor: pointer;
             flex-shrink: 0;
@@ -2322,10 +2331,12 @@
         .dev-tab-btn {
             flex: 1;
             background: #222;
-            /* Was --dev-accent-color (distinct from the .active state's
-               own --dev-panel-button-text-color) - now the SAME var
-               regardless of press state, per direct follow-up request. */
-            color: var(--dev-panel-button-text-color);
+            /* Was --dev-panel-button-text-color (shared with Buttons Text,
+               regardless of press state) - now Tab Title's own dedicated
+               Text Color control, carved out per the 5-category text
+               battery request; seeded to the same #000000 so nothing
+               visually changes on first load. */
+            color: var(--dev-tab-text-color);
             border: 1px solid var(--dev-accent-color);
             border-radius: 3px;
             min-height: calc(var(--dev-button-height-px) * 1px);
@@ -2336,14 +2347,16 @@
             justify-content: center;
             font-family: var(--dev-panel-font-family, monospace);
             font-size: calc(var(--dev-tab-font-size-px) * 1px);
-            font-weight: bold;
+            font-weight: normal;
+            line-height: var(--dev-tab-line-height);
             letter-spacing: calc(var(--dev-tab-text-letter-spacing-px) * 1px);
             cursor: pointer;
         }
+        .dev-panel.dev-bold-tab .dev-tab-btn { font-weight: bold; }
 
         .dev-tab-btn.active {
             background: var(--dev-accent-color);
-            color: var(--dev-panel-button-text-color);
+            color: var(--dev-tab-text-color);
         }
 
         /* "+ Add Group" - styled like the tab buttons above (border/font/
@@ -2464,14 +2477,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+            line-height: var(--dev-button-text-line-height);
             background: var(--dev-accent-color);
             color: var(--dev-panel-button-text-color);
             border: none;
             border-radius: 3px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: normal;
             letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+        }
+        /* Scoped to match dev-caps-button-text's own established scope
+           (.dev-toggle-btn deliberately excluded, same as that class -
+           it's the standalone floating reopen button, not inside
+           .dev-panel, so a plain descendant selector can't reach it
+           anyway; left with its own unaffected hardcoded bold/11px). */
+        .dev-panel.dev-bold-button .dev-buttons button,
+        .dev-panel.dev-bold-button .dev-hide-btn,
+        .dev-panel.dev-bold-button .dev-collapse-btn,
+        .dev-panel.dev-bold-button .dev-trigger-btn {
+            font-weight: bold;
         }
 
         .dev-buttons button:hover {
@@ -2479,15 +2504,16 @@
         }
 
         /* Looks like COPY/RESET/SAVE, just smaller - per explicit request.
-           Font-size matches the slider LABEL text (.dev-label's own
-           --dev-setting-title-font-size-px) instead of a hardcoded size, so
-           it scales along with the rest of the panel's text. */
+           Font-size/line-height/weight now share Buttons Text's own
+           dedicated controls (--dev-button-text-font-size-px etc.) -
+           previously borrowed --dev-setting-title-font-size-px. */
         .dev-trigger-btn {
             padding-left: 8px;
             padding-right: 8px;
             padding-top: calc(3px + var(--dev-button-text-border-px) * 1px);
             padding-bottom: calc(3px + var(--dev-button-text-border-px) * 1px);
-            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+            font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+            line-height: var(--dev-button-text-line-height);
             min-height: calc(var(--dev-button-height-px) * 0.75px);
             display: flex;
             align-items: center;
@@ -2497,7 +2523,7 @@
             border: none;
             border-radius: 3px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: normal;
             font-family: var(--dev-panel-font-family, monospace);
             letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
         }
@@ -2550,9 +2576,10 @@
                out per direct *D* request. See groupTextColor's own
                comment for the full history. */
             color: var(--dev-panel-group-text-color);
-            font-weight: bold;
+            font-weight: normal;
             font-size: calc(var(--dev-group-title-font-size-px) * 1px);
             letter-spacing: calc(var(--dev-group-text-letter-spacing-px) * 1px);
+            line-height: var(--dev-group-text-line-height);
             margin-bottom: 8px;
             cursor: pointer;
             user-select: none;
@@ -2634,6 +2661,8 @@
             color: var(--dev-panel-non-title-text-color);
             font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
             letter-spacing: calc(var(--dev-settings-text-letter-spacing-px) * 1px);
+            line-height: var(--dev-settings-line-height);
+            font-weight: normal;
         }
 
         /* Drag handle for reordering settings within a group (CLAUDE.md
@@ -2813,6 +2842,17 @@
         }
         .dev-panel.dev-caps-settings-text .dev-label {
             text-transform: uppercase;
+        }
+        /* Bold toggles for Group Name Text/Settings Text - Title/Tab/
+           Buttons' own bold-class rules sit alongside each of those
+           elements' own CSS block above; these 2 are grouped here instead
+           since .dev-section-title/.dev-label's blocks (above) already
+           carry Font Size/Letter Spacing/Color, kept lean. */
+        .dev-panel.dev-bold-group .dev-section-title {
+            font-weight: bold;
+        }
+        .dev-panel.dev-bold-settings .dev-label {
+            font-weight: bold;
         }
     </style>
 </head>
@@ -5405,10 +5445,13 @@
             groupTextColor: '#5cc9ff',
             // Text color for every dev-panel button (COPY/RESET/SAVE,
             // Named Setting States' SAVE/USE/DELETE/SET DEFAULT, Hide,
-            // Collapse, tabs, Trigger buttons) - per direct *D* request
-            // ("Dev Panel Button Text Color"). All of these previously
-            // hardcoded color:#000 directly in their own CSS rule; seeded
-            // to that same black so nothing changes visually until tuned.
+            // Collapse, Trigger buttons) - per direct *D* request ("Dev
+            // Panel Button Text Color"). All of these previously hardcoded
+            // color:#000 directly in their own CSS rule; seeded to that
+            // same black so nothing changes visually until tuned. No
+            // longer covers tabs - carved out into tabTextColor below, its
+            // own dedicated control, per the later 5-category text battery
+            // request (Tab Title is its own category, not "Buttons Text").
             buttonTextColor: '#000000',
             // Setting Number (the .dev-value/.dev-value-edit-input
             // readout next to every slider) text color - per direct
@@ -5457,6 +5500,60 @@
             // otherwise - see .dev-add-group-btn) so both stay visually
             // tied to the same color - per explicit request.
             groupLabelBgColor: '#134e4a',
+            // Per explicit request for a full Font Size/Letter Spacing/Line
+            // Spacing/Text Color/Bold/Capitalize battery across 5 text
+            // categories (Dev Panel Title, Tab Title, Buttons Text,
+            // Settings Text, Group Name Text) - most of the 30 implied
+            // fields already existed from earlier same-session work (font
+            // sizes, 4 letter-spacings, 4 capitalize toggles, most colors -
+            // see titleFontSize/tabFontSize/groupTitleFontSize/
+            // settingTitleFontSize, *TextLetterSpacing, caps*, titleTextColor/
+            // nonTitleTextColor("Settings Title Text Color")/groupTextColor
+            // above), so only the genuinely missing fields are added here:
+            // every category's Line Spacing and Bold (none existed before),
+            // Dev Panel Title's own Letter Spacing and Capitalize (the other
+            // 3 categories already had these), Tab Title's own dedicated
+            // Text Color (previously shared with Buttons via
+            // buttonTextColor - carved out into its own control, see
+            // .dev-tab-btn's CSS for the corresponding scope change), and
+            // Buttons Text's own Font Size (previously 3 different hardcoded
+            // per-element sizes - unified under one control, defaulted to
+            // .dev-buttons button's own 10px; .dev-hide-btn/.dev-collapse-btn/
+            // .dev-toggle-btn visibly shrink from their old hardcoded 14px/
+            // 11px, a disclosed, immediately-retunable tradeoff of giving
+            // this a single shared control per the request's own structure).
+            titleLetterSpacing: 0,
+            titleLineHeight: 1.2,
+            tabLineHeight: 1.2,
+            buttonLineHeight: 1.2,
+            settingsLineHeight: 1.2,
+            groupLineHeight: 1.2,
+            // Carved out of buttonTextColor (see that field's own comment) -
+            // seeded to the same black so .dev-tab-btn's color is visually
+            // unchanged on first load.
+            tabTextColor: '#000000',
+            // Unifies .dev-buttons button (10px), .dev-hide-btn/.dev-collapse-
+            // btn (14px), .dev-toggle-btn (11px), and .dev-trigger-btn
+            // (previously borrowed settingTitleFontSize) under one control -
+            // seeded to .dev-buttons button's own 10px, the majority/primary
+            // "Buttons Text" example.
+            buttonFontSize: 10,
+            // Bold toggles, one per category - none existed before; each
+            // seeded to match that category's own CURRENT hardcoded/inherited
+            // weight so nothing visually changes on first load: Title
+            // inherited bold from .dev-header, Tab/Buttons/Group each had
+            // their own hardcoded font-weight:bold, Settings (.dev-label)
+            // had no font-weight rule at all (browser default/normal).
+            titleBold: true,
+            tabBold: true,
+            buttonBold: true,
+            settingsBold: false,
+            groupBold: true,
+            // Title's own Capitalize toggle - the other 3 pre-existing
+            // categories already had theirs (capsButtonText/capsTabText/
+            // capsGroupNames/capsSettingsText); defaults false since "DEV"
+            // is a literal-uppercase string already unaffected either way.
+            titleCapitalize: false,
         };
         // Mobile deliberately does NOT inherit the desktop tuning above via
         // this clone - a "set defaults" dump had Mobile's own tab showing
@@ -5511,6 +5608,14 @@
             settingsTextLetterSpacing: '--dev-settings-text-letter-spacing-px',
             valueFontSize: '--dev-value-font-size-px',
             groupLabelBgColor: '--dev-group-label-bg-color',
+            titleLetterSpacing: '--dev-panel-title-letter-spacing-px',
+            titleLineHeight: '--dev-panel-title-line-height',
+            tabLineHeight: '--dev-tab-line-height',
+            buttonLineHeight: '--dev-button-text-line-height',
+            settingsLineHeight: '--dev-settings-line-height',
+            groupLineHeight: '--dev-group-text-line-height',
+            tabTextColor: '--dev-tab-text-color',
+            buttonFontSize: '--dev-button-text-font-size-px',
         };
 
         // Opacity + all 4 colors are desktop-only now - per explicit
@@ -5522,16 +5627,27 @@
         // desktop-only bucket - cosmetic/non-spatial settings, same
         // category as the colors/opacity already here, not something that
         // needs its own Mobile-tab copy.
-        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor', 'settingNumberColor'];
-        // The 4 capitalize toggles apply as CSS classes (text-transform has
+        const DEV_PANEL_STYLE_SHARED_KEYS = ['opacity', 'bgColor', 'titleTextColor', 'nonTitleTextColor', 'accentColor', 'sliderColor', 'fontFamily', 'capsButtonText', 'capsTabText', 'capsGroupNames', 'capsSettingsText', 'buttonTextLetterSpacing', 'tabTextLetterSpacing', 'groupTextLetterSpacing', 'settingsTextLetterSpacing', 'groupLabelBgColor', 'groupTextColor', 'buttonTextColor', 'settingNumberColor', 'titleLetterSpacing', 'titleLineHeight', 'tabLineHeight', 'buttonLineHeight', 'settingsLineHeight', 'groupLineHeight', 'tabTextColor', 'buttonFontSize', 'titleBold', 'tabBold', 'buttonBold', 'settingsBold', 'groupBold', 'titleCapitalize'];
+        // The capitalize toggles apply as CSS classes (text-transform has
         // no "conditional on a custom property" form), not as raw CSS
         // variable values - kept out of DEV_PANEL_STYLE_VAR_MAP for that
-        // reason, applied here instead.
+        // reason, applied here instead. The 5 Bold toggles (added later,
+        // one per text category) reuse this exact same class-toggle
+        // mechanism - font-weight COULD be driven by a raw var directly,
+        // but a class stays consistent with every other boolean-style
+        // toggle already in this map rather than introducing a 2nd pattern
+        // for one property.
         const DEV_PANEL_CAPS_CLASS_MAP = {
             capsButtonText: 'dev-caps-button-text',
             capsTabText: 'dev-caps-tab-text',
             capsGroupNames: 'dev-caps-group-names',
             capsSettingsText: 'dev-caps-settings-text',
+            titleCapitalize: 'dev-caps-title-text',
+            titleBold: 'dev-bold-title',
+            tabBold: 'dev-bold-tab',
+            buttonBold: 'dev-bold-button',
+            settingsBold: 'dev-bold-settings',
+            groupBold: 'dev-bold-group',
         };
         function applyDevPanelOwnStyling(tab) {
             // tab is 'desktop' | 'mobile' | 'landscape', OR (legacy call
@@ -8254,6 +8370,14 @@
                         tabTextLetterSpacing: ['sliderDevTabTextLetterSpacing', null, null],
                         groupTextLetterSpacing: ['sliderDevGroupTextLetterSpacing', null, null],
                         settingsTextLetterSpacing: ['sliderDevSettingsTextLetterSpacing', null, null],
+                        titleLetterSpacing: ['sliderDevPanelTitleLetterSpacing', null, null],
+                        titleLineHeight: ['sliderDevPanelTitleLineHeight', null, null],
+                        tabLineHeight: ['sliderDevTabLineHeight', null, null],
+                        buttonLineHeight: ['sliderDevButtonLineHeight', null, null],
+                        settingsLineHeight: ['sliderDevSettingsLineHeight', null, null],
+                        groupLineHeight: ['sliderDevGroupLineHeight', null, null],
+                        tabTextColor: ['colorDevPanelTabText', null, null],
+                        buttonFontSize: ['sliderDevButtonFontSize', null, null],
                     };
                     Object.entries(DEV_PANEL_STYLE_CONTROL_IDS).forEach(([key, [deskId, mobId, landId]]) => {
                         const deskEl = document.getElementById(deskId);
@@ -8297,6 +8421,12 @@
                             capsTabText: 'checkboxDevCapsTabText',
                             capsGroupNames: 'checkboxDevCapsGroupNames',
                             capsSettingsText: 'checkboxDevCapsSettingsText',
+                            titleCapitalize: 'checkboxDevCapsTitleText',
+                            titleBold: 'checkboxDevBoldTitle',
+                            tabBold: 'checkboxDevBoldTab',
+                            buttonBold: 'checkboxDevBoldButton',
+                            settingsBold: 'checkboxDevBoldSettings',
+                            groupBold: 'checkboxDevBoldGroup',
                         };
                         const el = document.getElementById(idMap[key]);
                         if (el) el.checked = !!devPanelStyle[key];
@@ -10297,6 +10427,14 @@
             { tab: 'desktop', id: 'sliderDevGroupTextLetterSpacing', type: 'slider', label: 'Group Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevSettingsTextLetterSpacing', type: 'slider', label: 'Settings Text Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
             { tab: 'desktop', id: 'sliderDevValueFontSize', type: 'slider', label: 'Setting Number Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
+            { tab: 'desktop', id: 'sliderDevPanelTitleLetterSpacing', type: 'slider', label: 'Title Letter Spacing (px):', min: -2, max: 10, step: 0.1, value: 0 },
+            { tab: 'desktop', id: 'sliderDevPanelTitleLineHeight', type: 'slider', label: 'Title Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'desktop', id: 'sliderDevTabLineHeight', type: 'slider', label: 'Tab Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'desktop', id: 'colorDevPanelTabText', type: 'color', label: 'Tab Text Color:', value: '#000000' },
+            { tab: 'desktop', id: 'sliderDevButtonFontSize', type: 'slider', label: 'Button Text Font Size (px):', min: 6, max: 30, step: 1, value: 10 },
+            { tab: 'desktop', id: 'sliderDevButtonLineHeight', type: 'slider', label: 'Button Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'desktop', id: 'sliderDevSettingsLineHeight', type: 'slider', label: 'Settings Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
+            { tab: 'desktop', id: 'sliderDevGroupLineHeight', type: 'slider', label: 'Group Text Line Spacing (x):', min: 0.8, max: 3, step: 0.05, value: 1.2 },
             { tab: 'mobile', id: 'sliderMobileDevPanelTitleFontSize', type: 'slider', label: 'Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
             { tab: 'mobile', id: 'sliderMobileDevTabFontSize', type: 'slider', label: 'Tab Font Size (px):', min: 6, max: 30, step: 1, value: 12 },
             { tab: 'mobile', id: 'sliderMobileDevGroupTitleFontSize', type: 'slider', label: 'Group Title Font Size (px):', min: 6, max: 30, step: 1, value: 11 },
@@ -10398,6 +10536,12 @@
             { tab: 'desktop', id: 'checkboxDevCapsTabText', type: 'checkbox', label: 'Capitalize Tab Text' },
             { tab: 'desktop', id: 'checkboxDevCapsGroupNames', type: 'checkbox', label: 'Capitalize Group Names' },
             { tab: 'desktop', id: 'checkboxDevCapsSettingsText', type: 'checkbox', label: 'Capitalize Settings Text' },
+            { tab: 'desktop', id: 'checkboxDevCapsTitleText', type: 'checkbox', label: 'Capitalize Title Text' },
+            { tab: 'desktop', id: 'checkboxDevBoldTitle', type: 'checkbox', label: 'Bold Title Text' },
+            { tab: 'desktop', id: 'checkboxDevBoldTab', type: 'checkbox', label: 'Bold Tab Text' },
+            { tab: 'desktop', id: 'checkboxDevBoldButton', type: 'checkbox', label: 'Bold Button Text' },
+            { tab: 'desktop', id: 'checkboxDevBoldSettings', type: 'checkbox', label: 'Bold Settings Text' },
+            { tab: 'desktop', id: 'checkboxDevBoldGroup', type: 'checkbox', label: 'Bold Group Text' },
         ];
         function renderDevPanelMiscControls() {
             DEVPANEL_MISC_CONTROLS.forEach(ctrl => {
@@ -11952,6 +12096,13 @@
                 ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
                 ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
                 ['valueFontSize', 'sliderDevValueFontSize', 'sliderMobileDevValueFontSize', 'sliderLandscapeDevValueFontSize'],
+                ['titleLetterSpacing', 'sliderDevPanelTitleLetterSpacing', null, null],
+                ['titleLineHeight', 'sliderDevPanelTitleLineHeight', null, null],
+                ['tabLineHeight', 'sliderDevTabLineHeight', null, null],
+                ['buttonFontSize', 'sliderDevButtonFontSize', null, null],
+                ['buttonLineHeight', 'sliderDevButtonLineHeight', null, null],
+                ['settingsLineHeight', 'sliderDevSettingsLineHeight', null, null],
+                ['groupLineHeight', 'sliderDevGroupLineHeight', null, null],
             ];
             sliderKeys.forEach(([key, deskId, mobId, landId]) => {
                 [[deskId, devPanelStyle], [mobId, mobileDevPanelStyle], [landId, landscapeDevPanelStyle]].forEach(([id, store]) => {
@@ -11973,7 +12124,7 @@
                 ['bgColor', 'colorDevPanelBg'], ['titleTextColor', 'colorDevPanelTitleText'], ['nonTitleTextColor', 'colorDevPanelNonTitleText'],
                 ['accentColor', 'colorDevPanelAccent'], ['sliderColor', 'colorDevPanelSliderColor'], ['groupLabelBgColor', 'colorDevPanelGroupLabelBg'],
                 ['groupTextColor', 'colorDevPanelGroupText'], ['buttonTextColor', 'colorDevPanelButtonText'],
-                ['settingNumberColor', 'colorDevPanelSettingNumber'],
+                ['settingNumberColor', 'colorDevPanelSettingNumber'], ['tabTextColor', 'colorDevPanelTabText'],
             ];
             colorKeys.forEach(([key, id]) => {
                 const el = document.getElementById(id);
@@ -11984,6 +12135,9 @@
             const capsCheckboxKeys = [
                 ['capsButtonText', 'checkboxDevCapsButtonText'], ['capsTabText', 'checkboxDevCapsTabText'],
                 ['capsGroupNames', 'checkboxDevCapsGroupNames'], ['capsSettingsText', 'checkboxDevCapsSettingsText'],
+                ['titleCapitalize', 'checkboxDevCapsTitleText'], ['titleBold', 'checkboxDevBoldTitle'],
+                ['tabBold', 'checkboxDevBoldTab'], ['buttonBold', 'checkboxDevBoldButton'],
+                ['settingsBold', 'checkboxDevBoldSettings'], ['groupBold', 'checkboxDevBoldGroup'],
             ];
             capsCheckboxKeys.forEach(([key, id]) => {
                 const el = document.getElementById(id);
@@ -14197,6 +14351,13 @@
                 ['groupTextLetterSpacing', 'sliderDevGroupTextLetterSpacing', null, null],
                 ['settingsTextLetterSpacing', 'sliderDevSettingsTextLetterSpacing', null, null],
                 ['valueFontSize', 'sliderDevValueFontSize', 'sliderMobileDevValueFontSize', 'sliderLandscapeDevValueFontSize'],
+                ['titleLetterSpacing', 'sliderDevPanelTitleLetterSpacing', null, null],
+                ['titleLineHeight', 'sliderDevPanelTitleLineHeight', null, null],
+                ['tabLineHeight', 'sliderDevTabLineHeight', null, null],
+                ['buttonFontSize', 'sliderDevButtonFontSize', null, null],
+                ['buttonLineHeight', 'sliderDevButtonLineHeight', null, null],
+                ['settingsLineHeight', 'sliderDevSettingsLineHeight', null, null],
+                ['groupLineHeight', 'sliderDevGroupLineHeight', null, null],
             ];
             sliderKeys.forEach(([key, deskId, mobId, landId]) => {
                 const deskEl = document.getElementById(deskId);
@@ -14240,6 +14401,7 @@
                 ['groupTextColor', 'colorDevPanelGroupText'],
                 ['buttonTextColor', 'colorDevPanelButtonText'],
                 ['settingNumberColor', 'colorDevPanelSettingNumber'],
+                ['tabTextColor', 'colorDevPanelTabText'],
             ];
             colorKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
@@ -14260,6 +14422,12 @@
                 ['capsTabText', 'checkboxDevCapsTabText'],
                 ['capsGroupNames', 'checkboxDevCapsGroupNames'],
                 ['capsSettingsText', 'checkboxDevCapsSettingsText'],
+                ['titleCapitalize', 'checkboxDevCapsTitleText'],
+                ['titleBold', 'checkboxDevBoldTitle'],
+                ['tabBold', 'checkboxDevBoldTab'],
+                ['buttonBold', 'checkboxDevBoldButton'],
+                ['settingsBold', 'checkboxDevBoldSettings'],
+                ['groupBold', 'checkboxDevBoldGroup'],
             ];
             capsCheckboxKeys.forEach(([key, deskId]) => {
                 const deskEl = document.getElementById(deskId);
