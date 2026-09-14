@@ -1199,7 +1199,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": true,
+    "desktop:New Group (17)": false,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -1355,16 +1355,7 @@
       },
       {
         "key": "desktop:New Group (16)",
-        "rowKeys": [
-          "checkboxFlipButtonSvg",
-          "triggerRoundNumberFlashBtn",
-          "checkboxPreviewWinText",
-          "checkboxPreviewTryAgainText",
-          "checkboxPreviewLoseText",
-          "checkboxPreviewRoundText",
-          "checkboxPreviewStartText",
-          "checkboxShowTopDebugLines"
-        ],
+        "rowKeys": [],
         "subgroups": []
       },
       {
