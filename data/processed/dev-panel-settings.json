@@ -1203,7 +1203,7 @@
     "mobile:Dev Panel": false,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
-    "mobile:New Group (9)": false,
+    "mobile:New Group (9)": true,
     "mobile:New Group (10)": true,
     "mobile:New Group (11)": true,
     "mobile:New Group (8)": true,
@@ -1233,12 +1233,13 @@
     "landscape:Dev Panel": false,
     "landscape:New Group (13)": true,
     "landscape:New Group (12)": true,
-    "landscape:New Group (9)": false,
+    "landscape:New Group (9)": true,
     "landscape:New Group (10)": true,
     "landscape:New Group (11)": true,
     "landscape:New Group (8)": true,
-    "landscape:New Group (15)": false,
-    "landscape:New Group (14)": false,
+    "landscape:New Group (15)": true,
+    "landscape:New Group (14)": true,
+    "landscape:New Group (16)": false,
     "landscape:New Group (5)": true,
     "landscape:Main Button": true,
     "landscape:Shadow": true,
@@ -1255,7 +1256,8 @@
     "landscape:Win/Lose Text": true,
     "landscape:New Group (2)": true,
     "landscape:New Group": true,
-    "landscape:Rotation Animation": true
+    "landscape:Rotation Animation": true,
+    "landscape:New Group (17)": false
   },
   "sectionOrder": {
     "desktopTabContent": [
@@ -1815,8 +1817,9 @@
       {
         "key": "mobile:New Group (16)",
         "rowKeys": [
-          "checkboxMobilePreviewRoundText",
+          "triggerMobileRoundNumberFlashBtn",
           "checkboxMobilePreviewStartText",
+          "checkboxMobilePreviewRoundText",
           "checkboxMobilePreviewTryAgainText",
           "checkboxMobilePreviewWinText",
           "checkboxMobilePreviewLoseText"
@@ -2102,15 +2105,7 @@
     "landscapeTabContent": [
       {
         "key": "landscape:Dev Panel",
-        "rowKeys": [
-          "sliderLandscapeDevPanelTitleLetterSpacing",
-          "sliderLandscapeDevPanelTitleLineHeight",
-          "sliderLandscapeDevTabLineHeight",
-          "sliderLandscapeDevButtonFontSize",
-          "sliderLandscapeDevButtonLineHeight",
-          "sliderLandscapeDevSettingsLineHeight",
-          "sliderLandscapeDevGroupLineHeight"
-        ],
+        "rowKeys": [],
         "subgroups": [
           {
             "key": "landscape:New Group (13)",
@@ -2132,6 +2127,8 @@
                 "key": "landscape:New Group (10)",
                 "rowKeys": [
                   "sliderLandscapeDevPanelTitleFontSize",
+                  "sliderLandscapeDevPanelTitleLetterSpacing",
+                  "sliderLandscapeDevPanelTitleLineHeight",
                   "sliderLandscapeDevButtonTextBorder"
                 ],
                 "subgroups": []
@@ -2139,7 +2136,8 @@
               {
                 "key": "landscape:New Group (11)",
                 "rowKeys": [
-                  "sliderLandscapeDevGroupTitleFontSize"
+                  "sliderLandscapeDevGroupTitleFontSize",
+                  "sliderLandscapeDevGroupLineHeight"
                 ],
                 "subgroups": []
               },
@@ -2147,20 +2145,24 @@
                 "key": "landscape:New Group (8)",
                 "rowKeys": [
                   "sliderLandscapeDevSettingTitleFontSize",
-                  "sliderLandscapeDevValueFontSize"
+                  "sliderLandscapeDevValueFontSize",
+                  "sliderLandscapeDevSettingsLineHeight"
                 ],
                 "subgroups": []
               },
               {
                 "key": "landscape:New Group (15)",
                 "rowKeys": [
-                  "sliderLandscapeDevTabFontSize"
+                  "sliderLandscapeDevTabFontSize",
+                  "sliderLandscapeDevTabLineHeight"
                 ],
                 "subgroups": []
               },
               {
                 "key": "landscape:New Group (14)",
                 "rowKeys": [
+                  "sliderLandscapeDevButtonFontSize",
+                  "sliderLandscapeDevButtonLineHeight",
                   "sliderLandscapeDevButtonHeight"
                 ],
                 "subgroups": []
@@ -2170,12 +2172,25 @@
         ]
       },
       {
+        "key": "landscape:New Group (16)",
+        "rowKeys": [
+          "triggerLandscapeRoundNumberFlashBtn",
+          "checkboxLandscapePreviewStartText",
+          "checkboxLandscapePreviewRoundText",
+          "checkboxLandscapePreviewTryAgainText",
+          "checkboxLandscapePreviewWinText",
+          "checkboxLandscapePreviewLoseText"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "landscape:New Group (5)",
         "rowKeys": [],
         "subgroups": [
           {
             "key": "landscape:Main Button",
             "rowKeys": [
+              "checkboxLandscapeFlipButtonSvg",
               "sliderLandscapeButtonDiameter",
               "sliderLandscapeButtonMinDiameter",
               "sliderLandscapeButtonPressMs",
@@ -2422,6 +2437,14 @@
             "subgroups": []
           }
         ]
+      },
+      {
+        "key": "landscape:New Group (17)",
+        "rowKeys": [
+          "checkboxLandscapeClickCounter",
+          "checkboxLandscapeShowTopDebugLines"
+        ],
+        "subgroups": []
       }
     ]
   },
@@ -2911,7 +2934,24 @@
     "checkboxMobileFlipButtonSvg": null,
     "checkboxMobileClickCounter": null,
     "checkboxMobileShowTopDebugLines": null,
-    "mobile:New Group (17)": "DEBUG"
+    "mobile:New Group (17)": "DEBUG",
+    "sliderLandscapeDevPanelTitleLetterSpacing": "Dev Panel Title Letter Spacing (px):",
+    "sliderLandscapeDevPanelTitleLineHeight": "Dev Panel Title Line Spacing (x):",
+    "sliderLandscapeDevGroupLineHeight": null,
+    "sliderLandscapeDevSettingsLineHeight": null,
+    "sliderLandscapeDevTabLineHeight": null,
+    "sliderLandscapeDevButtonFontSize": null,
+    "sliderLandscapeDevButtonLineHeight": null,
+    "checkboxLandscapePreviewStartText": null,
+    "checkboxLandscapePreviewRoundText": null,
+    "checkboxLandscapePreviewTryAgainText": null,
+    "checkboxLandscapePreviewWinText": null,
+    "checkboxLandscapePreviewLoseText": null,
+    "landscape:New Group (16)": "PREVIEW TRIGGERS",
+    "checkboxLandscapeFlipButtonSvg": null,
+    "checkboxLandscapeClickCounter": null,
+    "checkboxLandscapeShowTopDebugLines": null,
+    "landscape:New Group (17)": "DEBUG"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
