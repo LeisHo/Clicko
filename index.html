@@ -6117,22 +6117,19 @@
             // highscore has been beaten. The high score number will flash
             // alongside the other numbers to transition to the new
             // number. If the highscore number doesnt require change then
-            // there will be no flash"). Own dedicated Blink 1-4 timers
-            // (not shared with the round number's own set above) since
-            // this fires at a structurally different moment - game END
-            // (checkHighScore(), called from endGame()'s lose branch),
-            // never a mid-game round transition - see
-            // runHighScoreBlinkSequence()'s own comment. Seeded to match
-            // the round number's own Blink 1-4 defaults exactly for a
-            // visually-consistent starting point, per direct request that
-            // this should "flash alongside the other numbers."
-            '--high-score-blink1-hide-ms': 350,
-            '--high-score-blink1-show-ms': 400,
-            '--high-score-blink2-hide-ms': 380,
-            '--high-score-blink2-show-ms': 450,
-            '--high-score-blink3-hide-ms': 400,
-            '--high-score-blink3-show-ms': 500,
-            '--high-score-blink4-hide-ms': 250,
+            // there will be no flash"). Corrected 2026-09-14 per direct
+            // follow-up ("it doesn't need its own animation flashing
+            // settings. It will just use the same settings that it
+            // already have"): runHighScoreBlinkSequence() now reuses the
+            // round number's own Blink 1-4 timers above (--round-blink1
+            // through --round-blink4-hide-ms) instead of a dedicated set -
+            // the earlier dedicated '--high-score-blink*-ms' fields this
+            // comment used to introduce are removed. What genuinely is
+            // dedicated to High Score is WHEN that shared sequence starts,
+            // not how long each phase takes - see
+            // --high-score-flash-delay-ms below and
+            // runHighScoreBlinkSequence()'s own comment.
+            '--high-score-flash-delay-ms': 0,
             // Per explicit request ("provide me a checkbox, when selected,
             // all 3 of those texts will flash along with the round
             // number") - shared/not device-split, same convention as the
@@ -8113,13 +8110,7 @@
             document.documentElement.style.setProperty('--round-blink3-show-ms', cssVars['--round-blink3-show-ms']);
             document.documentElement.style.setProperty('--round-post-blink-hold-ms', cssVars['--round-post-blink-hold-ms']);
             document.documentElement.style.setProperty('--round-blink4-hide-ms', cssVars['--round-blink4-hide-ms']);
-            document.documentElement.style.setProperty('--high-score-blink1-hide-ms', cssVars['--high-score-blink1-hide-ms']);
-            document.documentElement.style.setProperty('--high-score-blink1-show-ms', cssVars['--high-score-blink1-show-ms']);
-            document.documentElement.style.setProperty('--high-score-blink2-hide-ms', cssVars['--high-score-blink2-hide-ms']);
-            document.documentElement.style.setProperty('--high-score-blink2-show-ms', cssVars['--high-score-blink2-show-ms']);
-            document.documentElement.style.setProperty('--high-score-blink3-hide-ms', cssVars['--high-score-blink3-hide-ms']);
-            document.documentElement.style.setProperty('--high-score-blink3-show-ms', cssVars['--high-score-blink3-show-ms']);
-            document.documentElement.style.setProperty('--high-score-blink4-hide-ms', cssVars['--high-score-blink4-hide-ms']);
+            document.documentElement.style.setProperty('--high-score-flash-delay-ms', cssVars['--high-score-flash-delay-ms']);
             // Max/Min Button Scale - re-derived live from the CURRENT real
             // width every time this function runs (on resize, not just on a
             // breakpoint crossing), same as a native CSS vw unit would be -
@@ -10122,13 +10113,7 @@
             { group: 'High Score', id: 'colorHighScoreOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#bd0d07' },
             { group: 'High Score', id: 'sliderHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'High Score', id: 'sliderHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
-            { group: 'High Score', id: 'sliderHighScoreBlink1Hide', type: 'slider', label: 'Blink 1 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 350 },
-            { group: 'High Score', id: 'sliderHighScoreBlink1Show', type: 'slider', label: 'Blink 1 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 400 },
-            { group: 'High Score', id: 'sliderHighScoreBlink2Hide', type: 'slider', label: 'Blink 2 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 380 },
-            { group: 'High Score', id: 'sliderHighScoreBlink2Show', type: 'slider', label: 'Blink 2 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 450 },
-            { group: 'High Score', id: 'sliderHighScoreBlink3Hide', type: 'slider', label: 'Blink 3 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 400 },
-            { group: 'High Score', id: 'sliderHighScoreBlink3Show', type: 'slider', label: 'Blink 3 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 500 },
-            { group: 'High Score', id: 'sliderHighScoreBlink4Hide', type: 'slider', label: 'Blink 4 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
+            { group: 'High Score', id: 'sliderHighScoreFlashDelay', type: 'slider', label: 'Flash Delay (ms):', min: 0, max: 5000, step: 50, value: 0 },
             { group: 'Round Text', id: 'sliderRoundBlink1Hide', type: 'slider', label: 'Blink 1 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
             { group: 'Round Text', id: 'sliderRoundBlink1Show', type: 'slider', label: 'Blink 1 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
             { group: 'Round Text', id: 'sliderRoundBlink2Hide', type: 'slider', label: 'Blink 2 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
@@ -11009,13 +10994,7 @@
             'sliderRoundBlink3Show': '--round-blink3-show-ms',
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
             'sliderRoundBlink4Hide': '--round-blink4-hide-ms',
-            'sliderHighScoreBlink1Hide': '--high-score-blink1-hide-ms',
-            'sliderHighScoreBlink1Show': '--high-score-blink1-show-ms',
-            'sliderHighScoreBlink2Hide': '--high-score-blink2-hide-ms',
-            'sliderHighScoreBlink2Show': '--high-score-blink2-show-ms',
-            'sliderHighScoreBlink3Hide': '--high-score-blink3-hide-ms',
-            'sliderHighScoreBlink3Show': '--high-score-blink3-show-ms',
-            'sliderHighScoreBlink4Hide': '--high-score-blink4-hide-ms',
+            'sliderHighScoreFlashDelay': '--high-score-flash-delay-ms',
             'sliderTargetLineHeight': '--target-line-height',
             'sliderTargetPrefixFontSize': '--target-prefix-font-size-px',
             'sliderTargetPrefixFontSizeVw': '--target-prefix-font-size-vw',
@@ -13423,30 +13402,37 @@
         // highscore has been beaten. The high score number will flash
         // alongside the other numbers to transition to the new number.
         // If the highscore number doesnt require change then there will
-        // be no flash"). Deliberately its own function/timers rather than
-        // reuse of runRoundBlinkSequence() above - that one only ever runs
-        // mid-game, on a WIN's continuation into the next round;
-        // checkHighScore() (the only caller of this function) only ever
-        // fires from endGame()'s LOSE branch, a structurally different
-        // moment that round-blink's own sequence never reaches. Called
-        // synchronously in that same lose-branch code block as
-        // resultText/button-hue/round-breakdown, so it starts "in sync"
-        // with everything else that updates at that moment, per direct
-        // follow-up clarification. Same 4-phase hide/show/hide/show/hide/
-        // show/hide structure as the round number's own blink, with its
-        // own dedicated Blink 1-4 sliders (High Score dev-panel group) -
-        // only called at all when checkHighScore() has already confirmed
-        // the score actually changed, so "no flash when unchanged" needs
-        // no separate guard here.
+        // be no flash"). Corrected 2026-09-14 per 2 direct follow-ups:
+        // (1) "it doesn't need its own animation flashing settings. It
+        // will just use the same settings that it already have" - reuses
+        // the round number's own Blink 1-4 timers (--round-blink1 through
+        // --round-blink4-hide-ms) below, not a dedicated set (an earlier
+        // version of this function had its own '--high-score-blink*-ms'
+        // fields - removed). (2) "I want its own delay slider such that
+        // it's not hard coded to come after this win lose text. It can
+        // happen at the same time or during or after, just depending on
+        // what delay I set it as" - --high-score-flash-delay-ms (High
+        // Score dev-panel group's own "Flash Delay (ms):" slider, default
+        // 0 = starts the same instant as the loss, matching this
+        // function's original synchronous-trigger behavior) delays the
+        // START of the sequence below by that many ms; deliberately NO
+        // hardcoded relationship enforced against Result Text Duration
+        // (sliderResultDuration) - per explicit follow-up ("never mind...
+        // the win-lose text duration can be longer than the flash
+        // durations as long as the flashing delay accounts for that"),
+        // tuning the two against each other is left to this slider, not a
+        // clamp in code. Only called at all when checkHighScore() has
+        // already confirmed the score actually changed, so "no flash when
+        // unchanged" needs no separate guard here.
         function runHighScoreBlinkSequence(newScore) {
             const phases = [
-                { visible: false, ms: cssVars['--high-score-blink1-hide-ms'] },
-                { visible: true, ms: cssVars['--high-score-blink1-show-ms'] },
-                { visible: false, ms: cssVars['--high-score-blink2-hide-ms'] },
-                { visible: true, ms: cssVars['--high-score-blink2-show-ms'] },
-                { visible: false, ms: cssVars['--high-score-blink3-hide-ms'] },
-                { visible: true, ms: cssVars['--high-score-blink3-show-ms'] },
-                { visible: false, ms: cssVars['--high-score-blink4-hide-ms'] },
+                { visible: false, ms: cssVars['--round-blink1-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink1-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink2-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink2-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink3-hide-ms'] },
+                { visible: true, ms: cssVars['--round-blink3-show-ms'] },
+                { visible: false, ms: cssVars['--round-blink4-hide-ms'] },
             ];
             let i = 0;
             function step() {
@@ -13459,7 +13445,7 @@
                 highScoreNumber.style.visibility = phase.visible ? 'visible' : 'hidden';
                 setTimeout(step, phase.ms);
             }
-            step();
+            setTimeout(step, cssVars['--high-score-flash-delay-ms'] || 0);
         }
 
         // Blinks the "?" in "Try again?" - per explicit request. Hold
