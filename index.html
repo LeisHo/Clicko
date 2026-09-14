@@ -2322,7 +2322,10 @@
         .dev-tab-btn {
             flex: 1;
             background: #222;
-            color: var(--dev-accent-color);
+            /* Was --dev-accent-color (distinct from the .active state's
+               own --dev-panel-button-text-color) - now the SAME var
+               regardless of press state, per direct follow-up request. */
+            color: var(--dev-panel-button-text-color);
             border: 1px solid var(--dev-accent-color);
             border-radius: 3px;
             min-height: calc(var(--dev-button-height-px) * 1px);
