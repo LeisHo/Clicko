@@ -1058,12 +1058,6 @@
             left: 0;
             top: 0;
             display: inline-block;
-            /* X shiftable off-center via --try-again-rotate-axis-offset-
-               percent (0 = center, today's unchanged default) - per
-               explicit request for a slider offsetting the rotation axis
-               left/right. Y stays fixed at center - only asked for
-               horizontal. */
-            transform-origin: calc(50% + var(--try-again-rotate-axis-offset-percent, 0) * 1%) center;
             /* Transparent, not the fill color - this layer exists ONLY to
                cast its own text-shadow (the real extrusion/border pixels);
                its own glyph shape was never meant to be independently
@@ -1088,12 +1082,6 @@
         #startButtonFlashCharGlyph {
             position: relative;
             display: inline-block;
-            /* X shiftable off-center via --try-again-rotate-axis-offset-
-               percent (0 = center, today's unchanged default) - per
-               explicit request for a slider offsetting the rotation axis
-               left/right. Y stays fixed at center - only asked for
-               horizontal. */
-            transform-origin: calc(50% + var(--try-again-rotate-axis-offset-percent, 0) * 1%) center;
             color: var(--try-again-question-mark-fill-color);
         }
 
@@ -4219,38 +4207,28 @@
             </div>
         </div>
 
-        <!-- Rotation Animation Section - the "?" in "Try again?" can flash
-             (hide/show, the original look) or rotate: a 2D fake of a 3D
-             flip on the vertical axis through the glyph's center, done via
-             scaleX(cos(angle)) rather than a real 3D transform - per
-             explicit request. Shared/single, not mobile-split, same
-             reasoning as the Flash/Hold Duration sliders above (one "?",
-             not a separate one per device). -->
+        <!-- Rotation Animation Section - the "?" in "Try again?" used to
+             have 2 modes (flash: hide/show; rotate: a 2D scaleX flip) -
+             corrected 2026-09-14 per direct request ("Flashing is the
+             default and only option now. The previous ? rotating
+             animation is now defunct.") - the mode select, its tweening
+             select, and its extrusion-matches-glyph checkbox are removed;
+             flash (see startTryAgainFlash()) is the only behavior now.
+             This group's own data-sid is kept unchanged (still "Rotation
+             Animation") despite no longer being about rotation, since
+             that's the stable key this project's live saved dev-panel
+             state/ordering is keyed to - renaming it would orphan that
+             state, not just relabel a group. The "?" glyph's own size/
+             color/position controls below are unrelated to which mode was
+             selected and are kept as-is. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
             <div class="dev-section-content">
-                <div class="dev-row">
-                    <span class="dev-label">"?" Animation Mode:</span>
-                    <select class="dev-select" id="selectTryAgainMode" onchange="cssVars['--try-again-question-mark-mode'] = this.value; if (startButton.classList.contains('try-again-state')) startTryAgainFlash();">
-                        <option value="flash">Flashing</option>
-                        <option value="rotate" selected>Rotating</option>
-                    </select>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">Tweening of Rotation:</span>
-                    <select class="dev-select" id="selectTryAgainTweening" onchange="cssVars['--try-again-rotate-tweening'] = this.value;">
-                        <option value="linear" selected>Linear</option>
-                        <option value="easeInOut">Ease In Out</option>
-                        <option value="easeIn">Ease In</option>
-                        <option value="easeOut">Ease Out</option>
-                    </select>
-                </div>
                 <!-- The "?" glyph's own size/color/position - independent
                      from the "Try again" text (which keeps its own separate
                      controls up in Start/Try Again Button) - per explicit
                      request. Device-specific (see the Mobile tab's own copy
-                     of just these 4, further down) - Mode/Speed/Tweening/
-                     Min Width above stay single/shared. -->
+                     of just these 4, further down). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
@@ -4274,18 +4252,6 @@
                         <option value="bottom">Bottom</option>
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainQuestionMarkTextValignEdgeLock" data-var="--try-again-question-mark-text-valign-edge-lock">Edge Lock</label>
-                </div>
-                <!-- Checked (default): extrusion/border follows the glyph's
-                     own scaleX exactly - the whole token transforms as one
-                     unit. Unchecked: extrusion/border still tracks the
-                     current glyph (same character/position) but follows
-                     sin(angle) instead of cos(angle) - see
-                     tickTryAgainRotate(). -->
-                <div class="dev-row">
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                        <input type="checkbox" id="checkboxTryAgainRotateExtrusionMatchesGlyph" checked onchange="cssVars['--try-again-rotate-extrusion-matches-glyph'] = this.checked ? 1 : 0;">
-                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scales/Mirrors With Text</span>
-                    </label>
                 </div>
             </div>
         </div>
@@ -6075,22 +6041,6 @@
             // startTryAgainFlash().
             '--try-again-flash-duration-ms': 340,
             '--try-again-hold-duration-ms': 1550,
-            // "?" animation mode - 'flash' (hide/show, the original look) or
-            // 'rotate' (2D scaleX flip - see tickTryAgainRotate()). Shared/
-            // single like the flash/hold durations above, not mobile-split.
-            '--try-again-question-mark-mode': 'flash',
-            '--try-again-rotate-speed-ms': 5000,
-            '--try-again-rotate-tweening': 'easeOut',
-            '--try-again-rotate-min-width-scale': 0.13,
-            '--try-again-rotate-extrusion-matches-glyph': 1,
-            // Shifts the rotation's own pivot point left/right within the
-            // glyph, instead of always pivoting exactly on its horizontal
-            // center - per explicit request. 0 = center (today's default,
-            // unchanged look); negative shifts the pivot left, positive
-            // right - percent of the glyph's own width, same convention as
-            // CSS transform-origin itself. Shared/single like every other
-            // rotation-behavior control above, not mobile-split.
-            '--try-again-rotate-axis-offset-percent': 0,
             '--round-blink1-hide-ms': 350,
             '--round-blink1-show-ms': 400,
             '--round-blink2-hide-ms': 380,
@@ -6100,8 +6050,11 @@
             // How long the NEW number holds on screen (still at big/held
             // scale) after the blink sequence finishes, before docking
             // into gameplay - per explicit request for a dedicated slider
-            // for this gap, separate from gameState.roundDuration (the
-            // hold BEFORE the blink starts).
+            // for this gap. Corrected 2026-09-14: this used to be
+            // described as "separate from gameState.roundDuration (the
+            // hold BEFORE the blink starts)" - that hold was removed
+            // (see runRoundBlinkSequence()'s own comment on the same
+            // date), so this is now the only post-win hold left.
             '--round-post-blink-hold-ms': 1300,
             // Per direct follow-up request ("add a Blink 4 - Disappear
             // slider, after which the new round number shows") - a genuine
@@ -7240,7 +7193,6 @@
             // 100ms floor. 1 (the default) is a no-op - exact prior behavior.
             speedTimeRounding: 1,
             countdownRoundingIncrement: 1,
-            roundDuration: 1000,
             resultDuration: 1000,
             // Minimum possible target count on Round 1, and how much that
             // minimum rises per round (targetFloor = targetFloorBase +
@@ -7290,18 +7242,12 @@
         let currentRoundTaps = [];
         let roundStartTime = 0;
         // The "Try again?" button's flashing "?" - see startTryAgainFlash()/
-        // stopTryAgainFlash(). Two mutually-exclusive animation modes now -
-        // flash (hide/show) or rotate (2D scaleX flip, see tickTryAgainRotate()) -
-        // per explicit request/dropdown; only one of these two ids is ever
-        // active at a time.
+        // stopTryAgainFlash(). Corrected 2026-09-14 per direct request
+        // ("Flashing is the default and only option now. The previous ?
+        // rotating animation is now defunct."): flash (hide/show) is now
+        // the only mode - the rotate mode and its own state
+        // (tryAgainRotateRafId/StartTime/ShadowLastUpdate) are removed.
         let tryAgainFlashTimeoutId = null;
-        let tryAgainRotateRafId = null;
-        let tryAgainRotateStartTime = null;
-        // Throttles tickTryAgainRotate()'s own text-shadow rebuild (see its
-        // own comment) - reset to 0 each time the rotate loop (re)starts so
-        // the very first frame always paints immediately, not after a
-        // stale wait.
-        let tryAgainRotateShadowLastUpdate = 0;
 
         // Messages
         const tooManyMessages = ['TOO MANY!', 'OVERSHOT!', 'ONE TOO FAR!', 'TOO FAR!'];
@@ -8096,12 +8042,6 @@
             // mobile-split loop above since it's spatial, not timing.
             document.documentElement.style.setProperty('--try-again-flash-duration-ms', cssVars['--try-again-flash-duration-ms']);
             document.documentElement.style.setProperty('--try-again-hold-duration-ms', cssVars['--try-again-hold-duration-ms']);
-            document.documentElement.style.setProperty('--try-again-question-mark-mode', cssVars['--try-again-question-mark-mode']);
-            document.documentElement.style.setProperty('--try-again-rotate-speed-ms', cssVars['--try-again-rotate-speed-ms']);
-            document.documentElement.style.setProperty('--try-again-rotate-tweening', cssVars['--try-again-rotate-tweening']);
-            document.documentElement.style.setProperty('--try-again-rotate-min-width-scale', cssVars['--try-again-rotate-min-width-scale']);
-            document.documentElement.style.setProperty('--try-again-rotate-extrusion-matches-glyph', cssVars['--try-again-rotate-extrusion-matches-glyph']);
-            document.documentElement.style.setProperty('--try-again-rotate-axis-offset-percent', cssVars['--try-again-rotate-axis-offset-percent']);
             document.documentElement.style.setProperty('--round-blink1-hide-ms', cssVars['--round-blink1-hide-ms']);
             document.documentElement.style.setProperty('--round-blink1-show-ms', cssVars['--round-blink1-show-ms']);
             document.documentElement.style.setProperty('--round-blink2-hide-ms', cssVars['--round-blink2-hide-ms']);
@@ -8225,7 +8165,7 @@
         // COPY/SAVE/load to include them at all (previously missing entirely -
         // reported as "Starting Time isn't what I set" after a reload/dump-
         // and-reapply, since these silently fell back to their HTML defaults).
-        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderCountdownRounding', 'sliderTapDebounce', 'sliderRoundDuration', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease', 'sliderTargetCeilingBase', 'sliderTargetCeilingIncrease'];
+        const GAME_MECHANICS_SLIDER_IDS = ['sliderStartingSpeed', 'sliderSpeedDecrease', 'sliderSpeedDecreaseDecay', 'sliderSpeedDecreaseDecayTolerance', 'sliderSpeedTimeRounding', 'sliderCountdownRounding', 'sliderTapDebounce', 'sliderResultDuration', 'sliderTargetFloorBase', 'sliderTargetFloorIncrease', 'sliderTargetCeilingBase', 'sliderTargetCeilingIncrease'];
 
         function captureGameMechanics() {
             const gameMechanics = {};
@@ -10087,15 +10027,12 @@
             { group: 'Start/Try Again Button', id: 'sliderTryAgainTextLineHeight', type: 'slider', label: 'Try Again Line Height:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Start/Try Again Button', id: 'sliderTryAgainFlashDuration', type: 'slider', label: 'Try Again "?" Flash Duration (ms):', min: 0, max: 1500, step: 10, value: 250 },
             { group: 'Start/Try Again Button', id: 'sliderTryAgainHoldDuration', type: 'slider', label: 'Try Again "?" Hold Duration (ms):', min: 0, max: 3000, step: 10, value: 1000 },
-            { group: 'Rotation Animation', id: 'sliderTryAgainRotateSpeed', type: 'slider', label: 'Rotation Speed (ms per cycle):', min: 200, max: 5000, step: 50, value: 1500 },
-            { group: 'Rotation Animation', id: 'sliderTryAgainRotateMinWidth', type: 'slider', label: 'Minimum Width of Rotated Text:', min: 0, max: 1, step: 0.01, value: 0 },
             { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkFontSize', type: 'slider', label: '"?" Font Size (px):', min: 10, max: 500, step: 0.01, value: 257.15 },
             { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 20.09 },
             { group: 'Rotation Animation', id: 'colorTryAgainQuestionMarkFill', type: 'color', label: '"?" Color:', value: '#ffffff' },
             { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkExtrusionDepth', type: 'slider', label: '"?" Extrusion Depth (px):', min: 0, max: 30, step: 1, value: 9 },
             { group: 'Rotation Animation', id: 'sliderTryAgainQuestionMarkOverallBorderThickness', type: 'slider', label: '"?" Overall Border Thickness (px):', min: 0, max: 30, step: 1, value: 17 },
             { group: 'Rotation Animation', id: 'colorTryAgainQuestionMarkOverallBorder', type: 'color', label: '"?" Overall Border Color:', value: '#59181b' },
-            { group: 'Rotation Animation', id: 'sliderTryAgainRotateAxisOffset', type: 'slider', label: 'Rotation Axis Offset (% of width):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Round Text', id: 'sliderRoundFontSize', type: 'slider', label: 'Text Font Size (px):', min: 5, max: 200, step: 0.01, value: 89.34 },
             { group: 'Round Text', id: 'sliderRoundFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 6.98 },
             { group: 'Round Text', id: 'sliderRoundDockExtrusionDepth', type: 'slider', label: 'Text Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 2 },
@@ -10799,7 +10736,6 @@
             { id: 'sliderSpeedTimeRounding', type: 'slider', label: 'Speed Time Rounding (ms):', min: 1, max: 100, step: 1, value: 1 },
             { id: 'sliderCountdownRounding', type: 'slider', label: 'Countdown Display Rounding (ms):', min: 1, max: 100, step: 1, value: 100 },
             { id: 'sliderTapDebounce', type: 'slider', label: 'Debounce Window (ms, same pos only):', min: 0, max: 400, step: 10, value: 50 },
-            { id: 'sliderRoundDuration', type: 'slider', label: 'Round Text Duration (ms):', min: 200, max: 3000, step: 50, value: 1000 },
             { id: 'sliderResultDuration', type: 'slider', label: 'Result Text Duration (ms):', min: 200, max: 3000, step: 50, value: 1000 },
             { id: 'sliderTargetFloorBase', type: 'slider', label: 'Target Floor - Round 1:', min: 0, max: 30, step: 1, value: 2 },
             { id: 'sliderTargetFloorIncrease', type: 'slider', label: 'Target Floor - Increase Per Round:', min: 0, max: 10, step: 1, value: 0 },
@@ -10983,9 +10919,6 @@
             'sliderHighScoreLineHeight': '--high-score-line-height',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
-            'sliderTryAgainRotateSpeed': '--try-again-rotate-speed-ms',
-            'sliderTryAgainRotateMinWidth': '--try-again-rotate-min-width-scale',
-            'sliderTryAgainRotateAxisOffset': '--try-again-rotate-axis-offset-percent',
             'sliderRoundBlink1Hide': '--round-blink1-hide-ms',
             'sliderRoundBlink1Show': '--round-blink1-show-ms',
             'sliderRoundBlink2Hide': '--round-blink2-hide-ms',
@@ -11194,7 +11127,6 @@
             else if (desktopId === 'sliderSpeedTimeRounding') gameState.speedTimeRounding = value;
             else if (desktopId === 'sliderCountdownRounding') gameState.countdownRoundingIncrement = value;
             else if (desktopId === 'sliderTapDebounce') TAP_DEBOUNCE_MS = value;
-            else if (desktopId === 'sliderRoundDuration') gameState.roundDuration = value;
             else if (desktopId === 'sliderResultDuration') gameState.resultDuration = value;
             else if (desktopId === 'sliderTargetFloorBase') gameState.targetFloorBase = value;
             else if (desktopId === 'sliderTargetFloorIncrease') gameState.targetFloorIncreasePerRound = value;
@@ -13296,10 +13228,13 @@
             }
 
             // The OLD number stays on screen (still at its one permanent
-            // size). Holds for gameState.roundDuration (the existing
-            // "Round Text Duration" slider, reused rather than adding a
-            // duplicate), THEN runs the blink sequence, THEN starts gameplay.
-            setTimeout(() => runRoundBlinkSequence(roundNum), gameState.roundDuration);
+            // size), then runs the blink sequence immediately, then starts
+            // gameplay. Corrected 2026-09-14 per direct request ("remove
+            // round duration") - there used to be a hold here (the "Round
+            // Text Duration" slider) before the blink sequence started;
+            // removed, along with the slider itself - the blink now begins
+            // the instant the round transition is logged.
+            runRoundBlinkSequence(roundNum);
         }
 
         // Flashes the OLD round number 3 complete times (hide/show x3),
@@ -13356,8 +13291,9 @@
                     // Holds the new number on screen for its own duration
                     // (--round-post-blink-hold-ms) before gameplay starts -
                     // per explicit request for a dedicated slider covering
-                    // this gap, separate from gameState.roundDuration (the
-                    // hold BEFORE the blink sequence starts, above).
+                    // this gap. There's no longer a separate hold BEFORE
+                    // the blink sequence starts (see this function's own
+                    // top-level comment) - this is the only hold now.
                     setTimeout(() => {
                         showTargetAndSpeed();
                     }, cssVars['--round-post-blink-hold-ms']);
@@ -13452,14 +13388,14 @@
         // (visible) then Flash (hidden) then repeat, for as long as the
         // Try Again state is on screen - stopped via stopTryAgainFlash()
         // whenever that state ends (a new game starts, or an R-key reset).
+        // Corrected 2026-09-14 per direct request ("Flashing is the
+        // default and only option now. The previous ? rotating animation
+        // is now defunct."): this used to branch into an alternate
+        // rotate-mode animation (tickTryAgainRotate()/
+        // easeTryAgainRotateProgress(), both removed) - flash is now the
+        // only behavior.
         function startTryAgainFlash() {
             stopTryAgainFlash();
-            if ((cssVars['--try-again-question-mark-mode'] || 'flash') === 'rotate') {
-                tryAgainRotateStartTime = Date.now();
-                tryAgainRotateShadowLastUpdate = 0;
-                tickTryAgainRotate();
-                return;
-            }
             function cycle(visible) {
                 const charEl = document.getElementById('startButtonFlashChar');
                 if (!charEl) return; // defensive only - this is a permanent element now
@@ -13470,148 +13406,8 @@
             cycle(true);
         }
 
-        // 2D fake of a Y-axis (vertical-line-through-center) 3D flip - per
-        // explicit request, done by scaling the "?" horizontally instead of
-        // a real 3D rotation (see the CLAUDE.md-style discussion in chat for
-        // why true 3D extrusion is a much bigger separate lift). scaleX
-        // follows cos(angle): 1 at 0deg (normal), ~0 at 90deg (edge-on),
-        // -1 at 180deg (mirrored), ~0 at 270deg, back to 1 at 360deg - an
-        // accurate foreshortening curve for a flat card-style flip. Minimum
-        // Width floors the edge-on magnitude so it doesn't fully vanish
-        // unless that's set to 0. Tweening eases the loop's own time
-        // progress before computing the angle, not a CSS transition (this
-        // is a continuous rAF loop, not a one-shot animation).
-        function easeTryAgainRotateProgress(t, mode) {
-            if (mode === 'easeInOut') return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-            if (mode === 'easeIn') return t * t;
-            if (mode === 'easeOut') return 1 - (1 - t) * (1 - t);
-            return t; // linear
-        }
-
-        function tickTryAgainRotate() {
-            const charEl = document.getElementById('startButtonFlashChar');
-            const glyphEl = document.getElementById('startButtonFlashCharGlyph');
-            const extrusionEl = document.getElementById('startButtonFlashCharExtrusion');
-            if (!charEl || !glyphEl || !extrusionEl) return; // defensive only - these are permanent elements now
-            const cycleMs = Math.max(50, cssVars['--try-again-rotate-speed-ms']);
-            const elapsed = Date.now() - tryAgainRotateStartTime;
-            const rawT = (elapsed % cycleMs) / cycleMs;
-            const t = easeTryAgainRotateProgress(rawT, cssVars['--try-again-rotate-tweening'] || 'linear');
-            const angle = t * Math.PI * 2;
-            const cos = Math.cos(angle);
-            const minWidth = cssVars['--try-again-rotate-min-width-scale'] || 0;
-            const glyphScaleX = (cos < 0 ? -1 : 1) * Math.max(Math.abs(cos), minWidth);
-
-            // Extrusion/Border Scales With Text (checkbox) - checked
-            // reproduces the glyph's own scaleX exactly (the whole token
-            // transforms as one unit, matching how a single-element
-            // text-shadow always behaved before this split). Unchecked: the
-            // extrusion/border is still "of" the current glyph (same
-            // character, same position) but follows sin(angle) instead of
-            // cos(angle) - the complementary curve a real extruded object's
-            // SIDE/depth would trace as its FRONT face foreshortens, so the
-            // depth is least visible when the glyph faces the viewer
-            // straight-on (0deg/180deg) and most visible right as the glyph
-            // itself goes edge-on (90deg/270deg) - per explicit request/
-            // discussion in chat.
-            const extrusionMatchesGlyph = cssVars['--try-again-rotate-extrusion-matches-glyph'] !== 0;
-            let extrusionScaleX;
-            if (extrusionMatchesGlyph) {
-                extrusionScaleX = glyphScaleX;
-            } else {
-                const sin = Math.sin(angle);
-                extrusionScaleX = (sin < 0 ? -1 : 1) * Math.max(Math.abs(sin), minWidth);
-            }
-
-            charEl.style.visibility = 'visible';
-            glyphEl.style.transform = `scaleX(${glyphScaleX})`;
-
-            // Re-derive the extrusion layer's own text-shadow every frame,
-            // X-compensated for the SAME scaleX just applied to the
-            // element - per direct report that the depth/border reads as
-            // "too thick" once rotated past ~45deg. transform scales an
-            // element's text-shadow along with its glyph, but only on the
-            // axis being scaled (X here) - the shadow's fixed-pixel
-            // offsets built by the static (unscaled) buildCombinedShadow()
-            // would otherwise get non-uniformly squished, distorting the
-            // depth/border look as the angle increases. A hard floor well
-            // below the visual Minimum Width setting (which can
-            // legitimately be 0) keeps this compensation from dividing by
-            // zero/blowing up at the exact edge-on instant.
-            //
-            // The floored shadowXScale below is now ALSO what actually
-            // gets applied to the element's own transform, not just the
-            // shadow math - per a second direct report ("i see gaps
-            // through the extrusion and border" right at the 90deg
-            // edge-on point). Root cause: the shadow offsets were
-            // pre-compensated for this floored (min 0.05) scale, but the
-            // element's REAL applied scaleX could still go all the way to
-            // the true (near-)zero raw value whenever it was smaller than
-            // the floor - so right at edge-on, the compensation and the
-            // actual transform stopped agreeing, and the shadow trail
-            // rendered visibly smaller than its own compensation math
-            // assumed, opening a gap between it and the glyph. Flooring
-            // BOTH consistently (same value, same moment) keeps them
-            // permanently in sync - the tiny (5% width) floor itself was
-            // already judged imperceptible when this was written the first
-            // time, so applying it to the visible glyph a few frames near
-            // edge-on isn't a new visual cost, just a consistently-shared
-            // one instead of a silently-diverging one.
-            const shadowXScale = Math.max(Math.abs(extrusionScaleX), 0.05);
-            const extrusionAppliedScaleX = (extrusionScaleX < 0 ? -1 : 1) * shadowXScale;
-            extrusionEl.style.transform = `scaleX(${extrusionAppliedScaleX})`;
-            // Colors always desktop (see EXTRUSION_COLOR_FIELD_NAMES/
-            // applyExtrusionStyles()) - depth/thickness/enabled stay
-            // per-device. Uses the "?" glyph's OWN questionMark* fields,
-            // NOT the shared tryAgain* ones - this function runs every
-            // single animation frame and was overwriting whatever the "?"
-            // Extrusion Depth/Border sliders set on every frame with the
-            // wrong (shared Try Again) values, making those sliders look
-            // completely broken (visually correct for an instant, then
-            // stomped by the next frame) - per direct report ("the
-            // extrusion and border sliders for the question mark does
-            // nothing"). Flagged as a known issue 2 rounds ago when this
-            // function was first found to reference the wrong fields, now
-            // actually fixed since it has a real reported symptom.
-            // Throttled to ~20fps (every >=50ms), not every rAF frame (up to
-            // 60+/sec) - per direct report ("the rotating question mark
-            // animation slows down the project a lot... everything is
-            // laggier"). Root cause: buildCombinedShadowXComp() builds one
-            // `text-shadow` layer per unit of depth/border-ring direction -
-            // at this element's own typical depth/thickness (23/24 at time
-            // of writing), that's (23+1)*8 ring layers + 23 extrusion
-            // layers = ~215 individual shadow layers, REBUILT AS A NEW
-            // STRING AND REPAINTED every single animation frame. A
-            // multi-hundred-layer text-shadow is one of the most expensive
-            // things a browser can repaint (each layer is effectively a
-            // full extra render of the glyph's alpha mask) - doing that at
-            // 60fps is real, substantial, continuous cost for as long as
-            // this element is on screen, independent of anything else
-            // happening in the game. The glyph/extrusion scaleX transforms
-            // above stay at full rAF rate (cheap, GPU-composited, and what
-            // actually needs to look smooth for the rotation itself) -
-            // only this specific repaint-heavy shadow rebuild is throttled.
-            // At the default ~5000ms full-rotation speed the thickness-
-            // compensation shifts far too slowly per frame for a 20fps
-            // update rate to read as stepped/janky; even at the fastest
-            // allowed speed (--try-again-rotate-speed-ms floor is 50ms) the
-            // shadow is still fully in sync at least once per 50ms.
-            const now = Date.now();
-            if (now - tryAgainRotateShadowLastUpdate >= 50) {
-                tryAgainRotateShadowLastUpdate = now;
-                const deviceExt = isMobileActive() ? getActiveMobileExtrusionVars() : extrusionVars;
-                extrusionEl.style.textShadow = buildCombinedShadowXComp(
-                    deviceExt.questionMarkDepth, extrusionVars.questionMarkFillColor, deviceExt.questionMarkOverallBorderThickness,
-                    extrusionVars.questionMarkOverallBorderColor, deviceExt.overallBorderEnabled, shadowXScale
-                );
-            }
-
-            tryAgainRotateRafId = requestAnimationFrame(tickTryAgainRotate);
-        }
-
         function stopTryAgainFlash() {
             if (tryAgainFlashTimeoutId) { clearTimeout(tryAgainFlashTimeoutId); tryAgainFlashTimeoutId = null; }
-            if (tryAgainRotateRafId) { cancelAnimationFrame(tryAgainRotateRafId); tryAgainRotateRafId = null; }
         }
 
         function showTargetAndSpeed() {
