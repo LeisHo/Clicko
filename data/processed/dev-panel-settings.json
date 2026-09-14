@@ -206,10 +206,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 512,
-    "--dev-panel-left-px": 54,
-    "--dev-panel-top-px": 7,
-    "--dev-panel-height-px": 671,
+    "--dev-panel-width-px": 399,
+    "--dev-panel-left-px": 1047,
+    "--dev-panel-top-px": 130,
+    "--dev-panel-height-px": 417,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -826,17 +826,17 @@
   "gameMechanics": {
     "sliderStartingSpeed": 500,
     "sliderSpeedDecrease": 85,
-    "sliderSpeedDecreaseDecay": 90,
-    "sliderSpeedDecreaseDecayTolerance": 5,
+    "sliderSpeedDecreaseDecay": 95,
+    "sliderSpeedDecreaseDecayTolerance": 3,
     "sliderSpeedTimeRounding": 1,
     "sliderCountdownRounding": 100,
     "sliderTapDebounce": 50,
     "sliderRoundDuration": 1000,
     "sliderResultDuration": 1600,
     "sliderTargetFloorBase": 10,
-    "sliderTargetFloorIncrease": 5,
+    "sliderTargetFloorIncrease": 6,
     "sliderTargetCeilingBase": 20,
-    "sliderTargetCeilingIncrease": 5
+    "sliderTargetCeilingIncrease": 7
   },
   "devPanelStyle": {
     "titleFontSize": 17,
@@ -1168,6 +1168,7 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
+    "mobile:Saved Dev Settings": true,
     "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
@@ -1177,7 +1178,6 @@
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": true,
     "desktop:New Group (14)": true,
-    "desktop:New Group (17)": true,
     "desktop:New Group (16)": true,
     "desktop:New Group (5)": true,
     "desktop:Main Button": false,
@@ -1199,7 +1199,9 @@
     "desktop:New Group (2)": true,
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
-    "desktop:Game Mechanics": true,
+    "desktop:Game Mechanics": false,
+    "desktop:New Group (17)": true,
+    "desktop:Mouse Log": false,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -1356,14 +1358,6 @@
             ]
           }
         ]
-      },
-      {
-        "key": "desktop:New Group (17)",
-        "rowKeys": [
-          "checkboxClickCounter",
-          "checkboxShowTopDebugLines"
-        ],
-        "subgroups": []
       },
       {
         "key": "desktop:New Group (16)",
@@ -1743,6 +1737,23 @@
           "sliderTargetCeilingIncrease"
         ],
         "subgroups": []
+      },
+      {
+        "key": "desktop:New Group (17)",
+        "rowKeys": [
+          "checkboxClickCounter",
+          "checkboxShowTopDebugLines"
+        ],
+        "subgroups": [
+          {
+            "key": "desktop:Mouse Log",
+            "rowKeys": [
+              "checkboxMouseLogPosition",
+              "sliderMouseLogInterval"
+            ],
+            "subgroups": []
+          }
+        ]
       }
     ],
     "mobileTabContent": [
@@ -2995,7 +3006,9 @@
     "checkboxLandscapeTextEditMode"
   ],
   "lockedGroups": [
-    "desktop:New Group (16)"
+    "desktop:New Group (16)",
+    "desktop:New Group (17)",
+    "desktop:Dev Panel"
   ],
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
