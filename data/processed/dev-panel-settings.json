@@ -208,8 +208,8 @@
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 381,
     "--dev-panel-left-px": 594,
-    "--dev-panel-top-px": 90,
-    "--dev-panel-height-px": 491,
+    "--dev-panel-top-px": 6,
+    "--dev-panel-height-px": 671,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -873,13 +873,13 @@
     "buttonLineHeight": 1.2,
     "settingsLineHeight": 1.2,
     "groupLineHeight": 1.2,
-    "tabTextColor": "#000000",
+    "tabTextColor": "#ffffff",
     "buttonFontSize": 10,
     "titleBold": true,
     "tabBold": true,
     "buttonBold": true,
     "settingsBold": false,
-    "groupBold": true,
+    "groupBold": false,
     "titleCapitalize": false
   },
   "mobileDevPanelStyle": {
@@ -1168,13 +1168,13 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": true,
+    "desktop:Dev Panel": false,
     "desktop:New Group (13)": true,
-    "desktop:New Group (12)": false,
+    "desktop:New Group (12)": true,
     "desktop:New Group (9)": false,
     "desktop:New Group (10)": false,
-    "desktop:New Group (11)": false,
-    "desktop:New Group (8)": false,
+    "desktop:New Group (11)": true,
+    "desktop:New Group (8)": true,
     "desktop:New Group (15)": false,
     "desktop:New Group (14)": false,
     "desktop:New Group (5)": true,
@@ -1255,23 +1255,7 @@
     "desktopTabContent": [
       {
         "key": "desktop:Dev Panel",
-        "rowKeys": [
-          "colorDevPanelSettingNumber",
-          "sliderDevPanelTitleLetterSpacing",
-          "sliderDevPanelTitleLineHeight",
-          "sliderDevTabLineHeight",
-          "colorDevPanelTabText",
-          "sliderDevButtonFontSize",
-          "sliderDevButtonLineHeight",
-          "sliderDevSettingsLineHeight",
-          "sliderDevGroupLineHeight",
-          "checkboxDevCapsTitleText",
-          "checkboxDevBoldTitle",
-          "checkboxDevBoldTab",
-          "checkboxDevBoldButton",
-          "checkboxDevBoldSettings",
-          "checkboxDevBoldGroup"
-        ],
+        "rowKeys": [],
         "subgroups": [
           {
             "key": "desktop:New Group (13)",
@@ -1299,8 +1283,12 @@
               {
                 "key": "desktop:New Group (10)",
                 "rowKeys": [
-                  "sliderDevButtonTextBorder",
+                  "checkboxDevBoldTitle",
+                  "checkboxDevCapsTitleText",
                   "sliderDevPanelTitleFontSize",
+                  "sliderDevPanelTitleLineHeight",
+                  "sliderDevPanelTitleLetterSpacing",
+                  "sliderDevButtonTextBorder",
                   "colorDevPanelTitleText"
                 ],
                 "subgroups": []
@@ -1308,8 +1296,10 @@
               {
                 "key": "desktop:New Group (11)",
                 "rowKeys": [
+                  "checkboxDevBoldGroup",
                   "checkboxDevCapsGroupNames",
                   "sliderDevGroupTitleFontSize",
+                  "sliderDevGroupLineHeight",
                   "sliderDevGroupTextLetterSpacing",
                   "colorDevPanelGroupText",
                   "colorDevPanelGroupLabelBg"
@@ -1320,8 +1310,11 @@
                 "key": "desktop:New Group (8)",
                 "rowKeys": [
                   "checkboxDevCapsSettingsText",
+                  "checkboxDevBoldSettings",
                   "sliderDevSettingTitleFontSize",
+                  "sliderDevSettingsLineHeight",
                   "sliderDevValueFontSize",
+                  "colorDevPanelSettingNumber",
                   "sliderDevSettingsTextLetterSpacing",
                   "colorDevPanelNonTitleText"
                 ],
@@ -1330,15 +1323,21 @@
               {
                 "key": "desktop:New Group (15)",
                 "rowKeys": [
+                  "checkboxDevBoldTab",
                   "checkboxDevCapsTabText",
                   "sliderDevTabFontSize",
-                  "sliderDevTabTextLetterSpacing"
+                  "sliderDevTabTextLetterSpacing",
+                  "sliderDevTabLineHeight",
+                  "colorDevPanelTabText"
                 ],
                 "subgroups": []
               },
               {
                 "key": "desktop:New Group (14)",
                 "rowKeys": [
+                  "checkboxDevBoldButton",
+                  "sliderDevButtonLineHeight",
+                  "sliderDevButtonFontSize",
                   "checkboxDevCapsButtonText",
                   "colorDevPanelButtonText",
                   "sliderDevButtonHeight",
@@ -2822,7 +2821,13 @@
     "mobile:New Group (4)": "PREVIEW UI ANIMATIONS",
     "colorDevPanelGroupLabelBg": "Group Background Color:",
     "desktop:New Group (16)": "PREVIEW TRIGGERS",
-    "desktop:New Group (17)": "DEBUG"
+    "desktop:New Group (17)": "DEBUG",
+    "sliderDevPanelTitleLetterSpacing": "Dev Panel Title Letter Spacing (px):",
+    "sliderDevPanelTitleLineHeight": "Dev Panel Title Line Spacing (x):",
+    "checkboxDevBoldTab": "Bold Tab",
+    "checkboxDevBoldButton": "Bold Button",
+    "checkboxDevBoldTitle": "Bold Title ",
+    "checkboxDevCapsTitleText": "Capitalize Title"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -2853,7 +2858,13 @@
     "checkboxDevCapsButtonText",
     "sliderDevButtonTextLetterSpacing",
     "desktop:New Group (16)",
-    "desktop:New Group (17)"
+    "desktop:New Group (17)",
+    "sliderDevPanelTitleLetterSpacing",
+    "sliderDevPanelTitleLineHeight",
+    "checkboxDevBoldTab",
+    "checkboxDevBoldButton",
+    "checkboxDevBoldTitle",
+    "checkboxDevCapsTitleText"
   ],
   "lockedGroups": [],
   "baseColor": "#fe6c6c",
