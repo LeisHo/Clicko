@@ -9230,14 +9230,48 @@
                     const containers = typeof crossContainerSelector === 'function'
                         ? crossContainerSelector(tabRoot, dragging)
                         : Array.from(tabRoot.querySelectorAll(crossContainerSelector));
-                    let targetContainer = containers.find(c => {
+                    // BUG (found live, per direct report "cant seem to reorder
+                    // or modify group nesting"): a candidate container is
+                    // always a .dev-section-content div, but a COLLAPSED
+                    // group's content is display:none - getBoundingClientRect()
+                    // on a display:none element returns an all-zero rect, so
+                    // EVERY collapsed group's content ties at the exact same
+                    // degenerate {top:0,bottom:0,height:0}. Groups default to
+                    // collapsed (see toggleSection()), so this was the common
+                    // case, not an edge case: the "pointer is over this
+                    // container" check (e.clientY between r.top/r.bottom)
+                    // could basically never match a real y-coordinate against
+                    // top=bottom=0, and the "nearest by center" fallback below
+                    // degenerated to Math.abs(e.clientY - 0), identical for
+                    // every collapsed candidate - so the winner was essentially
+                    // arbitrary (whichever tied first in iteration order, or
+                    // tabRoot's own real-but-usually-farther rect), unrelated
+                    // to where the pointer actually was. Confirmed live: cross-
+                    // group drop worked correctly the instant the target
+                    // group was pre-expanded (real geometry), and degenerated
+                    // exactly as described the moment it was collapsed again.
+                    // Fixed with a hit-test rect that falls back to the
+                    // group's own TITLE BAR (always rendered, never zero-size)
+                    // whenever its content is collapsed - the title bar is
+                    // also the correct visual target to drop onto anyway,
+                    // since that's the only part of a collapsed group a user
+                    // can actually see and aim at. tabRoot itself (the
+                    // un-nest-to-top-level container) has no title-bar sibling
+                    // and is never display:none, so it's unaffected either way.
+                    function hitTestRect(c) {
                         const r = c.getBoundingClientRect();
+                        if (r.height > 0) return r;
+                        const titleEl = c.previousElementSibling;
+                        return (titleEl && titleEl.classList.contains('dev-section-title')) ? titleEl.getBoundingClientRect() : r;
+                    }
+                    let targetContainer = containers.find(c => {
+                        const r = hitTestRect(c);
                         return e.clientY >= r.top && e.clientY <= r.bottom;
                     });
                     if (!targetContainer) {
                         let minDist = Infinity;
                         containers.forEach(c => {
-                            const r = c.getBoundingClientRect();
+                            const r = hitTestRect(c);
                             const dist = Math.abs(e.clientY - (r.top + r.height / 2));
                             if (dist < minDist) { minDist = dist; targetContainer = c; }
                         });
