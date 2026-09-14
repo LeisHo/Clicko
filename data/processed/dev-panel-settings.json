@@ -1171,13 +1171,13 @@
     "desktop:Dev Panel": false,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
-    "desktop:New Group (9)": false,
-    "desktop:New Group (10)": true,
+    "desktop:New Group (9)": true,
+    "desktop:New Group (10)": false,
     "desktop:New Group (11)": true,
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": true,
     "desktop:New Group (14)": true,
-    "desktop:New Group (16)": true,
+    "desktop:New Group (16)": false,
     "desktop:New Group (5)": true,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
@@ -1200,7 +1200,7 @@
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
     "desktop:New Group (17)": true,
-    "mobile:Dev Panel": true,
+    "mobile:Dev Panel": false,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
     "mobile:New Group (9)": false,
@@ -1356,13 +1356,7 @@
       {
         "key": "desktop:New Group (16)",
         "rowKeys": [
-          "checkboxShowTopDebugLines",
-          "checkboxPreviewStartText",
-          "checkboxPreviewTryAgainText",
-          "checkboxPreviewWinText",
-          "checkboxPreviewLoseText",
-          "triggerRoundNumberFlashBtn",
-          "checkboxPreviewRoundText"
+          "triggerRoundNumberFlashBtn"
         ],
         "subgroups": []
       },
@@ -1373,7 +1367,6 @@
           {
             "key": "desktop:Main Button",
             "rowKeys": [
-              "checkboxFlipButtonSvg",
               "checkboxHideButton",
               "checkboxHideBase",
               "checkboxHideBackingSvg",
@@ -1735,9 +1728,7 @@
       },
       {
         "key": "desktop:New Group (17)",
-        "rowKeys": [
-          "checkboxClickCounter"
-        ],
+        "rowKeys": [],
         "subgroups": []
       }
     ],
@@ -2896,7 +2887,9 @@
     "checkboxDevBoldTitle",
     "checkboxDevCapsTitleText"
   ],
-  "lockedGroups": [],
+  "lockedGroups": [
+    "desktop:New Group (16)"
+  ],
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
   "buttonWinColor": "#27b942",
