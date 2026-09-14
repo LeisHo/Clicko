@@ -1178,7 +1178,7 @@
     "desktop:New Group (15)": false,
     "desktop:New Group (14)": false,
     "desktop:New Group (16)": true,
-    "desktop:New Group (5)": true,
+    "desktop:New Group (5)": false,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
@@ -1199,7 +1199,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": false,
+    "desktop:New Group (17)": true,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -1259,7 +1259,9 @@
     "desktopTabContent": [
       {
         "key": "desktop:Dev Panel",
-        "rowKeys": [],
+        "rowKeys": [
+          "checkboxPreviewRoundText"
+        ],
         "subgroups": [
           {
             "key": "desktop:New Group (13)",
@@ -1355,7 +1357,14 @@
       },
       {
         "key": "desktop:New Group (16)",
-        "rowKeys": [],
+        "rowKeys": [
+          "checkboxShowTopDebugLines",
+          "checkboxPreviewStartText",
+          "checkboxPreviewTryAgainText",
+          "checkboxPreviewWinText",
+          "checkboxPreviewLoseText",
+          "triggerRoundNumberFlashBtn"
+        ],
         "subgroups": []
       },
       {
@@ -1365,8 +1374,7 @@
           {
             "key": "desktop:Main Button",
             "rowKeys": [
-              "sliderBaseSaturation",
-              "sliderButtonSaturation",
+              "checkboxFlipButtonSvg",
               "checkboxHideButton",
               "checkboxHideBase",
               "checkboxHideBackingSvg",
@@ -1376,6 +1384,7 @@
               "sliderButtonMaxScale",
               "sliderButtonMinScale",
               "colorButton",
+              "sliderButtonSaturation",
               "selectButtonBlendMode",
               "sliderButtonLightLevels",
               "sliderButtonLightLevelsContrast",
@@ -1400,6 +1409,7 @@
               "checkboxThinBase",
               "checkboxBaseFollowsResultColor",
               "colorBase",
+              "sliderBaseSaturation",
               "selectBaseBlendMode",
               "sliderBaseLightLevels",
               "sliderBaseLightLevelCeiling",
