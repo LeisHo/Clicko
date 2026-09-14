@@ -1171,12 +1171,13 @@
     "desktop:Dev Panel": false,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
-    "desktop:New Group (9)": false,
+    "desktop:New Group (9)": true,
     "desktop:New Group (10)": false,
     "desktop:New Group (11)": true,
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": false,
     "desktop:New Group (14)": false,
+    "desktop:New Group (16)": false,
     "desktop:New Group (5)": true,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
@@ -1198,7 +1199,6 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (16)": false,
     "desktop:New Group (17)": false,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
@@ -1207,6 +1207,8 @@
     "mobile:New Group (10)": true,
     "mobile:New Group (11)": true,
     "mobile:New Group (8)": true,
+    "mobile:New Group (15)": true,
+    "mobile:New Group (14)": true,
     "mobile:New Group (5)": true,
     "mobile:Main Button": false,
     "mobile:New Group (3)": false,
@@ -1348,6 +1350,20 @@
             ]
           }
         ]
+      },
+      {
+        "key": "desktop:New Group (16)",
+        "rowKeys": [
+          "checkboxFlipButtonSvg",
+          "triggerRoundNumberFlashBtn",
+          "checkboxPreviewWinText",
+          "checkboxPreviewTryAgainText",
+          "checkboxPreviewLoseText",
+          "checkboxPreviewRoundText",
+          "checkboxPreviewStartText",
+          "checkboxShowTopDebugLines"
+        ],
+        "subgroups": []
       },
       {
         "key": "desktop:New Group (5)",
@@ -1716,20 +1732,6 @@
         "subgroups": []
       },
       {
-        "key": "desktop:New Group (16)",
-        "rowKeys": [
-          "checkboxFlipButtonSvg",
-          "triggerRoundNumberFlashBtn",
-          "checkboxPreviewWinText",
-          "checkboxPreviewTryAgainText",
-          "checkboxPreviewLoseText",
-          "checkboxPreviewRoundText",
-          "checkboxPreviewStartText",
-          "checkboxShowTopDebugLines"
-        ],
-        "subgroups": []
-      },
-      {
         "key": "desktop:New Group (17)",
         "rowKeys": [
           "checkboxClickCounter"
@@ -1751,9 +1753,7 @@
           },
           {
             "key": "mobile:New Group (12)",
-            "rowKeys": [
-              "sliderMobileDevButtonHeight"
-            ],
+            "rowKeys": [],
             "subgroups": []
           },
           {
@@ -1763,9 +1763,8 @@
               {
                 "key": "mobile:New Group (10)",
                 "rowKeys": [
-                  "sliderMobileDevButtonTextBorder",
                   "sliderMobileDevPanelTitleFontSize",
-                  "sliderMobileDevTabFontSize"
+                  "sliderMobileDevButtonTextBorder"
                 ],
                 "subgroups": []
               },
@@ -1779,8 +1778,22 @@
               {
                 "key": "mobile:New Group (8)",
                 "rowKeys": [
-                  "sliderMobileDevValueFontSize",
-                  "sliderMobileDevSettingTitleFontSize"
+                  "sliderMobileDevSettingTitleFontSize",
+                  "sliderMobileDevValueFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (15)",
+                "rowKeys": [
+                  "sliderMobileDevTabFontSize"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (14)",
+                "rowKeys": [
+                  "sliderMobileDevButtonHeight"
                 ],
                 "subgroups": []
               }
@@ -2464,13 +2477,13 @@
     "mobile:New Group (7)": "WIN/ LOSE",
     "sliderTargetPrefixFontSizeVw": "\"CLICK\" Font Size (vw):",
     "sliderTargetSuffixFontSizeVw": "\"X\" Font Size (vw):",
-    "sliderMobileDevButtonTextBorder": "Dev Label Text Border (px):",
+    "sliderMobileDevButtonTextBorder": "Dev Panel Title Bottom Padding (px):",
     "sliderMobileDevScrollStrength": "Scroll Speed(x):",
-    "sliderMobileDevPanelTitleFontSize": "Dev Labal Font Size (px):",
-    "sliderMobileDevTabFontSize": "Dev Tab Font Size (px):",
-    "sliderMobileDevGroupTitleFontSize": "Dev  Group Font Size (px):",
-    "sliderMobileDevSettingTitleFontSize": "Dev Setting Font Size (px):",
-    "sliderMobileDevButtonHeight": "Dev Button Height (px):",
+    "sliderMobileDevPanelTitleFontSize": "Dev Panel Title Font Size (px):",
+    "sliderMobileDevTabFontSize": null,
+    "sliderMobileDevGroupTitleFontSize": "Group Font Size (px):",
+    "sliderMobileDevSettingTitleFontSize": "Setting Font Size (px):",
+    "sliderMobileDevButtonHeight": null,
     "mobile:Dev Panel": null,
     "sliderMobileButtonDiameter": null,
     "sliderMobileButtonMinDiameter": null,
@@ -2827,7 +2840,9 @@
     "checkboxDevBoldTab": "Bold Tab",
     "checkboxDevBoldButton": "Bold Button",
     "checkboxDevBoldTitle": "Bold Title ",
-    "checkboxDevCapsTitleText": "Capitalize Title"
+    "checkboxDevCapsTitleText": "Capitalize Title",
+    "mobile:New Group (15)": "TABS",
+    "mobile:New Group (14)": "BUTTONS"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
