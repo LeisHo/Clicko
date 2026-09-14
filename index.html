@@ -7165,6 +7165,9 @@
         // Game state
         const gameState = {
             currentRound: 0,
+            // The highest round actually WON so far this run - see
+            // checkHighScore()'s call site in endGame()'s lose branch.
+            lastRoundWon: 0,
             targetCount: 0,
             currentTapCount: 0,
             isPlaying: false,
@@ -13918,6 +13921,14 @@
 
             if (won) {
                 setButtonHue('#22dd44');
+                // Tracks the highest round actually WON this run, separate
+                // from gameState.currentRound (which keeps advancing past
+                // this on every win, and at a loss reflects the round you
+                // were ON, not the last one you beat) - per direct
+                // correction ("Hgishcore should be the number of the round
+                // you had beat. not the round you lost at."). See
+                // checkHighScore()'s own call site below.
+                gameState.lastRoundWon = gameState.currentRound;
                 // Replaced the randomized winMessages pool with a plain ":)"
                 // per explicit request - winMessages itself is left in place
                 // (harmless unused data) rather than deleted, in case this is
@@ -13941,11 +13952,14 @@
             } else {
                 setButtonHue('#dd3333');
                 // High Score check - a run only truly ends on a loss (a win
-                // just continues to gameState.currentRound + 1, see above),
-                // so this is the one place a "final" round value exists.
-                // Checked before the later setTimeout resets currentRound
-                // to 0 (see below).
-                checkHighScore(gameState.currentRound);
+                // just continues to gameState.currentRound + 1, see above).
+                // Corrected 2026-09-14 per direct correction ("Hgishcore
+                // should be the number of the round you had beat. not the
+                // round you lost at."): uses gameState.lastRoundWon (the
+                // last round actually completed/won this run, 0 if none)
+                // instead of gameState.currentRound (the round you were ON
+                // when you lost, which is never a round you beat).
+                checkHighScore(gameState.lastRoundWon);
                 // Same replacement as the win case above - plain ":(" instead
                 // of the randomized tooManyMessages/notEnoughMessages pools
                 // (and the trailing "(count/target)" suffix, which was part
@@ -14027,6 +14041,9 @@
             stopTryAgainFlash();
             gameState.isPlaying = true;
             gameState.currentRound = 1;
+            // Reset each new game - see checkHighScore()'s call site in
+            // endGame()'s lose branch for why this exists.
+            gameState.lastRoundWon = 0;
             gameState.maxTimeMs = parseFloat(document.getElementById('sliderStartingSpeed').value);
             startButton.classList.add('hidden');
             // Per direct report ("the question mark doesnt go away even
