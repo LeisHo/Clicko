@@ -2753,6 +2753,24 @@
             opacity: 0.5;
         }
 
+        /* Mouse Log's own live display - a plain scrollable list, one
+           child element per entry (Copy/Save read the backing mouseLog
+           array, not this DOM). */
+        .dev-mouse-log {
+            height: 140px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--dev-accent-color, #0ff);
+            border-radius: 4px;
+            padding: 4px 6px;
+            font: 10px/1.5 ui-monospace, Consolas, monospace;
+            color: var(--dev-panel-non-title-text-color, #aaa);
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 4px;
+        }
+        .dev-mouse-log-empty { opacity: 0.6; }
+
         .dev-slider {
             flex: 1;
             /* Raised from 80px - per direct request that a too-narrow panel
@@ -3745,13 +3763,31 @@
              direct request, modeled on the Hando project's own preset
              picker generalized to the whole panel's state - see
              saveNamedDevPanelState()'s own comment for the full account.
-             Sits right under Copy/Sync/Reset per that same request. -->
-        <select class="dev-select" id="devSavedStatesSelect" style="width:100%; margin-bottom:5px;"></select>
-        <div class="dev-buttons">
-            <button onclick="saveNamedDevPanelState()">SAVE</button>
-            <button onclick="useNamedDevPanelState()">USE</button>
-            <button onclick="deleteNamedDevPanelState()">DELETE</button>
-            <button onclick="setNamedDevPanelStateAsDefault()">SET DEFAULT</button>
+             Sits right under Copy/Sync/Reset per that same request.
+             Wrapped in a collapsible "Saved Dev Settings" group
+             (2026-09-14, direct request, also making this whole feature
+             mandatory standard scaffolding - CLAUDE.md §12d) - a single,
+             PANEL-LEVEL group (not tripled per tab, unlike Dev Panel/
+             Debug - a saved state snapshot covers the whole panel across
+             all 3 tabs at once). Deliberately NOT part of the per-tab
+             reorderable group system (setupDragReorder/section-order
+             persistence/drag-handle-injection are all scoped inside
+             #desktopTabContent etc. - this sits outside all 3, same level
+             as Copy/Sync/Reset and Text Edit Mode below) - just reuses
+             the plain .dev-section/-title/-content markup for its
+             collapse/expand behavior, since toggleSection() itself has no
+             dependency on where in the DOM its target lives. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)">▼ Saved Dev Settings</div>
+            <div class="dev-section-content">
+                <select class="dev-select" id="devSavedStatesSelect" style="width:100%; margin-bottom:5px;"></select>
+                <div class="dev-buttons">
+                    <button onclick="saveNamedDevPanelState()">SAVE</button>
+                    <button onclick="useNamedDevPanelState()">USE</button>
+                    <button onclick="deleteNamedDevPanelState()">DELETE</button>
+                    <button onclick="setNamedDevPanelStateAsDefault()">SET DEFAULT</button>
+                </div>
+            </div>
         </div>
 
         <!-- Desktop/Mobile tabs - per CLAUDE.md Section 12f. Everything
@@ -8636,6 +8672,12 @@
                     // even for a group actually saved as locked.
                     if (settings.lockedGroups) lockedGroups = new Set(settings.lockedGroups);
                     if (devPanelBuilt) injectGroupLockIcons();
+                    // Mouse Log's own resolveDebugGroupSid() needs
+                    // devTextOverrides actually populated (just above) to
+                    // find the "DEBUG" group by its current display name -
+                    // this is the call site that actually succeeds on a
+                    // real page load, per that section's own top comment.
+                    if (devPanelBuilt) buildMouseLogWidget();
                     // Generic slider display-sync-after-load - every
                     // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP-driven slider's
                     // underlying value already restores correctly via the
@@ -14769,6 +14811,341 @@
         // check, not DOM). All 4 stay in their original relative order below.
         // devPanelBuilt itself is declared at the very TOP of this script,
         // not here - see that declaration's own comment for why.
+        // ================================================================
+        // MOUSE LOG (built-in "Debug" group feature) - ported from the
+        // shared .claude/TEMPLATE_DEV_PANEL.html, 2026-09-14. A live log
+        // of mouse/touch position, click type, and what it hit - per
+        // direct request. Referenced DickoClicko's own "CLICK LOG"
+        // (structured {event,data} pairs, clipboard-only) and Handy
+        // Dandies' own "Mouse Tracking Log" (Debug-group placement, a
+        // sampling-interval slider) - this version extends past both:
+        // touch gesture classification (tap/double-tap/long-press/swipe/
+        // pinch), device/viewport context entries, and a Save-to-file
+        // export.
+        //
+        // SINGLE INSTANCE, Desktop-tab only - one real mouse/touch input
+        // stream regardless of which tab is showing.
+        //
+        // Placement: unlike the template (which has a static built-in
+        // "Debug" group), Clicko's own "DEBUG" group already exists as a
+        // real, user-created custom group (its stable internal data-sid
+        // is "New Group (17)", renamed to "DEBUG" via devTextOverrides) -
+        // resolveDebugGroupSid() finds it by CURRENT override text rather
+        // than a hardcoded internal key, so this keeps working even if
+        // the group is ever recreated. Called from both ensureDevPanelBuilt()
+        // (synchronous, devTextOverrides likely still empty on a brand
+        // new session - harmlessly no-ops, matching findGroupContent's
+        // own console.warn-and-return-null behavior) and the async
+        // settings-load completion (same dual-call-site pattern already
+        // established for injectGroupLockIcons() - devTextOverrides IS
+        // populated there, so this is the call that actually succeeds on
+        // a real page load).
+        const MOUSE_LOG_MAX_ENTRIES = 500;
+        const MOUSE_LOG_HOLD_MS = 500;
+        const MOUSE_LOG_MULTICLICK_MS = 350;
+        const MOUSE_LOG_MOVE_THRESHOLD_PX = 10;
+        let mouseLog = [];
+        let mouseLogEl = null;
+        let mouseLogPositionEnabled = false;
+        let mouseLogPositionIntervalMs = 1000;
+        let mouseLogPositionTimer = null;
+        let mouseLogLastPointerPos = null;
+        let mouseLogLastViewport = null;
+        const mouseLogActivePointers = new Map();
+        let mouseLogClickCount = 0;
+        let mouseLogClickTimer = null;
+        let mouseLogHoldTimer = null;
+        let mouseLogPinchStartDist = null;
+        let mouseLogPinchActive = false;
+
+        function resolveDebugGroupSid() {
+            for (const key in devTextOverrides) {
+                if (devTextOverrides[key] === 'DEBUG' && key.indexOf('desktop:') === 0) return key.slice('desktop:'.length);
+            }
+            return null;
+        }
+        function mouseLogDeviceContext() { return isMobileActive() ? 'mobile' : 'desktop'; }
+        function formatMouseLogTime(d) {
+            const pad2 = n => String(n).padStart(2, '0');
+            const pad3 = n => String(n).padStart(3, '0');
+            return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) + '.' + pad3(d.getMilliseconds());
+        }
+        function describeMouseLogTarget(el) {
+            if (!el || el === document.documentElement || el === document.body) return { target: '(background)', triggered: false };
+            const inPanel = el.closest && el.closest('.dev-panel');
+            if (inPanel) {
+                const row = el.closest('.dev-row');
+                const label = row && row.querySelector('.dev-label');
+                const btn = el.closest('button');
+                const titleEl = el.closest('.dev-section-title');
+                const name = label ? label.textContent.trim() : btn ? btn.textContent.trim() : titleEl ? '(group) ' + titleEl.textContent.replace(/^[▼▶]\s*/, '').trim() : (el.id || el.tagName.toLowerCase());
+                const interactive = !!(btn || titleEl || el.matches('input, select, textarea, [onclick]'));
+                return { target: 'Dev Panel: ' + name, triggered: interactive };
+            }
+            const interactiveEl = el.closest && el.closest('button, a[href], input, select, textarea, [onclick], label');
+            if (interactiveEl) {
+                const id = interactiveEl.id ? '#' + interactiveEl.id : '';
+                const text = (interactiveEl.textContent || '').trim().slice(0, 30);
+                return { target: 'App: ' + interactiveEl.tagName.toLowerCase() + id + (text ? ' "' + text + '"' : ''), triggered: true };
+            }
+            const id = el.id ? '#' + el.id : '';
+            const cls = el.className && typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/)[0] : '';
+            return { target: 'App: ' + el.tagName.toLowerCase() + id + cls, triggered: false };
+        }
+        function renderMouseLogEntry(entry) {
+            if (!mouseLogEl) return;
+            const empty = mouseLogEl.querySelector('.dev-mouse-log-empty');
+            if (empty) empty.remove();
+            const line = document.createElement('div');
+            let text = entry.time + '  [' + entry.device + '/' + entry.pointerType + ']  ' + entry.type + '  (' + entry.x + ', ' + entry.y + ')';
+            if (entry.target) text += '  -> ' + entry.target;
+            if (entry.triggered === true) text += '  [OK]';
+            else if (entry.triggered === false) text += '  [no-op]';
+            if (entry.detail) text += '  ' + entry.detail;
+            line.textContent = text;
+            mouseLogEl.appendChild(line);
+            while (mouseLogEl.children.length > MOUSE_LOG_MAX_ENTRIES) mouseLogEl.removeChild(mouseLogEl.firstChild);
+            mouseLogEl.scrollTop = mouseLogEl.scrollHeight;
+        }
+        function pushMouseLogEntry(entry) {
+            entry.time = formatMouseLogTime(new Date());
+            mouseLog.push(entry);
+            if (mouseLog.length > MOUSE_LOG_MAX_ENTRIES) mouseLog.shift();
+            renderMouseLogEntry(entry);
+        }
+        function logMouseLogContext(reason) {
+            const w = window.innerWidth, h = window.innerHeight;
+            if (reason === 'resize' && mouseLogLastViewport && mouseLogLastViewport.w === w && mouseLogLastViewport.h === h) return;
+            mouseLogLastViewport = { w, h };
+            pushMouseLogEntry({
+                type: 'context', x: '-', y: '-', device: mouseLogDeviceContext(), pointerType: '-',
+                target: null, triggered: null,
+                detail: reason + ': ' + w + 'x' + h + ' dpr:' + (window.devicePixelRatio || 1).toFixed(2),
+            });
+        }
+        function clearMouseLog() {
+            mouseLog = [];
+            if (mouseLogEl) {
+                mouseLogEl.innerHTML = '';
+                const empty = document.createElement('div');
+                empty.className = 'dev-mouse-log-empty';
+                empty.textContent = '(no mouse activity logged yet)';
+                mouseLogEl.appendChild(empty);
+            }
+            mouseLogLastViewport = null;
+        }
+        function mouseLogEntryToLine(e) {
+            let text = e.time + '  [' + e.device + '/' + e.pointerType + ']  ' + e.type + '  (' + e.x + ', ' + e.y + ')';
+            if (e.target) text += '  -> ' + e.target;
+            if (e.triggered === true) text += '  [OK]';
+            else if (e.triggered === false) text += '  [no-op]';
+            if (e.detail) text += '  ' + e.detail;
+            return text;
+        }
+        function copyMouseLog(btn) {
+            const text = mouseLog.map(mouseLogEntryToLine).join('\n');
+            const flash = (msg) => { const orig = btn.textContent; btn.textContent = msg; setTimeout(() => { btn.textContent = orig; }, 900); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => flash('Copied!')).catch(() => flash('Copy failed'));
+            } else {
+                flash('Copy failed');
+            }
+        }
+        function saveMouseLog() {
+            const header = '# Mouse Log\n\n' + mouseLog.filter(e => e.type === 'context').map(mouseLogEntryToLine).join('\n') + '\n\n';
+            const body = mouseLog.map(e => '- ' + mouseLogEntryToLine(e)).join('\n');
+            const md = header + body + '\n';
+            const blob = new Blob([md], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+            a.href = url;
+            a.download = 'mouse-log-' + stamp + '.md';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+        function restartMouseLogPositionTimer() {
+            clearInterval(mouseLogPositionTimer);
+            mouseLogPositionTimer = null;
+            if (!mouseLogPositionEnabled) return;
+            mouseLogPositionTimer = setInterval(() => {
+                if (!mouseLogLastPointerPos) return;
+                pushMouseLogEntry({
+                    type: 'position', x: mouseLogLastPointerPos.x, y: mouseLogLastPointerPos.y,
+                    device: mouseLogDeviceContext(), pointerType: mouseLogLastPointerPos.pointerType || '-',
+                    target: null, triggered: null,
+                });
+            }, mouseLogPositionIntervalMs);
+        }
+        function buildMouseLogWidget() {
+            if (mouseLogEl) return;
+            const debugSid = resolveDebugGroupSid();
+            if (!debugSid) return;
+            const debugContent = findGroupContent('desktop', debugSid, 'buildMouseLogWidget', 'mouseLogWidget');
+            if (!debugContent) return;
+            const section = createDevGroupElement('Mouse Log');
+            debugContent.appendChild(section);
+            const content = section.querySelector(':scope > .dev-section-content');
+
+            const posRow = document.createElement('div');
+            posRow.className = 'dev-row';
+            const posCheckbox = document.createElement('input');
+            posCheckbox.type = 'checkbox';
+            posCheckbox.id = 'checkboxMouseLogPosition';
+            const posLabel = document.createElement('span');
+            posLabel.className = 'dev-label';
+            posLabel.textContent = 'Log Mouse Position (continuous)';
+            posRow.append(posCheckbox, posLabel);
+            content.appendChild(posRow);
+            posCheckbox.addEventListener('change', (e) => {
+                mouseLogPositionEnabled = e.target.checked;
+                restartMouseLogPositionTimer();
+            });
+
+            const sliderRow = document.createElement('div');
+            sliderRow.className = 'dev-row';
+            const sliderLabel = document.createElement('span');
+            sliderLabel.className = 'dev-label';
+            sliderLabel.textContent = 'Position Log Interval (Ms):';
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.className = 'dev-slider';
+            slider.id = 'sliderMouseLogInterval';
+            slider.min = '100'; slider.max = '5000'; slider.step = '50'; slider.value = String(mouseLogPositionIntervalMs);
+            const sliderVal = document.createElement('span');
+            sliderVal.className = 'dev-value';
+            sliderVal.id = 'valueMouseLogInterval';
+            sliderVal.textContent = String(mouseLogPositionIntervalMs);
+            sliderRow.append(sliderLabel, slider, sliderVal);
+            content.appendChild(sliderRow);
+            slider.addEventListener('input', (e) => {
+                mouseLogPositionIntervalMs = parseFloat(e.target.value);
+                sliderVal.textContent = e.target.value;
+                restartMouseLogPositionTimer();
+            });
+
+            const btnRow = document.createElement('div');
+            btnRow.className = 'dev-buttons';
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.textContent = 'COPY';
+            const saveBtn = document.createElement('button');
+            saveBtn.type = 'button';
+            saveBtn.textContent = 'SAVE';
+            const clearBtn = document.createElement('button');
+            clearBtn.type = 'button';
+            clearBtn.textContent = 'CLEAR';
+            btnRow.append(copyBtn, saveBtn, clearBtn);
+            content.appendChild(btnRow);
+            copyBtn.addEventListener('click', () => copyMouseLog(copyBtn));
+            saveBtn.addEventListener('click', saveMouseLog);
+            clearBtn.addEventListener('click', clearMouseLog);
+
+            mouseLogEl = document.createElement('div');
+            mouseLogEl.className = 'dev-mouse-log';
+            content.appendChild(mouseLogEl);
+            clearMouseLog();
+            logMouseLogContext('start');
+        }
+        function setupMouseLog() {
+            if (setupMouseLog._done) return;
+            setupMouseLog._done = true;
+            window.addEventListener('pointermove', (e) => {
+                mouseLogLastPointerPos = { x: Math.round(e.clientX), y: Math.round(e.clientY), pointerType: e.pointerType };
+                const info = mouseLogActivePointers.get(e.pointerId);
+                if (!info) return;
+                info.curX = e.clientX; info.curY = e.clientY;
+                if (!info.moved && Math.hypot(e.clientX - info.startX, e.clientY - info.startY) > MOUSE_LOG_MOVE_THRESHOLD_PX) info.moved = true;
+            });
+            window.addEventListener('pointerdown', (e) => {
+                mouseLogActivePointers.set(e.pointerId, { startX: e.clientX, startY: e.clientY, curX: e.clientX, curY: e.clientY, startTime: performance.now(), moved: false, target: e.target });
+                if (e.pointerType === 'touch' && mouseLogActivePointers.size === 2) {
+                    const pts = Array.from(mouseLogActivePointers.values());
+                    mouseLogPinchStartDist = Math.hypot(pts[0].curX - pts[1].curX, pts[0].curY - pts[1].curY);
+                    mouseLogPinchActive = true;
+                    clearTimeout(mouseLogHoldTimer);
+                    return;
+                }
+                if (e.button === 2 || mouseLogActivePointers.size > 1) return;
+                clearTimeout(mouseLogHoldTimer);
+                mouseLogHoldTimer = setTimeout(() => {
+                    const info2 = mouseLogActivePointers.get(e.pointerId);
+                    if (info2 && !info2.moved) {
+                        const { target, triggered } = describeMouseLogTarget(e.target);
+                        pushMouseLogEntry({ type: 'hold', x: Math.round(e.clientX), y: Math.round(e.clientY), device: mouseLogDeviceContext(), pointerType: e.pointerType, target, triggered });
+                    }
+                }, MOUSE_LOG_HOLD_MS);
+            });
+            window.addEventListener('pointerup', (e) => {
+                clearTimeout(mouseLogHoldTimer);
+                const info = mouseLogActivePointers.get(e.pointerId);
+                const wasPinching = mouseLogPinchActive && mouseLogActivePointers.size === 2;
+                mouseLogActivePointers.delete(e.pointerId);
+                if (!info) return;
+                const x = Math.round(e.clientX), y = Math.round(e.clientY);
+                const device = mouseLogDeviceContext();
+                if (wasPinching) {
+                    mouseLogPinchActive = false;
+                    const remaining = Array.from(mouseLogActivePointers.values())[0];
+                    if (remaining && mouseLogPinchStartDist) {
+                        const endDist = Math.hypot(x - remaining.curX, y - remaining.curY);
+                        const scale = mouseLogPinchStartDist > 0 ? endDist / mouseLogPinchStartDist : 1;
+                        pushMouseLogEntry({ type: 'pinch', x, y, device, pointerType: 'touch', target: null, triggered: null, detail: (scale > 1 ? 'out' : 'in') + ' scale:' + scale.toFixed(2) });
+                    }
+                    return;
+                }
+                const heldMs = performance.now() - info.startTime;
+                const { target, triggered } = describeMouseLogTarget(info.target);
+                if (e.pointerType === 'touch') {
+                    if (info.moved) {
+                        const dx = e.clientX - info.startX, dy = e.clientY - info.startY;
+                        const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+                        pushMouseLogEntry({ type: 'swipe', x, y, device, pointerType: 'touch', target, triggered, detail: 'dir:' + dir + ' dist:' + Math.round(Math.hypot(dx, dy)) });
+                        return;
+                    }
+                    if (heldMs > MOUSE_LOG_HOLD_MS) return;
+                    mouseLogClickCount++;
+                    clearTimeout(mouseLogClickTimer);
+                    mouseLogClickTimer = setTimeout(() => {
+                        pushMouseLogEntry({ type: mouseLogClickCount >= 2 ? 'doubletap' : 'tap', x, y, device, pointerType: 'touch', target, triggered });
+                        mouseLogClickCount = 0;
+                    }, MOUSE_LOG_MULTICLICK_MS);
+                    return;
+                }
+                if (e.button === 2) {
+                    pushMouseLogEntry({ type: 'rightclick', x, y, device, pointerType: e.pointerType, target, triggered });
+                    return;
+                }
+                if (info.moved) {
+                    pushMouseLogEntry({ type: 'drag-release', x, y, device, pointerType: e.pointerType, target, triggered, detail: 'heldMs:' + Math.round(heldMs) });
+                    return;
+                }
+                if (heldMs > MOUSE_LOG_HOLD_MS) {
+                    pushMouseLogEntry({ type: 'release', x, y, device, pointerType: e.pointerType, target, triggered, detail: 'heldMs:' + Math.round(heldMs) });
+                    return;
+                }
+                mouseLogClickCount++;
+                clearTimeout(mouseLogClickTimer);
+                mouseLogClickTimer = setTimeout(() => {
+                    const kind = mouseLogClickCount >= 3 ? 'tripleclick' : mouseLogClickCount === 2 ? 'dblclick' : 'click';
+                    pushMouseLogEntry({ type: kind, x, y, device, pointerType: e.pointerType, target, triggered });
+                    mouseLogClickCount = 0;
+                }, MOUSE_LOG_MULTICLICK_MS);
+            });
+            window.addEventListener('pointercancel', (e) => {
+                clearTimeout(mouseLogHoldTimer);
+                mouseLogActivePointers.delete(e.pointerId);
+                mouseLogPinchActive = false;
+            });
+            window.addEventListener('wheel', (e) => {
+                const { target, triggered } = describeMouseLogTarget(e.target);
+                pushMouseLogEntry({ type: 'scroll', x: Math.round(e.clientX), y: Math.round(e.clientY), device: mouseLogDeviceContext(), pointerType: 'wheel', target, triggered, detail: 'deltaY:' + Math.round(e.deltaY) });
+            }, { passive: true });
+            window.addEventListener('resize', () => { if (mouseLogEl) logMouseLogContext('resize'); });
+        }
+
         function ensureDevPanelBuilt() {
             if (devPanelBuilt) return;
             // Set at the END of this function, not here - if anything
@@ -14783,6 +15160,11 @@
             renderLandscapeUniformControls();
             renderCompoundOffsetControls();
             renderDevPanelStyleControls();
+            // Mouse Log's own widget/listeners - see that section's own
+            // top comment for why this is called from both here AND the
+            // async settings-load completion below.
+            buildMouseLogWidget();
+            setupMouseLog();
             renderSpecialColorControls();
             renderDevPanelMiscControls();
             renderClickBurstTextInputControls();
