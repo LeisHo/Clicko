@@ -132,6 +132,7 @@
     "--round-blink3-show-ms": 330,
     "--round-post-blink-hold-ms": 1300,
     "--round-blink4-hide-ms": 300,
+    "--high-score-flash-delay-ms": 0,
     "--gameplay-result-flash-with-round": 1,
     "--target-prefix-font-size-px": 150,
     "--target-prefix-font-size-vw": 5.33,
@@ -545,6 +546,7 @@
     "--round-blink3-show-ms": 500,
     "--round-post-blink-hold-ms": 1300,
     "--round-blink4-hide-ms": 250,
+    "--high-score-flash-delay-ms": 0,
     "--gameplay-result-flash-with-round": 1,
     "--target-prefix-font-size-px": 150,
     "--target-prefix-font-size-vw": 11.72,
@@ -832,7 +834,7 @@
     "sliderCountdownRounding": 100,
     "sliderTapDebounce": 50,
     "sliderRoundDuration": 1000,
-    "sliderResultDuration": 1600,
+    "sliderResultDuration": 1000,
     "sliderTargetFloorBase": 10,
     "sliderTargetFloorIncrease": 6,
     "sliderTargetCeilingBase": 20,
@@ -1184,18 +1186,18 @@
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
-    "desktop:New Group (6)": true,
+    "desktop:New Group (6)": false,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
-    "desktop:High Score": true,
+    "desktop:High Score": false,
     "desktop:Start/Try Again Button": true,
     "desktop:Round Text": true,
-    "desktop:Target Count Display": false,
+    "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
     "desktop:Background": true,
     "desktop:New Group (7)": true,
-    "desktop:Win/Lose Text": false,
+    "desktop:Win/Lose Text": true,
     "desktop:New Group (2)": true,
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
@@ -1489,6 +1491,7 @@
           {
             "key": "desktop:High Score",
             "rowKeys": [
+              "sliderHighScoreFlashDelay",
               "checkboxHighScoreScaleWithBrowser",
               "selectHighScoreTextAlign",
               "selectHighScoreTextValign",
@@ -1745,6 +1748,11 @@
           "checkboxShowTopDebugLines"
         ],
         "subgroups": [
+          {
+            "key": "desktop:Mouse Log",
+            "rowKeys": [],
+            "subgroups": []
+          },
           {
             "key": "desktop:Mouse Log",
             "rowKeys": [
