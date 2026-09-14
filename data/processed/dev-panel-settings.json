@@ -42,7 +42,7 @@
     "--click-burst-curve-amount": 0,
     "--click-burst-shadow-final-scale": 0.64,
     "--click-frame-set": "CLICK3",
-    "--flip-button-svg": 0,
+    "--flip-button-svg": 1,
     "--shadow-x-offset": 24.25,
     "--shadow-y-offset": 17.17,
     "--shadow-blur": 0,
@@ -849,8 +849,10 @@
     "bgColor": "#000000",
     "titleTextColor": "#ffffff",
     "nonTitleTextColor": "#ffffff",
-    "accentColor": "#5cc9ff",
+    "accentColor": "#005f8f",
     "sliderColor": "#ffffff",
+    "groupTextColor": "#ffffff",
+    "buttonTextColor": "#ffffff",
     "fontFamily": "Verdana, Geneva, sans-serif",
     "capsButtonText": true,
     "capsTabText": true,
@@ -862,8 +864,8 @@
     "settingsTextLetterSpacing": 0,
     "buttonHeight": 21,
     "bodyFontSize": 11,
-    "valueFontSize": 12,
-    "groupLabelBgColor": "#3b3b3b"
+    "valueFontSize": 15,
+    "groupLabelBgColor": "#005f8f"
   },
   "mobileDevPanelStyle": {
     "titleFontSize": 11,
@@ -878,6 +880,8 @@
     "nonTitleTextColor": "#ffffff",
     "accentColor": "#00ff00",
     "sliderColor": "#3b82f6",
+    "groupTextColor": "#5cc9ff",
+    "buttonTextColor": "#000000",
     "fontFamily": "monospace",
     "capsButtonText": false,
     "capsTabText": false,
@@ -905,6 +909,8 @@
     "nonTitleTextColor": "#ffffff",
     "accentColor": "#3ac8e4",
     "sliderColor": "#3b82f6",
+    "groupTextColor": "#5cc9ff",
+    "buttonTextColor": "#000000",
     "fontFamily": "Verdana, Geneva, sans-serif",
     "capsButtonText": true,
     "capsTabText": true,
@@ -1117,15 +1123,15 @@
     "leftCeilingDeg": 340
   },
   "sectionCollapseState": {
-    "desktop:Dev Panel": false,
+    "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
-    "desktop:New Group (12)": true,
+    "desktop:New Group (12)": false,
     "desktop:New Group (9)": false,
-    "desktop:New Group (10)": true,
-    "desktop:New Group (11)": true,
-    "desktop:New Group (8)": true,
-    "desktop:New Group (15)": true,
-    "desktop:New Group (14)": true,
+    "desktop:New Group (10)": false,
+    "desktop:New Group (11)": false,
+    "desktop:New Group (8)": false,
+    "desktop:New Group (15)": false,
+    "desktop:New Group (14)": false,
     "desktop:New Group (5)": true,
     "desktop:Main Button": true,
     "desktop:New Group (3)": true,
@@ -1147,7 +1153,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
-    "mobile:Dev Panel": false,
+    "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
     "mobile:New Group (9)": false,
@@ -1159,8 +1165,9 @@
     "mobile:New Group (3)": false,
     "mobile:Shadow": true,
     "mobile:Click Burst": true,
-    "mobile:New Group (6)": false,
+    "mobile:New Group (6)": true,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
+    "mobile:New Group (4)": false,
     "mobile:High Score": true,
     "mobile:Start/Try Again Button": true,
     "mobile:Round Text": true,
@@ -1216,8 +1223,7 @@
               "colorDevPanelBg",
               "colorDevPanelAccent",
               "colorDevPanelSliderColor",
-              "sliderDevPanelOpacity",
-              "sliderDevButtonHeight"
+              "sliderDevPanelOpacity"
             ],
             "subgroups": []
           },
@@ -1232,7 +1238,6 @@
                 "rowKeys": [
                   "sliderDevButtonTextBorder",
                   "sliderDevPanelTitleFontSize",
-                  "sliderDevTabFontSize",
                   "colorDevPanelTitleText"
                 ],
                 "subgroups": []
@@ -1240,10 +1245,11 @@
               {
                 "key": "desktop:New Group (11)",
                 "rowKeys": [
-                  "colorDevPanelGroupLabelBg",
                   "checkboxDevCapsGroupNames",
+                  "sliderDevGroupTitleFontSize",
                   "sliderDevGroupTextLetterSpacing",
-                  "sliderDevGroupTitleFontSize"
+                  "colorDevPanelGroupText",
+                  "colorDevPanelGroupLabelBg"
                 ],
                 "subgroups": []
               },
@@ -1251,8 +1257,8 @@
                 "key": "desktop:New Group (8)",
                 "rowKeys": [
                   "checkboxDevCapsSettingsText",
-                  "sliderDevValueFontSize",
                   "sliderDevSettingTitleFontSize",
+                  "sliderDevValueFontSize",
                   "sliderDevSettingsTextLetterSpacing",
                   "colorDevPanelNonTitleText"
                 ],
@@ -1262,6 +1268,7 @@
                 "key": "desktop:New Group (15)",
                 "rowKeys": [
                   "checkboxDevCapsTabText",
+                  "sliderDevTabFontSize",
                   "sliderDevTabTextLetterSpacing"
                 ],
                 "subgroups": []
@@ -1269,8 +1276,10 @@
               {
                 "key": "desktop:New Group (14)",
                 "rowKeys": [
-                  "sliderDevButtonTextLetterSpacing",
-                  "checkboxDevCapsButtonText"
+                  "checkboxDevCapsButtonText",
+                  "colorDevPanelButtonText",
+                  "sliderDevButtonHeight",
+                  "sliderDevButtonTextLetterSpacing"
                 ],
                 "subgroups": []
               }
@@ -1764,6 +1773,11 @@
         "subgroups": [
           {
             "key": "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)",
+            "rowKeys": [],
+            "subgroups": []
+          },
+          {
+            "key": "mobile:New Group (4)",
             "rowKeys": [],
             "subgroups": []
           },
@@ -2325,27 +2339,27 @@
     "colorButtonLose": "Lose:",
     "desktop:New Group (3)": "Base",
     "desktop:Game Mechanics": null,
-    "sliderDevButtonTextLetterSpacing": "Dev Buttons Letter Spacing (px):",
-    "sliderDevTabTextLetterSpacing": "Dev Tab Letter Spacing (px):",
-    "sliderDevGroupTextLetterSpacing": "Dev Group Letter Spacing (px):",
-    "sliderDevSettingsTextLetterSpacing": "Dev Settings Letter Spacing (px):",
-    "sliderDevButtonTextBorder": "Dev Label Text Border (px):",
+    "sliderDevButtonTextLetterSpacing": "Buttons Letter Spacing (px):",
+    "sliderDevTabTextLetterSpacing": "Tab Letter Spacing (px):",
+    "sliderDevGroupTextLetterSpacing": "Group Letter Spacing (px):",
+    "sliderDevSettingsTextLetterSpacing": "Settings Letter Spacing (px):",
+    "sliderDevButtonTextBorder": "Dev Panel Title Bottom Padding (px):",
     "sliderDevScrollStrength": "Scroll Speed(x):",
     "selectDevPanelFontFamily": "Dev Panel Font:",
     "colorDevPanelSliderColor": null,
-    "colorDevPanelTitleText": "Dev  Panel Label Text Color:",
-    "checkboxDevCapsTabText": "Capitalize Tab Names",
-    "checkboxDevCapsButtonText": "Capitalize Button Names",
-    "checkboxDevCapsSettingsText": "Capitalize Settings Names",
-    "checkboxDevCapsGroupNames": null,
-    "sliderDevPanelTitleFontSize": "Dev Labal Font Size (px):",
-    "sliderDevTabFontSize": "Dev Tab Font Size (px):",
-    "sliderDevGroupTitleFontSize": "Dev  Group Font Size (px):",
-    "sliderDevSettingTitleFontSize": "Dev Setting Font Size (px):",
+    "colorDevPanelTitleText": "Dev Panel Title Color:",
+    "checkboxDevCapsTabText": "Capitalize Tab",
+    "checkboxDevCapsButtonText": "Capitalize Button",
+    "checkboxDevCapsSettingsText": "Capitalize Settings",
+    "checkboxDevCapsGroupNames": "Capitalize Group",
+    "sliderDevPanelTitleFontSize": "Dev Panel Title Font Size (px):",
+    "sliderDevTabFontSize": null,
+    "sliderDevGroupTitleFontSize": "Group Font Size (px):",
+    "sliderDevSettingTitleFontSize": "Setting Font Size (px):",
     "sliderDevPanelOpacity": null,
     "colorDevPanelBg": null,
     "colorDevPanelAccent": "Accent Color:",
-    "sliderDevButtonHeight": "Dev Button Height (px):",
+    "sliderDevButtonHeight": null,
     "desktop:New Group (4)": "# FLASHING",
     "sliderTargetPrefixFontSize": "\"CLICK\" Font Size (px):",
     "sliderTargetPrefixXOffset": "\"CLICK\" X Offset (Px):",
@@ -2720,7 +2734,9 @@
     "sliderLandscapeTryAgainQuestionMarkOverallBorderThickness": null,
     "sliderLandscapeTryAgainQuestionMarkX": null,
     "sliderLandscapeTryAgainQuestionMarkY": null,
-    "landscape:New Group (7)": "WIN/ LOSE"
+    "landscape:New Group (7)": "WIN/ LOSE",
+    "mobile:New Group (4)": "PREVIEW UI ANIMATIONS",
+    "colorDevPanelGroupLabelBg": "Group Background Color:"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -2731,11 +2747,25 @@
     "desktop:New Group (13)",
     "desktop:New Group (12)",
     "colorDevPanelAccent",
-    "sliderDevButtonHeight",
     "sliderDevScrollStrength",
     "checkboxTextEditMode",
     "desktop:New Group (15)",
-    "desktop:New Group (14)"
+    "desktop:New Group (14)",
+    "mobile:New Group (4)",
+    "sliderDevButtonTextBorder",
+    "sliderDevPanelTitleFontSize",
+    "colorDevPanelTitleText",
+    "checkboxDevCapsGroupNames",
+    "sliderDevGroupTitleFontSize",
+    "sliderDevGroupTextLetterSpacing",
+    "colorDevPanelGroupLabelBg",
+    "checkboxDevCapsSettingsText",
+    "sliderDevSettingTitleFontSize",
+    "sliderDevSettingsTextLetterSpacing",
+    "checkboxDevCapsTabText",
+    "sliderDevTabTextLetterSpacing",
+    "checkboxDevCapsButtonText",
+    "sliderDevButtonTextLetterSpacing"
   ],
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
