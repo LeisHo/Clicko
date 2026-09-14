@@ -2580,6 +2580,40 @@
             opacity: 1;
         }
 
+        /* Drag handle - per direct request ("in Handy Dandies, the
+           settings/group reorder/nesting is only triggered by the icon on
+           the far left... when i click and drag outside that icon, it
+           wont move or nest things. I like that."), modeled directly on
+           that project's own .dp-drag-handle (HANDY DANDIES/src/devpanel/
+           devPanel.js). Deliberately a SIBLING of .dev-section-title (same
+           reasoning as .dev-group-lock-icon just above - the title's own
+           rename mechanism rewrites its entire textContent, which would
+           silently delete a child element every time). Small and
+           dedicated (unlike the old handle, which was the WHOLE title bar)
+           also means it can safely be touch-action:none without blocking
+           the panel's own scroll gesture the way marking the entire title
+           bar that way once did (see .dev-section-title's own comment on
+           that tradeoff) - restores real touch-drag support for group
+           reordering as a direct side effect of narrowing the handle. */
+        .dev-group-drag-handle {
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+            line-height: 1;
+            cursor: grab;
+            user-select: none;
+            z-index: 1;
+            opacity: 0.75;
+            touch-action: none;
+        }
+        .dev-group-drag-handle:hover {
+            opacity: 1;
+        }
+        .dev-group-drag-handle:active {
+            cursor: grabbing;
+        }
+
         .dev-section-title {
             /* Was a fixed cyan (#0ff), then Accent Color (per "Dev Panel
                Accent color should also apply to Group text") - now its
@@ -2594,23 +2628,26 @@
             margin-bottom: 8px;
             cursor: pointer;
             user-select: none;
-            padding: 5px;
+            /* Left padding widened to reserve room for .dev-group-drag-
+               handle (a sibling, absolutely positioned at left:8px) so it
+               doesn't sit on top of the collapse arrow (▼/▶), which is
+               always the title's own first character. */
+            padding: 5px 5px 5px 22px;
             background: var(--dev-group-label-bg-color, #134e4a);
             border-radius: 3px;
-            /* Drag handle for reordering groups (CLAUDE.md Section 12e).
-               Deliberately NOT touch-action:none, unlike the panel's own
-               move/resize handles - this sits INSIDE the scrollable
-               settings list, not in a small fixed strip outside it, and
-               since nearly every group has a title, marking them all
-               touch-action:none blocked the native scroll gesture across
-               most of the panel's surface on a touchscreen (reported as
-               "cant scroll the Dev panel in mobile browser"). Group/
-               setting reordering by touch-dragging a title/label is a real
-               casualty of this fix (the browser will treat a vertical
-               touch-drag here as scrolling instead) - reordering remains
-               fully functional via mouse on desktop, which touch-action
-               never governs. Scrolling the entire panel is the more
-               fundamental capability, so it wins this tradeoff. */
+            /* Corrected: the title itself is NO LONGER the drag handle for
+               reordering groups (CLAUDE.md Section 12e) - that's now the
+               dedicated .dev-group-drag-handle icon above, per direct
+               request ("reorder/nesting is only triggered by the icon on
+               the far left... when i click and drag outside that icon, it
+               wont move or nest things"), modeled on the Handy Dandies
+               project's own handle-only drag gating. The touch-action
+               tradeoff this comment used to document no longer applies to
+               THIS element (nothing here is a drag handle anymore, so
+               touch-action never needed changing here) - it moved to the
+               new handle icon itself, which is small enough that marking
+               IT touch-action:none doesn't block scrolling the rest of the
+               panel the way marking the whole title bar once did. */
         }
 
         .dev-section-title:hover {
@@ -2674,6 +2711,32 @@
             letter-spacing: calc(var(--dev-settings-text-letter-spacing-px) * 1px);
             line-height: var(--dev-settings-line-height);
             font-weight: normal;
+        }
+
+        /* Row-level counterpart of .dev-group-drag-handle just above - same
+           request/rationale. A plain FIRST CHILD of .dev-row (not a child
+           of .dev-label, unlike the group case's title-rewrite problem -
+           only .dev-label's own textContent gets rewritten on rename, never
+           the whole row's), so it needs no absolute-positioning workaround:
+           .dev-row's own flex + 8px gap already puts it at the far left
+           with sensible spacing for free. Small + dedicated, same as the
+           group handle, so touch-action:none here doesn't cost anything -
+           .dev-label/.dev-trigger-btn were never marked touch-action:none
+           in the first place (see .dev-section-title's own note - this
+           tradeoff was specific to a handle spanning most of the panel's
+           surface, which a 1-character icon never does). */
+        .dev-row-drag-handle {
+            cursor: grab;
+            user-select: none;
+            opacity: 0.6;
+            flex-shrink: 0;
+            touch-action: none;
+        }
+        .dev-row-drag-handle:hover {
+            opacity: 1;
+        }
+        .dev-row-drag-handle:active {
+            cursor: grabbing;
         }
 
         /* Drag handle for reordering settings within a group (CLAUDE.md
@@ -8981,6 +9044,7 @@
             section.appendChild(title);
             section.appendChild(content);
             addGroupLockIcon(section);
+            addGroupDragHandle(section);
             return section;
         }
 
@@ -9028,6 +9092,66 @@
                 const tabEl = document.getElementById(tabId);
                 if (!tabEl) return;
                 tabEl.querySelectorAll('.dev-section').forEach(addGroupLockIcon);
+            });
+        }
+
+        // Builds and appends one group's own drag-handle icon - per direct
+        // request ("in Handy Dandies, the settings/group reorder/nesting is
+        // only triggered by the icon on the far left... when i click and
+        // drag outside that icon, it wont move or nest things. I like
+        // that."). Same SIBLING-of-.dev-section-title placement and same
+        // shared-by-createDevGroupElement()/injectGroupDragHandles()
+        // idempotent pattern as addGroupLockIcon() just above, for the
+        // identical reason (the title's rename mechanism rewrites its own
+        // entire textContent). setupDragReorder()'s own pointerdown
+        // listener already gates on handleSelector ('.dev-group-drag-
+        // handle', not '.dev-section-title' anymore - see its own call
+        // site below), so no click/pointerdown stopPropagation is needed
+        // here the way the lock icon needs it: this icon IS the handle,
+        // it's supposed to arm a drag, and it no longer visually overlaps
+        // the lock icon (opposite corners) so there's no accidental-
+        // double-arm risk to guard against either.
+        function addGroupDragHandle(section) {
+            const existing = section.querySelector(':scope > .dev-group-drag-handle');
+            if (existing) existing.remove();
+            const titleEl = section.querySelector(':scope > .dev-section-title');
+            if (!titleEl) return;
+            const handle = document.createElement('span');
+            handle.className = 'dev-group-drag-handle';
+            handle.textContent = '⠿';
+            handle.title = 'Drag to reorder or nest this group';
+            section.appendChild(handle);
+        }
+
+        // One-time pass, same reasoning/scope as injectGroupLockIcons()
+        // just above (createDevGroupElement() covers any group added or
+        // recreated after this point via its own addGroupDragHandle() call).
+        function injectGroupDragHandles() {
+            ['desktopTabContent', 'mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (!tabEl) return;
+                tabEl.querySelectorAll('.dev-section').forEach(addGroupDragHandle);
+            });
+        }
+
+        // Row-level counterpart, for the same request. Unlike groups, no
+        // per-row DOM is ever created after page load in this project (see
+        // applySectionOrder()'s own comment - it only ever RELOCATES
+        // existing rows, never fabricates new ones), so a single one-time
+        // pass at panel-build time (see its own call site) is the complete
+        // fix - no "add handle at creation time" counterpart is needed the
+        // way groups need createDevGroupElement()'s own call. A plain FIRST
+        // CHILD of .dev-row, not of .dev-label - see .dev-row-drag-handle's
+        // own CSS comment for why that placement needs no absolute-
+        // positioning workaround the way the group handle does.
+        function injectRowDragHandles() {
+            document.querySelectorAll('.dev-row').forEach(row => {
+                if (row.querySelector(':scope > .dev-row-drag-handle')) return;
+                const handle = document.createElement('span');
+                handle.className = 'dev-row-drag-handle';
+                handle.textContent = '⠿';
+                handle.title = 'Drag to reorder or move to another group';
+                row.insertBefore(handle, row.firstChild);
             });
         }
 
@@ -14714,7 +14838,19 @@
             // only when the pointer is genuinely outside every deeper
             // candidate - which is exactly the un-nest-by-one-or-more-levels
             // case this ordering exists to support.
-            setupDragReorder('.dev-section-title', '.dev-section', null, (tabRoot, dragging) => {
+            // Handle narrowed from the WHOLE title bar ('.dev-section-title')
+            // to a dedicated '.dev-group-drag-handle' icon - per direct
+            // request, modeled on the Handy Dandies project's own handle-
+            // only drag gating ("the settings/group reorder/nesting is only
+            // triggered by the icon on the far left... when i click and
+            // drag outside that icon, it wont move or nest things"). The
+            // title itself keeps its own separate onclick="toggleSection(this)"
+            // (collapse/expand) - completely unaffected, since it's now a
+            // different element from the drag handle entirely, not a click-
+            // vs-drag disambiguation on the SAME element the way it used to
+            // be (sectionJustDragged still exists but is no longer the
+            // mechanism keeping these apart).
+            setupDragReorder('.dev-group-drag-handle', '.dev-section', null, (tabRoot, dragging) => {
                 const groupContents = Array.from(tabRoot.querySelectorAll('.dev-section > .dev-section-content'))
                     .filter(content => !dragging.contains(content));
                 groupContents.sort((a, b) => devGroupNestingDepth(b, tabRoot) - devGroupNestingDepth(a, tabRoot));
@@ -14735,33 +14871,26 @@
             // once-nested one. No cycle check needed here (unlike the group-
             // drag call above) - a setting row is never itself a container,
             // so it can never contain the group it's being dropped into.
-            // Handle selector widened from '.dev-section-content .dev-label'
-            // (required the row to already be INSIDE a group) to plain
-            // '.dev-label, .dev-trigger-btn' - per direct request ("the
-            // checkboxes above the Desktop Mobile etc, I want to be able to
-            // place those in groups, like a normal setting" / "the trigger
-            // round number flash should also be able to placed in a
-            // group"). The ~10 loose rows sitting directly in each tab's
-            // top-level content (Show Click Counter, Flip Normal/Pressed
-            // SVG, Preview Round/Start/Try Again/Win/Lose Text, Trigger
-            // Round Number Flash, Show Target/Ms-Click Top Debug Lines,
-            // Text Edit Mode) already use the exact same .dev-row/.dev-label
-            // shape as a real group's own settings - the ONLY thing
-            // stopping them from being draggable was this selector's own
-            // ancestor requirement (removing it is safe: item = handle.
-            // closest('.dev-row') immediately below already re-scopes to a
-            // genuine settings-row regardless of what matched the handle,
-            // so this doesn't loosen WHAT counts as draggable, only WHERE
-            // a valid drag can start from). .dev-trigger-btn added as an
-            // alternate handle too - Trigger Round Number Flash (and every
-            // other trigger button, in or out of a group) is a bare
-            // <button>, not a .dev-label, so it had no valid handle at all
-            // before this. A real .dev-trigger-btn's own onclick still
-            // fires normally on a genuine click (moved stays false, e.
-            // preventDefault() is never called) - only a real hold-and-move
-            // past THRESHOLD is treated as a drag, same disambiguation
-            // every other handle in this function already relies on.
-            setupDragReorder('.dev-label, .dev-trigger-btn', '.dev-row', null, (tabRoot, dragging) => {
+            // Handle selector history: originally '.dev-section-content
+            // .dev-label' (required the row to already be inside a group),
+            // then widened to plain '.dev-label, .dev-trigger-btn' so the
+            // ~10 loose top-level rows and every trigger button (a bare
+            // <button>, never a .dev-label) could be dragged too. Now
+            // narrowed to a single dedicated '.dev-row-drag-handle' icon -
+            // per direct request, modeled on the Handy Dandies project's own
+            // handle-only drag gating ("when i click and drag outside that
+            // icon, it wont move or nest things. I like that."). This also
+            // simplifies what used to be real click-vs-drag disambiguation
+            // on .dev-trigger-btn itself (a real click had to stay
+            // distinguishable from a hold-and-move-past-threshold drag,
+            // since both started from the same element) - a trigger
+            // button's own onclick now just always fires normally, since
+            // dragging can no longer start on the button at all, only on
+            // the dedicated handle beside it. injectRowDragHandles() (see
+            // its own comment) adds this icon uniformly to every .dev-row,
+            // loose or grouped alike, so no ancestor-scoping distinction is
+            // needed here either.
+            setupDragReorder('.dev-row-drag-handle', '.dev-row', null, (tabRoot, dragging) => {
                 const groupContents = Array.from(tabRoot.querySelectorAll('.dev-section-content'));
                 groupContents.sort((a, b) => devGroupNestingDepth(b, tabRoot) - devGroupNestingDepth(a, tabRoot));
                 return groupContents;
@@ -14769,8 +14898,16 @@
             // After the drag-reorder wiring above (icons need no drag
             // setup of their own, but this keeps related one-time init
             // calls grouped together) - see injectGroupLockIcons()'s own
-            // comment.
+            // comment. injectGroupDragHandles()/injectRowDragHandles() must
+            // run before a user can actually drag anything, but their
+            // ordering relative to the setupDragReorder() calls above
+            // doesn't matter - those only ever register a document-level
+            // listener that checks the handle selector at CLICK time, not
+            // at registration time, and everything here runs synchronously
+            // before the panel is interactive either way.
             injectGroupLockIcons();
+            injectGroupDragHandles();
+            injectRowDragHandles();
             makeDevValuesEditable();
             // Captures every dev-panel label/title's TRUE original text into
             // devTextOriginals (devTextOverrides is still empty the first
