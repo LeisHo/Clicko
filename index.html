@@ -14737,6 +14737,18 @@
         let mouseLogPositionEnabled = false;
         let mouseLogPositionIntervalMs = 1000;
         let mouseLogPositionTimer = null;
+        // Both default OFF (opt-in), matching Log Mouse Position's own
+        // default - per direct request ("provide a checkbox to turn on and
+        // off scroll logging" / "provide a checkbox to log keystrokes
+        // too"). Scroll events are high-volume/noisy the same way
+        // continuous position sampling is (a real click log this session
+        // showed a burst of ~10 scroll entries in under 2s just from
+        // scrolling the dev panel itself, most of them no-ops); keystrokes
+        // are additionally privacy-sensitive (could capture real typed
+        // text in a rename/text box), so opt-in is the more conservative
+        // default there too.
+        let mouseLogScrollEnabled = false;
+        let mouseLogKeystrokesEnabled = false;
         let mouseLogLastPointerPos = null;
         let mouseLogLastViewport = null;
         const mouseLogActivePointers = new Map();
@@ -14758,6 +14770,31 @@
             const pad3 = n => String(n).padStart(3, '0');
             return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) + '.' + pad3(d.getMilliseconds());
         }
+        // Reads back the CURRENT value of a form control for the Mouse Log's
+        // own "what input" detail - per direct request ("when it logs what
+        // function was triggered. I need more information than just 'set
+        // dev panel setting'. I need it to say what setting and what
+        // input."). Only meaningful for actual form controls (range/color/
+        // text/number inputs, checkboxes, selects) - null for anything
+        // else (a button, a group title bar), which describeMouseLogTarget
+        // below then leaves off the log line entirely rather than printing
+        // a hollow "= null".
+        function describeMouseLogControlValue(el) {
+            if (!el || !el.tagName) return null;
+            const tag = el.tagName;
+            if (tag === 'SELECT') {
+                const opt = el.options[el.selectedIndex];
+                return opt ? opt.text : el.value;
+            }
+            if (tag === 'INPUT') {
+                const type = (el.type || '').toLowerCase();
+                if (type === 'checkbox') return el.checked ? 'checked' : 'unchecked';
+                if (type === 'range' || type === 'number' || type === 'color') return el.value;
+                if (type === 'text') return '"' + el.value.slice(0, 30) + '"';
+            }
+            if (tag === 'TEXTAREA') return '"' + el.value.slice(0, 30) + '"';
+            return null;
+        }
         function describeMouseLogTarget(el) {
             if (!el || el === document.documentElement || el === document.body) return { target: '(background)', triggered: false };
             const inPanel = el.closest && el.closest('.dev-panel');
@@ -14768,7 +14805,13 @@
                 const titleEl = el.closest('.dev-section-title');
                 const name = label ? label.textContent.trim() : btn ? btn.textContent.trim() : titleEl ? '(group) ' + titleEl.textContent.replace(/^[▼▶]\s*/, '').trim() : (el.id || el.tagName.toLowerCase());
                 const interactive = !!(btn || titleEl || el.matches('input, select, textarea, [onclick]'));
-                return { target: 'Dev Panel: ' + name, triggered: interactive };
+                // The actual form control a row's own value lives on isn't
+                // always e.target itself (a slider's wheel/click can land on
+                // its .dev-label instead) - fall back to the row's own
+                // control when el itself isn't one.
+                const control = el.matches('input, select, textarea') ? el : (row && row.querySelector('input, select, textarea'));
+                const value = describeMouseLogControlValue(control);
+                return { target: 'Dev Panel: ' + name + (value !== null ? ' = ' + value : ''), triggered: interactive };
             }
             const interactiveEl = el.closest && el.closest('button, a[href], input, select, textarea, [onclick], label');
             if (interactiveEl) {
@@ -14914,6 +14957,30 @@
                 restartMouseLogPositionTimer();
             });
 
+            const scrollRow = document.createElement('div');
+            scrollRow.className = 'dev-row';
+            const scrollCheckbox = document.createElement('input');
+            scrollCheckbox.type = 'checkbox';
+            scrollCheckbox.id = 'checkboxMouseLogScroll';
+            const scrollLabel = document.createElement('span');
+            scrollLabel.className = 'dev-label';
+            scrollLabel.textContent = 'Log Scroll';
+            scrollRow.append(scrollCheckbox, scrollLabel);
+            content.appendChild(scrollRow);
+            scrollCheckbox.addEventListener('change', (e) => { mouseLogScrollEnabled = e.target.checked; });
+
+            const keyRow = document.createElement('div');
+            keyRow.className = 'dev-row';
+            const keyCheckbox = document.createElement('input');
+            keyCheckbox.type = 'checkbox';
+            keyCheckbox.id = 'checkboxMouseLogKeystrokes';
+            const keyLabel = document.createElement('span');
+            keyLabel.className = 'dev-label';
+            keyLabel.textContent = 'Log Keystrokes';
+            keyRow.append(keyCheckbox, keyLabel);
+            content.appendChild(keyRow);
+            keyCheckbox.addEventListener('change', (e) => { mouseLogKeystrokesEnabled = e.target.checked; });
+
             const btnRow = document.createElement('div');
             btnRow.className = 'dev-buttons';
             const copyBtn = document.createElement('button');
@@ -14985,6 +15052,18 @@
                     return;
                 }
                 const heldMs = performance.now() - info.startTime;
+                // Deferred one macrotask (setTimeout 0), not called
+                // synchronously here - per direct request for the log to
+                // include the actual value/input a setting was changed to,
+                // not just its name. A checkbox's own `checked` flip (and a
+                // native <select>'s selection) happens as part of the
+                // browser's default click handling, which runs AFTER
+                // 'pointerup' has already fired - reading el.checked/value
+                // synchronously at this point would still show the OLD,
+                // pre-click state. Range/color/text inputs update .value
+                // live as you interact, so this costs them nothing; it's
+                // what makes checkbox/select values come out correct.
+                setTimeout(() => {
                 const { target, triggered } = describeMouseLogTarget(info.target);
                 if (e.pointerType === 'touch') {
                     if (info.moved) {
@@ -15021,6 +15100,7 @@
                     pushMouseLogEntry({ type: kind, x, y, device, pointerType: e.pointerType, target, triggered });
                     mouseLogClickCount = 0;
                 }, MOUSE_LOG_MULTICLICK_MS);
+                }, 0);
             });
             window.addEventListener('pointercancel', (e) => {
                 clearTimeout(mouseLogHoldTimer);
@@ -15028,9 +15108,15 @@
                 mouseLogPinchActive = false;
             });
             window.addEventListener('wheel', (e) => {
+                if (!mouseLogScrollEnabled) return;
                 const { target, triggered } = describeMouseLogTarget(e.target);
                 pushMouseLogEntry({ type: 'scroll', x: Math.round(e.clientX), y: Math.round(e.clientY), device: mouseLogDeviceContext(), pointerType: 'wheel', target, triggered, detail: 'deltaY:' + Math.round(e.deltaY) });
             }, { passive: true });
+            window.addEventListener('keydown', (e) => {
+                if (!mouseLogKeystrokesEnabled) return;
+                const { target, triggered } = describeMouseLogTarget(e.target);
+                pushMouseLogEntry({ type: 'keydown', x: '-', y: '-', device: mouseLogDeviceContext(), pointerType: 'keyboard', target, triggered, detail: 'key:' + e.key });
+            });
             window.addEventListener('resize', () => { if (mouseLogEl) logMouseLogContext('resize'); });
         }
 
