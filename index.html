@@ -874,6 +874,15 @@
                Computed in applyTextAlignAnchors(). */
             left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--text-x-offset-vw) * var(--start-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, var(--cq-vh, 1vh)));
+            /* Fixed 2026-09-15: this transform used to also include
+               `rotate(calc(var(--high-score-rotate-deg, 0) * 1deg))` - a
+               stray leftover from an earlier copy-paste (this rule was
+               clearly the starting template for .high-score-text's own
+               rule below, given the near-identical shape), which meant
+               setting High Score's own rotation var would have silently
+               rotated THIS button instead - moved to .high-score-text's
+               own transform, where it belongs, while adding the actual
+               Rotation slider per direct request. */
             transform: translate(-50%, var(--anchor-ty, -50%));
             padding: 0;
             /* Font size is always px, never vw - per explicit request ("text
@@ -1218,7 +1227,15 @@
             position: absolute;
             left: calc(var(--high-score-x-base, 50%) + var(--high-score-x-sign, 1) * var(--high-score-x-offset-vw) * var(--high-score-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--high-score-y-base, 50%) + var(--high-score-y-sign, 1) * var(--high-score-y-offset-vh) * var(--high-score-y-unit, var(--cq-vh, 1vh)));
-            transform: translate(-50%, var(--anchor-ty, -50%));
+            /* Per direct request ("give me a rotation slider for the high
+               score. I want to be able rotate it 90 degrees") - the
+               --high-score-rotate-deg var and this rotate() term already
+               existed as pre-built groundwork, but on the WRONG element
+               (.start-button, above - a stray copy-paste leftover, fixed
+               2026-09-15) with no slider ever wired to it either way. Both
+               fixed together: moved here (its real home) and given an
+               actual "Rotation (Deg):" dev-panel slider. */
+            transform: translate(-50%, var(--anchor-ty, -50%)) rotate(calc(var(--high-score-rotate-deg, 0) * 1deg));
             font-size: calc((1 - var(--high-score-scale-with-browser, 0)) * var(--high-score-font-size-px) * 1px + var(--high-score-scale-with-browser, 0) * var(--high-score-font-size-vw, 10) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--high-score-letter-spacing-px) * 1px);
             line-height: var(--high-score-line-height, 1.2);
@@ -6028,6 +6045,7 @@
             '--high-score-scale-with-browser': 0,
             '--high-score-letter-spacing-px': 0,
             '--high-score-line-height': 1.2,
+            '--high-score-rotate-deg': 0,
             '--high-score-text-align': 'center',
             '--high-score-text-valign': 'top',
             '--high-score-text-align-edge-lock': 0,
@@ -6989,6 +7007,7 @@
             '--high-score-scale-with-browser': 0,
             '--high-score-letter-spacing-px': 0,
             '--high-score-line-height': 1.2,
+            '--high-score-rotate-deg': 0,
             '--high-score-text-align': 'center',
             '--high-score-text-valign': 'top',
             '--high-score-text-align-edge-lock': 0,
@@ -8224,7 +8243,7 @@
                 const data = await resp.json().catch(() => ({}));
                 if (statusEl) {
                     if (resp.ok && data.ok) {
-                        statusEl.textContent = 'Saved to repo';
+                        statusEl.textContent = data.localDev ? 'Saved locally + synced' : 'Saved to repo';
                         statusEl.style.color = 'var(--dev-accent-color)';
                     } else {
                         statusEl.textContent = 'NOT saved: ' + (data.error || resp.status);
@@ -8234,6 +8253,10 @@
             }).catch((err) => {
                 if (statusEl) { statusEl.textContent = 'NOT saved (offline?)'; statusEl.style.color = '#ff4444'; }
             });
+        }
+
+        function buildSettingsSnapshot() {
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
 
         // Save settings - git-only (data/processed/dev-panel-settings.json
@@ -8248,7 +8271,7 @@
         // falling back to this same localStorage key when that's
         // unreachable.
         function saveSettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = buildSettingsSnapshot();
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -8287,6 +8310,66 @@
             if (settings && typeof settings === 'object' && Object.keys(settings).length) {
                 applyLoadedSettings(settings);
             }
+        }
+
+        function applySettingsSnapshotLive(settings) {
+            if (!settings || typeof settings !== 'object' || !Object.keys(settings).length) return;
+            applyLoadedSettings(settings);
+            resolvePositionSentinels();
+            applyActiveVars();
+            applyExtrusionStyles();
+            if (devPanelBuilt) {
+                syncSlidersFromState();
+                syncColorPickersFromState();
+                syncDevPanelStyleControlsFromState();
+                applyDevTextOverrides();
+            }
+            if (cssVars['--flip-button-svg']) gameButton.classList.add('flip-svg');
+            else gameButton.classList.remove('flip-svg');
+        }
+
+        function shouldUseLocalSettingsSync() {
+            const params = new URLSearchParams(location.search);
+            if (params.has('no-dev-sync')) return false;
+            if (params.has('dev-sync')) return true;
+            return /^(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(location.hostname);
+        }
+
+        function connectLocalSettingsSync() {
+            if (!shouldUseLocalSettingsSync() || typeof EventSource === 'undefined') return;
+            const source = new EventSource('/api/settings-events');
+            source.addEventListener('settings', (event) => {
+                try {
+                    applySettingsSnapshotLive(JSON.parse(event.data));
+                } catch (e) {
+                    console.warn('Failed to apply live settings sync', e);
+                }
+            });
+        }
+
+        let liveSettingsSyncTimeoutId = null;
+        function queueLiveSettingsPreviewSync() {
+            if (!shouldUseLocalSettingsSync() || !(typeof isDevAllowed === 'undefined' || isDevAllowed)) return;
+            if (liveSettingsSyncTimeoutId) clearTimeout(liveSettingsSyncTimeoutId);
+            liveSettingsSyncTimeoutId = setTimeout(() => {
+                liveSettingsSyncTimeoutId = null;
+                fetch('/api/preview-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildSettingsSnapshot()),
+                }).catch(() => {});
+            }, 50);
+        }
+
+        function setupLiveSettingsPreviewSync() {
+            if (!shouldUseLocalSettingsSync() || !(typeof isDevAllowed === 'undefined' || isDevAllowed)) return;
+            devPanel.addEventListener('input', queueLiveSettingsPreviewSync, true);
+            devPanel.addEventListener('change', queueLiveSettingsPreviewSync, true);
+            devPanel.addEventListener('click', (event) => {
+                if (event.target.closest('button, input[type="checkbox"], select')) {
+                    queueLiveSettingsPreviewSync();
+                }
+            }, true);
         }
 
         // Same repo/path GITHUB_REPO/SETTINGS_FILE_PATH default to server-
@@ -10053,6 +10136,16 @@
             { group: 'High Score', id: 'colorHighScoreOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#bd0d07' },
             { group: 'High Score', id: 'sliderHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'High Score', id: 'sliderHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            // Per direct request ("give me a rotation slider for the high
+            // score. I want to be able rotate it 90 degrees") - the CSS
+            // custom property this drives (--high-score-rotate-deg) and
+            // its transform: rotate(calc(var(...) * 1deg)) were already
+            // wired into .high-score-text's own CSS rule and seeded into
+            // both device cssVars objects (desktop/mobile, 0 default) -
+            // pre-existing groundwork with no slider ever built for it
+            // until now. -180 to 180 comfortably covers the requested 90
+            // in either direction.
+            { group: 'High Score', id: 'sliderHighScoreRotate', type: 'slider', label: 'Rotation (Deg):', min: -180, max: 180, step: 1, value: 0 },
             { group: 'High Score', id: 'sliderHighScoreFlashDelay', type: 'slider', label: 'Flash Delay (ms):', min: 0, max: 5000, step: 50, value: 0 },
             { group: 'Round Text', id: 'sliderRoundBlink1Hide', type: 'slider', label: 'Blink 1 - Disappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
             { group: 'Round Text', id: 'sliderRoundBlink1Show', type: 'slider', label: 'Blink 1 - Reappear (ms):', min: 0, max: 1500, step: 10, value: 250 },
@@ -10336,6 +10429,7 @@
             { group: 'High Score', id: 'sliderMobileHighScoreOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 9 },
             { group: 'High Score', id: 'sliderMobileHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'High Score', id: 'sliderMobileHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'High Score', id: 'sliderMobileHighScoreRotate', type: 'slider', label: 'Rotation (Deg):', min: -180, max: 180, step: 1, value: 0 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultWinFontSize', type: 'slider', label: 'Win Font Size (px):', min: 5, max: 300, step: 0.01, value: 18.6 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultWinFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 4.77 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultWinLetterSpacing', type: 'slider', label: 'Win Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -10447,6 +10541,7 @@
             { group: 'High Score', id: 'sliderLandscapeHighScoreOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 9 },
             { group: 'High Score', id: 'sliderLandscapeHighScoreLetterSpacing', type: 'slider', label: 'Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'High Score', id: 'sliderLandscapeHighScoreLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'High Score', id: 'sliderLandscapeHighScoreRotate', type: 'slider', label: 'Rotation (Deg):', min: -180, max: 180, step: 1, value: 0 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultWinFontSize', type: 'slider', label: 'Win Font Size (px):', min: 5, max: 300, step: 0.01, value: 18.6 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultWinFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 4.77 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultWinLetterSpacing', type: 'slider', label: 'Win Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -10919,6 +11014,7 @@
             'sliderHighScoreFontSize': '--high-score-font-size-px',
             'sliderHighScoreFontSizeVw': '--high-score-font-size-vw',
             'sliderHighScoreLetterSpacing': '--high-score-letter-spacing-px',
+            'sliderHighScoreRotate': '--high-score-rotate-deg',
             'sliderHighScoreLineHeight': '--high-score-line-height',
             'sliderTryAgainFlashDuration': '--try-again-flash-duration-ms',
             'sliderTryAgainHoldDuration': '--try-again-hold-duration-ms',
@@ -15415,6 +15511,8 @@
                 // the brief default-look flash this class exists to hide (see
                 // .game-container.settings-loading's own comment).
                 document.querySelector('.game-container').classList.remove('settings-loading');
+                connectLocalSettingsSync();
+                setupLiveSettingsPreviewSync();
             }
         })();
     </script>
