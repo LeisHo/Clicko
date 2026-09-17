@@ -65,7 +65,17 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-17): fixed the checkbox system not covering ~130
+Most recently (2026-09-17): fixed a 3rd real bug in the group cascade
+checkbox - it silently skipped a nested subgroup already in a mixed
+(indeterminate) state, since its own `checked !== checked` comparison
+read a mixed subgroup's `checked:false` as "already matches, nothing to
+do". Reproduced via direct user repro (unchecking "UI TEXT" left its
+nested "High Score" subgroup, 28 rows, fully visible on Mobile). Fixed
+by also cascading whenever a subgroup is `indeterminate`, not just when
+its `.checked` differs. Ported to the template too. Committed and pushed
+(3510f06..b41d266).
+
+Prior to that (2026-09-17): fixed the checkbox system not covering ~130
 hand-authored "text settings battery" rows (Round/High Score/Result
 Win/Lose/Target/Speed/Ms-per-Click/Try Again/etc.) - these predate and
 sit entirely outside the array-driven DESKTOP_UNIFORM_CONTROLS system
@@ -155,12 +165,13 @@ See `docs/CHANGELOG.txt` for full details and reasoning on all of the above
 
 ## What's next
 
-Nothing specifically queued. The just-completed universal checkbox
-system + group-level cascade checkboxes + the "text settings battery"
-row fix are all committed and pushed to Clicko's own repo; the template
-port (`.claude/TEMPLATE_DEV_PANEL.html`) is done locally but not yet
-committed to the shared `.claude/` template - that's the one remaining
-loose end from this whole effort.
+Nothing specifically queued. This whole effort (universal checkbox
+system, group-level cascade checkboxes, the "text settings battery" row
+fix, and the mixed-state cascade bug fix) is fully committed and pushed
+to Clicko's own repo, and ported to `.claude/TEMPLATE_DEV_PANEL.html`
+too (that file isn't under git - `J:\CLAUDE\PROJECTS\.claude` has no
+`.git` at all - so "ported" there just means the file itself is
+up to date, via the standing archive-then-edit script).
 
 One old, possibly-stale backlog item from an earlier phase, never
 implemented and not recently mentioned — surfaced here in case it's still
