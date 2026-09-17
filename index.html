@@ -2683,6 +2683,9 @@
             cursor: pointer;
             z-index: 1;
         }
+        .dev-row-hidden-by-checkbox {
+            display: none !important;
+        }
 
         /* Drag handle - per direct request ("in Handy Dandies, the
            settings/group reorder/nesting is only triggered by the icon on
@@ -11208,7 +11211,25 @@
             const targetId = dynamicDeviceTargetId(desktopId, tab);
             if (!targetId) return false;
             const arr = tab === 'landscape' ? LANDSCAPE_UNIFORM_CONTROLS : MOBILE_UNIFORM_CONTROLS;
-            return arr.some(c => c.id === targetId);
+            if (arr.some(c => c.id === targetId)) return true;
+            // Fallback for a control OUTSIDE the DESKTOP_UNIFORM_CONTROLS/
+            // MOBILE_UNIFORM_CONTROLS/LANDSCAPE_UNIFORM_CONTROLS array
+            // system entirely - the many hand-authored "text settings
+            // battery" rows (Round/High Score/Result Win/Lose/Target/
+            // Speed/Ms-per-Click/Try Again/etc, per-device, static HTML,
+            // never registered in any array). A real DOM element already
+            // existing at this id means a real per-device value genuinely
+            // exists for it - same reasoning as the array check above,
+            // just for a control the array-driven system doesn't know
+            // about. Safe for the array-driven system's OWN self-
+            // referential timing (a control's own row, mid-construction,
+            // isn't in the DOM yet at the moment this runs for it) because
+            // the array check above already returns true for those first -
+            // this fallback is only ever reached for a control the array
+            // doesn't cover, and a hand-authored static row is present in
+            // the DOM from initial page parse, well before any
+            // render*Controls() call runs.
+            return !!document.getElementById(targetId);
         }
         function findStaticDeviceCtrl(desktopId, tab) {
             const targetId = dynamicDeviceTargetId(desktopId, tab);
@@ -11274,6 +11295,12 @@
                 const controlEl = cb.closest('.dev-row') && cb.closest('.dev-row').querySelector('[id]');
                 if (!controlEl) return;
                 cb.checked = isDevRowVisible(controlEl.id);
+                // Also re-applies hide/show to any static (non-array-driven)
+                // Mobile/Landscape counterpart - see syncStaticRowVisibility()'s
+                // own comment. A no-op for an array-driven control (already
+                // handled by syncDynamicDeviceRows(), called just before this
+                // at every real call site).
+                syncStaticRowVisibility(controlEl.id);
             });
             ['mobile', 'landscape'].forEach(tab => {
                 document.querySelectorAll('#' + tab + 'TabContent .dev-independence-checkbox').forEach(cb => {
@@ -11391,6 +11418,7 @@
             cb.addEventListener('change', () => {
                 devVisibility[desktopId] = cb.checked;
                 syncDynamicDeviceRows();
+                syncStaticRowVisibility(desktopId);
                 const sec = cb.closest('.dev-section');
                 if (sec) refreshGroupCascadeCheckboxState(sec, 'visibility');
             });
@@ -11595,6 +11623,64 @@
             DESKTOP_UNIFORM_CONTROLS.forEach(ctrl => {
                 ensureDynamicDeviceRow(ctrl, 'mobile');
                 ensureDynamicDeviceRow(ctrl, 'landscape');
+            });
+        }
+
+        // Shows/hides an ALREADY-EXISTING (never removed/recreated) Mobile/
+        // Landscape row per its own devVisibility flag - the counterpart to
+        // ensureDynamicDeviceRow() above, but for a control OUTSIDE the
+        // DESKTOP_UNIFORM_CONTROLS array system: the many hand-authored
+        // "text settings battery" rows (Round/High Score/Result Win/Lose/
+        // Target/Speed/Ms-per-Click/Try Again/etc), found live when a group
+        // uncheck (WIN) correctly hid its 25 array-driven children but left
+        // 5 hand-authored ones (ScaleWithBrowser/X/Y/Align/Valign) visible -
+        // those rows had no checkbox at all, so nothing ever told them to
+        // hide. Uses a CSS class, not DOM removal, since these rows are
+        // static HTML that always exists - there's nothing to "recreate".
+        // Skips any row ensureDynamicDeviceRow() itself already manages
+        // (marked via data-dynamicDeviceFor) so the 2 mechanisms never
+        // fight over the same row.
+        function syncStaticRowVisibility(desktopId) {
+            const visible = isDevRowVisible(desktopId);
+            ['mobile', 'landscape'].forEach(tab => {
+                const targetId = dynamicDeviceTargetId(desktopId, tab);
+                if (!targetId) return;
+                const el = document.getElementById(targetId);
+                const row = el ? el.closest('.dev-row') : null;
+                if (!row || row.dataset.dynamicDeviceFor) return;
+                row.classList.toggle('dev-row-hidden-by-checkbox', !visible);
+            });
+        }
+        // Backfills BOTH checkbox kinds onto every row the array-driven
+        // render*UniformControls() functions never touch - matching
+        // DickoClicko's own buildRow() (every control gets both checkboxes
+        // unconditionally, no "uniform" vs "bespoke" split at all - see
+        // that project's own buildRow(), referenced directly per request).
+        // Idempotent (skips a row that already has its checkbox) - safe to
+        // call repeatedly; only ever needs to run once in practice, since
+        // these rows are static HTML, never removed/recreated. Also applies
+        // each newly-covered row's own current visibility default
+        // immediately - a row defaulting hidden must actually BE hidden the
+        // first time this runs, not just show an unchecked checkbox while
+        // the row itself stays visible.
+        function injectRowDeviceCheckboxes() {
+            document.querySelectorAll('#desktopTabContent .dev-row').forEach(row => {
+                if (row.querySelector('.dev-visibility-checkbox')) return;
+                const controlEl = row.querySelector('[id]');
+                if (!controlEl) return;
+                row.appendChild(buildVisibilityCheckbox(controlEl, controlEl.id));
+            });
+            ['mobile', 'landscape'].forEach(tab => {
+                document.querySelectorAll('#' + tab + 'TabContent .dev-row').forEach(row => {
+                    if (row.querySelector('.dev-independence-checkbox')) return;
+                    const controlEl = row.querySelector('[id]');
+                    if (!controlEl) return;
+                    const { desktopId } = resolveDevControlId(controlEl.id);
+                    row.appendChild(buildIndependenceCheckbox(tab, desktopId, controlEl));
+                });
+            });
+            document.querySelectorAll('#desktopTabContent .dev-row [id]').forEach(controlEl => {
+                syncStaticRowVisibility(controlEl.id);
             });
         }
 
@@ -16729,6 +16815,7 @@
             // at registration time, and everything here runs synchronously
             // before the panel is interactive either way.
             injectGroupLockIcons();
+            injectRowDeviceCheckboxes();
             injectGroupDeviceCheckboxes();
             injectGroupDragHandles();
             injectRowDragHandles();
