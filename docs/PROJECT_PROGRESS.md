@@ -65,7 +65,21 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-17): fixed a 3rd real bug in the group cascade
+Most recently (2026-09-17): 3 more real gaps in the checkbox system,
+all referencing DickoClicko as the correctness target: (1) unchecking
+"Independent from Desktop" on a control that defaulted independent
+(never live-edited, so its value was never captured into
+devDeviceValues) permanently lost that value - fixed by capturing the
+current value before the uncheck overwrites it with Desktop's; (2) an
+empty group (every setting/subgroup within it hidden) stayed visible as
+an empty shell on Mobile/Landscape instead of hiding itself -
+`refreshEmptyGroupVisibility()` ports DickoClicko's own
+`refreshVisibilityUI()` pattern; (3) checkbox/cascade/empty-group
+display could go stale across a tab switch - `switchDevPanelTab()` now
+re-syncs all of it for whichever tab is about to show. Ported to the
+template too. Committed and pushed (94ccb25..48b3688).
+
+Prior to that (2026-09-17): fixed a 3rd real bug in the group cascade
 checkbox - it silently skipped a nested subgroup already in a mixed
 (indeterminate) state, since its own `checked !== checked` comparison
 read a mixed subgroup's `checked:false` as "already matches, nothing to
