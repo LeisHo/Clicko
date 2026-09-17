@@ -12222,7 +12222,25 @@
         // can visually represent - see there for why that can't just reuse
         // slider.dispatchEvent('input') directly). No duplicated apply logic
         // either way.
-        function applySliderValue(slider, value) {
+        // `deferApply` (2026-09-17) - per direct performance report ("Undo
+        // does not rever settings back... I cant interact wit hte dev
+        // panel for maybe 3 seconds"). Root-caused: syncSlidersFromState()
+        // (called by applyLoadedSettings() - i.e. every Undo/Reset/Load)
+        // calls this function once per slider, up to ~450 times
+        // (CSS_VAR_SLIDER_MAP + EXTRUSION_SLIDER_MAP entries x 3 device
+        // variants) - and applyActiveVars()/applyExtrusionStyles() each
+        // cost ~3.5ms on their own (confirmed via direct performance.now()
+        // measurement), so calling either ONCE PER SLIDER instead of once
+        // total after the whole batch is a genuine O(sliders x cssVars)
+        // blowup - measured at ~1.2s for this one function alone, out of
+        // a ~2.7s total Undo/Load. `deferApply=true` (syncSlidersFromState()'s
+        // own new call site, below) skips the expensive apply call here
+        // and lets the caller apply once, after its whole loop - the
+        // live 'input' listener (setupDevSliders()) and the click-to-type
+        // commit path both still call this with deferApply left false
+        // (undefined), unchanged, since a single live edit genuinely does
+        // need its own immediate visual feedback.
+        function applySliderValue(slider, value, deferApply) {
             const { device, desktopId } = resolveDevControlId(slider.id);
             const varName = CSS_VAR_SLIDER_MAP[desktopId];
 
@@ -12238,22 +12256,24 @@
                     const frameSet = cssVars['--click-frame-set'] || 'CLICK1';
                     (device === 'landscape' ? landscapeClickBurstFrameVars : device === 'mobile' ? mobileClickBurstFrameVars : clickBurstFrameVars)[frameSet][varName] = value;
                 }
-                applyActiveVars();
-                // Button Lose Contrast/Lightness only have a visible effect
-                // while resultText carries .result-lose (see
-                // applyGameplayResultColor()'s own comment) -
-                // applyActiveVars() above just reapplied the NORMAL button
-                // light levels unconditionally (it doesn't know about
-                // gameplay state), so re-apply the lose override on top
-                // immediately if that's what's currently showing - same
-                // live-preview-while-tuning reasoning as the Gameplay
-                // Win/Lose Border color fix.
-                if ((varName === '--button-lose-contrast' || varName === '--button-lose-lightness') && resultText.classList.contains('result-lose')) {
-                    applyGameplayResultColor('lose');
+                if (!deferApply) {
+                    applyActiveVars();
+                    // Button Lose Contrast/Lightness only have a visible
+                    // effect while resultText carries .result-lose (see
+                    // applyGameplayResultColor()'s own comment) -
+                    // applyActiveVars() above just reapplied the NORMAL
+                    // button light levels unconditionally (it doesn't know
+                    // about gameplay state), so re-apply the lose override
+                    // on top immediately if that's what's currently
+                    // showing - same live-preview-while-tuning reasoning
+                    // as the Gameplay Win/Lose Border color fix.
+                    if ((varName === '--button-lose-contrast' || varName === '--button-lose-lightness') && resultText.classList.contains('result-lose')) {
+                        applyGameplayResultColor('lose');
+                    }
                 }
             } else if (extrusionKey) {
                 (device === 'landscape' ? landscapeExtrusionVars : device === 'mobile' ? mobileExtrusionVars : extrusionVars)[extrusionKey] = value;
-                applyExtrusionStyles();
+                if (!deferApply) applyExtrusionStyles();
             } else {
                 applyGameMechanicsSlider(desktopId, value);
             }
@@ -13354,10 +13374,19 @@
                             if (!isNaN(min) && value < min) el.min = String(value - Math.abs(value) * 0.2);
                         }
                         el.value = value;
-                        applySliderValue(el, value);
+                        // deferApply=true - see applySliderValue()'s own
+                        // comment. Batched into ONE applyActiveVars()/
+                        // applyExtrusionStyles() call after both loops
+                        // finish, instead of once per slider (up to ~450
+                        // calls otherwise) - this was the actual ~1.2s of
+                        // this function's own measured ~2.7s Undo/Load
+                        // cost.
+                        applySliderValue(el, value, true);
                     });
                 });
             });
+            applyActiveVars();
+            applyExtrusionStyles();
         }
         function syncColorPickersFromState() {
             const SPECIAL_CASED_IDS = ['colorButton', 'colorBase', 'colorButtonWin', 'colorButtonLose'];
