@@ -111,6 +111,7 @@
     "--high-score-scale-with-browser": 1,
     "--high-score-letter-spacing-px": 3.5,
     "--high-score-line-height": 1.2,
+    "--high-score-rotate-deg": 0,
     "--high-score-text-align": "center",
     "--high-score-text-valign": "top",
     "--high-score-text-align-edge-lock": 0,
@@ -201,10 +202,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 350,
+    "--dev-panel-width-px": 322,
     "--dev-panel-left-px": 26,
-    "--dev-panel-top-px": 332,
-    "--dev-panel-height-px": 267,
+    "--dev-panel-top-px": 20,
+    "--dev-panel-height-px": 869,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
@@ -323,6 +324,7 @@
     "--high-score-scale-with-browser": 1,
     "--high-score-letter-spacing-px": 0,
     "--high-score-line-height": 1.2,
+    "--high-score-rotate-deg": 0,
     "--high-score-text-align": "center",
     "--high-score-text-valign": "top",
     "--high-score-text-align-edge-lock": 0,
@@ -525,6 +527,7 @@
     "--high-score-scale-with-browser": 0,
     "--high-score-letter-spacing-px": 0,
     "--high-score-line-height": 1.2,
+    "--high-score-rotate-deg": 0,
     "--high-score-text-align": "center",
     "--high-score-text-valign": "top",
     "--high-score-text-align-edge-lock": 0,
@@ -1490,6 +1493,7 @@
           {
             "key": "desktop:High Score",
             "rowKeys": [
+              "sliderHighScoreRotate",
               "sliderHighScoreFlashDelay",
               "checkboxHighScoreScaleWithBrowser",
               "selectHighScoreTextAlign",
@@ -1919,6 +1923,7 @@
           {
             "key": "mobile:High Score",
             "rowKeys": [
+              "sliderMobileHighScoreRotate",
               "checkboxMobileHighScoreScaleWithBrowser",
               "selectMobileHighScoreTextAlign",
               "selectMobileHighScoreTextValign",
@@ -2272,6 +2277,7 @@
           {
             "key": "landscape:High Score",
             "rowKeys": [
+              "sliderLandscapeHighScoreRotate",
               "checkboxLandscapeHighScoreScaleWithBrowser",
               "selectLandscapeHighScoreTextAlign",
               "selectLandscapeHighScoreTextValign",
