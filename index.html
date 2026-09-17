@@ -11491,7 +11491,20 @@
                 });
                 content.querySelectorAll(':scope > .dev-section').forEach(subSec => {
                     const subCb = subSec.querySelector(':scope > .dev-group-device-checkbox[data-cascade-kind="' + kind + '"]');
-                    if (subCb && subCb.checked !== checked) { subCb.checked = checked; subCb.dispatchEvent(new Event('change')); }
+                    // subCb.indeterminate is checked separately from
+                    // subCb.checked !== checked - a subgroup already showing
+                    // checked:false/indeterminate:true (mixed) would
+                    // otherwise be silently skipped (false !== false is
+                    // false), leaving its own descendants completely
+                    // untouched by the cascade. Found live: unchecking a
+                    // large group (UI TEXT) left a nested mixed-state
+                    // subgroup (High Score) - and everything under it -
+                    // fully checked, never actually cascaded into at all.
+                    if (subCb && (subCb.indeterminate || subCb.checked !== checked)) {
+                        subCb.checked = checked;
+                        subCb.indeterminate = false;
+                        subCb.dispatchEvent(new Event('change'));
+                    }
                 });
             });
             sectionEl.appendChild(cb);
