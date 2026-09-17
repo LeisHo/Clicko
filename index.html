@@ -2293,6 +2293,46 @@
             filter: brightness(1.3);
         }
 
+        /* Text Edit Mode/Add Group/Collapse All header icon buttons - per
+           direct request ("Text Edit Mode and Add Group are now icon
+           buttons on the Dev Panel Title Label bit. Also provide a
+           'Collapse All' button there"), ported from TEMPLATE_DEV_PANEL.html
+           (2026-09-16). Same "Buttons Text" styling as .dev-hide-btn/
+           .dev-collapse-btn above, duplicated into its own rule rather than
+           folded into their selector list, so this stays a self-contained
+           addition. */
+        .dev-header-icon-btn {
+            background: var(--dev-accent-color);
+            color: var(--dev-panel-button-text-color);
+            border: none;
+            border-radius: 3px;
+            width: 22px;
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            padding-top: calc(var(--dev-button-text-border-px) * 1px);
+            padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+            font-weight: normal;
+            line-height: var(--dev-button-text-line-height);
+            letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .dev-header-icon-btn:hover {
+            filter: brightness(1.3);
+        }
+        /* Text Edit Mode's own ON state (no native checkbox any more - see
+           #devTextEditModeBtn's own JS comment) and Add Group's "armed"
+           (right-clicked, waiting for a selection) state both read the
+           same way - a visibly pressed/inverted look distinct from the
+           plain icon-button default above. */
+        .dev-header-icon-btn.active, .dev-header-icon-btn.armed {
+            outline: 2px solid var(--dev-panel-button-text-color);
+            outline-offset: -2px;
+        }
+
         /* Groups Collapse + Hide together at the top-right of the header -
            per explicit request (previously 3 flex children under
            justify-content:space-between spread Collapse into the middle of
@@ -2511,6 +2551,7 @@
         .dev-panel.dev-bold-button .dev-buttons button,
         .dev-panel.dev-bold-button .dev-hide-btn,
         .dev-panel.dev-bold-button .dev-collapse-btn,
+        .dev-panel.dev-bold-button .dev-header-icon-btn,
         .dev-panel.dev-bold-button .dev-trigger-btn {
             font-weight: bold;
         }
@@ -2602,8 +2643,27 @@
            reordering as a direct side effect of narrowing the handle. */
         .dev-group-drag-handle {
             position: absolute;
-            top: 5px;
-            left: 8px;
+            top: 0;
+            left: 0;
+            width: 22px;
+            /* Corrected 2026-09-16 (ported from TEMPLATE_DEV_PANEL.html): the
+               old fixed top:5px/left:8px only happened to look right at ONE
+               nesting depth/font-size - nested titles render at 0.85x font-
+               size (a separate rule below), so the same fixed offset landed
+               wrong everywhere else (direct report: "too far left" for
+               subfolders, "slightly too far to the right and too high" for
+               top-level). This mirrors .dev-section-title's OWN box-height
+               formula exactly (10px = its 5px top + 5px bottom padding, plus
+               font-size * line-height for its one line of text) so the
+               handle's box is always exactly as tall as the title bar it
+               sits beside, at any font-size setting - flex centering inside
+               that exact-height box is then genuinely correct, not just
+               close. The 0.85x nested-title font-size override below has
+               its own matching handle-height override right after it. */
+            height: calc(10px + var(--dev-group-title-font-size-px) * 1px * var(--dev-group-text-line-height));
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: calc(var(--dev-group-title-font-size-px) * 1px);
             line-height: 1;
             cursor: grab;
@@ -2681,6 +2741,13 @@
         .dev-section-content > .dev-section > .dev-section-title {
             font-size: calc(var(--dev-group-title-font-size-px) * 0.85px);
         }
+        /* Matches the 0.85x nested title font-size override directly above -
+           see .dev-group-drag-handle's own comment for why this has to
+           track the title's real box height exactly, not just its font-
+           size. */
+        .dev-section-content > .dev-section > .dev-group-drag-handle {
+            height: calc(10px + var(--dev-group-title-font-size-px) * 0.85px * var(--dev-group-text-line-height));
+        }
         /* An empty group (a freshly added custom one, or every existing
            setting dragged out of it) collapses to 0 height with nothing to
            drop into, drag-target-wise - a real, generic-CSS-based problem
@@ -2704,6 +2771,19 @@
             gap: 8px;
             margin-bottom: 8px;
             flex-wrap: wrap;
+        }
+        /* Shift+click (or right-click-armed plain click) multi-select, for
+           folding a mix of settings/groups into a new group on "+ Add
+           Group" - ported from TEMPLATE_DEV_PANEL.html (2026-09-16), see
+           setupDevGroupSelection()/addDevGroup()'s own comments. Outline
+           (not border) so it never shifts layout/box size; a faint accent-
+           tinted background makes a selected group's whole content area
+           read as selected too, not just its title bar. */
+        .dev-row.dev-selected, .dev-section.dev-selected {
+            outline: 2px solid var(--dev-accent-color);
+            outline-offset: 2px;
+            background: color-mix(in srgb, var(--dev-accent-color) 12%, transparent);
+            border-radius: 3px;
         }
 
         .dev-label {
@@ -2928,6 +3008,7 @@
         .dev-panel.dev-caps-button-text .dev-buttons button,
         .dev-panel.dev-caps-button-text .dev-hide-btn,
         .dev-panel.dev-caps-button-text .dev-collapse-btn,
+        .dev-panel.dev-caps-button-text .dev-header-icon-btn,
         .dev-panel.dev-caps-button-text .dev-trigger-btn {
             text-transform: uppercase;
         }
@@ -3752,6 +3833,15 @@
                 DEV PANEL
             </div>
             <div class="dev-header-buttons">
+                <!-- Text Edit Mode/Add Group/Collapse All - ported from
+                     TEMPLATE_DEV_PANEL.html (2026-09-16), replacing the old
+                     standalone Text Edit Mode checkbox and the 3 per-tab
+                     "+ Add Group" buttons below - see setupDevHeaderIconButtons()
+                     for the wiring, and CLAUDE.md Section 12e for the full
+                     right-click-arm mechanism. -->
+                <button class="dev-header-icon-btn" id="devTextEditModeBtn" title="Toggle Label Rename Mode">✎</button>
+                <button class="dev-header-icon-btn" id="devAddGroupBtn" title="Add Group (right-click: select settings/groups to fold in)">+</button>
+                <button class="dev-header-icon-btn" id="devCollapseAllBtn" title="Collapse All Groups">⊟</button>
                 <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
                 <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
             </div>
@@ -3883,20 +3973,10 @@
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-        <div class="dev-row">
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxTextEditMode">
-                <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
-            </label>
-        </div>
-        <!-- Add Group - per explicit request ("ALLOW ME TO ADD SETTING
-             GROUPS IN THE DEV PANEL. ONCE I MAKE AN EMPTY GROUP I WILL DRAG
-             SETTINGS INTO IT"). addDevGroup() creates a real, empty
-             .dev-section identical in structure to every built-in one -
-             draggable, collapsible, and renameable via Text Edit Mode (its
-             title's click handler is the same toggleSection() every other
-             title uses) with no special-casing needed anywhere else. -->
-        <button class="dev-add-group-btn" onclick="addDevGroup('desktop')">+ Add Group</button>
+        <!-- Text Edit Mode checkbox and "+ Add Group" button both moved into
+             the panel header (#devTextEditModeBtn/#devAddGroupBtn) -
+             2026-09-16, ported from TEMPLATE_DEV_PANEL.html. -->
+
         <!-- Built-in "Dev Panel" settings group - CLAUDE.md Section 12i.
              Standing scaffolding, part of the panel itself, not per-project -
              independent per tab (this copy only affects the panel's look
@@ -4628,13 +4708,10 @@
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-        <div class="dev-row">
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxMobileTextEditMode">
-                <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
-            </label>
-        </div>
-        <button class="dev-add-group-btn" onclick="addDevGroup('mobile')">+ Add Group</button>
+        <!-- Text Edit Mode checkbox and "+ Add Group" button both moved into
+             the panel header (#devTextEditModeBtn/#devAddGroupBtn) -
+             2026-09-16, ported from TEMPLATE_DEV_PANEL.html. -->
+
         <!-- Same controls as the Desktop tab, but only take effect on a
              mobile-width viewport (auto-detected via matchMedia, live -
              resizing the browser or rotating a phone switches
@@ -5058,13 +5135,10 @@
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-        <div class="dev-row">
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="checkboxLandscapeTextEditMode">
-                <span class="dev-label" style="min-width:auto;">Text Edit Mode</span>
-            </label>
-        </div>
-        <button class="dev-add-group-btn" onclick="addDevGroup('landscape')">+ Add Group</button>
+        <!-- Text Edit Mode checkbox and "+ Add Group" button both moved into
+             the panel header (#devTextEditModeBtn/#devAddGroupBtn) -
+             2026-09-16, ported from TEMPLATE_DEV_PANEL.html. -->
+
         <!-- Same controls as the Desktop tab, but only take effect on a
              landscape-width viewport (auto-detected via matchMedia, live -
              resizing the browser or rotating a phone switches
@@ -9283,8 +9357,194 @@
             let n = 2;
             while (existingNames.has(name)) { name = 'New Group (' + n + ')'; n++; }
             const section = createDevGroupElement(name);
-            tabEl.appendChild(section);
+            // Per direct request ("When I add a new group, place it at the
+            // top of the list instead of the bottom") - inserted right
+            // after the built-in Dev Panel/Debug groups, which stay first
+            // per CLAUDE.md Section 12i/12i-1's own mandatory ordering
+            // (buttons, then Dev Panel, then Debug, THEN any project-
+            // specific groups) - so this is the top of the project-specific
+            // group list, not a literal position-0 insert that would push
+            // a new custom group above those 2 mandatory ones. Falls back
+            // through Debug -> Dev Panel -> position 0, not straight to
+            // position 0 the moment Debug isn't found at the top level - a
+            // user (or a fold-into-new-group action) can legally nest
+            // Debug somewhere else, and jumping straight to position 0 in
+            // that case would incorrectly place a new custom group above
+            // Dev Panel too. Clicko's own "DEBUG" group is a renamed
+            // custom group (see resolveDebugGroupSid()'s own comment), so
+            // its CURRENT internal sid is resolved at runtime rather than
+            // assumed to be the literal string "Debug" the way the
+            // template's own built-in group is. Ported from
+            // TEMPLATE_DEV_PANEL.html (2026-09-16).
+            const debugSid = resolveDebugGroupSid();
+            const debugSection = debugSid ? tabEl.querySelector(':scope > .dev-section > .dev-section-title[data-sid="' + debugSid + '"]')?.closest('.dev-section') : null;
+            const devPanelSection = tabEl.querySelector(':scope > .dev-section > .dev-section-title[data-sid="Dev Panel"]')?.closest('.dev-section');
+            const anchorSection = debugSection || devPanelSection;
+            if (anchorSection) {
+                tabEl.insertBefore(section, anchorSection.nextSibling);
+            } else {
+                tabEl.insertBefore(section, tabEl.firstChild);
+            }
+            // Per direct request ("when i hold the Shift key... Once
+            // selected, when i click Add Group, the selected things will
+            // automatically be placed within the new group") - fold any
+            // current selection into the group just created, scoped to
+            // THIS tab only (a selection lingering from a different tab,
+            // if any, is left alone rather than silently vanishing/
+            // relocating cross-tab - see setupDevGroupSelection()'s own
+            // comment).
+            const content = section.querySelector(':scope > .dev-section-content');
+            const selectedInTab = Array.from(devPanelSelectedItems).filter(el => tabEl.contains(el));
+            if (selectedInTab.length) {
+                selectedInTab.forEach(el => content.appendChild(el));
+                clearDevSelection();
+                injectRowDragHandles();
+            }
             section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Shift+click (or right-click-armed plain click) multi-select -
+        // ported from TEMPLATE_DEV_PANEL.html (2026-09-16), per direct
+        // request ("when i hold the Shift key, I will be able to select a
+        // single or multiple settings or groups or a mix of the two...";
+        // then "If i right click the Add Group button, I want to be able
+        // to left click mutiple settings or groups to select them, then
+        // when i left click or right click Add Group again, all the
+        // selected items will be placed within the new group."). Holds
+        // real DOM elements directly (a .dev-row for a selected setting, a
+        // .dev-section for a selected group) rather than keys/ids - a
+        // selection is a short-lived, purely-runtime UI gesture with no
+        // persistence of its own (never saved/copied), and addDevGroup()
+        // above just needs to move these exact nodes.
+        const devPanelSelectedItems = new Set();
+        // Set by #devAddGroupBtn's own contextmenu handler
+        // (setupDevHeaderIconButtons()) - while true, a PLAIN left click
+        // also selects (no Shift needed). Shift+click keeps working
+        // regardless of this flag - the two triggers are additive, not
+        // mutually exclusive.
+        let devGroupSelectionArmed = false;
+        function toggleDevSelection(el) {
+            if (devPanelSelectedItems.has(el)) {
+                devPanelSelectedItems.delete(el);
+                el.classList.remove('dev-selected');
+            } else {
+                devPanelSelectedItems.add(el);
+                el.classList.add('dev-selected');
+            }
+        }
+        function clearDevSelection() {
+            devPanelSelectedItems.forEach(el => el.classList.remove('dev-selected'));
+            devPanelSelectedItems.clear();
+        }
+        function disarmDevGroupSelection() {
+            devGroupSelectionArmed = false;
+            const btn = document.getElementById('devAddGroupBtn');
+            if (btn) btn.classList.remove('armed');
+        }
+        // A capturing listener on the panel itself (not each row/title
+        // individually) so it works uniformly for every control type.
+        // Capturing + preventDefault/stopPropagation together ensure a
+        // Shift+click (or an armed plain click) SELECTS instead of also
+        // operating the control under the cursor (toggling a checkbox,
+        // collapsing a group via the title's own onclick, etc.). A
+        // group's own TITLE takes priority over a row match - Shift/armed-
+        // clicking a group's title bar selects the WHOLE group (the
+        // entire .dev-section, to be moved as one nested unit), not some
+        // nearby row.
+        function setupDevGroupSelection() {
+            devPanel.addEventListener('click', (e) => {
+                if (!e.shiftKey && !devGroupSelectionArmed) return;
+                const titleEl = e.target.closest('.dev-section-title');
+                const target = titleEl ? titleEl.closest('.dev-section') : e.target.closest('.dev-row');
+                if (!target) return;
+                e.preventDefault();
+                e.stopPropagation();
+                toggleDevSelection(target);
+            }, true);
+            // Per the request's own explicit clear condition - only a
+            // click OUTSIDE the panel clears the selection; normal clicks/
+            // drags inside the panel (adjusting a slider, collapsing a
+            // group, switching tabs) leave it alone. Also disarms right-
+            // click select-mode, same reasoning.
+            document.addEventListener('click', (e) => {
+                if (devPanel.contains(e.target)) return;
+                if (devPanelSelectedItems.size) clearDevSelection();
+                if (devGroupSelectionArmed) disarmDevGroupSelection();
+            }, true);
+        }
+
+        // Whichever Desktop/Mobile/Landscape tab is currently showing -
+        // same idiom already used elsewhere in this file (see
+        // captureGameMechanics()'s own device-detection block) for "which
+        // tab am I actually looking at right now", reused here so the
+        // header's own Add Group/Collapse All buttons (single shared
+        // controls, not one per tab any more - see their own HTML comment)
+        // know which tab to act on.
+        function getActiveDevPanelTab() {
+            return !document.getElementById('mobileTabContent').classList.contains('hidden') ? 'mobile'
+                : !document.getElementById('landscapeTabContent').classList.contains('hidden') ? 'landscape'
+                : 'desktop';
+        }
+        // "Collapse All" - per direct request. Collapses every group (any
+        // nesting depth) in the currently active tab that isn't already
+        // collapsed - reuses toggleSection()'s own collapse/expand
+        // mechanics directly (not a call to toggleSection() itself, since
+        // that also handles Text Edit Mode's click-to-rename branch,
+        // irrelevant here).
+        function collapseAllDevGroups() {
+            const tabEl = document.getElementById(getActiveDevPanelTab() + 'TabContent');
+            tabEl.querySelectorAll('.dev-section-title').forEach(titleEl => {
+                const content = titleEl.nextElementSibling;
+                if (!content || content.classList.contains('collapsed')) return;
+                content.classList.add('collapsed');
+                titleEl.textContent = '▶ ' + titleEl.textContent.slice(2);
+            });
+        }
+        // Wires the 3 header icon buttons - ported from
+        // TEMPLATE_DEV_PANEL.html (2026-09-16). Called once from top-level
+        // init (alongside setupTextEditMode()) - always on, regardless of
+        // whether the panel's own controls have been lazily built yet,
+        // since the header is static markup present from first paint.
+        function setupDevHeaderIconButtons() {
+            const textEditBtn = document.getElementById('devTextEditModeBtn');
+            if (textEditBtn) {
+                textEditBtn.classList.toggle('active', textEditModeEnabled);
+                textEditBtn.addEventListener('click', () => {
+                    setTextEditModeEnabled(!textEditModeEnabled);
+                    textEditBtn.classList.toggle('active', textEditModeEnabled);
+                });
+            }
+            const addGroupBtn = document.getElementById('devAddGroupBtn');
+            if (addGroupBtn) {
+                // A plain left click: if armed (a right-click already
+                // started a selection), this is the "finalize" click -
+                // create the group and fold the selection in, same as a
+                // right-click would (see below). If NOT armed, it's just
+                // the ORIGINAL, unchanged behavior - create an empty group
+                // immediately.
+                addGroupBtn.addEventListener('click', () => {
+                    addDevGroup(getActiveDevPanelTab());
+                    disarmDevGroupSelection();
+                });
+                // Right click: arms select mode on the FIRST right-click
+                // (no group created yet - just starts letting plain left-
+                // clicks select). A SECOND right-click, while already
+                // armed, finalizes instead - matches "when i left click or
+                // right click Add Group again" (either button, once
+                // armed, does the same finalize action).
+                addGroupBtn.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (devGroupSelectionArmed) {
+                        addDevGroup(getActiveDevPanelTab());
+                        disarmDevGroupSelection();
+                    } else {
+                        devGroupSelectionArmed = true;
+                        addGroupBtn.classList.add('armed');
+                    }
+                });
+            }
+            const collapseAllBtn = document.getElementById('devCollapseAllBtn');
+            if (collapseAllBtn) collapseAllBtn.addEventListener('click', collapseAllDevGroups);
         }
 
         // Generic pointer-based drag-to-reorder - per CLAUDE.md Section 12e
@@ -12480,8 +12740,6 @@
                 const el = document.getElementById(id);
                 if (el) el.checked = !!devPanelStyle[key];
             });
-            const textEditEl = document.getElementById('checkboxTextEditMode');
-            if (textEditEl) textEditEl.checked = textEditModeEnabled;
         }
 
         // Startup validation: every generic slider/color config array entry
@@ -14550,10 +14808,9 @@
             updateTopDebugLines();
         });
 
-        wireSyncedCheckboxGroup(['checkboxTextEditMode', 'checkboxMobileTextEditMode', 'checkboxLandscapeTextEditMode'], (checked) => {
-            setTextEditModeEnabled(checked);
-        });
-
+        // Text Edit Mode's checkbox-group wiring removed 2026-09-16 - it's
+        // now a direct header icon button (#devTextEditModeBtn, see
+        // setupDevHeaderIconButtons()), not backed by any checkbox.
 
         // Manually replays the round-change blink sequence (see
         // runRoundBlinkSequence()) without needing to actually play through
@@ -15451,6 +15708,12 @@
         setupTextEditMode();
         setupTextEditPanelTriggers();
         setupDevPanelTextEdit();
+        // Header icon buttons + Shift/armed-click group selection - always
+        // on, same as the calls above, since the header is static markup
+        // present from first paint. Ported from TEMPLATE_DEV_PANEL.html
+        // (2026-09-16).
+        setupDevHeaderIconButtons();
+        setupDevGroupSelection();
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();

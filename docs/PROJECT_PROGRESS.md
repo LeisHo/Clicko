@@ -65,6 +65,16 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
+Most recently (2026-09-16): the dev panel's header now has 3 icon buttons
+(Text Edit Mode/Add Group/Collapse All, replacing the old standalone
+checkbox and 3 per-tab "+ Add Group" buttons); right-click-arming "+ Add
+Group" lets a plain click select settings/groups to fold into a new group
+(additive to the existing Shift+click); new groups now insert at the top of
+the list (after Dev Panel/Debug) instead of the bottom; and the group
+drag-handle icon is now genuinely centered at any font-size/nesting depth
+(was a fixed pixel offset that only looked right at one depth). Ported from
+the same day's `.claude/TEMPLATE_DEV_PANEL.html` update.
+
 See `docs/CHANGELOG.txt` for full details and reasoning on all of the above
 — every item here has its own detailed dated entry there.
 
