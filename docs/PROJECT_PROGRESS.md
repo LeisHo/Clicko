@@ -65,19 +65,44 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-17): the per-control Mobile/Landscape checkbox
-system is now applied universally to all 153 uniform controls (previously
-opted into only 3 demo controls), with a new group-level cascade checkbox
-on top and a value-preserving category-aware default (controls that
-already had a real independent per-device value default checked/
-independent; controls that were desktop-only/shared default unchecked/
-hidden - zero existing control values were altered). Building it surfaced
-and fixed a real Undo bug: restoring devVisibility/devIndependence state
-(Undo/Reset/Load) correctly reverted the underlying state but never
-re-synced an already-existing checkbox element's own `.checked` display -
-fixed with a new syncDeviceCheckboxesFromState() pass. Not yet ported to
-`.claude/TEMPLATE_DEV_PANEL.html` (the original ask covers both files) and
-not yet committed/pushed.
+Most recently (2026-09-17): fixed the checkbox system not covering ~130
+hand-authored "text settings battery" rows (Round/High Score/Result
+Win/Lose/Target/Speed/Ms-per-Click/Try Again/etc.) - these predate and
+sit entirely outside the array-driven DESKTOP_UNIFORM_CONTROLS system
+the universal-checkbox work below actually touched, so they never had a
+checkbox at all (found via 2 direct reports: Sync/Save not persisting
+the checkbox feature, and unchecking a group not hiding all its children
+on Mobile/Landscape - reproduced live with the WIN group, where 5 of 30
+children stayed visible). Fixed generically rather than touching each of
+Clicko's ~10 separate rendering systems: `hasStaticDeviceCounterpart()`
+now also falls back to a DOM-existence check; `injectRowDeviceCheckboxes()`
+backfills both checkbox kinds onto any row lacking one; `syncStaticRowVisibility()`
+shows/hides an existing static row via a CSS class instead of DOM
+removal (these rows always exist, nothing to "recreate"). Checkbox
+counts grew 153->285 (desktop)/102->155 (mobile+landscape each).
+Committed and pushed (488e772..77cc6f6).
+
+Prior to that (2026-09-17): the per-control Mobile/Landscape checkbox
+system was applied universally to all 153 array-driven uniform controls
+(previously opted into only 3 demo controls), with a new group-level
+cascade checkbox on top and a value-preserving category-aware default
+(controls that already had a real independent per-device value default
+checked/independent; controls that were desktop-only/shared default
+unchecked/hidden - zero existing control values were altered). Building
+it surfaced and fixed a real Undo bug: restoring devVisibility/
+devIndependence state (Undo/Reset/Load) correctly reverted the
+underlying state but never re-synced an already-existing checkbox
+element's own `.checked` display - fixed with a new
+syncDeviceCheckboxesFromState() pass. Committed and pushed
+(050e808..7d48ee8), then ported to `.claude/TEMPLATE_DEV_PANEL.html`
+too (made universal-by-default there as well, per the user's own
+explicit confirmation; found and fixed 2 template-specific correctness
+issues the port surfaced - the built-in Dev-Panel-style controls and
+the Mouse Log interval slider both needed an explicit exclusion flag,
+`skipDeviceCheckbox`, since they have their own separate mechanisms
+outside the registered-control system this feature's category-aware
+default relies on) - not yet committed to the shared `.claude/` template
+(pending, separate from Clicko's own repo).
 
 Prior to that (2026-09-17): Delete Group/Setting (a header button; click,
 then click a group OR a single setting to delete it - refuses a locked
@@ -130,11 +155,12 @@ See `docs/CHANGELOG.txt` for full details and reasoning on all of the above
 
 ## What's next
 
-Port the just-completed universal checkbox system + group-level cascade
-checkboxes (see above) to `.claude/TEMPLATE_DEV_PANEL.html` - the user's
-original ask covered both Clicko and the template; only Clicko has it so
-far. Also pending: commit/push this work (awaiting explicit instruction
-per CLAUDE.md §9).
+Nothing specifically queued. The just-completed universal checkbox
+system + group-level cascade checkboxes + the "text settings battery"
+row fix are all committed and pushed to Clicko's own repo; the template
+port (`.claude/TEMPLATE_DEV_PANEL.html`) is done locally but not yet
+committed to the shared `.claude/` template - that's the one remaining
+loose end from this whole effort.
 
 One old, possibly-stale backlog item from an earlier phase, never
 implemented and not recently mentioned — surfaced here in case it's still
