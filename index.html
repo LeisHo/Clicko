@@ -2686,6 +2686,9 @@
         .dev-row-hidden-by-checkbox {
             display: none !important;
         }
+        .dev-section-hidden-empty {
+            display: none !important;
+        }
 
         /* Drag handle - per direct request ("in Handy Dandies, the
            settings/group reorder/nesting is only triggered by the icon on
@@ -8919,7 +8922,7 @@
                     if (settings.devVisibility) devVisibility = settings.devVisibility;
                     if (settings.devIndependence) devIndependence = settings.devIndependence;
                     if (settings.devDeviceValues) devDeviceValues = settings.devDeviceValues;
-                    if (devPanelBuilt) { syncDynamicDeviceRows(); syncDeviceCheckboxesFromState(); injectGroupDeviceCheckboxes(); }
+                    if (devPanelBuilt) { syncDynamicDeviceRows(); syncDeviceCheckboxesFromState(); refreshEmptyGroupVisibility('mobile'); refreshEmptyGroupVisibility('landscape'); injectGroupDeviceCheckboxes(); }
                     // Mouse Log's own resolveDebugGroupSid() needs
                     // devTextOverrides actually populated (just above) to
                     // find the "DEBUG" group by its current display name -
@@ -11419,6 +11422,8 @@
                 devVisibility[desktopId] = cb.checked;
                 syncDynamicDeviceRows();
                 syncStaticRowVisibility(desktopId);
+                refreshEmptyGroupVisibility('mobile');
+                refreshEmptyGroupVisibility('landscape');
                 const sec = cb.closest('.dev-section');
                 if (sec) refreshGroupCascadeCheckboxState(sec, 'visibility');
             });
@@ -11444,6 +11449,20 @@
                     const restored = devDeviceValues[tab][desktopId];
                     if (restored !== undefined) writeDevControlValue(targetId, restored);
                 } else {
+                    // Captures the CURRENT (about-to-be-overwritten) value
+                    // before snapping to Desktop's - otherwise a control
+                    // that defaults independent (a real category-B value,
+                    // never live-edited this session so onDevDynamicTargetEdited
+                    // never ran) loses its only copy of that tuned value the
+                    // first time it's unchecked, since devDeviceValues was
+                    // never populated for it. Found live via direct report
+                    // ("the previously set settings within the mobile and
+                    // landscape tab should still be retained... if i decide
+                    // to implement them again, the same settings will be
+                    // used") - confirmed via direct test (199.17 -> uncheck
+                    // -> 396.26 -> recheck -> stayed 396.26 instead of
+                    // restoring 199.17).
+                    devDeviceValues[tab][desktopId] = readDevControlValue(targetId);
                     writeDevControlValue(targetId, readDevControlValue(desktopId));
                 }
                 const sec = cb.closest('.dev-section');
@@ -11694,6 +11713,42 @@
             });
             document.querySelectorAll('#desktopTabContent .dev-row [id]').forEach(controlEl => {
                 syncStaticRowVisibility(controlEl.id);
+            });
+        }
+
+        // Auto-hides an ENTIRE Mobile/Landscape group (any nesting depth)
+        // the instant none of its own rows or subgroups are visible any
+        // more - matching DickoClicko's own refreshVisibilityUI() (its
+        // groupEl.style.display driven by "does .dp-group-body have any
+        // non-hidden child" check, referenced directly per request: "for
+        // Plan 1, and 3, reference DickoClicko. they do it right"). Direct
+        // report: unchecking a whole group correctly hid its real rows but
+        // left the empty group shell (and empty nested subgroups) visible
+        // on Mobile/Landscape. Depth-sorted deepest-first (same technique
+        // as refreshAllGroupCascadeCheckboxes()) so a parent's own "any
+        // visible child" check always sees its children's ALREADY-current
+        // hidden state, never a stale one. A row hidden via DOM removal
+        // (the array-driven dynamic-row system) is automatically excluded
+        // just by not existing in the query at all; a row hidden via the
+        // .dev-row-hidden-by-checkbox CSS class (the static-row system) is
+        // excluded via the :not() below - both hide mechanisms are
+        // correctly accounted for without this function needing to know
+        // which one applies to a given row.
+        function refreshEmptyGroupVisibility(tab) {
+            const tabEl = document.getElementById(tab + 'TabContent');
+            if (!tabEl) return;
+            function depth(el) {
+                let d = 0, cur = el.parentElement;
+                while (cur) { if (cur.classList.contains('dev-section')) d++; cur = cur.parentElement; }
+                return d;
+            }
+            const sections = Array.from(tabEl.querySelectorAll('.dev-section')).sort((a, b) => depth(b) - depth(a));
+            sections.forEach(sec => {
+                const content = sec.querySelector(':scope > .dev-section-content');
+                if (!content) return;
+                const hasVisibleRow = !!content.querySelector(':scope > .dev-row:not(.dev-row-hidden-by-checkbox)');
+                const hasVisibleSubgroup = !!content.querySelector(':scope > .dev-section:not(.dev-section-hidden-empty)');
+                sec.classList.toggle('dev-section-hidden-empty', !hasVisibleRow && !hasVisibleSubgroup);
             });
         }
 
@@ -15669,6 +15724,19 @@
             // becomes visible, not reordering visibly after the fact.
             if (tab === 'mobile') syncMobileOrderToDesktop();
             else if (tab === 'landscape') syncLandscapeOrderToDesktop();
+            // Re-syncs checkbox .checked display, group cascade indeterminate
+            // display, and empty-group hiding for whichever tab is about to
+            // show - state can change while a tab isn't the active one (an
+            // edit on Desktop, a Mobile/Landscape edit made just before
+            // switching away), and none of that is otherwise guaranteed to
+            // have refreshed this specific tab's own display yet. Direct
+            // request: "the checkboxes for groups and settings in different
+            // tabs should also auto update appropriately."
+            if (devPanelBuilt) {
+                syncDeviceCheckboxesFromState();
+                if (tab === 'mobile' || tab === 'landscape') refreshEmptyGroupVisibility(tab);
+                injectGroupDeviceCheckboxes();
+            }
             document.getElementById('desktopTabContent').classList.toggle('hidden', tab !== 'desktop');
             document.getElementById('mobileTabContent').classList.toggle('hidden', tab !== 'mobile');
             document.getElementById('landscapeTabContent').classList.toggle('hidden', tab !== 'landscape');
@@ -16829,6 +16897,8 @@
             // before the panel is interactive either way.
             injectGroupLockIcons();
             injectRowDeviceCheckboxes();
+            refreshEmptyGroupVisibility('mobile');
+            refreshEmptyGroupVisibility('landscape');
             injectGroupDeviceCheckboxes();
             injectGroupDragHandles();
             injectRowDragHandles();
