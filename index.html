@@ -2560,6 +2560,35 @@
             filter: brightness(1.3);
         }
 
+        /* Dev panel search (2026-09-17) - Ctrl+F-style group/setting finder,
+           ported from DickoClicko's own dpSearchInput/dpSearchCount via
+           TEMPLATE_DEV_PANEL.html, adapted to this project's tab-scoped
+           .dev-section/.dev-row DOM shape - see setupDevSearch()'s own
+           comment for the full mechanism. Sits between Copy/Sync/Reset and
+           "Saved Dev Settings" - panel-level chrome, not tripled per tab. */
+        .dev-search-row { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+        .dev-search-input {
+            flex: 1;
+            min-width: 0;
+            min-height: calc(var(--dev-button-height-px) * 1px);
+            font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+            background: #0f0f18;
+            color: var(--dev-panel-non-title-text-color);
+            border: 1px solid var(--dev-accent-color);
+            border-radius: 3px;
+            padding: 2px 6px;
+        }
+        .dev-search-count { flex-shrink: 0; font-size: calc(var(--dev-setting-title-font-size-px) * 0.85px); color: var(--dev-panel-non-title-text-color); min-width: 40px; text-align: right; }
+        /* Only the CURRENT match is ever highlighted at a time (see
+           setupDevSearch()'s own comment on why) - outline, not border, so
+           it never shifts layout, same reasoning as .dev-selected. */
+        .dev-search-highlight-active {
+            outline: 2px solid #ffb400;
+            outline-offset: 1px;
+            background: color-mix(in srgb, #ffb400 25%, transparent);
+            border-radius: 2px;
+        }
+
         /* Looks like COPY/RESET/SAVE, just smaller - per explicit request.
            Font-size/line-height/weight now share Buttons Text's own
            dedicated controls (--dev-button-text-font-size-px etc.) -
@@ -2624,6 +2653,20 @@
         }
         .dev-group-lock-icon:hover {
             opacity: 1;
+        }
+        /* Locked groups get the OPPOSITE hover behavior of an unlocked one -
+           per direct request ("make the lock icon full opacity at all times
+           when locked, then on hover, it goes back to 50%... so its the
+           opposite state of the current for locked groups"): a locked
+           padlock is meant to be conspicuous at rest, and hover is treated
+           as a "considering unlocking it" cue that fades it instead of
+           brightening it. Specificity (3 classes) already beats the plain
+           :hover rule above with no source-order dependency. */
+        .dev-group-lock-icon.locked {
+            opacity: 1;
+        }
+        .dev-group-lock-icon.locked:hover {
+            opacity: 0.5;
         }
 
         /* Drag handle - per direct request ("in Handy Dandies, the
@@ -2784,6 +2827,18 @@
             outline-offset: 2px;
             background: color-mix(in srgb, var(--dev-accent-color) 12%, transparent);
             border-radius: 3px;
+        }
+
+        /* Dynamic Mobile/Landscape visibility/independence checkboxes
+           (2026-09-17) - ported from TEMPLATE_DEV_PANEL.html's own
+           [JS-4b0]. Pushed to the row's own far right (margin-left:auto) so
+           they read as a distinct "meta" control, separate from the row's
+           own value control. */
+        .dev-visibility-checkbox, .dev-independence-checkbox {
+            margin-left: auto;
+            accent-color: var(--dev-accent-color);
+            cursor: pointer;
+            flex-shrink: 0;
         }
 
         .dev-label {
@@ -3841,6 +3896,33 @@
                      right-click-arm mechanism. -->
                 <button class="dev-header-icon-btn" id="devTextEditModeBtn" title="Toggle Label Rename Mode">✎</button>
                 <button class="dev-header-icon-btn" id="devAddGroupBtn" title="Add Group (right-click: select settings/groups to fold in)">+</button>
+                <!-- Delete Group/Setting (2026-09-17) - per direct request
+                     ("I will click it, it highlights like the add group
+                     right click, then i will click a group to delete"),
+                     extended per direct follow-up ("Delete button should
+                     also allow me to delete single settings"). A plain
+                     click arms it (no left/right distinction needed here,
+                     unlike Add Group - Delete has no other click behavior
+                     to stay compatible with); the next click on any group
+                     OR individual setting deletes it (a group takes
+                     everything inside it with it). Refuses a locked group
+                     or anything inside one, and the 2 mandatory built-in
+                     groups (Dev Panel/Debug) or their own settings - see
+                     findDevDeleteProtectionReason(). See
+                     setupDevHeaderIconButtons() for the wiring. -->
+                <button class="dev-header-icon-btn" id="devDeleteGroupBtn" title="Delete Group/Setting (click, then click a group or setting to delete it)">🗑</button>
+                <!-- Undo (2026-09-17) - per direct request ("It will undo
+                     any dev panel changes be it reordering, setting input
+                     change, renaming, group nesting, anything. And allow
+                     me to undo infinitely until the last save click").
+                     Session-only (per direct clarification: "the undo only
+                     remembers changes within that browser session. so if i
+                     refresh, the undo wont do anything... it rememebrs all
+                     changes from that moment, until i click save, then it
+                     starts new again") - an in-memory stack, never
+                     persisted, cleared on Save. Ctrl+Z also triggers it -
+                     see setupDevPanelUndo(). -->
+                <button class="dev-header-icon-btn" id="devUndoBtn" title="Undo (Ctrl+Z) - undoes any dev panel change back to the last Save">↶</button>
                 <button class="dev-header-icon-btn" id="devCollapseAllBtn" title="Collapse All Groups">⊟</button>
                 <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
                 <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
@@ -3852,6 +3934,14 @@
             <button onclick="resetDevSettings()">RESET</button>
             <button onclick="saveSettings()">SYNC</button>
             <span id="saveSyncStatus" class="dev-save-sync-status"></span>
+        </div>
+
+        <!-- Search (2026-09-17) - Ctrl+F-style finder for group/setting
+             names in the currently active tab, ported from DickoClicko/
+             TEMPLATE_DEV_PANEL.html. See setupDevSearch()'s own comment. -->
+        <div class="dev-search-row">
+            <input type="text" id="devSearchInput" class="dev-search-input" placeholder="Search..." autocomplete="off">
+            <span class="dev-search-count" id="devSearchCount"></span>
         </div>
 
         <!-- Named Setting States (Save/Use/Delete/Set as Default) - per
@@ -8274,7 +8364,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -8330,7 +8420,7 @@
         }
 
         function buildSettingsSnapshot() {
-            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
 
         // Save settings - git-only (data/processed/dev-panel-settings.json
@@ -8346,6 +8436,10 @@
         // unreachable.
         function saveSettings() {
             const settings = buildSettingsSnapshot();
+            // Undo is session-only, cleared the moment a real Save happens
+            // (per direct clarification - "until i click save, then it
+            // starts new again") - a hard line under everything before it.
+            clearDevPanelUndoStack();
             if (typeof isDevAllowed === 'undefined' || isDevAllowed) {
                 if (location.protocol === 'file:') {
                     const statusEl = document.getElementById('saveSyncStatus');
@@ -8795,6 +8889,19 @@
                     // even for a group actually saved as locked.
                     if (settings.lockedGroups) lockedGroups = new Set(settings.lockedGroups);
                     if (devPanelBuilt) injectGroupLockIcons();
+                    // Dynamic Mobile/Landscape visibility/independence
+                    // state (2026-09-17) - same fallback-to-empty convention
+                    // as the fields above. syncDynamicDeviceRows() re-run
+                    // (not just left to whatever dynamic rows already exist)
+                    // for the same reason injectGroupLockIcons() is above -
+                    // this load can happen AFTER the panel was already built
+                    // with the state dicts still empty, so a saved "shown"
+                    // control needs its row actually (re)built now, and a
+                    // saved "hidden" one needs any stale row removed.
+                    if (settings.devVisibility) devVisibility = settings.devVisibility;
+                    if (settings.devIndependence) devIndependence = settings.devIndependence;
+                    if (settings.devDeviceValues) devDeviceValues = settings.devDeviceValues;
+                    if (devPanelBuilt) syncDynamicDeviceRows();
                     // Mouse Log's own resolveDebugGroupSid() needs
                     // devTextOverrides actually populated (just above) to
                     // find the "DEBUG" group by its current display name -
@@ -8957,7 +9064,7 @@
         // factored out, consistent with how this file already duplicates
         // it between those 2 existing functions.
         function captureCurrentSettingsSnapshot() {
-            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
         function saveNamedDevPanelState() {
             const name = prompt('Save current settings as:');
@@ -9247,13 +9354,14 @@
             const icon = document.createElement('span');
             icon.className = 'dev-group-lock-icon';
             const key = getSectionKey(titleEl);
+            icon.classList.toggle('locked', lockedGroups.has(key));
             icon.textContent = lockedGroups.has(key) ? '🔒' : '🔓';
             icon.title = lockedGroups.has(key) ? 'Locked - click to unlock' : 'Unlocked - click to lock';
             icon.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const k = getSectionKey(titleEl);
-                if (lockedGroups.has(k)) { lockedGroups.delete(k); icon.textContent = '🔓'; icon.title = 'Unlocked - click to lock'; }
-                else { lockedGroups.add(k); icon.textContent = '🔒'; icon.title = 'Locked - click to unlock'; }
+                if (lockedGroups.has(k)) { lockedGroups.delete(k); icon.textContent = '🔓'; icon.title = 'Unlocked - click to lock'; icon.classList.remove('locked'); }
+                else { lockedGroups.add(k); icon.textContent = '🔒'; icon.title = 'Locked - click to unlock'; icon.classList.add('locked'); }
             });
             // pointerdown also needs stopping - setupDragReorder() listens
             // at the document level, and the icon visually overlaps the
@@ -9538,6 +9646,7 @@
                         addDevGroup(getActiveDevPanelTab());
                         disarmDevGroupSelection();
                     } else {
+                        if (typeof devDeleteGroupArmed !== 'undefined' && devDeleteGroupArmed) disarmDevDeleteGroup();
                         devGroupSelectionArmed = true;
                         addGroupBtn.classList.add('armed');
                     }
@@ -9545,6 +9654,401 @@
             }
             const collapseAllBtn = document.getElementById('devCollapseAllBtn');
             if (collapseAllBtn) collapseAllBtn.addEventListener('click', collapseAllDevGroups);
+            const deleteGroupBtn = document.getElementById('devDeleteGroupBtn');
+            if (deleteGroupBtn) {
+                // A plain click arms/disarms (toggle) - unlike Add Group,
+                // Delete Group has no OTHER click behavior to stay
+                // compatible with, so it doesn't need Add Group's left-vs-
+                // right-click distinction. Arming this also disarms Add
+                // Group's own selection-arm mode (and vice versa, in
+                // devSetupDeleteGroupClickHandler below) - both being armed
+                // at once would make a single group-title click ambiguous
+                // between "select it" and "delete it".
+                deleteGroupBtn.addEventListener('click', () => {
+                    if (devDeleteGroupArmed) {
+                        disarmDevDeleteGroup();
+                    } else {
+                        disarmDevGroupSelection();
+                        devDeleteGroupArmed = true;
+                        deleteGroupBtn.classList.add('armed');
+                    }
+                });
+            }
+        }
+        let devDeleteGroupArmed = false;
+        function disarmDevDeleteGroup() {
+            devDeleteGroupArmed = false;
+            const btn = document.getElementById('devDeleteGroupBtn');
+            if (btn) btn.classList.remove('armed');
+        }
+        // Walks target's own .dev-section AND every ancestor .dev-section
+        // (same walk-up shape as devSearchExpandAncestors/refreshGroupCascade-
+        // CheckboxState elsewhere in this file), refusing deletion if ANY
+        // of them is either mandatory standing scaffolding (Dev Panel/
+        // Debug - CLAUDE.md Section 12i/12i-1) or locked - per direct
+        // request ("any locked groups cannot be deleted, nor can the
+        // settings within it"). Checking the WHOLE ancestor chain (not
+        // just the immediate parent) is what makes "settings within it"
+        // correct for a setting nested several groups deep inside a
+        // locked one, and also means a setting living inside Dev Panel/
+        // Debug is refused the same way the group itself already was.
+        function findDevDeleteProtectionReason(el) {
+            let sec = el.closest('.dev-section');
+            while (sec) {
+                const titleEl = sec.querySelector(':scope > .dev-section-title');
+                if (titleEl) {
+                    const sid = titleEl.dataset.sid;
+                    if (sid === 'Dev Panel' || sid === resolveDebugGroupSid()) {
+                        return 'mandatory standing scaffolding (CLAUDE.md Section 12i/12i-1)';
+                    }
+                    if (lockedGroups.has(getSectionKey(titleEl))) {
+                        return 'locked ("' + titleEl.textContent.slice(2) + '")';
+                    }
+                }
+                sec = sec.parentElement ? sec.parentElement.closest('.dev-section') : null;
+            }
+            return null;
+        }
+        // Per direct request ("Add a delete group button next to the add
+        // group function. Functionally, I will click it, it highlights
+        // like the add group right click, then i will click a group to
+        // delete"), extended per direct follow-up ("Delete button should
+        // also allow me to delete single settings"). A capturing listener
+        // on the panel (same "title takes priority over row" pattern as
+        // setupDevGroupSelection()) so it works uniformly for a group (any
+        // nesting depth) or an individual setting row; preventDefault/
+        // stopPropagation stop the click from also collapsing the group
+        // via its own onclick.
+        function setupDevDeleteGroup() {
+            devPanel.addEventListener('click', (e) => {
+                if (!devDeleteGroupArmed) return;
+                if (e.target.closest('#devDeleteGroupBtn')) return;
+                const titleEl = e.target.closest('.dev-section-title');
+                const target = titleEl ? titleEl.closest('.dev-section') : e.target.closest('.dev-row');
+                if (!target) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const reason = findDevDeleteProtectionReason(target);
+                if (reason) {
+                    console.warn('Delete: refused - ' + reason);
+                    disarmDevDeleteGroup();
+                    return;
+                }
+                // pushDevDeleteUndoEntry(), not the generic pointerdown-
+                // based snapshot push - see that function's own comment
+                // for why a plain value snapshot can't actually undo a
+                // deletion. parent/nextSibling captured BEFORE remove() so
+                // undo can put the node back in its exact original spot.
+                const parent = target.parentElement;
+                const nextSibling = target.nextElementSibling;
+                target.remove();
+                pushDevDeleteUndoEntry(target, parent, nextSibling);
+                disarmDevDeleteGroup();
+            }, true);
+            document.addEventListener('click', (e) => {
+                if (devPanel.contains(e.target)) return;
+                if (devDeleteGroupArmed) disarmDevDeleteGroup();
+            }, true);
+        }
+
+        // Infinite undo (2026-09-17) - per direct request ("Add... an undo
+        // button. It will undo any dev panel changes be it reordering,
+        // setting input change, renaming, group nesting, anything. And
+        // allow me to undo infinitely until the last save click"), later
+        // clarified as session-only ("the undo only remembers changes
+        // within that browser session. so if i refresh, the undo wont do
+        // anything... it rememebrs all changes from that moment, until i
+        // click save, then it starts new again").
+        //
+        // Implementation: a plain in-memory stack of FULL PANEL SNAPSHOTS
+        // (buildSettingsSnapshot() - the exact same object Copy/Save/Named
+        // Setting States already use), not a log of individual diffs. This
+        // is deliberate, not a shortcut - the dev panel's mutation surface
+        // is enormous (every slider/color/checkbox/select, drag-reorder of
+        // both groups and rows, rename, add/delete group, fold-into-group
+        // nesting, lock/unlock, visibility/independence toggles...) and
+        // buildSettingsSnapshot() ALREADY captures every one of those in
+        // one call (values, sectionOrder - which recursively captures
+        // group/row structure AND nesting, sectionCollapseState,
+        // devTextOverrides for renames, lockedGroups, devVisibility/
+        // devIndependence/devDeviceValues). A full-snapshot stack is
+        // simply the correct tool for "undo literally anything" - a
+        // per-field diff system would need its own bespoke handling for
+        // every one of those mutation shapes and still end up rebuilding
+        // the same full-state application logic applyLoadedSettings()
+        // already has to restore a group that no longer exists in the
+        // DOM (see its own "recreate a missing section" comment) - undo
+        // needs exactly that same capability for undoing a delete.
+        //
+        // WHEN a snapshot gets pushed: not wired into each of those dozen+
+        // mutation code paths individually. Instead, ONE capturing
+        // 'pointerdown' listener on the whole panel pushes a snapshot the
+        // FIRST time the pointer goes down inside it, gated to once per
+        // "gesture" (reset on pointerup/pointercancel) - pointerdown fires
+        // before essentially every kind of interaction this panel has
+        // (grabbing a drag handle, starting a slider drag, opening a
+        // color/select picker, clicking a checkbox, clicking a group title
+        // to rename or collapse, clicking Lock/Delete Group/Add Group),
+        // so this single hook captures the pre-action state for all of
+        // them without touching their own individual handlers. A multi-
+        // tick drag (a slider dragged across many 'input' events, or a
+        // reorder dragged across many pointermove events) is correctly
+        // captured as ONE undo step, not one per tick, since the gesture
+        // gate only pushes on the drag's own initial pointerdown.
+        let devUndoStack = [];
+        let devUndoGestureActive = false;
+        function pushDevPanelUndoSnapshot() {
+            // Deep-cloned (JSON round-trip - every field buildSettingsSnapshot()
+            // returns is already plain JSON-safe data, per its own
+            // Array.from() conversions for the 2 Set fields) - REQUIRED,
+            // not a defensive extra: buildSettingsSnapshot() returns its
+            // cssVars/colorVars/etc. fields by plain reference, the SAME
+            // live objects setupDevSliders()'s own 'input' handler mutates
+            // in place on every future edit. Pushing the object literal
+            // as-is (caught live: a slider dragged from 42.5 to 55, then
+            // Undo, "restored" to 55 instead of 42.5) meant every
+            // snapshot already on the stack silently changed underneath
+            // Undo the moment ANY later edit touched the same underlying
+            // state object, since they were never actually 2 separate
+            // objects to begin with.
+            devUndoStack.push({ kind: 'snapshot', data: JSON.parse(JSON.stringify(buildSettingsSnapshot())) });
+        }
+        // A SEPARATE undo-entry kind, specifically for deleting a group or
+        // setting (pushDevDeleteUndoEntry(), called from setupDevDeleteGroup()'s
+        // own click handler) - NOT just another pushDevPanelUndoSnapshot()
+        // call. A value-snapshot only captures VALUES/ORDER/renames -
+        // buildSettingsSnapshot()'s own sectionOrder can recreate a
+        // deleted GROUP as an empty shell (applySectionOrder()'s own
+        // "recreate a missing section" fallback), but has no equivalent
+        // way to recreate a deleted setting's actual control markup (its
+        // type/min/max/id aren't derivable from a bare row-key string),
+        // and even for a group, restoring the empty shell while all its
+        // own child rows/subgroups silently stay gone is NOT a real undo
+        // (caught live: deleting the "Background" group then clicking
+        // Undo brought the group NAME back but its own settings did not -
+        // confirmed by checking its restored row count). The fix: capture
+        // the REAL, LIVE DOM node being removed (not a clone - a live
+        // node keeps its own already-wired event listeners, so no
+        // re-wiring is needed on restore) plus exactly where it sat
+        // (parent + nextSibling), and put it straight back on undo -
+        // full-fidelity by construction, for a group (with all its own
+        // contents, at any nesting depth) or a single setting row alike.
+        function pushDevDeleteUndoEntry(node, parent, nextSibling) {
+            devUndoStack.push({ kind: 'delete', node, parent, nextSibling });
+        }
+        function undoDevPanelChange() {
+            if (!devUndoStack.length) return;
+            const entry = devUndoStack.pop();
+            if (entry.kind === 'delete') {
+                if (entry.nextSibling && entry.nextSibling.parentNode === entry.parent) {
+                    entry.parent.insertBefore(entry.node, entry.nextSibling);
+                } else {
+                    entry.parent.appendChild(entry.node);
+                }
+            } else {
+                applySettingsSnapshotLive(entry.data);
+            }
+        }
+        // How long a "gesture" is allowed to hold the undo-push gate open
+        // with no matching pointerup - see setupDevPanelUndo()'s own
+        // comment for why this exists (a real, confirmed bug: opening a
+        // NATIVE color picker, this panel's own <input type="color">
+        // controls, never delivers a pointerup back to the page at all -
+        // the OS-level picker dialog eats it - which permanently stuck
+        // devUndoGestureActive at true and silently broke EVERY undo push
+        // for the rest of the session after the first color picker use,
+        // exactly matching a real report of "undo does nothing" across
+        // checkboxes/sliders/group-deletion once a color picker had
+        // already been touched). Generous on purpose - real slider/reorder
+        // drags can legitimately run a few seconds; this is a safety net
+        // for a genuinely abandoned/swallowed gesture, not a normal timer.
+        const DEV_UNDO_GESTURE_TIMEOUT_MS = 2000;
+        let devUndoGestureTimer = null;
+        function resetDevUndoGesture() {
+            devUndoGestureActive = false;
+            if (devUndoGestureTimer) { clearTimeout(devUndoGestureTimer); devUndoGestureTimer = null; }
+        }
+        function setupDevPanelUndo() {
+            devPanel.addEventListener('pointerdown', () => {
+                if (devUndoGestureActive) return;
+                // While Delete Group/Setting is armed, the very next click
+                // either deletes something (which pushes its own precise
+                // pushDevDeleteUndoEntry() instead - see that function's
+                // comment for why a plain snapshot can't undo a deletion)
+                // or is refused/disarms with no mutation at all - a plain
+                // value snapshot here would be a dead, unpoppable-to-any-
+                // useful-state entry either way, so skip it.
+                if (devDeleteGroupArmed) return;
+                devUndoGestureActive = true;
+                pushDevPanelUndoSnapshot();
+                // Belt-and-suspenders reset, on top of the real pointerup/
+                // pointercancel/focus listeners below - if NONE of those
+                // ever fire for some reason this hasn't been discovered
+                // yet, the gate still can't stay stuck forever.
+                devUndoGestureTimer = setTimeout(resetDevUndoGesture, DEV_UNDO_GESTURE_TIMEOUT_MS);
+            }, true);
+            document.addEventListener('pointerup', resetDevUndoGesture, true);
+            document.addEventListener('pointercancel', resetDevUndoGesture, true);
+            // Catches the native-picker-eats-pointerup case directly - the
+            // window reliably regains focus the moment a native color/
+            // file/date picker (or any other OS-level dialog) closes, even
+            // though the page itself never saw a pointerup for the click
+            // that opened it.
+            window.addEventListener('focus', resetDevUndoGesture);
+            const undoBtn = document.getElementById('devUndoBtn');
+            if (undoBtn) undoBtn.addEventListener('click', undoDevPanelChange);
+            // Ctrl+Z - standard undo shortcut, matching the D/R single-key
+            // shortcuts this panel already has (Hide/Reset). Ignored while
+            // focus is in a genuine text-input context (a rename textarea,
+            // the search box) so it doesn't fight the browser/OS's own
+            // native text-field undo.
+            document.addEventListener('keydown', (e) => {
+                if (!(e.key === 'z' || e.key === 'Z') || !(e.ctrlKey || e.metaKey)) return;
+                const tag = document.activeElement ? document.activeElement.tagName : '';
+                if (tag === 'TEXTAREA' || (tag === 'INPUT' && document.activeElement.type === 'text')) return;
+                e.preventDefault();
+                undoDevPanelChange();
+            });
+        }
+        // Clears the undo stack - called from saveSettings() itself (per
+        // the request's own explicit "until i click save, then it starts
+        // new again"), so a Save draws a hard line under everything before
+        // it; nothing before a Save is ever undoable after it.
+        function clearDevPanelUndoStack() {
+            devUndoStack = [];
+        }
+
+        // Ctrl+F-style search for group/setting names, ported from
+        // DickoClicko's own dpSearchInput mechanism (2026-09-17) via
+        // TEMPLATE_DEV_PANEL.html, re-scoped to whichever tab is currently
+        // active via getActiveDevPanelTab() (DickoClicko has a single flat
+        // group tree, no Desktop/Mobile/Landscape split). Deliberately does
+        // NOT highlight every match at once - per DickoClicko's own direct
+        // correction ("dont do the expanding and scroll thing if i havent
+        // hit enter yet"): typing only recomputes devSearchMatches and
+        // shows a plain "N found" count; only Enter (first press jumps to
+        // match 0) or Shift+Enter (previous, wrapping) actually navigates -
+        // and navigating to a NEW match first UNDOES whatever the PREVIOUS
+        // match's own navigation did (un-highlight, re-collapse whatever
+        // this mechanism itself had to expand), so only ONE match is ever
+        // expanded/highlighted at a time.
+        let devSearchMatches = [];
+        let devSearchActiveIndex = -1;
+        let devSearchActiveEl = null;
+        let devSearchExpandedGroups = [];
+
+        function collectDevSearchMatches(query) {
+            const q = query.trim().toLowerCase();
+            if (!q) return [];
+            const tabEl = document.getElementById(getActiveDevPanelTab() + 'TabContent');
+            if (!tabEl) return [];
+            const matches = [];
+            // A single combined selector (not 2 separate querySelectorAll
+            // calls) so matches come back in real document order for free.
+            tabEl.querySelectorAll('.dev-section-title, .dev-row').forEach(node => {
+                if (node.classList.contains('dev-section-title')) {
+                    // textContent always starts with a "▼ " or "▶ " collapse-
+                    // arrow prefix (toggleSection()'s own convention) -
+                    // stripped before matching so a search for "dev" doesn't
+                    // need the arrow glyph.
+                    const text = node.textContent.slice(2).toLowerCase();
+                    if (text.includes(q)) matches.push({ type: 'group', targetEl: node, sectionEl: node.closest('.dev-section') });
+                } else {
+                    const label = node.querySelector(':scope > .dev-label');
+                    if (label && label.textContent.toLowerCase().includes(q)) {
+                        matches.push({ type: 'row', targetEl: label, rowEl: node });
+                    }
+                }
+            });
+            return matches;
+        }
+
+        function devSearchCollapseExpanded() {
+            devSearchExpandedGroups.forEach(sec => {
+                const titleEl = sec.querySelector(':scope > .dev-section-title');
+                const content = sec.querySelector(':scope > .dev-section-content');
+                if (content) content.classList.add('collapsed');
+                if (titleEl) titleEl.textContent = '▶ ' + titleEl.textContent.slice(2);
+            });
+            devSearchExpandedGroups = [];
+        }
+        function devSearchClearActiveHighlight() {
+            if (devSearchActiveEl) devSearchActiveEl.classList.remove('dev-search-highlight-active');
+            devSearchActiveEl = null;
+        }
+        // Undoes whatever the CURRENT match's own navigation did - always
+        // call this before moving to a different match (or abandoning the
+        // search).
+        function devSearchUndoCurrentMatch() {
+            devSearchClearActiveHighlight();
+            devSearchCollapseExpanded();
+        }
+        // startEl is the whole matched element (a .dev-section for a group
+        // match, a .dev-row for a row match) so walking up from its OWN
+        // parent correctly skips the matched group itself and only expands
+        // genuine ANCESTORS - a group's own title is always visible
+        // regardless of its own collapsed state, only its content needs
+        // expanding.
+        function devSearchExpandAncestors(startEl) {
+            let sec = startEl.parentElement ? startEl.parentElement.closest('.dev-section') : null;
+            while (sec) {
+                const titleEl = sec.querySelector(':scope > .dev-section-title');
+                const content = sec.querySelector(':scope > .dev-section-content');
+                if (content && content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    if (titleEl) titleEl.textContent = '▼ ' + titleEl.textContent.slice(2);
+                    devSearchExpandedGroups.push(sec);
+                }
+                sec = sec.parentElement ? sec.parentElement.closest('.dev-section') : null;
+            }
+        }
+        function devSearchUpdateCount() {
+            const countEl = document.getElementById('devSearchCount');
+            if (!countEl) return;
+            const total = devSearchMatches.length;
+            const input = document.getElementById('devSearchInput');
+            if (!input || !input.value.trim()) countEl.textContent = '';
+            else if (!total) countEl.textContent = '0 found';
+            else if (devSearchActiveIndex === -1) countEl.textContent = total + ' found';
+            else countEl.textContent = (devSearchActiveIndex + 1) + '/' + total;
+        }
+        function devSearchGoTo(index) {
+            if (!devSearchMatches.length) return;
+            devSearchUndoCurrentMatch();
+            const n = devSearchMatches.length;
+            devSearchActiveIndex = ((index % n) + n) % n;
+            const m = devSearchMatches[devSearchActiveIndex];
+            devSearchExpandAncestors(m.type === 'row' ? m.rowEl : m.sectionEl);
+            m.targetEl.classList.add('dev-search-highlight-active');
+            devSearchActiveEl = m.targetEl;
+            m.targetEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            devSearchUpdateCount();
+        }
+        function setupDevSearch() {
+            const input = document.getElementById('devSearchInput');
+            if (!input) return;
+            input.addEventListener('input', () => {
+                devSearchUndoCurrentMatch();
+                devSearchActiveIndex = -1;
+                devSearchMatches = collectDevSearchMatches(input.value);
+                devSearchUpdateCount();
+            });
+            input.addEventListener('keydown', e => {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                if (e.shiftKey) devSearchGoTo(devSearchActiveIndex - 1);
+                else devSearchGoTo(devSearchActiveIndex + 1);
+            });
+            // Any click that isn't on the search input itself undoes the
+            // current match's own highlight/expansion - same "click
+            // elsewhere clears it" convention setupDevGroupSelection() uses.
+            document.addEventListener('click', e => {
+                if (e.target === input) return;
+                if (devSearchActiveIndex === -1) return;
+                devSearchUndoCurrentMatch();
+                devSearchActiveIndex = -1;
+                devSearchUpdateCount();
+            }, true);
         }
 
         // Generic pointer-based drag-to-reorder - per CLAUDE.md Section 12e
@@ -10354,7 +10858,7 @@
             { group: 'Click Burst', id: 'sliderClickBurstCountMin', type: 'slider', label: 'Count Per Side - Floor:', min: 1, max: 8, step: 1, value: 3 },
             { group: 'Click Burst', id: 'sliderClickBurstCountMax', type: 'slider', label: 'Count Per Side - Ceiling:', min: 1, max: 8, step: 1, value: 5 },
             { group: 'Click Burst', id: 'sliderClickBurstShadowFinalScale', type: 'slider', label: 'Shadow Final Scale:', min: 0, max: 1, step: 0.01, value: 1 },
-            { group: '8-Bit Text Style (Start/Try Again/Round/Win-Lose)', id: 'sliderExtrusionFontTrimAdjust', type: 'slider', label: 'Font Trim Adjust:', min: -1, max: 1, step: 0.01, value: 0 },
+            { group: '8-Bit Text Style (Start/Try Again/Round/Win-Lose)', id: 'sliderExtrusionFontTrimAdjust', type: 'slider', label: 'Font Trim Adjust:', min: -1, max: 1, step: 0.01, value: 0, dynamicDevice: true },
             { group: 'Start/Try Again Button', id: 'sliderTextFontSize', type: 'slider', label: 'Button Font Size (px):', min: 10, max: 400, step: 0.01, value: 197.38 },
             { group: 'Start/Try Again Button', id: 'sliderTextFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 15.42 },
             { group: 'Start/Try Again Button', id: 'sliderRoundExtrusionDepth', type: 'slider', label: 'Button Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 9 },
@@ -10425,9 +10929,9 @@
             { group: 'Win/Lose Text', id: 'sliderResultOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 5 },
             { group: 'Win/Lose Text', id: 'sliderResultExtrusionAngle', type: 'slider', label: 'Extrusion Angle (Deg):', min: 0, max: 360, step: 1, value: 45 },
             { group: 'Win/Lose Text', id: 'sliderResultLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
-            { group: 'Win/Lose Text', id: 'colorResultWinFill', type: 'color', label: 'Win Fill Color:', value: '#f0fff4' },
+            { group: 'Win/Lose Text', id: 'colorResultWinFill', type: 'color', label: 'Win Fill Color:', value: '#f0fff4', dynamicDevice: true },
             { group: 'Win/Lose Text', id: 'colorResultWinBorder', type: 'color', label: 'Win Border Color:', value: '#22dd44' },
-            { group: 'Win/Lose Text', id: 'colorResultLoseFill', type: 'color', label: 'Lose Fill Color:', value: '#d3a7a7' },
+            { group: 'Win/Lose Text', id: 'colorResultLoseFill', type: 'color', label: 'Lose Fill Color:', value: '#d3a7a7', dynamicDevice: true },
             { group: 'Win/Lose Text', id: 'colorResultLoseBorder', type: 'color', label: 'Lose Border Color:', value: '#2c99dd' },
             { group: 'Win/Lose Text', id: 'colorGameplayWinText', type: 'color', label: 'Gameplay Win Text Color:', value: '#22dd44' },
             { group: 'Win/Lose Text', id: 'colorGameplayWinBorder', type: 'color', label: 'Gameplay Win Border/Extrusion Color:', value: '#22dd44' },
@@ -10620,12 +11124,228 @@
         // real display order from saved data by row id regardless of
         // where a row was inserted, the same way it already does for
         // custom drag-created groups.
+        // Dynamic Mobile/Landscape visibility + independence (2026-09-17) -
+        // ported from TEMPLATE_DEV_PANEL.html's own [JS-4b0] system, itself
+        // the ancestor of DickoClicko's "Show On Mobile & Landscape"/
+        // independence checkboxes - per direct request to integrate
+        // DickoClicko's checkbox system into Clicko. Scoped to
+        // DESKTOP_UNIFORM_CONTROLS entries only (the ~54 hand-written
+        // "bespoke" rows are out of scope, matching the template's own
+        // scope note for non-uniform controls).
+        //
+        // UNLIKE the template (whose Desktop array is the only source, and
+        // every tab's row is either mirrored-from or independent-of it),
+        // Clicko's own MOBILE_UNIFORM_CONTROLS/LANDSCAPE_UNIFORM_CONTROLS
+        // are separate, independently-authored arrays - most Desktop
+        // controls already HAVE a real per-tab counterpart there (already
+        // independently tunable per §12f, no dynamicDevice needed).
+        // `dynamicDevice: true` is therefore meaningful on a Desktop
+        // control that has NO existing Mobile/Landscape counterpart (a
+        // genuinely SHARED control, e.g. most colors) - toggling "Show in
+        // Mobile/Landscape" DYNAMICALLY creates/destroys that tab's own row
+        // for it, cloning the desktop ctrl's own definition under a
+        // translated id - the template's own ensureDynamicTargetRow()
+        // concept, applied to a control that otherwise has zero rows
+        // outside Desktop.
+        let devVisibility = {}; // { [desktopId]: boolean } - default true (visible) when absent
+        let devIndependence = { mobile: {}, landscape: {} }; // { [desktopId]: boolean } - default false (mirrors Desktop)
+        let devDeviceValues = { mobile: {}, landscape: {} }; // { [desktopId]: lastIndependentValue } - retained even while hidden/non-independent
+
+        function isDevRowVisible(desktopId) { return devVisibility[desktopId] !== false; }
+        function isDevRowIndependent(tab, desktopId) { return !!(devIndependence[tab] && devIndependence[tab][desktopId]); }
+
+        function readDevControlValue(id) {
+            const el = document.getElementById(id);
+            if (!el) return undefined;
+            return el.type === 'checkbox' ? el.checked : el.value;
+        }
+        function writeDevControlValue(id, value) {
+            const el = document.getElementById(id);
+            if (!el || value === undefined) return;
+            if (el.type === 'checkbox') el.checked = value; else el.value = value;
+        }
+        // desktopId -> that same control's Mobile/Landscape-prefixed id,
+        // mirroring resolveDevControlId()'s own inverse (that function
+        // strips a Mobile/Landscape infix; this inserts one) - e.g.
+        // 'colorResultWinFill' -> 'colorMobileResultWinFill'. Matches this
+        // project's established slider/color/select/checkbox-prefix
+        // convention.
+        function dynamicDeviceTargetId(desktopId, tab) {
+            const infix = tab === 'landscape' ? 'Landscape' : 'Mobile';
+            const m = desktopId.match(/^(slider|color|select|checkbox)(.+)$/);
+            return m ? (m[1] + infix + m[2]) : null;
+        }
+        // Per-desktopId reentrancy guard (a Set, not one shared boolean -
+        // a different control's mirror must stay free to run while this
+        // one is mid-broadcast). Both mirror directions below check/set
+        // this before touching anything, which is what actually breaks the
+        // cycle - dispatching a mirrored value on a sibling tab's control
+        // ALSO triggers that tab's own onDevDynamicTargetEdited() listener
+        // (the exact same event, there's no way to tag it "synthetic"), so
+        // without this guard a Desktop edit -> Mobile write+dispatch ->
+        // Mobile's own "not independent, treat as a Desktop edit" listener
+        // -> Landscape write+dispatch -> Landscape's own listener -> Mobile
+        // write+dispatch again -> ... genuinely hangs the page forever (2
+        // earlier attempts at this - an exclude-the-originating-tab-only
+        // version, then a single shared boolean flag - both still looped
+        // between the 2 SIBLING tabs even though they correctly stopped
+        // the Desktop<->one-tab case; caught via a live synthetic-event
+        // test that hung for 45s before this Set-based version was tried).
+        const devDynamicBroadcastInProgress = new Set();
+        // Broadcasts Desktop's CURRENT value onto every non-independent
+        // Mobile/Landscape dynamic row for it, skipping `excludeTab` (the
+        // tab that originated this broadcast, if any - it already reflects
+        // this value, both in its own element and in setupDevSliders()'s
+        // already-applied cssVars, since dispatching there is what
+        // triggered this whole call in the first place).
+        function broadcastDesktopValue(desktopId, excludeTab) {
+            if (devDynamicBroadcastInProgress.has(desktopId)) return;
+            devDynamicBroadcastInProgress.add(desktopId);
+            try {
+                const value = readDevControlValue(desktopId);
+                ['mobile', 'landscape'].forEach(tab => {
+                    if (tab === excludeTab) return;
+                    if (isDevRowIndependent(tab, desktopId)) return;
+                    const targetId = dynamicDeviceTargetId(desktopId, tab);
+                    const targetEl = document.getElementById(targetId);
+                    if (!targetEl) return;
+                    writeDevControlValue(targetId, value);
+                    targetEl.dispatchEvent(new Event(targetEl.type === 'checkbox' || targetEl.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+                });
+            } finally {
+                devDynamicBroadcastInProgress.delete(desktopId);
+            }
+        }
+        // Live-mirrors a Desktop edit onto any currently-existing,
+        // non-independent Mobile/Landscape dynamic row for it - wired once
+        // per control (dataset guard, same pattern as the template's own
+        // targetEl.dataset.indepWired below).
+        function wireDesktopMirrorSource(controlEl, desktopId) {
+            if (!controlEl || controlEl.dataset.mirrorWired) return;
+            controlEl.dataset.mirrorWired = '1';
+            const evt = controlEl.type === 'checkbox' || controlEl.tagName === 'SELECT' ? 'change' : 'input';
+            controlEl.addEventListener(evt, () => broadcastDesktopValue(desktopId, null));
+        }
+        // Called when a Mobile/Landscape dynamic row is edited directly.
+        // While NOT independent, the edit is understood as editing
+        // Desktop's own value (which this row is just mirroring) - writes
+        // Desktop's own element directly (never dispatches there - that
+        // would re-enter this same handler via wireDesktopMirrorSource)
+        // and broadcasts to any OTHER non-independent sibling tab. The
+        // devDynamicBroadcastInProgress guard inside broadcastDesktopValue()
+        // is what actually makes it safe to call this unconditionally even
+        // while a broadcast for this SAME desktopId is already underway
+        // (e.g. this call itself was caused by that very broadcast) -
+        // it just no-ops instead of re-entering. While independent, this
+        // just updates this tab's own retained value.
+        function onDevDynamicTargetEdited(tab, desktopId, targetId) {
+            if (isDevRowIndependent(tab, desktopId)) {
+                devDeviceValues[tab][desktopId] = readDevControlValue(targetId);
+                return;
+            }
+            writeDevControlValue(desktopId, readDevControlValue(targetId));
+            broadcastDesktopValue(desktopId, tab);
+        }
+        // Desktop-only: "Show in Mobile/Landscape" - unchecking removes any
+        // existing dynamic Mobile/Landscape row for this control (next
+        // sync); checking restores it, seeded from devDeviceValues (or
+        // Desktop's current value, the first time).
+        function buildVisibilityCheckbox(controlEl, desktopId) {
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.className = 'dev-visibility-checkbox';
+            cb.title = 'Show in Mobile/Landscape';
+            cb.checked = isDevRowVisible(desktopId);
+            cb.addEventListener('click', e => e.stopPropagation());
+            cb.addEventListener('change', () => {
+                devVisibility[desktopId] = cb.checked;
+                syncDynamicDeviceRows();
+            });
+            wireDesktopMirrorSource(controlEl, desktopId);
+            return cb;
+        }
+        // Mobile/Landscape-only: "Independent from Desktop." Unchecking
+        // immediately snaps this row back to Desktop's current value;
+        // checking restores whatever this tab's own value was the last
+        // time it was independent (devDeviceValues), or leaves the current
+        // (mirrored) value in place the first time.
+        function buildIndependenceCheckbox(tab, desktopId, targetEl) {
+            const targetId = targetEl ? targetEl.id : null;
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.className = 'dev-independence-checkbox';
+            cb.title = 'Independent from Desktop';
+            cb.checked = isDevRowIndependent(tab, desktopId);
+            cb.addEventListener('click', e => e.stopPropagation());
+            cb.addEventListener('change', () => {
+                devIndependence[tab][desktopId] = cb.checked;
+                if (cb.checked) {
+                    const restored = devDeviceValues[tab][desktopId];
+                    if (restored !== undefined) writeDevControlValue(targetId, restored);
+                } else {
+                    writeDevControlValue(targetId, readDevControlValue(desktopId));
+                }
+            });
+            if (targetEl && !targetEl.dataset.indepWired) {
+                targetEl.dataset.indepWired = '1';
+                targetEl.addEventListener(targetEl.type === 'checkbox' || targetEl.tagName === 'SELECT' ? 'change' : 'input', () => onDevDynamicTargetEdited(tab, desktopId, targetId));
+            }
+            return cb;
+        }
+        // Creates (or removes) one tab's own dynamic row for a
+        // dynamicDevice-opted Desktop control, based on its current
+        // visibility flag.
+        function ensureDynamicDeviceRow(desktopCtrl, tab) {
+            const targetId = dynamicDeviceTargetId(desktopCtrl.id, tab);
+            if (!targetId) return;
+            const existingEl = document.getElementById(targetId);
+            if (!isDevRowVisible(desktopCtrl.id)) {
+                if (existingEl) existingEl.closest('.dev-row').remove();
+                return;
+            }
+            if (existingEl) return; // already built
+            const content = findGroupContent(tab, desktopCtrl.group, 'ensureDynamicDeviceRow', desktopCtrl.id);
+            if (!content) return;
+            const targetCtrl = Object.assign({}, desktopCtrl, { id: targetId });
+            delete targetCtrl.dynamicDevice;
+            const row = buildUniformControlRow(targetCtrl);
+            row.dataset.dynamicDeviceFor = desktopCtrl.id;
+            const targetEl = row.querySelector('[id]');
+            content.appendChild(row); // must be in the document before writeDevControlValue()'s own getElementById lookup and setupDevSliders()'s own wiring can find it
+            const seeded = devDeviceValues[tab][desktopCtrl.id];
+            writeDevControlValue(targetId, seeded !== undefined ? seeded : readDevControlValue(desktopCtrl.id));
+            row.appendChild(buildIndependenceCheckbox(tab, desktopCtrl.id, targetEl));
+            // Wires this brand-new slider/color-picker into the SAME
+            // generic apply-on-input machinery every other control uses
+            // (setupDevSliders()'s own [data-wired] guard makes this safe
+            // to call again without double-wiring already-wired elements).
+            setupDevSliders();
+        }
+        // Re-derives every dynamicDevice control's own Mobile/Landscape
+        // dynamic row from its current visibility flag - called whenever a
+        // visibility checkbox changes, and once after a settings load (a
+        // saved "shown" control needs its row actually built, since the
+        // load can happen after the panel's already been built with no
+        // dynamic rows yet).
+        function syncDynamicDeviceRows() {
+            DESKTOP_UNIFORM_CONTROLS.filter(c => c.dynamicDevice).forEach(ctrl => {
+                ensureDynamicDeviceRow(ctrl, 'mobile');
+                ensureDynamicDeviceRow(ctrl, 'landscape');
+            });
+        }
+
         function renderDesktopUniformControls() {
             DESKTOP_UNIFORM_CONTROLS.forEach(ctrl => {
                 const content = findGroupContent('desktop', ctrl.group, 'renderDesktopUniformControls', ctrl.id);
                 if (!content) return;
-                content.appendChild(buildUniformControlRow(ctrl));
+                const row = buildUniformControlRow(ctrl);
+                if (ctrl.dynamicDevice) {
+                    const controlEl = row.querySelector('[id]');
+                    row.appendChild(buildVisibilityCheckbox(controlEl, ctrl.id));
+                }
+                content.appendChild(row);
             });
+            syncDynamicDeviceRows();
         }
 
         // Mobile tab's own uniform controls - same pattern as Desktop's
@@ -12814,8 +13534,14 @@
         }
 
         function setupDevSliders() {
-            const sliders = document.querySelectorAll('.dev-slider');
+            // dataset guard (2026-09-17) - makes this function safe to call
+            // again after new elements are added to the DOM post-initial-
+            // build (dynamicDevice's own ensureDynamicDeviceRow() does
+            // exactly this), without double-wiring every element that was
+            // already wired the first time.
+            const sliders = document.querySelectorAll('.dev-slider:not([data-wired])');
             sliders.forEach(slider => {
+                slider.dataset.wired = '1';
                 slider.addEventListener('input', (e) => {
                     applySliderValue(e.target, parseFloat(e.target.value));
                 });
@@ -12823,8 +13549,9 @@
 
             // Setup color pickers (COLOR_VAR_MAP/EXTRUSION_COLOR_MAP are now
             // top-level - see their own comment there).
-            const colorPickers = document.querySelectorAll('.dev-color-picker');
+            const colorPickers = document.querySelectorAll('.dev-color-picker:not([data-wired])');
             colorPickers.forEach(picker => {
+                picker.dataset.wired = '1';
                 picker.addEventListener('input', (e) => {
                     const { device, desktopId } = resolveDevControlId(e.target.id);
 
@@ -15714,6 +16441,14 @@
         // (2026-09-16).
         setupDevHeaderIconButtons();
         setupDevGroupSelection();
+        // Delete Group - same "always on" reasoning as the header buttons.
+        setupDevDeleteGroup();
+        // Undo - same "always on" reasoning (Ctrl+Z must work regardless
+        // of whether the panel's own lazy controls are built yet).
+        setupDevPanelUndo();
+        // Search bar - same "always on" reasoning as the header buttons.
+        // Ported from TEMPLATE_DEV_PANEL.html (2026-09-17).
+        setupDevSearch();
         resolvePositionSentinels();
         applyActiveVars();
         applyExtrusionStyles();

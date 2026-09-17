@@ -65,15 +65,34 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-16): the dev panel's header now has 3 icon buttons
-(Text Edit Mode/Add Group/Collapse All, replacing the old standalone
-checkbox and 3 per-tab "+ Add Group" buttons); right-click-arming "+ Add
-Group" lets a plain click select settings/groups to fold into a new group
-(additive to the existing Shift+click); new groups now insert at the top of
-the list (after Dev Panel/Debug) instead of the bottom; and the group
-drag-handle icon is now genuinely centered at any font-size/nesting depth
-(was a fixed pixel offset that only looked right at one depth). Ported from
-the same day's `.claude/TEMPLATE_DEV_PANEL.html` update.
+Most recently (2026-09-17): Delete Group/Setting (a header button; click,
+then click a group OR a single setting to delete it - refuses a locked
+group or anything inside one, and the 2 mandatory built-in groups) and a
+full session-scoped infinite undo system (Ctrl+Z or the header Undo button;
+in-memory, cleared the moment Save is clicked, lost on refresh) - both hit
+real bugs after initial testing, since fixed and reverified: Undo could get
+permanently stuck doing nothing the moment a native color picker was ever
+opened (the OS dialog eats the pointerup my "one push per gesture" gate
+needed to reset - now has a 2s safety timeout plus a window-focus listener
+as 2 independent recovery paths), and deletion-undo has been rebuilt on
+real DOM-node capture/reinsertion instead of the original value-snapshot
+approach, which could only recreate a deleted group as an empty shell (and
+couldn't recreate a deleted setting at all). Also: a Ctrl+F-style search bar
+for group/setting names (ported from DickoClicko, in both Clicko and the
+template); the template's own per-control "Show in Mobile/Landscape"/
+"Independent from Desktop" checkbox system, newly ported into Clicko's own
+uniform-control rendering pipeline (opted in on 3 real controls so far: 2
+colors + 1 slider — more can opt in the same way); locked groups' padlock
+icon now reads full-opacity at rest and dims on hover. The dev panel's
+header now has icon buttons for Text Edit Mode/Add Group/Delete/Undo/
+Collapse All (replacing the old standalone checkbox and 3 per-tab
+"+ Add Group" buttons); right-click-arming "+ Add Group" lets a plain click
+select settings/groups to fold into a new group (additive to the existing
+Shift+click); new groups insert at the top of the list (after Dev Panel/
+Debug); the group drag-handle icon is centered at any font-size/nesting
+depth. The header-button/selection/drag-handle work and the search bar were
+ported from `.claude/TEMPLATE_DEV_PANEL.html`; Delete/Undo were not (not
+explicitly requested for both this time — a natural follow-up).
 
 See `docs/CHANGELOG.txt` for full details and reasoning on all of the above
 — every item here has its own detailed dated entry there.
@@ -110,3 +129,13 @@ button and base colors, alongside their existing color pickers.
   flagged as a separate, larger load-performance question — a single large
   inline-script file plus a render-blocking Google Fonts stylesheet pulling
   15 font families — and not pursued as its own task yet.
+- **Known limitation, narrow edge case**: a dynamicDevice-opted control's
+  "Show in Mobile/Landscape" checkbox can only create that tab's row if the
+  control's own group already exists as a TOP-LEVEL section on that tab
+  (`findGroupContent()`'s own direct-child lookup, shared by every uniform
+  control, not something new to this feature) — if the group has been
+  drag-nested under another group on that tab (or doesn't exist there at
+  all), the checkbox silently no-ops with a console warning rather than
+  creating the group itself. Not pursued (would mean auto-creating a
+  possibly-unwanted group); the underlying mirror/independence mechanism
+  itself is fully verified correct once a target group exists.
