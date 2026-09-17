@@ -65,19 +65,50 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-17): Delete Group/Setting (a header button; click,
+Most recently (2026-09-17): the per-control Mobile/Landscape checkbox
+system is now applied universally to all 153 uniform controls (previously
+opted into only 3 demo controls), with a new group-level cascade checkbox
+on top and a value-preserving category-aware default (controls that
+already had a real independent per-device value default checked/
+independent; controls that were desktop-only/shared default unchecked/
+hidden - zero existing control values were altered). Building it surfaced
+and fixed a real Undo bug: restoring devVisibility/devIndependence state
+(Undo/Reset/Load) correctly reverted the underlying state but never
+re-synced an already-existing checkbox element's own `.checked` display -
+fixed with a new syncDeviceCheckboxesFromState() pass. Not yet ported to
+`.claude/TEMPLATE_DEV_PANEL.html` (the original ask covers both files) and
+not yet committed/pushed.
+
+Prior to that (2026-09-17): Delete Group/Setting (a header button; click,
 then click a group OR a single setting to delete it - refuses a locked
 group or anything inside one, and the 2 mandatory built-in groups) and a
 full session-scoped infinite undo system (Ctrl+Z or the header Undo button;
-in-memory, cleared the moment Save is clicked, lost on refresh) - both hit
-real bugs after initial testing, since fixed and reverified: Undo could get
+in-memory, cleared the moment Save is clicked, lost on refresh) - hit 3
+real bugs across development, all since fixed and reverified with real
+(not `.click()`-simulated) mouse-event sequences. The 3rd and most
+stubborn: the Undo button's own click was self-canceling (it lived inside
+the same panel-wide pointerdown listener that pushes undo snapshots, so
+clicking Undo pushed a throwaway snapshot of the just-changed state and
+then immediately popped that same entry, restoring nothing) - survived 2
+earlier "fixed and verified" rounds specifically because every test used
+the JS `.click()` method on the Undo button, which never fires
+pointerdown/mousedown and so never exercised the buggy path; only a real
+mouse click does. Root-caused via one direct diagnostic
+(`devUndoStack.length` after a real edit + a real Undo click printed 1,
+not the correct 0) rather than more guessing. The other 2: Undo could get
 permanently stuck doing nothing the moment a native color picker was ever
 opened (the OS dialog eats the pointerup my "one push per gesture" gate
 needed to reset - now has a 2s safety timeout plus a window-focus listener
-as 2 independent recovery paths), and deletion-undo has been rebuilt on
-real DOM-node capture/reinsertion instead of the original value-snapshot
-approach, which could only recreate a deleted group as an empty shell (and
-couldn't recreate a deleted setting at all). Also: a Ctrl+F-style search bar
+as 2 independent recovery paths), deletion-undo was rebuilt on real
+DOM-node capture/reinsertion instead of the original value-snapshot
+approach (which could only recreate a deleted group as an empty shell and
+couldn't recreate a deleted setting at all), and — the most severe of the
+3 — Undo/Reset/Load were taking ~2.7 seconds and freezing the panel, traced
+to a real O(sliders × cssVars) bug (a shared "apply everything" function
+was being called once per slider instead of once per batch); fixed, now
+~100ms (~26x faster), also documented in the template (CLAUDE.md §12e) as
+a design lesson even though the template's own sync mechanism doesn't have
+this specific bug. Also: a Ctrl+F-style search bar
 for group/setting names (ported from DickoClicko, in both Clicko and the
 template); the template's own per-control "Show in Mobile/Landscape"/
 "Independent from Desktop" checkbox system, newly ported into Clicko's own
@@ -99,8 +130,11 @@ See `docs/CHANGELOG.txt` for full details and reasoning on all of the above
 
 ## What's next
 
-Nothing specifically queued. No outstanding user request is currently
-unaddressed as of this doc's last update.
+Port the just-completed universal checkbox system + group-level cascade
+checkboxes (see above) to `.claude/TEMPLATE_DEV_PANEL.html` - the user's
+original ask covered both Clicko and the template; only Clicko has it so
+far. Also pending: commit/push this work (awaiting explicit instruction
+per CLAUDE.md §9).
 
 One old, possibly-stale backlog item from an earlier phase, never
 implemented and not recently mentioned — surfaced here in case it's still

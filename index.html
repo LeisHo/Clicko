@@ -2669,6 +2669,21 @@
             opacity: 0.5;
         }
 
+        /* Group-level "Show in Mobile/Landscape" / "Independent from
+           Desktop" cascade checkbox (2026-09-17) - a sibling of
+           .dev-section-title (same rename-survival reasoning as the lock
+           icon just above), positioned just to its left so the two never
+           overlap. */
+        .dev-group-device-checkbox {
+            position: absolute;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            accent-color: var(--dev-accent-color);
+            cursor: pointer;
+            z-index: 1;
+        }
+
         /* Drag handle - per direct request ("in Handy Dandies, the
            settings/group reorder/nesting is only triggered by the icon on
            the far left... when i click and drag outside that icon, it
@@ -8901,7 +8916,7 @@
                     if (settings.devVisibility) devVisibility = settings.devVisibility;
                     if (settings.devIndependence) devIndependence = settings.devIndependence;
                     if (settings.devDeviceValues) devDeviceValues = settings.devDeviceValues;
-                    if (devPanelBuilt) syncDynamicDeviceRows();
+                    if (devPanelBuilt) { syncDynamicDeviceRows(); syncDeviceCheckboxesFromState(); injectGroupDeviceCheckboxes(); }
                     // Mouse Log's own resolveDebugGroupSid() needs
                     // devTextOverrides actually populated (just above) to
                     // find the "DEBUG" group by its current display name -
@@ -11167,12 +11182,108 @@
         // translated id - the template's own ensureDynamicTargetRow()
         // concept, applied to a control that otherwise has zero rows
         // outside Desktop.
-        let devVisibility = {}; // { [desktopId]: boolean } - default true (visible) when absent
-        let devIndependence = { mobile: {}, landscape: {} }; // { [desktopId]: boolean } - default false (mirrors Desktop)
+        let devVisibility = {}; // { [desktopId]: boolean } - see isDevRowVisible() for the real default when absent
+        let devIndependence = { mobile: {}, landscape: {} }; // { [desktopId]: boolean } - see isDevRowIndependent() for the real default when absent
         let devDeviceValues = { mobile: {}, landscape: {} }; // { [desktopId]: lastIndependentValue } - retained even while hidden/non-independent
 
-        function isDevRowVisible(desktopId) { return devVisibility[desktopId] !== false; }
-        function isDevRowIndependent(tab, desktopId) { return !!(devIndependence[tab] && devIndependence[tab][desktopId]); }
+        // Universal application (2026-09-17, direct request: "regardless of
+        // existing situation, the checkboxes should exist... You simply
+        // need to adapt the existing settings (shared, unshared) to the
+        // new system... dont change my actual project input settings, just
+        // adapt the project to show the differences with the checkbox
+        // style") - EVERY DESKTOP_UNIFORM_CONTROLS entry gets both
+        // checkboxes now, not just the 3 originally opted-in via
+        // `dynamicDevice: true` (that flag is now vestigial - harmless if
+        // still present on old entries, never required). The REQUIREMENT
+        // that made this safe to do broadly, not just add-checkboxes-and-
+        // hope: every checkbox's DEFAULT state must reproduce EXACTLY what
+        // the panel already does today, for every one of the ~250 existing
+        // controls, with zero value changes - hasStaticDeviceCounterpart()
+        // below is what makes that possible, by checking whether a REAL
+        // static Mobile/Landscape array entry already exists for a given
+        // Desktop control (~102/153 do - "already independent" controls
+        // like most sliders; ~51/153 don't - "shared" controls like most
+        // colors, which showed on Desktop only until now).
+        function hasStaticDeviceCounterpart(desktopId, tab) {
+            const targetId = dynamicDeviceTargetId(desktopId, tab);
+            if (!targetId) return false;
+            const arr = tab === 'landscape' ? LANDSCAPE_UNIFORM_CONTROLS : MOBILE_UNIFORM_CONTROLS;
+            return arr.some(c => c.id === targetId);
+        }
+        function findStaticDeviceCtrl(desktopId, tab) {
+            const targetId = dynamicDeviceTargetId(desktopId, tab);
+            if (!targetId) return null;
+            const arr = tab === 'landscape' ? LANDSCAPE_UNIFORM_CONTROLS : MOBILE_UNIFORM_CONTROLS;
+            return arr.find(c => c.id === targetId) || null;
+        }
+        // Reads the REAL, currently-loaded live value for a device/tab
+        // (not the static array's own `value:` literal, which is only a
+        // fallback default and can drift from what's actually live - same
+        // dual-source-of-truth risk this file already flags elsewhere) -
+        // used to seed devDeviceValues correctly when a category-B row is
+        // torn down (visibility unchecked) then rebuilt (rechecked), so
+        // the rebuilt row shows what was REALLY there, not a stale
+        // hardcoded default.
+        function readLiveDeviceValue(desktopId, tab) {
+            const varName = CSS_VAR_SLIDER_MAP[desktopId];
+            if (varName) return (tab === 'landscape' ? landscapeCssVars : mobileCssVars)[varName];
+            const extrusionKey = EXTRUSION_SLIDER_MAP[desktopId];
+            if (extrusionKey) return (tab === 'landscape' ? landscapeExtrusionVars : mobileExtrusionVars)[extrusionKey];
+            const colorVarName = COLOR_VAR_MAP[desktopId];
+            if (colorVarName) return (tab === 'landscape' ? landscapeColorVars : mobileColorVars)[colorVarName];
+            const colorExtrusionKey = EXTRUSION_COLOR_MAP[desktopId];
+            if (colorExtrusionKey) return (tab === 'landscape' ? landscapeExtrusionVars : mobileExtrusionVars)[colorExtrusionKey];
+            return undefined;
+        }
+        // Default (when devVisibility[desktopId] was never explicitly set
+        // by a real checkbox interaction or a loaded save) reproduces
+        // TODAY's actual behavior exactly: visible if a real static
+        // Mobile OR Landscape row already exists anywhere for it (an
+        // "already independent" control was always shown on both tabs;
+        // asymmetric cases - confirmed only 2 of 153 controls,
+        // sliderButtonMaxScale/MinScale, which have Mobile but not
+        // Landscape - default to visible too, matching their Mobile
+        // presence, with Landscape seeded fresh from Desktop's own value
+        // the first time), hidden if neither exists (a "shared" control
+        // was never shown on Mobile/Landscape until now).
+        function isDevRowVisible(desktopId) {
+            if (devVisibility[desktopId] !== undefined) return devVisibility[desktopId];
+            return hasStaticDeviceCounterpart(desktopId, 'mobile') || hasStaticDeviceCounterpart(desktopId, 'landscape');
+        }
+        // Default (when devIndependence[tab][desktopId] was never
+        // explicitly set) reproduces TODAY's actual behavior exactly:
+        // independent (own value) if a real static row already exists for
+        // THIS tab specifically - matching that it already has its own
+        // real, separately-tuned value today; not independent (mirrors
+        // Desktop) only for a newly-shown-for-the-first-time "shared"
+        // control, which has never had its own Mobile/Landscape value to
+        // be independent WITH.
+        function isDevRowIndependent(tab, desktopId) {
+            if (devIndependence[tab] && devIndependence[tab][desktopId] !== undefined) return devIndependence[tab][desktopId];
+            return hasStaticDeviceCounterpart(desktopId, tab);
+        }
+
+        // Re-syncs every already-built .dev-visibility-checkbox/.dev-independence-checkbox
+        // element's own .checked DOM property from devVisibility/devIndependence -
+        // needed after a state restore (Undo/Reset/Load), since those only
+        // restore the underlying state objects, never touch checkbox elements
+        // that already exist in the DOM. Call BEFORE injectGroupDeviceCheckboxes()
+        // (group checkboxes are computed by reading these row checkboxes).
+        function syncDeviceCheckboxesFromState() {
+            document.querySelectorAll('#desktopTabContent .dev-visibility-checkbox').forEach(cb => {
+                const controlEl = cb.closest('.dev-row') && cb.closest('.dev-row').querySelector('[id]');
+                if (!controlEl) return;
+                cb.checked = isDevRowVisible(controlEl.id);
+            });
+            ['mobile', 'landscape'].forEach(tab => {
+                document.querySelectorAll('#' + tab + 'TabContent .dev-independence-checkbox').forEach(cb => {
+                    const controlEl = cb.closest('.dev-row') && cb.closest('.dev-row').querySelector('[id]');
+                    if (!controlEl) return;
+                    const { desktopId } = resolveDevControlId(controlEl.id);
+                    cb.checked = isDevRowIndependent(tab, desktopId);
+                });
+            });
+        }
 
         function readDevControlValue(id) {
             const el = document.getElementById(id);
@@ -11280,6 +11391,8 @@
             cb.addEventListener('change', () => {
                 devVisibility[desktopId] = cb.checked;
                 syncDynamicDeviceRows();
+                const sec = cb.closest('.dev-section');
+                if (sec) refreshGroupCascadeCheckboxState(sec, 'visibility');
             });
             wireDesktopMirrorSource(controlEl, desktopId);
             return cb;
@@ -11305,6 +11418,8 @@
                 } else {
                     writeDevControlValue(targetId, readDevControlValue(desktopId));
                 }
+                const sec = cb.closest('.dev-section');
+                if (sec) refreshGroupCascadeCheckboxState(sec, 'independence');
             });
             if (targetEl && !targetEl.dataset.indepWired) {
                 targetEl.dataset.indepWired = '1';
@@ -11312,9 +11427,131 @@
             }
             return cb;
         }
-        // Creates (or removes) one tab's own dynamic row for a
-        // dynamicDevice-opted Desktop control, based on its current
-        // visibility flag.
+        // Group-level cascade checkboxes (2026-09-17, direct request: "in
+        // Mobile tab, the group and settings gets their own checkboxes" -
+        // group-level was explicitly part of the universal checkbox ask,
+        // not just per-setting). A SIBLING of .dev-section-title (same
+        // reasoning as the lock icon/drag handle just above it in this
+        // file: the title's own rename-mode rewrites its whole
+        // textContent, which would silently delete a child element).
+        // Desktop groups get ONE visibility cascade checkbox; Mobile/
+        // Landscape groups get ONE independence cascade checkbox - never
+        // both on the same group, matching which single checkbox kind
+        // that tab's own rows show. No persisted state of its own - its
+        // checked/indeterminate display is always COMPUTED from current
+        // children (recomputeGroupCascadeCheckboxState()), and a real
+        // click just writes through to every child row's real checkbox
+        // (and recurses into nested subgroups) - modeled directly on
+        // DickoClicko's own buildGroupIndependenceCheckbox()/
+        // buildGroupVisibilityCheckbox() (per direct request, "look at
+        // DickoClicko. its implemented correctly there").
+        function buildGroupCascadeCheckbox(sectionEl, kind) {
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.className = 'dev-group-device-checkbox';
+            cb.dataset.cascadeKind = kind;
+            cb.title = kind === 'visibility' ? 'Show in Mobile/Landscape (whole group)' : 'Independent from Desktop (whole group)';
+            cb.addEventListener('click', e => e.stopPropagation());
+            cb.addEventListener('pointerdown', e => e.stopPropagation());
+            cb.addEventListener('change', () => {
+                const checked = cb.checked;
+                const content = sectionEl.querySelector(':scope > .dev-section-content');
+                if (!content) return;
+                content.querySelectorAll(':scope > .dev-row [id]').forEach(idEl => {
+                    const rowCb = idEl.closest('.dev-row').querySelector(kind === 'visibility' ? '.dev-visibility-checkbox' : '.dev-independence-checkbox');
+                    if (rowCb && rowCb.checked !== checked) { rowCb.checked = checked; rowCb.dispatchEvent(new Event('change')); }
+                });
+                content.querySelectorAll(':scope > .dev-section').forEach(subSec => {
+                    const subCb = subSec.querySelector(':scope > .dev-group-device-checkbox[data-cascade-kind="' + kind + '"]');
+                    if (subCb && subCb.checked !== checked) { subCb.checked = checked; subCb.dispatchEvent(new Event('change')); }
+                });
+            });
+            sectionEl.appendChild(cb);
+            return cb;
+        }
+        // Recomputes ONE group's own cascade checkbox checked/indeterminate
+        // display from its CURRENT direct children (rows + subgroups) -
+        // never trusts stale state, always walks the live DOM, same
+        // "never trust static membership" reasoning as the lock icon/drag
+        // handle system. A child that's itself indeterminate propagates
+        // indeterminate upward (mixed-within-mixed is still mixed).
+        function recomputeGroupCascadeCheckboxState(sectionEl, kind) {
+            const cb = sectionEl.querySelector(':scope > .dev-group-device-checkbox[data-cascade-kind="' + kind + '"]');
+            if (!cb) return;
+            const content = sectionEl.querySelector(':scope > .dev-section-content');
+            if (!content) { cb.indeterminate = false; cb.checked = true; return; }
+            const states = [];
+            content.querySelectorAll(':scope > .dev-row [id]').forEach(idEl => {
+                const rowCb = idEl.closest('.dev-row').querySelector(kind === 'visibility' ? '.dev-visibility-checkbox' : '.dev-independence-checkbox');
+                if (rowCb) states.push(rowCb.checked);
+            });
+            content.querySelectorAll(':scope > .dev-section').forEach(subSec => {
+                const subCb = subSec.querySelector(':scope > .dev-group-device-checkbox[data-cascade-kind="' + kind + '"]');
+                if (subCb) states.push(subCb.indeterminate ? null : subCb.checked);
+            });
+            if (!states.length) { cb.indeterminate = false; cb.checked = true; return; }
+            if (states.some(s => s === null) || states.some(s => s !== states[0])) {
+                cb.indeterminate = true;
+            } else {
+                cb.indeterminate = false;
+                cb.checked = states[0];
+            }
+        }
+        // Recomputes sectionEl's OWN cascade checkbox, then walks every
+        // ancestor group doing the same - called after any individual row
+        // checkbox changes (both a real click and a group-cascade write-
+        // through), so an ancestor never shows a stale all-checked/all-
+        // unchecked state.
+        function refreshGroupCascadeCheckboxState(sectionEl, kind) {
+            let sec = sectionEl;
+            while (sec) {
+                recomputeGroupCascadeCheckboxState(sec, kind);
+                sec = sec.parentElement ? sec.parentElement.closest('.dev-section') : null;
+            }
+        }
+        // One-time pass over every group already in the DOM, same "tab-
+        // wide, any nesting depth" pattern as injectGroupLockIcons() just
+        // above - a group's kind is fixed by which tab it's on (Desktop ->
+        // visibility, Mobile/Landscape -> independence), never both.
+        // Innermost-first (reversed document order) so a parent's own
+        // recompute sees its children's ALREADY-correct state, not their
+        // stale just-built default.
+        function injectGroupDeviceCheckboxes() {
+            const desktopTab = document.getElementById('desktopTabContent');
+            if (desktopTab) {
+                const sections = Array.from(desktopTab.querySelectorAll('.dev-section')).reverse();
+                sections.forEach(sec => {
+                    if (!sec.querySelector(':scope > .dev-group-device-checkbox[data-cascade-kind="visibility"]')) buildGroupCascadeCheckbox(sec, 'visibility');
+                    recomputeGroupCascadeCheckboxState(sec, 'visibility');
+                });
+            }
+            ['mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (!tabEl) return;
+                const sections = Array.from(tabEl.querySelectorAll('.dev-section')).reverse();
+                sections.forEach(sec => {
+                    if (!sec.querySelector(':scope > .dev-group-device-checkbox[data-cascade-kind="independence"]')) buildGroupCascadeCheckbox(sec, 'independence');
+                    recomputeGroupCascadeCheckboxState(sec, 'independence');
+                });
+            });
+        }
+        // Creates (or removes) one tab's own row for a Desktop control,
+        // based on its current visibility flag - universal now (2026-09-17,
+        // see devVisibility's own comment), not just for the originally
+        // opted-in controls. Prefers the REAL static Mobile/Landscape ctrl
+        // definition (findStaticDeviceCtrl()) when one exists - a
+        // category-B control's own min/max/label frequently differ from
+        // Desktop's (e.g. Main Button Diameter: Desktop 5-60, Mobile
+        // 5-120), so cloning Desktop's own definition (the ONLY option for
+        // a genuinely new category-A control, which has no real definition
+        // to prefer) would be wrong for category B. This path only
+        // actually runs for a category-B control when its row was torn
+        // down (visibility unchecked) and is now being rebuilt (rechecked)
+        // - on a normal page load, its STATIC row already exists (built by
+        // renderMobileUniformControls()/renderLandscapeUniformControls()
+        // BEFORE this function's own caller runs - see the ordering note
+        // at that call site) and this function just no-ops via the
+        // `existingEl` check below.
         function ensureDynamicDeviceRow(desktopCtrl, tab) {
             const targetId = dynamicDeviceTargetId(desktopCtrl.id, tab);
             if (!targetId) return;
@@ -11323,17 +11560,19 @@
                 if (existingEl) existingEl.closest('.dev-row').remove();
                 return;
             }
-            if (existingEl) return; // already built
+            if (existingEl) return; // already built (static or previously dynamic)
             const content = findGroupContent(tab, desktopCtrl.group, 'ensureDynamicDeviceRow', desktopCtrl.id);
             if (!content) return;
-            const targetCtrl = Object.assign({}, desktopCtrl, { id: targetId });
+            const realCtrl = findStaticDeviceCtrl(desktopCtrl.id, tab);
+            const targetCtrl = realCtrl ? Object.assign({}, realCtrl) : Object.assign({}, desktopCtrl, { id: targetId });
             delete targetCtrl.dynamicDevice;
             const row = buildUniformControlRow(targetCtrl);
             row.dataset.dynamicDeviceFor = desktopCtrl.id;
             const targetEl = row.querySelector('[id]');
             content.appendChild(row); // must be in the document before writeDevControlValue()'s own getElementById lookup and setupDevSliders()'s own wiring can find it
             const seeded = devDeviceValues[tab][desktopCtrl.id];
-            writeDevControlValue(targetId, seeded !== undefined ? seeded : readDevControlValue(desktopCtrl.id));
+            const liveValue = readLiveDeviceValue(desktopCtrl.id, tab);
+            writeDevControlValue(targetId, seeded !== undefined ? seeded : (liveValue !== undefined ? liveValue : readDevControlValue(desktopCtrl.id)));
             row.appendChild(buildIndependenceCheckbox(tab, desktopCtrl.id, targetEl));
             // Wires this brand-new slider/color-picker into the SAME
             // generic apply-on-input machinery every other control uses
@@ -11341,14 +11580,19 @@
             // to call again without double-wiring already-wired elements).
             setupDevSliders();
         }
-        // Re-derives every dynamicDevice control's own Mobile/Landscape
-        // dynamic row from its current visibility flag - called whenever a
-        // visibility checkbox changes, and once after a settings load (a
-        // saved "shown" control needs its row actually built, since the
-        // load can happen after the panel's already been built with no
-        // dynamic rows yet).
+        // Re-derives EVERY Desktop control's own Mobile/Landscape row from
+        // its current visibility flag - universal now, not just the
+        // originally opted-in controls (see devVisibility's own comment).
+        // Called whenever a visibility checkbox changes, and once after a
+        // settings load. Must NOT run until AFTER renderMobileUniformControls()/
+        // renderLandscapeUniformControls() have both already built their
+        // own STATIC rows - see this function's own call site for why (a
+        // category-B row must already exist as a real DOM element before
+        // this runs, or ensureDynamicDeviceRow() would build a SECOND,
+        // duplicate-id row for it that the static renderer then collides
+        // with moments later).
         function syncDynamicDeviceRows() {
-            DESKTOP_UNIFORM_CONTROLS.filter(c => c.dynamicDevice).forEach(ctrl => {
+            DESKTOP_UNIFORM_CONTROLS.forEach(ctrl => {
                 ensureDynamicDeviceRow(ctrl, 'mobile');
                 ensureDynamicDeviceRow(ctrl, 'landscape');
             });
@@ -11359,13 +11603,13 @@
                 const content = findGroupContent('desktop', ctrl.group, 'renderDesktopUniformControls', ctrl.id);
                 if (!content) return;
                 const row = buildUniformControlRow(ctrl);
-                if (ctrl.dynamicDevice) {
-                    const controlEl = row.querySelector('[id]');
-                    row.appendChild(buildVisibilityCheckbox(controlEl, ctrl.id));
-                }
+                const controlEl = row.querySelector('[id]');
+                row.appendChild(buildVisibilityCheckbox(controlEl, ctrl.id));
                 content.appendChild(row);
             });
-            syncDynamicDeviceRows();
+            // syncDynamicDeviceRows() deliberately NOT called here any more
+            // - see that function's own comment for why it now has to wait
+            // until after Mobile/Landscape's own static rendering.
         }
 
         // Mobile tab's own uniform controls - same pattern as Desktop's
@@ -11482,7 +11726,21 @@
             MOBILE_UNIFORM_CONTROLS.forEach(ctrl => {
                 const content = findGroupContent('mobile', ctrl.group, 'renderMobileUniformControls', ctrl.id);
                 if (!content) return;
-                content.appendChild(buildUniformControlRow(ctrl));
+                const row = buildUniformControlRow(ctrl);
+                // "Independent from Desktop" checkbox (2026-09-17) - now
+                // added to every STATIC row here too, not just a
+                // dynamically-created one, so the universal checkbox
+                // system (see devVisibility's own comment) covers
+                // "already independent" controls (the ~102/153 with a
+                // real Mobile row today) as well as newly-shown ones. This
+                // control already has a Desktop counterpart by
+                // construction (every MOBILE_UNIFORM_CONTROLS id maps back
+                // via resolveDevControlId()), so desktopId is never null
+                // here.
+                const { desktopId } = resolveDevControlId(ctrl.id);
+                const controlEl = row.querySelector('[id]');
+                row.appendChild(buildIndependenceCheckbox('mobile', desktopId, controlEl));
+                content.appendChild(row);
             });
         }
 
@@ -11594,7 +11852,13 @@
             LANDSCAPE_UNIFORM_CONTROLS.forEach(ctrl => {
                 const content = findGroupContent('landscape', ctrl.group, 'renderLandscapeUniformControls', ctrl.id);
                 if (!content) return;
-                content.appendChild(buildUniformControlRow(ctrl));
+                const row = buildUniformControlRow(ctrl);
+                // "Independent from Desktop" checkbox - see
+                // renderMobileUniformControls()'s own identical comment.
+                const { desktopId } = resolveDevControlId(ctrl.id);
+                const controlEl = row.querySelector('[id]');
+                row.appendChild(buildIndependenceCheckbox('landscape', desktopId, controlEl));
+                content.appendChild(row);
             });
         }
 
@@ -16261,6 +16525,10 @@
             renderDesktopUniformControls();
             renderMobileUniformControls();
             renderLandscapeUniformControls();
+            // MUST run after all 3 renders above - see syncDynamicDeviceRows()'s
+            // own comment for why (Mobile/Landscape's static rows have to
+            // already exist before this checks what's missing).
+            syncDynamicDeviceRows();
             renderCompoundOffsetControls();
             renderDevPanelStyleControls();
             // Mouse Log's own widget/listeners - see that section's own
@@ -16461,6 +16729,7 @@
             // at registration time, and everything here runs synchronously
             // before the panel is interactive either way.
             injectGroupLockIcons();
+            injectGroupDeviceCheckboxes();
             injectGroupDragHandles();
             injectRowDragHandles();
             makeDevValuesEditable();
