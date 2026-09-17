@@ -9869,7 +9869,7 @@
             if (devUndoGestureTimer) { clearTimeout(devUndoGestureTimer); devUndoGestureTimer = null; }
         }
         function setupDevPanelUndo() {
-            devPanel.addEventListener('pointerdown', () => {
+            devPanel.addEventListener('pointerdown', (e) => {
                 if (devUndoGestureActive) return;
                 // While Delete Group/Setting is armed, the very next click
                 // either deletes something (which pushes its own precise
@@ -9879,6 +9879,26 @@
                 // value snapshot here would be a dead, unpoppable-to-any-
                 // useful-state entry either way, so skip it.
                 if (devDeleteGroupArmed) return;
+                // THE root cause of a real, confirmed "Undo does literally
+                // nothing" report (2026-09-17): the Undo button is itself
+                // inside devPanel, so clicking it ALSO fires this same
+                // capturing pointerdown listener - without this guard, a
+                // click on Undo would push a snapshot of the CURRENT
+                // (already-changed) state, then its own 'click' handler
+                // immediately pops that SAME just-pushed entry, restoring
+                // the current state onto itself - a complete no-op that
+                // leaves the user's real prior change buried, untouched,
+                // one slot deeper on the stack (confirmed live: after one
+                // real edit + one real Undo click, devUndoStack.length was
+                // 1, not the correct 0). Every one of THIS session's own
+                // earlier tests used undoBtn.click() (the JS method) to
+                // trigger Undo, which - as already independently
+                // discovered once this session for a checkbox - does NOT
+                // fire pointerdown/mousedown at all, only 'click' directly,
+                // which is exactly why this never showed up in testing
+                // despite extensive verification; only a REAL mouse click
+                // (or a synthetic pointerdown+click pair) exposes it.
+                if (e.target.closest('#devUndoBtn')) return;
                 devUndoGestureActive = true;
                 pushDevPanelUndoSnapshot();
                 // Belt-and-suspenders reset, on top of the real pointerup/
