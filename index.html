@@ -2268,6 +2268,18 @@
             font-weight: bold;
             position: sticky;
             top: 0;
+            /* No explicit z-index here before - `position: sticky` alone
+               keeps an element visually PINNED during scroll, but doesn't
+               guarantee it PAINTS above its siblings: with both at the
+               default z-index:auto, normal DOM-order stacking applies, and
+               later siblings (every row/group below the header, scrolled
+               UP to visually overlap it) paint on top. Direct report: "The
+               top label and all its buttons should always display above
+               everything else within. right now when i scroll down, the
+               contents block the label buttn." Comfortably above anything
+               else inside .dev-panel-scroll-content (the highest sibling
+               z-index there, .dev-group-device-checkbox, is 1). */
+            z-index: 50;
             background: rgba(0,0,0,0.95);
             padding-bottom: 10px;
             display: flex;
@@ -3969,6 +3981,15 @@
                      see setupDevPanelUndo(). -->
                 <button class="dev-header-icon-btn" id="devUndoBtn" title="Undo (Ctrl+Z) - undoes any dev panel change back to the last Save">↶</button>
                 <button class="dev-header-icon-btn" id="devCollapseAllBtn" title="Collapse All Groups">⊟</button>
+                <!-- Sync (Save), also in the header - per direct request
+                     ("add a Sync (save) button on the dev panel top label as
+                     well. Both buttns will exist"), so it's reachable without
+                     scrolling back up to the .dev-buttons row below (the same
+                     motivation as the header's own sticky+z-index fix just
+                     above). Calls the SAME saveSettings() the original SYNC
+                     button already does - not a separate/duplicate save path,
+                     just a 2nd entry point to it. -->
+                <button class="dev-header-icon-btn" id="devHeaderSyncBtn" onclick="saveSettings()" title="Sync (Save)">💾</button>
                 <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
                 <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
             </div>
