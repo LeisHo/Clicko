@@ -65,7 +65,19 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): a new "ROUND BREAKDOWN" dev-panel group (18
+Most recently (2026-09-19): the dev panel's own header (title + all its
+buttons) now correctly stays above scrolled-past content - it already
+used `position: sticky` but had no explicit `z-index`, so later siblings
+painted over it during a scroll (sticky alone only pins position, it
+doesn't guarantee paint order). Also added a 2nd Sync (Save) button
+directly in the header, so it's reachable without scrolling back up.
+Committed and pushed (94bd993..92b6886) - note this was done via a
+hand-isolated 2-hunk commit + a stash-hold-rebase-pop, since another
+Claude session was actively working on the Round Breakdown feature
+(below) in this same shared working tree at the time; their own
+uncommitted work was preserved untouched throughout.
+
+Just before that (2026-09-19): a new "ROUND BREAKDOWN" dev-panel group (18
 controls - On/Off, Resizer On/Off, X/Y/Width/Height, Font [the existing
 15 "8-Bit Text Style" pixel fonts plus 10 new thick sans-serif Google
 Fonts], Outline On/Off/Thickness/Color, Panel Color, Title/Data Font
@@ -76,10 +88,11 @@ page, relocated there via a direct `sectionOrder` edit to
 system can only target a group already present in static HTML, so a
 user-organized custom group like UI TEXT can't be targeted directly).
 The panel's own hardcoded title text was also removed (the drag-handle
-element itself stays, just empty). **Not yet committed/pushed** - the
-`sectionOrder` nesting won't take visible effect on the live site until
-this is pushed, since production `loadSettings()` reads the settings
-file from GitHub's API, not this local copy.
+element itself stays, just empty). **Not yet committed/pushed** (a
+separate, still-active Claude session's own work) - the `sectionOrder`
+nesting won't take visible effect on the live site until this is
+pushed, since production `loadSettings()` reads the settings file from
+GitHub's API, not this local copy.
 
 Before that (2026-09-19): Target Text's Prefix/Number/Suffix each got
 their own independent Line Spacing slider (replacing the old single
