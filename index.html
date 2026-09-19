@@ -1376,10 +1376,12 @@
                set on THIS element by applyTextAlignAnchors()) still work
                exactly as before via ordinary CSS inheritance down to the 3
                children, which each reference those same inherited vars in
-               their own left/top formula. Font-size below still exists
-               purely as everything's shared line-height basis (inherited). */
+               their own left/top formula. Font-size below is otherwise
+               unused now that all 3 children set their own line-height
+               directly (see their own rules) instead of inheriting a
+               shared one - kept only because removing it isn't part of
+               this task and it's harmless to leave. */
             font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * var(--cq-vw, 1vw));
-            line-height: var(--target-line-height, 1.2);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--target-fill-color);
@@ -1468,6 +1470,10 @@
                parts (not 3 independent ones). */
             font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-prefix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-prefix-font-size-vw, 11.72) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
+            /* Independent per part, same pattern as Font Size/Letter Spacing
+               above - replaces the old shared --target-line-height (removed,
+               see .target-count's own comment). */
+            line-height: var(--target-prefix-line-height, 1.2);
             text-shadow: var(--target-prefix-extrusion-shadow);
             position: absolute;
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, 49.20) * var(--target-x-unit, var(--cq-vw, 1vw)));
@@ -1487,6 +1493,7 @@
         #targetCountNumber {
             font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-number-letter-spacing-px, 0) * 1px);
+            line-height: var(--target-number-line-height, 1.2);
             text-shadow: var(--target-number-extrusion-shadow);
             position: absolute;
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-number-x-offset-vw, 200.24) * var(--target-x-unit, var(--cq-vw, 1vw)));
@@ -1499,6 +1506,7 @@
         #targetCountSuffix {
             font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-suffix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-suffix-font-size-vw, 11.72) * var(--cq-vw, 1vw));
             letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
+            line-height: var(--target-suffix-line-height, 1.2);
             text-shadow: var(--target-suffix-extrusion-shadow);
             position: absolute;
             /* Anchored to the Number's own rendered RIGHT edge AND BOTTOM edge
@@ -6368,7 +6376,9 @@
             '--target-prefix-letter-spacing-px': -7,
             '--target-number-letter-spacing-px': -7,
             '--target-suffix-letter-spacing-px': -7,
-            '--target-line-height': 1.2,
+            '--target-prefix-line-height': 1.2,
+            '--target-number-line-height': 1.2,
+            '--target-suffix-line-height': 1.2,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
             '--target-text-align-edge-lock': 1,
@@ -7229,7 +7239,9 @@
             '--target-suffix-y-offset-vh': 16.02,
             '--target-suffix-letter-spacing-px': 0,
             '--target-scale-with-browser': 1,
-            '--target-line-height': 0.65,
+            '--target-prefix-line-height': 0.65,
+            '--target-number-line-height': 0.65,
+            '--target-suffix-line-height': 0.65,
             '--target-text-align': 'left',
             '--target-text-valign': 'top',
             '--target-text-align-edge-lock': 1,
@@ -11034,7 +11046,9 @@
             { group: 'Win/Lose Text', id: 'colorGameplayLoseBorder', type: 'color', label: 'Gameplay Lose Border/Extrusion Color:', value: '#dd3333' },
             { group: 'Target Count Display', id: 'colorTargetExtrusionBorder', type: 'color', label: 'Text Color:', value: '#000000' },
             { group: 'Target Count Display', id: 'colorTargetOverallBorder', type: 'color', label: 'Overall Border Color:', value: '#000000' },
-            { group: 'Target Count Display', id: 'sliderTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderTargetPrefixLineHeight', type: 'slider', label: 'Prefix Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderTargetNumberLineHeight', type: 'slider', label: 'Number Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderTargetSuffixLineHeight', type: 'slider', label: 'Suffix Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixExtrusionDepth', type: 'slider', label: 'Prefix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixOverallBorderThickness', type: 'slider', label: 'Prefix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixLetterSpacing', type: 'slider', label: 'Prefix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
@@ -11892,7 +11906,9 @@
             { group: 'Win/Lose Text', id: 'sliderMobileResultOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 3 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultExtrusionAngle', type: 'slider', label: 'Extrusion Angle (Deg):', min: 0, max: 360, step: 1, value: 45 },
             { group: 'Win/Lose Text', id: 'sliderMobileResultLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixLineHeight', type: 'slider', label: 'Prefix Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 0.65 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetNumberLineHeight', type: 'slider', label: 'Number Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 0.65 },
+            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixLineHeight', type: 'slider', label: 'Suffix Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 0.65 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixExtrusionDepth', type: 'slider', label: 'Prefix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 20 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixOverallBorderThickness', type: 'slider', label: 'Prefix Border Thickness (px):', min: 0, max: 20, step: 1, value: 12 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixLetterSpacing', type: 'slider', label: 'Prefix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -12018,7 +12034,9 @@
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultOverallBorderThickness', type: 'slider', label: 'Border Thickness (px):', min: 0, max: 20, step: 1, value: 3 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultExtrusionAngle', type: 'slider', label: 'Extrusion Angle (Deg):', min: 0, max: 360, step: 1, value: 45 },
             { group: 'Win/Lose Text', id: 'sliderLandscapeResultLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixLineHeight', type: 'slider', label: 'Prefix Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberLineHeight', type: 'slider', label: 'Number Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixLineHeight', type: 'slider', label: 'Suffix Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixExtrusionDepth', type: 'slider', label: 'Prefix Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 26 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixOverallBorderThickness', type: 'slider', label: 'Prefix Border Thickness (px):', min: 0, max: 20, step: 1, value: 8 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixLetterSpacing', type: 'slider', label: 'Prefix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
@@ -12499,7 +12517,9 @@
             'sliderRoundPostBlinkHold': '--round-post-blink-hold-ms',
             'sliderRoundBlink4Hide': '--round-blink4-hide-ms',
             'sliderHighScoreFlashDelay': '--high-score-flash-delay-ms',
-            'sliderTargetLineHeight': '--target-line-height',
+            'sliderTargetPrefixLineHeight': '--target-prefix-line-height',
+            'sliderTargetNumberLineHeight': '--target-number-line-height',
+            'sliderTargetSuffixLineHeight': '--target-suffix-line-height',
             'sliderTargetPrefixFontSize': '--target-prefix-font-size-px',
             'sliderTargetPrefixFontSizeVw': '--target-prefix-font-size-vw',
             'sliderTargetPrefixXOffset': '--target-prefix-x-offset-vw',
