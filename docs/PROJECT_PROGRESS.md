@@ -65,7 +65,23 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): Target Text's Prefix/Number/Suffix each got
+Most recently (2026-09-19): a new "ROUND BREAKDOWN" dev-panel group (18
+controls - On/Off, Resizer On/Off, X/Y/Width/Height, Font [the existing
+15 "8-Bit Text Style" pixel fonts plus 10 new thick sans-serif Google
+Fonts], Outline On/Off/Thickness/Color, Panel Color, Title/Data Font
+Size/Bold/Color) for the loss-screen round breakdown panel's design,
+nested under UI TEXT (a real top-level static group elsewhere in the
+page, relocated there via a direct `sectionOrder` edit to
+`data/processed/dev-panel-settings.json` - the config-array control
+system can only target a group already present in static HTML, so a
+user-organized custom group like UI TEXT can't be targeted directly).
+The panel's own hardcoded title text was also removed (the drag-handle
+element itself stays, just empty). **Not yet committed/pushed** - the
+`sectionOrder` nesting won't take visible effect on the live site until
+this is pushed, since production `loadSettings()` reads the settings
+file from GitHub's API, not this local copy.
+
+Before that (2026-09-19): Target Text's Prefix/Number/Suffix each got
 their own independent Line Spacing slider (replacing the old single
 shared one, same "shared -> per-part" migration this group's other
 properties already went through). Committed and pushed
@@ -112,6 +128,11 @@ above — every item here has its own detailed dated entry there.
 
 ## What's next
 
+Immediate: commit and push the new Round Breakdown dev-panel group
+(2026-09-19, see above) - currently verified locally but not yet pushed,
+awaiting explicit instruction per CLAUDE.md §9. Its `sectionOrder` nesting
+under UI TEXT won't be visible on the live site until this happens.
+
 Likely next: re-tune Target Text's Prefix ("Click") Y Offset and Suffix
 ("x") X/Y Offset sliders (Desktop/Mobile/Landscape, all 3 tabs) - their
 current values were calibrated against the OLD shared anchor point,
@@ -144,7 +165,8 @@ button and base colors, alongside their existing color pickers.
   ~1.5s total load" (beyond the now-fixed dev-panel flash itself) was
   flagged as a separate, larger load-performance question — a single large
   inline-script file plus a render-blocking Google Fonts stylesheet pulling
-  15 font families — and not pursued as its own task yet.
+  25 font families (was 15; +10 with the 2026-09-19 Round Breakdown Font
+  control) — and not pursued as its own task yet.
 - **Known limitation, narrow edge case**: a dynamicDevice-opted control's
   "Show in Mobile/Landscape" checkbox can only create that tab's row if the
   control's own group already exists as a TOP-LEVEL section on that tab

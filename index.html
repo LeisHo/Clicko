@@ -40,7 +40,7 @@
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clicko Dicko</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&family=DotGothic16&family=Micro+5&family=Handjet&family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jersey+25&family=Jersey+10&family=Jersey+20&family=Jacquard+24&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Pixelify+Sans&family=Jersey+15&family=DotGothic16&family=Micro+5&family=Handjet&family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jersey+25&family=Jersey+10&family=Jersey+20&family=Jacquard+24&family=Archivo+Black&family=Anton&family=Titan+One&family=Bungee&family=Bungee+Inline&family=Luckiest+Guy&family=Black+Ops+One&family=Rubik+Mono+One&family=Modak&family=Bowlby+One&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -1748,13 +1748,18 @@
             min-height: 140px;
             max-width: 90vw;
             max-height: 90vh;
-            background: rgba(255, 255, 255, 0.94);
+            /* Panel Color (dev-panel control) - was a hardcoded rgba() with
+               0.94 alpha; a native <input type="color"> can't hold alpha, so
+               the picker's default (#ffffff) is fully opaque instead of the
+               old very-slightly-transparent white - an accepted, minor
+               visual tradeoff for making this tunable. */
+            background: var(--round-breakdown-panel-color, rgba(255, 255, 255, 0.94));
             border: 1px solid #333;
             border-radius: 8px;
             z-index: 15;
             display: flex;
             flex-direction: column;
-            font-family: monospace;
+            font-family: var(--round-breakdown-font-family, monospace);
             /* Native CSS `resize` is NOT touch-draggable on most mobile
                browsers - its handle is either invisible or entirely
                unresponsive to touch, which is exactly the platform this
@@ -1792,8 +1797,23 @@
             opacity: 0.55;
         }
 
+        /* Panel Resizer On/Off (dev-panel checkbox) - display:none both
+           hides the handle and (since a hidden element receives no pointer
+           events) disables its drag-to-resize, no separate JS needed. */
+        .round-breakdown-resize-handle.hidden {
+            display: none;
+        }
+
         .round-breakdown-panel.hidden {
             display: none !important;
+        }
+
+        /* Outline On/Off + Thickness + Color (dev-panel controls) - a
+           separate `outline` (not `border`, already used for the panel's
+           own fixed 1px edge above) so it can be toggled/tuned
+           independently. */
+        .round-breakdown-panel.rb-outline-on {
+            outline: calc(var(--round-breakdown-outline-thickness-px, 2) * 1px) solid var(--round-breakdown-outline-color, #000000);
         }
 
         .round-breakdown-title {
@@ -1803,7 +1823,10 @@
             font-size: 0.95vw;
             color: #333;
             text-align: center;
-            /* Drag handle for moving the panel - see JS. */
+            /* Drag handle for moving the panel - see JS. Title TEXT itself
+               was removed (per direct request - "Remove the title of the
+               round breakdown") but this element stays in the DOM empty,
+               still carrying its own padding, so it remains grabbable. */
             cursor: grab;
             user-select: none;
             flex-shrink: 0;
@@ -1832,9 +1855,31 @@
             border-bottom: none;
         }
 
+        /* Round Title Font Size/Bold/Color (dev-panel controls) - the
+           "Round 1 (lost)" line. font-weight is a plain base value here;
+           the Bold checkbox toggles it via the .rb-title-bold class rule
+           below, not a hardcoded 700 any more. */
         .round-breakdown-row-title {
-            font-weight: 700;
+            font-weight: 400;
+            font-size: calc(var(--round-breakdown-title-font-size-px, 16) * 1px);
+            color: var(--round-breakdown-title-color, #333);
             margin-bottom: 2px;
+        }
+
+        .round-breakdown-panel.rb-title-bold .round-breakdown-row-title {
+            font-weight: 700;
+        }
+
+        /* Round Data Font Size/Bold/Color (dev-panel controls) - the per-
+           round stat lines (Click Count Target, Clicks, etc.) - see the new
+           .round-breakdown-row-data class added in renderRoundBreakdown(). */
+        .round-breakdown-row-data {
+            font-size: calc(var(--round-breakdown-data-font-size-px, 15) * 1px);
+            color: var(--round-breakdown-data-color, #333);
+        }
+
+        .round-breakdown-panel.rb-data-bold .round-breakdown-row-data {
+            font-weight: 700;
         }
 
         /* Dev Panel */
@@ -3915,8 +3960,8 @@
             </div>
             <div class="tap-diagnostic" id="tapDiagnostic"></div>
         </div>
-        <div class="round-breakdown-panel hidden" id="roundBreakdownPanel">
-            <div class="round-breakdown-title">ROUND BREAKDOWN</div>
+        <div class="round-breakdown-panel hidden rb-title-bold" id="roundBreakdownPanel">
+            <div class="round-breakdown-title"></div>
             <div class="round-breakdown-table" id="roundBreakdownTable"></div>
             <div class="round-breakdown-resize-handle" id="roundBreakdownResizeHandle"></div>
         </div>
@@ -4802,6 +4847,19 @@
             <div class="dev-section-content">
             </div>
         </div>
+
+        <!-- Round Breakdown Section - created as its own top-level group
+             here (config-array controls, per CLAUDE.md Section 12, can only
+             target a group that already exists in this page's static HTML);
+             nested under UI TEXT via a one-time sectionOrder edit in
+             data/processed/dev-panel-settings.json instead, the same way
+             applySectionOrder() already relocates any custom user-created
+             group on every load - see that function's own comment. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Breakdown">▼ ROUND BREAKDOWN</div>
+            <div class="dev-section-content">
+            </div>
+        </div>
         </div>
         <!-- ^ closes desktopTabContent. Game Mechanics/Background aren't
              per-device (see the comment further down) so they only ever
@@ -5228,6 +5286,18 @@
             </div>
         </div>
 
+        <!-- Round Breakdown Section (Mobile) - empty container so the
+             per-device X/Y/Width/Height/Outline Thickness/Font Size sliders
+             in MOBILE_UNIFORM_CONTROLS have somewhere to render; the shared
+             controls (On/Off, Font, colors, etc.) mirror in automatically
+             from the Desktop tab's copy - see this group's Desktop-tab
+             comment for the full account. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Breakdown">▼ ROUND BREAKDOWN</div>
+            <div class="dev-section-content">
+            </div>
+        </div>
+
         <!-- Game Mechanics and Background Color are NOT per-device settings -
              there's only one game in progress and one page background, not a
              separate one per breakpoint - so unlike every visual section
@@ -5651,6 +5721,14 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeMsPerClickTextValignEdgeLock" data-var="--ms-per-click-text-valign-edge-lock">Edge Lock</label>
                 </div>
+            </div>
+        </div>
+
+        <!-- Round Breakdown Section (Landscape) - see the Desktop tab's own
+             copy of this group for the full comment. -->
+        <div class="dev-section">
+            <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Breakdown">▼ ROUND BREAKDOWN</div>
+            <div class="dev-section-content">
             </div>
         </div>
 
@@ -6470,12 +6548,31 @@
             '--round-breakdown-height-px': 450,
             '--round-breakdown-left-px': 1562,
             '--round-breakdown-top-px': 54,
+            // Round Breakdown dev-panel group (UI TEXT > Round Breakdown) -
+            // the On/Off-style flags below are single-bucket/shared (only
+            // ever read from this desktop cssVars, applied via JS classList
+            // toggles rather than a per-device CSS custom property) - same
+            // convention as --hide-button-enabled etc. above. The 3 numeric
+            // px values ARE per-device (see mobileCssVars' own copies).
+            '--round-breakdown-enabled': 1,
+            '--round-breakdown-resizer-enabled': 1,
+            '--round-breakdown-font-family': 'monospace',
+            '--round-breakdown-outline-enabled': 0,
+            '--round-breakdown-outline-thickness-px': 2,
+            '--round-breakdown-title-font-size-px': 16,
+            '--round-breakdown-title-bold': 1,
+            '--round-breakdown-data-font-size-px': 15,
+            '--round-breakdown-data-bold': 0,
         };
 
         // Color variables
         const colorVars = {
             '--button-color': '#ff3333',
             '--bg-color': '#ffffff',
+            '--round-breakdown-outline-color': '#000000',
+            '--round-breakdown-panel-color': '#ffffff',
+            '--round-breakdown-title-color': '#333333',
+            '--round-breakdown-data-color': '#333333',
         };
 
         // fontVars/mobileFontVars used to live here (--ui-font/--text-font,
@@ -7321,6 +7418,9 @@
             '--round-breakdown-height-px': 320,
             '--round-breakdown-left-px': 1240,
             '--round-breakdown-top-px': 190,
+            '--round-breakdown-outline-thickness-px': 2,
+            '--round-breakdown-title-font-size-px': 14,
+            '--round-breakdown-data-font-size-px': 13,
         };
         // Landscape's own cssVars - the actual point of this whole feature:
         // a real touchscreen phone in landscape gets its OWN tuned button/
@@ -9102,6 +9202,32 @@
                         document.getElementById(id).checked = checked;
                         el.classList.toggle('hidden', checked);
                     });
+                    // Same gap, for the Round Breakdown group's own 5
+                    // checkboxes (each a plain classList toggle, not a
+                    // CSS-var consumed via applyActiveVars() - see cssVars'
+                    // own comment on this group) plus the Font select
+                    // (writes a live CSS custom property directly, also
+                    // not covered by any generic restore loop).
+                    {
+                        const rbEnabled = cssVars['--round-breakdown-enabled'] !== 0;
+                        document.getElementById('checkboxRoundBreakdownEnabled').checked = rbEnabled;
+                        const rbResizer = cssVars['--round-breakdown-resizer-enabled'] !== 0;
+                        document.getElementById('checkboxRoundBreakdownResizerEnabled').checked = rbResizer;
+                        roundBreakdownResizeHandle.classList.toggle('hidden', !rbResizer);
+                        const rbOutline = !!cssVars['--round-breakdown-outline-enabled'];
+                        document.getElementById('checkboxRoundBreakdownOutlineEnabled').checked = rbOutline;
+                        roundBreakdownPanel.classList.toggle('rb-outline-on', rbOutline);
+                        const rbTitleBold = cssVars['--round-breakdown-title-bold'] !== 0;
+                        document.getElementById('checkboxRoundBreakdownTitleBold').checked = rbTitleBold;
+                        roundBreakdownPanel.classList.toggle('rb-title-bold', rbTitleBold);
+                        const rbDataBold = !!cssVars['--round-breakdown-data-bold'];
+                        document.getElementById('checkboxRoundBreakdownDataBold').checked = rbDataBold;
+                        roundBreakdownPanel.classList.toggle('rb-data-bold', rbDataBold);
+                        const rbFont = cssVars['--round-breakdown-font-family'] || 'monospace';
+                        const rbFontEl = document.getElementById('selectRoundBreakdownFont');
+                        if (rbFontEl) rbFontEl.value = rbFont;
+                        document.documentElement.style.setProperty('--round-breakdown-font-family', rbFont);
+                    }
                 } catch(e) {
                     console.error('Failed to parse saved settings');
                 }
@@ -10893,6 +11019,10 @@
         // instead of drifting apart.
         const COLOR_VAR_MAP = {
             'colorBg': '--bg-color',
+            'colorRoundBreakdownOutline': '--round-breakdown-outline-color',
+            'colorRoundBreakdownPanel': '--round-breakdown-panel-color',
+            'colorRoundBreakdownTitle': '--round-breakdown-title-color',
+            'colorRoundBreakdownData': '--round-breakdown-data-color',
         };
         // The 8-bit extrusion style's colors are mobile-split (see
         // mobileExtrusionVars) but don't live in colorVars - they write
@@ -11113,6 +11243,60 @@
             { group: 'Ms/Click Display', id: 'sliderMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
             { group: 'Background', id: 'colorBg', type: 'color', label: 'Color:', value: '#ffffff' },
+            // Round Breakdown group (nested under UI TEXT via sectionOrder,
+            // see the "Round Breakdown" .dev-section markup near the end of
+            // #desktopTabContent) - the design of the loss-screen round
+            // breakdown box. checkbox/select/color entries here are single-
+            // bucket/shared (auto-mirrored onto Mobile/Landscape via the
+            // universal per-row "Show in Mobile/Landscape" system, CLAUDE.md
+            // Section 12f-1); the 7 slider entries are genuinely per-device
+            // (own copies in MOBILE_UNIFORM_CONTROLS/LANDSCAPE_UNIFORM_
+            // CONTROLS below), matching X/Y/Width/Height's own pre-existing
+            // per-device cssVars split.
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownEnabled', type: 'checkbox', label: 'Round Breakdown On/Off' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownX', type: 'slider', label: 'X Offset (px):', min: 0, max: 3000, step: 1, value: 1562 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownY', type: 'slider', label: 'Y Offset (px):', min: 0, max: 2000, step: 1, value: 54 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 320 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 450 },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownResizerEnabled', type: 'checkbox', label: 'Panel Resizer On/Off' },
+            { group: 'Round Breakdown', id: 'selectRoundBreakdownFont', type: 'select', label: 'Font:', options: [
+                { value: 'monospace', text: 'Monospace (Default)' },
+                { value: 'Press Start 2P', text: 'Press Start 2P' },
+                { value: 'VT323', text: 'VT323' },
+                { value: 'Silkscreen', text: 'Silkscreen' },
+                { value: 'Pixelify Sans', text: 'Pixelify Sans' },
+                { value: 'Jersey 15', text: 'Jersey 15' },
+                { value: 'DotGothic16', text: 'DotGothic16' },
+                { value: 'Micro 5', text: 'Micro 5' },
+                { value: 'Handjet', text: 'Handjet' },
+                { value: 'Tiny5', text: 'Tiny5' },
+                { value: 'Jacquard 12', text: 'Jacquard 12' },
+                { value: 'Jacquarda Bastarda 9', text: 'Jacquarda Bastarda 9' },
+                { value: 'Jersey 25', text: 'Jersey 25' },
+                { value: 'Jersey 10', text: 'Jersey 10' },
+                { value: 'Jersey 20', text: 'Jersey 20' },
+                { value: 'Jacquard 24', text: 'Jacquard 24' },
+                { value: 'Archivo Black', text: 'Archivo Black' },
+                { value: 'Anton', text: 'Anton' },
+                { value: 'Titan One', text: 'Titan One' },
+                { value: 'Bungee', text: 'Bungee' },
+                { value: 'Bungee Inline', text: 'Bungee Inline' },
+                { value: 'Luckiest Guy', text: 'Luckiest Guy' },
+                { value: 'Black Ops One', text: 'Black Ops One' },
+                { value: 'Rubik Mono One', text: 'Rubik Mono One' },
+                { value: 'Modak', text: 'Modak' },
+                { value: 'Bowlby One', text: 'Bowlby One' },
+            ] },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownOutlineEnabled', type: 'checkbox', label: 'Outline On/Off' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
+            { group: 'Round Breakdown', id: 'colorRoundBreakdownOutline', type: 'color', label: 'Outline Color:', value: '#000000' },
+            { group: 'Round Breakdown', id: 'colorRoundBreakdownPanel', type: 'color', label: 'Panel Color:', value: '#ffffff' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 16 },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownTitleBold', type: 'checkbox', label: 'Round Title Bold' },
+            { group: 'Round Breakdown', id: 'colorRoundBreakdownTitle', type: 'color', label: 'Round Title Color:', value: '#333333' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownDataFontSize', type: 'slider', label: 'Round Data Font Size (px):', min: 8, max: 40, step: 1, value: 15 },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownDataBold', type: 'checkbox', label: 'Round Data Bold' },
+            { group: 'Round Breakdown', id: 'colorRoundBreakdownData', type: 'color', label: 'Round Data Color:', value: '#333333' },
         ];
         // Resolves a group's .dev-section-content by data-sid, warning on
         // either 0 matches (group not found) or 2+ matches (a data-sid
@@ -11966,6 +12150,13 @@
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', type: 'slider', label: 'X Offset (px):', min: 0, max: 3000, step: 1, value: 1240 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', type: 'slider', label: 'Y Offset (px):', min: 0, max: 2000, step: 1, value: 190 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 280 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 320 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 14 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownDataFontSize', type: 'slider', label: 'Round Data Font Size (px):', min: 8, max: 40, step: 1, value: 13 },
         ];
         function renderMobileUniformControls() {
             MOBILE_UNIFORM_CONTROLS.forEach(ctrl => {
@@ -12094,6 +12285,13 @@
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownX', type: 'slider', label: 'X Offset (px):', min: 0, max: 3000, step: 1, value: 1562 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownY', type: 'slider', label: 'Y Offset (px):', min: 0, max: 2000, step: 1, value: 54 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 320 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 450 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 16 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownDataFontSize', type: 'slider', label: 'Round Data Font Size (px):', min: 8, max: 40, step: 1, value: 15 },
         ];
         function renderLandscapeUniformControls() {
             LANDSCAPE_UNIFORM_CONTROLS.forEach(ctrl => {
@@ -12582,6 +12780,13 @@
             'sliderResultLoseY': '--result-lose-y-offset-vh',
             'sliderResultLoseLetterSpacing': '--result-lose-letter-spacing-px',
             'sliderResultLineHeight': '--result-line-height',
+            'sliderRoundBreakdownX': '--round-breakdown-left-px',
+            'sliderRoundBreakdownY': '--round-breakdown-top-px',
+            'sliderRoundBreakdownWidth': '--round-breakdown-width-px',
+            'sliderRoundBreakdownHeight': '--round-breakdown-height-px',
+            'sliderRoundBreakdownOutlineThickness': '--round-breakdown-outline-thickness-px',
+            'sliderRoundBreakdownTitleFontSize': '--round-breakdown-title-font-size-px',
+            'sliderRoundBreakdownDataFontSize': '--round-breakdown-data-font-size-px',
         };
 
         // Desktop slider id -> extrusionVars/mobileExtrusionVars/
@@ -14740,6 +14945,15 @@
             if (e && e.pointerId !== undefined && roundBreakdownTitle.hasPointerCapture(e.pointerId)) {
                 roundBreakdownTitle.releasePointerCapture(e.pointerId);
             }
+            // X/Y Offset dev-panel sliders - keep their displayed value in
+            // sync with a direct drag, per explicit request ("responsive to
+            // if i click and drag the box around"). Only at drag END (not
+            // every pointermove) - syncSlidersFromState() walks every
+            // slider in CSS_VAR_SLIDER_MAP, and per this file's own
+            // documented Undo/Load performance lesson, that's cheap ONCE
+            // per gesture (its own internal deferApply batching) but would
+            // add up fast called on every drag tick.
+            syncSlidersFromState();
         }
         document.addEventListener('pointerup', endBreakdownDrag);
         document.addEventListener('pointercancel', endBreakdownDrag);
@@ -14777,6 +14991,9 @@
             if (e && e.pointerId !== undefined && roundBreakdownResizeHandle.hasPointerCapture(e.pointerId)) {
                 roundBreakdownResizeHandle.releasePointerCapture(e.pointerId);
             }
+            // Width/Height dev-panel sliders - same reasoning as
+            // endBreakdownDrag()'s own sync call just above.
+            syncSlidersFromState();
         }
         document.addEventListener('pointerup', endBreakdownResize);
         document.addEventListener('pointercancel', endBreakdownResize);
@@ -15655,16 +15872,22 @@
             const rows = roundHistory.map(r => `
                 <div class="round-breakdown-row">
                     <div class="round-breakdown-row-title">Round ${r.round}${r.won ? ' (won)' : ' (lost)'}</div>
-                    <div>Click Count Target: ${r.target}</div>
-                    <div>Clicks: ${r.clicks}</div>
-                    <div>Average Click Speed: ${fmtMs(r.avgGapMs)}</div>
-                    <div>Fastest Click: ${fmtMs(r.fastestGapMs)}</div>
-                    <div>Slowest Click: ${fmtMs(r.slowestGapMs)}</div>
-                    <div>Time To Hit Target: ${fmtMs(r.timeToTargetMs)}</div>
+                    <div class="round-breakdown-row-data">Click Count Target: ${r.target}</div>
+                    <div class="round-breakdown-row-data">Clicks: ${r.clicks}</div>
+                    <div class="round-breakdown-row-data">Average Click Speed: ${fmtMs(r.avgGapMs)}</div>
+                    <div class="round-breakdown-row-data">Fastest Click: ${fmtMs(r.fastestGapMs)}</div>
+                    <div class="round-breakdown-row-data">Slowest Click: ${fmtMs(r.slowestGapMs)}</div>
+                    <div class="round-breakdown-row-data">Time To Hit Target: ${fmtMs(r.timeToTargetMs)}</div>
                 </div>
             `).join('');
             roundBreakdownTable.innerHTML = rows;
-            roundBreakdownPanel.classList.remove('hidden');
+            // Round Breakdown On/Off (dev-panel checkbox) - per direct
+            // request ("If turned off, the breakdown wont be shown"), gate
+            // right here at the one call site that ever un-hides the panel,
+            // rather than a separate persistent visibility mechanism.
+            if (cssVars['--round-breakdown-enabled'] !== 0) {
+                roundBreakdownPanel.classList.remove('hidden');
+            }
         }
 
         // Event listeners - Pointer Events unify mouse/touch/pen into one event
@@ -16855,6 +17078,41 @@
             document.getElementById('checkboxHideTargetSuffix').addEventListener('change', (e) => {
                 cssVars['--target-suffix-hidden'] = e.target.checked ? 1 : 0;
                 targetCountSuffix.classList.toggle('hidden', e.target.checked);
+            });
+            // Round Breakdown group - same config-array-built-checkboxes-
+            // need-manual-wiring reasoning as the 2 above, plus the Font
+            // select (not covered by any generic .dev-select handler).
+            // checkboxRoundBreakdownEnabled/ResizerEnabled/TitleBold default
+            // to CHECKED here (matching this feature's pre-existing always-
+            // on/always-bold look) before a real saved setting's own
+            // restore (see applyLoadedSettings()'s matching block) can
+            // override it.
+            document.getElementById('checkboxRoundBreakdownEnabled').checked = true;
+            document.getElementById('checkboxRoundBreakdownEnabled').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-enabled'] = e.target.checked ? 1 : 0;
+                if (!e.target.checked) roundBreakdownPanel.classList.add('hidden');
+            });
+            document.getElementById('checkboxRoundBreakdownResizerEnabled').checked = true;
+            document.getElementById('checkboxRoundBreakdownResizerEnabled').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-resizer-enabled'] = e.target.checked ? 1 : 0;
+                roundBreakdownResizeHandle.classList.toggle('hidden', !e.target.checked);
+            });
+            document.getElementById('checkboxRoundBreakdownOutlineEnabled').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-outline-enabled'] = e.target.checked ? 1 : 0;
+                roundBreakdownPanel.classList.toggle('rb-outline-on', e.target.checked);
+            });
+            document.getElementById('checkboxRoundBreakdownTitleBold').checked = true;
+            document.getElementById('checkboxRoundBreakdownTitleBold').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-title-bold'] = e.target.checked ? 1 : 0;
+                roundBreakdownPanel.classList.toggle('rb-title-bold', e.target.checked);
+            });
+            document.getElementById('checkboxRoundBreakdownDataBold').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-data-bold'] = e.target.checked ? 1 : 0;
+                roundBreakdownPanel.classList.toggle('rb-data-bold', e.target.checked);
+            });
+            document.getElementById('selectRoundBreakdownFont').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-font-family'] = e.target.value;
+                document.documentElement.style.setProperty('--round-breakdown-font-family', e.target.value);
             });
             // No onDrop action needed - the DOM order itself IS the live state;
             // captureSectionOrder() reads it fresh whenever Copy/Save actually run.
