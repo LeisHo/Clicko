@@ -1471,7 +1471,14 @@
             text-shadow: var(--target-prefix-extrusion-shadow);
             position: absolute;
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, 49.20) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-vh, 9.19) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            /* Anchored to the Number's own rendered BOTTOM edge (--target-number-bottom-px,
+               a live px measurement kept current by updateTargetAnchoredPositions()
+               below), not the shared group anchor - per direct request ("I want
+               the word 'Clicks' to be anchored to the bottom of the Target
+               number. So the y offset will be relative to that"). The Y Offset
+               slider still works exactly as before, just as a nudge FROM this
+               new reference point instead of from --target-y-base. */
+            top: calc(var(--target-number-bottom-px, var(--target-y-base, 50%)) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-vh, 9.19) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -1494,8 +1501,17 @@
             letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
             text-shadow: var(--target-suffix-extrusion-shadow);
             position: absolute;
-            left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-vw, 324.34) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-vh, 11.60) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            /* Anchored to the Number's own rendered RIGHT edge AND BOTTOM edge
+               (--target-number-right-px/--target-number-bottom-px, live px
+               measurements kept current by updateTargetAnchoredPositions()
+               below) - per direct request ("I want the 'X' to be anchored to
+               the bottom of the Target number. I also want it to be anchored
+               to the right edge of the Target number. So the x and y offset
+               of the 'X' will be relative to that"). Both offset sliders
+               still work exactly as before, just as a nudge FROM these new
+               reference points instead of from --target-x-base/-y-base. */
+            left: calc(var(--target-number-right-px, var(--target-x-base, 50%)) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-vw, 324.34) * var(--target-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--target-number-bottom-px, var(--target-y-base, 50%)) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-vh, 11.60) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -7507,6 +7523,33 @@
         const targetCountPrefix = document.getElementById('targetCountPrefix');
         const targetCountNumber = document.getElementById('targetCountNumber');
         const targetCountSuffix = document.getElementById('targetCountSuffix');
+        // Measures the Number's own rendered box and pushes its bottom/right
+        // edges (in the SAME px coordinate space #targetCountPrefix/Suffix's
+        // own `left`/`top` already resolve in, i.e. relative to their real
+        // offsetParent - NOT raw viewport coordinates, which would be wrong
+        // if that offsetParent isn't positioned at the viewport origin) as
+        // live CSS custom properties on #targetCount, so the Prefix/Suffix
+        // CSS rules above can anchor directly to them. Per direct request:
+        // Prefix's Y anchored to the Number's bottom edge; Suffix's X/Y
+        // anchored to the Number's right/bottom edges. Set on #targetCount
+        // (not :root) so they inherit down to the 3 children the same way
+        // --target-x-base/-y-base already do.
+        function updateTargetAnchoredPositions() {
+            if (!targetCountNumber || !targetCountPrefix) return;
+            const containerEl = targetCountPrefix.offsetParent;
+            if (!containerEl) return;
+            const containerRect = containerEl.getBoundingClientRect();
+            const numberRect = targetCountNumber.getBoundingClientRect();
+            targetCount.style.setProperty('--target-number-bottom-px', (numberRect.bottom - containerRect.top) + 'px');
+            targetCount.style.setProperty('--target-number-right-px', (numberRect.right - containerRect.left) + 'px');
+        }
+        // Re-measures whenever the Number's own rendered BOX changes size for
+        // any reason - text content, font-size (including viewport-driven vw
+        // scaling on resize), letter-spacing - without needing to hook every
+        // individual cause by hand. Does NOT catch the Number merely MOVING
+        // without resizing (its own X/Y Offset sliders) - those are wired
+        // directly, see their own registration below.
+        new ResizeObserver(updateTargetAnchoredPositions).observe(targetCountNumber);
         const speedDisplay = document.getElementById('speedDisplay');
         const msPerClickDisplay = document.getElementById('msPerClickDisplay');
         // Number/suffix children - see their own HTML comment. Cached here
@@ -8330,6 +8373,17 @@
             // triggers).
             if (resultText.classList.contains('result-win')) applyGameplayResultColor('win');
             else if (resultText.classList.contains('result-lose')) applyGameplayResultColor('lose');
+            // Re-measures the Number's rendered edges for Prefix/Suffix's
+            // own anchor-to-Number positioning (see updateTargetAnchoredPositions()'s
+            // own comment) - this is the one function guaranteed to run
+            // after EVERY value change (live slider ticks, batch Undo/Reset/
+            // Load restores, and viewport/breakpoint changes alike), so
+            // hooking it here covers every case that could move OR resize
+            // the Number without needing to special-case individual slider
+            // ids. Cheap (2 getBoundingClientRect() calls, no CSS
+            // reapplication) - not the O(sliders x cssVars) pattern the
+            // earlier Undo perf bug was about.
+            updateTargetAnchoredPositions();
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
