@@ -65,127 +65,52 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-17): 3 more real gaps in the checkbox system,
-all referencing DickoClicko as the correctness target: (1) unchecking
-"Independent from Desktop" on a control that defaulted independent
-(never live-edited, so its value was never captured into
-devDeviceValues) permanently lost that value - fixed by capturing the
-current value before the uncheck overwrites it with Desktop's; (2) an
-empty group (every setting/subgroup within it hidden) stayed visible as
-an empty shell on Mobile/Landscape instead of hiding itself -
-`refreshEmptyGroupVisibility()` ports DickoClicko's own
-`refreshVisibilityUI()` pattern; (3) checkbox/cascade/empty-group
-display could go stale across a tab switch - `switchDevPanelTab()` now
-re-syncs all of it for whichever tab is about to show. Ported to the
-template too. Committed and pushed (94ccb25..48b3688).
+Most recently (2026-09-19): Target Text's Prefix ("Click") Y position
+and Suffix ("x") X/Y position are now anchored to the Number's own
+rendered edges (bottom for Prefix; right+bottom for Suffix), instead of
+the old shared group anchor point - a new `updateTargetAnchoredPositions()`
+measures the Number's real `getBoundingClientRect()` live (via a
+ResizeObserver plus a hook in `applyActiveVars()`) and exposes it as 2
+new CSS custom properties the Prefix/Suffix `top`/`left` formulas now
+read. The existing X/Y Offset sliders are unchanged - they still nudge
+from whatever the reference point is, just a different one now. **Their
+current values were tuned against the OLD reference point and will
+likely need re-tuning** to restore the previous visual layout - this
+wasn't auto-compensated (not asked for, would require guessing).
+Committed and pushed (d8708d8..d767a55).
 
-Prior to that (2026-09-17): fixed a 3rd real bug in the group cascade
-checkbox - it silently skipped a nested subgroup already in a mixed
-(indeterminate) state, since its own `checked !== checked` comparison
-read a mixed subgroup's `checked:false` as "already matches, nothing to
-do". Reproduced via direct user repro (unchecking "UI TEXT" left its
-nested "High Score" subgroup, 28 rows, fully visible on Mobile). Fixed
-by also cascading whenever a subgroup is `indeterminate`, not just when
-its `.checked` differs. Ported to the template too. Committed and pushed
-(3510f06..b41d266).
+2026-09-17 (several sessions in one day, referencing DickoClicko as the
+correctness target throughout): the per-control Mobile/Landscape
+checkbox system - "Show in Mobile/Landscape" (Desktop) / "Independent
+from Desktop" (Mobile/Landscape), plus a group-level cascade checkbox -
+was made universal across all controls (previously opted into only 3
+demo controls), including the ~130 hand-authored "text settings battery"
+rows the array-driven system didn't originally cover, then had 3 more
+real bugs found and fixed via direct reports: a value-preserving default
+so existing per-device tuning was never altered by the migration; a
+mixed-state (indeterminate) nested subgroup that the cascade silently
+skipped; an unchecked group's own value getting lost instead of retained
+for next time; an empty group staying visible as a shell instead of
+auto-hiding; and checkbox/cascade display going stale across a tab
+switch. Same day, also: Delete Group/Setting, a full session-scoped
+infinite Undo system (3 real bugs found and fixed, including a stuck
+gesture-gate on native color pickers and a ~2.7s perf bug from a
+per-slider O(sliders × cssVars) reapply), a Ctrl+F-style search bar, and
+several header-button/UI polish items. Everything in this whole
+multi-day effort is committed/pushed to Clicko's own repo and ported to
+`.claude/TEMPLATE_DEV_PANEL.html` (not a git repo - "ported" there means
+the file itself is current, via the standing archive-then-edit script).
 
-Prior to that (2026-09-17): fixed the checkbox system not covering ~130
-hand-authored "text settings battery" rows (Round/High Score/Result
-Win/Lose/Target/Speed/Ms-per-Click/Try Again/etc.) - these predate and
-sit entirely outside the array-driven DESKTOP_UNIFORM_CONTROLS system
-the universal-checkbox work below actually touched, so they never had a
-checkbox at all (found via 2 direct reports: Sync/Save not persisting
-the checkbox feature, and unchecking a group not hiding all its children
-on Mobile/Landscape - reproduced live with the WIN group, where 5 of 30
-children stayed visible). Fixed generically rather than touching each of
-Clicko's ~10 separate rendering systems: `hasStaticDeviceCounterpart()`
-now also falls back to a DOM-existence check; `injectRowDeviceCheckboxes()`
-backfills both checkbox kinds onto any row lacking one; `syncStaticRowVisibility()`
-shows/hides an existing static row via a CSS class instead of DOM
-removal (these rows always exist, nothing to "recreate"). Checkbox
-counts grew 153->285 (desktop)/102->155 (mobile+landscape each).
-Committed and pushed (488e772..77cc6f6).
-
-Prior to that (2026-09-17): the per-control Mobile/Landscape checkbox
-system was applied universally to all 153 array-driven uniform controls
-(previously opted into only 3 demo controls), with a new group-level
-cascade checkbox on top and a value-preserving category-aware default
-(controls that already had a real independent per-device value default
-checked/independent; controls that were desktop-only/shared default
-unchecked/hidden - zero existing control values were altered). Building
-it surfaced and fixed a real Undo bug: restoring devVisibility/
-devIndependence state (Undo/Reset/Load) correctly reverted the
-underlying state but never re-synced an already-existing checkbox
-element's own `.checked` display - fixed with a new
-syncDeviceCheckboxesFromState() pass. Committed and pushed
-(050e808..7d48ee8), then ported to `.claude/TEMPLATE_DEV_PANEL.html`
-too (made universal-by-default there as well, per the user's own
-explicit confirmation; found and fixed 2 template-specific correctness
-issues the port surfaced - the built-in Dev-Panel-style controls and
-the Mouse Log interval slider both needed an explicit exclusion flag,
-`skipDeviceCheckbox`, since they have their own separate mechanisms
-outside the registered-control system this feature's category-aware
-default relies on) - not yet committed to the shared `.claude/` template
-(pending, separate from Clicko's own repo).
-
-Prior to that (2026-09-17): Delete Group/Setting (a header button; click,
-then click a group OR a single setting to delete it - refuses a locked
-group or anything inside one, and the 2 mandatory built-in groups) and a
-full session-scoped infinite undo system (Ctrl+Z or the header Undo button;
-in-memory, cleared the moment Save is clicked, lost on refresh) - hit 3
-real bugs across development, all since fixed and reverified with real
-(not `.click()`-simulated) mouse-event sequences. The 3rd and most
-stubborn: the Undo button's own click was self-canceling (it lived inside
-the same panel-wide pointerdown listener that pushes undo snapshots, so
-clicking Undo pushed a throwaway snapshot of the just-changed state and
-then immediately popped that same entry, restoring nothing) - survived 2
-earlier "fixed and verified" rounds specifically because every test used
-the JS `.click()` method on the Undo button, which never fires
-pointerdown/mousedown and so never exercised the buggy path; only a real
-mouse click does. Root-caused via one direct diagnostic
-(`devUndoStack.length` after a real edit + a real Undo click printed 1,
-not the correct 0) rather than more guessing. The other 2: Undo could get
-permanently stuck doing nothing the moment a native color picker was ever
-opened (the OS dialog eats the pointerup my "one push per gesture" gate
-needed to reset - now has a 2s safety timeout plus a window-focus listener
-as 2 independent recovery paths), deletion-undo was rebuilt on real
-DOM-node capture/reinsertion instead of the original value-snapshot
-approach (which could only recreate a deleted group as an empty shell and
-couldn't recreate a deleted setting at all), and — the most severe of the
-3 — Undo/Reset/Load were taking ~2.7 seconds and freezing the panel, traced
-to a real O(sliders × cssVars) bug (a shared "apply everything" function
-was being called once per slider instead of once per batch); fixed, now
-~100ms (~26x faster), also documented in the template (CLAUDE.md §12e) as
-a design lesson even though the template's own sync mechanism doesn't have
-this specific bug. Also: a Ctrl+F-style search bar
-for group/setting names (ported from DickoClicko, in both Clicko and the
-template); the template's own per-control "Show in Mobile/Landscape"/
-"Independent from Desktop" checkbox system, newly ported into Clicko's own
-uniform-control rendering pipeline (opted in on 3 real controls so far: 2
-colors + 1 slider — more can opt in the same way); locked groups' padlock
-icon now reads full-opacity at rest and dims on hover. The dev panel's
-header now has icon buttons for Text Edit Mode/Add Group/Delete/Undo/
-Collapse All (replacing the old standalone checkbox and 3 per-tab
-"+ Add Group" buttons); right-click-arming "+ Add Group" lets a plain click
-select settings/groups to fold into a new group (additive to the existing
-Shift+click); new groups insert at the top of the list (after Dev Panel/
-Debug); the group drag-handle icon is centered at any font-size/nesting
-depth. The header-button/selection/drag-handle work and the search bar were
-ported from `.claude/TEMPLATE_DEV_PANEL.html`; Delete/Undo were not (not
-explicitly requested for both this time — a natural follow-up).
-
-See `docs/CHANGELOG.txt` for full details and reasoning on all of the above
-— every item here has its own detailed dated entry there.
+See `docs/CHANGELOG.txt` for full details and reasoning on all of the
+above — every item here has its own detailed dated entry there.
 
 ## What's next
 
-Nothing specifically queued. This whole effort (universal checkbox
-system, group-level cascade checkboxes, the "text settings battery" row
-fix, and the mixed-state cascade bug fix) is fully committed and pushed
-to Clicko's own repo, and ported to `.claude/TEMPLATE_DEV_PANEL.html`
-too (that file isn't under git - `J:\CLAUDE\PROJECTS\.claude` has no
-`.git` at all - so "ported" there just means the file itself is
-up to date, via the standing archive-then-edit script).
+Likely next: re-tune Target Text's Prefix ("Click") Y Offset and Suffix
+("x") X/Y Offset sliders (Desktop/Mobile/Landscape, all 3 tabs) - their
+current values were calibrated against the OLD shared anchor point,
+before the 2026-09-19 change made them relative to the Number's own
+rendered edges instead. Not otherwise queued.
 
 One old, possibly-stale backlog item from an earlier phase, never
 implemented and not recently mentioned — surfaced here in case it's still
