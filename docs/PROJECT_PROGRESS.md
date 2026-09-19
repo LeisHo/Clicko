@@ -65,7 +65,13 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): Target Text's Prefix ("Click") Y position
+Most recently (2026-09-19): Target Text's Prefix/Number/Suffix each got
+their own independent Line Spacing slider (replacing the old single
+shared one, same "shared -> per-part" migration this group's other
+properties already went through). Committed and pushed
+(ff687a5..219a34f).
+
+Just before that (2026-09-19): Target Text's Prefix ("Click") Y position
 and Suffix ("x") X/Y position are now anchored to the Number's own
 rendered edges (bottom for Prefix; right+bottom for Suffix), instead of
 the old shared group anchor point - a new `updateTargetAnchoredPositions()`
