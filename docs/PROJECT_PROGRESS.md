@@ -59,10 +59,25 @@ whichever element is currently selected there (fixed 2026-09-20,
 this, only Inspector→Clicko was synced; a direct real-slider edit left the
 Inspector's own engine value stale until the element was reselected.
 
-One disclosed limitation remains: Target Prefix's hybrid X/Y
-representation (X independent/anchor-mode, Y relative-mode, split across 2
-logical engine registrations since `position.mode` is single-valued per
-element) — see CHANGELOG for detail.
+**Real dev-panel rows now show/hide based on each element's current
+UI-Engine `position.mode`** (fixed 2026-09-20, "big pass" — generalized
+from a Target Prefix/Suffix question to all 10 position elements, scope
+decided via a direct question-and-answer rather than guessed). Target
+Prefix's Y axis and Target Suffix (both axes) — the 2 elements with a
+real, pre-existing "tied to the Target Number" CSS relationship — gained
+a genuine, working anchor-mode counterpart alongside their existing
+relative-mode behavior (3 new cssVars/real sliders, `updateTargetAnchoredPositions()`
+now branches each element's position formula by its current mode). The
+other 8 elements (which only ever had one real mode, anchor) just get
+their existing sliders hidden when the Inspector's mode is switched to
+something with no real backing, rather than inventing 8 new "relative to
+X" relationships with no concrete use case — a scope decision the user
+made explicitly when asked. Default mode for Prefix-Y/Suffix is
+`relative`, matching their exact original behavior — this was a visual
+no-op on deploy. Prefix's X axis was untouched entirely; it was never
+mode-dependent. See CHANGELOG for the 2 real bugs found and fixed during
+verification (a pure mode-switch not always triggering a re-resolve, and
+a copy-paste key mismatch that silently no-opped Prefix's Y branch).
 
 Otherwise nothing in progress. Development here proceeds as rapid,
 conversational iteration — no formal phase plan; features and bug reports
