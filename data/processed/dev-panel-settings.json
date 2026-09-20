@@ -2491,22 +2491,6 @@
               "items": [
                 {
                   "type": "row",
-                  "key": "sliderStage2ButtonX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2ButtonY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2ButtonDiameter"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2ButtonMinDiameter"
-                },
-                {
-                  "type": "row",
                   "key": "selectButtonTextAlign"
                 },
                 {
@@ -2616,13 +2600,25 @@
                 {
                   "type": "row",
                   "key": "sliderButtonY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonDiameter"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonMinDiameter"
                 }
               ],
               "rowKeys": [
-                "sliderStage2ButtonX",
-                "sliderStage2ButtonY",
-                "sliderStage2ButtonDiameter",
-                "sliderStage2ButtonMinDiameter",
                 "selectButtonTextAlign",
                 "selectButtonTextValign",
                 "checkboxFlipButtonSvg",
@@ -2650,7 +2646,11 @@
                 "sliderButtonPressIntensity",
                 "sliderButtonReleaseMs",
                 "sliderButtonX",
-                "sliderButtonY"
+                "sliderButtonY",
+                "sliderStage2ButtonX",
+                "sliderStage2ButtonY",
+                "sliderStage2ButtonDiameter",
+                "sliderStage2ButtonMinDiameter"
               ],
               "subgroups": []
             }
@@ -2861,22 +2861,6 @@
             "items": [
               {
                 "type": "row",
-                "key": "sliderStage2ButtonX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2ButtonY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2ButtonDiameter"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2ButtonMinDiameter"
-              },
-              {
-                "type": "row",
                 "key": "selectButtonTextAlign"
               },
               {
@@ -2986,13 +2970,25 @@
               {
                 "type": "row",
                 "key": "sliderButtonY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonDiameter"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonMinDiameter"
               }
             ],
             "rowKeys": [
-              "sliderStage2ButtonX",
-              "sliderStage2ButtonY",
-              "sliderStage2ButtonDiameter",
-              "sliderStage2ButtonMinDiameter",
               "selectButtonTextAlign",
               "selectButtonTextValign",
               "checkboxFlipButtonSvg",
@@ -3020,7 +3016,11 @@
               "sliderButtonPressIntensity",
               "sliderButtonReleaseMs",
               "sliderButtonX",
-              "sliderButtonY"
+              "sliderButtonY",
+              "sliderStage2ButtonX",
+              "sliderStage2ButtonY",
+              "sliderStage2ButtonDiameter",
+              "sliderStage2ButtonMinDiameter"
             ],
             "subgroups": []
           },
@@ -3301,26 +3301,6 @@
                 },
                 {
                   "type": "row",
-                  "key": "sliderStage2HighScoreX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2HighScoreY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2HighScoreFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2HighScoreTextAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2HighScoreTextValign"
-                },
-                {
-                  "type": "row",
                   "key": "sliderHighScoreRotate"
                 },
                 {
@@ -3382,15 +3362,30 @@
                 {
                   "type": "row",
                   "key": "sliderHighScoreY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2HighScoreX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2HighScoreY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2HighScoreFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2HighScoreTextAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2HighScoreTextValign"
                 }
               ],
               "rowKeys": [
                 "checkboxHighScoreExtrusionScaleWithBrowser",
-                "sliderStage2HighScoreX",
-                "sliderStage2HighScoreY",
-                "sliderStage2HighScoreFontSize",
-                "selectStage2HighScoreTextAlign",
-                "selectStage2HighScoreTextValign",
                 "sliderHighScoreRotate",
                 "sliderHighScoreFlashDelay",
                 "checkboxHighScoreScaleWithBrowser",
@@ -3406,7 +3401,12 @@
                 "sliderHighScoreLetterSpacing",
                 "sliderHighScoreLineHeight",
                 "sliderHighScoreX",
-                "sliderHighScoreY"
+                "sliderHighScoreY",
+                "sliderStage2HighScoreX",
+                "sliderStage2HighScoreY",
+                "sliderStage2HighScoreFontSize",
+                "selectStage2HighScoreTextAlign",
+                "selectStage2HighScoreTextValign"
               ],
               "subgroups": []
             }
@@ -3423,26 +3423,6 @@
                 {
                   "type": "row",
                   "key": "checkboxTryAgainExtrusionScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2StartX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2StartY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2StartFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2StartAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2StartValign"
                 },
                 {
                   "type": "row",
@@ -3495,16 +3475,31 @@
                 {
                   "type": "row",
                   "key": "sliderTextY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2StartX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2StartY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2StartFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2StartAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2StartValign"
                 }
               ],
               "rowKeys": [
                 "checkboxRoundExtrusionScaleWithBrowser",
                 "checkboxTryAgainExtrusionScaleWithBrowser",
-                "sliderStage2StartX",
-                "sliderStage2StartY",
-                "sliderStage2StartFontSize",
-                "selectStage2StartAlign",
-                "selectStage2StartValign",
                 "checkboxTextScaleWithBrowser",
                 "sliderTextFontSizeVw",
                 "sliderTextFontSize",
@@ -3517,7 +3512,12 @@
                 "colorRoundExtrusionBorder",
                 "colorRoundOverallBorder",
                 "sliderTextX",
-                "sliderTextY"
+                "sliderTextY",
+                "sliderStage2StartX",
+                "sliderStage2StartY",
+                "sliderStage2StartFontSize",
+                "selectStage2StartAlign",
+                "selectStage2StartValign"
               ],
               "subgroups": []
             }
@@ -3530,26 +3530,6 @@
                 {
                   "type": "row",
                   "key": "checkboxRoundDockExtrusionScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundTextX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundTextY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundTextFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2RoundTextAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2RoundTextValign"
                 },
                 {
                   "type": "row",
@@ -3606,15 +3586,30 @@
                 {
                   "type": "row",
                   "key": "selectRoundTextValign"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundTextX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundTextY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundTextFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2RoundTextAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2RoundTextValign"
                 }
               ],
               "rowKeys": [
                 "checkboxRoundDockExtrusionScaleWithBrowser",
-                "sliderStage2RoundTextX",
-                "sliderStage2RoundTextY",
-                "sliderStage2RoundTextFontSize",
-                "selectStage2RoundTextAlign",
-                "selectStage2RoundTextValign",
                 "sliderRoundNumberXOffset",
                 "checkboxRoundScaleWithBrowser",
                 "sliderRoundFontSizeVw",
@@ -3628,7 +3623,12 @@
                 "sliderRoundDockX",
                 "sliderRoundDockY",
                 "selectRoundTextAlign",
-                "selectRoundTextValign"
+                "selectRoundTextValign",
+                "sliderStage2RoundTextX",
+                "sliderStage2RoundTextY",
+                "sliderStage2RoundTextFontSize",
+                "selectStage2RoundTextAlign",
+                "selectStage2RoundTextValign"
               ],
               "subgroups": []
             }
@@ -3649,42 +3649,6 @@
                 {
                   "type": "row",
                   "key": "checkboxTargetSuffixExtrusionScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetNumberX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetNumberY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetNumberFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetSuffixX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetSuffixY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetSuffixFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetPrefixX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetPrefixY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2TargetPrefixFontSize"
                 },
                 {
                   "type": "row",
@@ -3866,12 +3830,55 @@
                     ],
                     "subgroups": []
                   }
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetNumberX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetNumberY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetNumberFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetSuffixX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetSuffixY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetSuffixFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetPrefixX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetPrefixY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetPrefixFontSize"
                 }
               ],
               "rowKeys": [
                 "checkboxTargetPrefixExtrusionScaleWithBrowser",
                 "checkboxTargetNumberExtrusionScaleWithBrowser",
                 "checkboxTargetSuffixExtrusionScaleWithBrowser",
+                "checkboxTargetScaleWithBrowser",
+                "checkboxHideTargetPrefix",
+                "checkboxHideTargetSuffix",
+                "colorTargetExtrusionBorder",
+                "colorTargetOverallBorder",
+                "selectTargetTextValign",
+                "selectTargetTextAlign",
                 "sliderStage2TargetNumberX",
                 "sliderStage2TargetNumberY",
                 "sliderStage2TargetNumberFontSize",
@@ -3880,14 +3887,7 @@
                 "sliderStage2TargetSuffixFontSize",
                 "sliderStage2TargetPrefixX",
                 "sliderStage2TargetPrefixY",
-                "sliderStage2TargetPrefixFontSize",
-                "checkboxTargetScaleWithBrowser",
-                "checkboxHideTargetPrefix",
-                "checkboxHideTargetSuffix",
-                "colorTargetExtrusionBorder",
-                "colorTargetOverallBorder",
-                "selectTargetTextValign",
-                "selectTargetTextAlign"
+                "sliderStage2TargetPrefixFontSize"
               ],
               "subgroups": [
                 {
@@ -4048,26 +4048,6 @@
                 },
                 {
                   "type": "row",
-                  "key": "sliderStage2SpeedX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2SpeedY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2SpeedFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2SpeedAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2SpeedValign"
-                },
-                {
-                  "type": "row",
                   "key": "sliderSpeedNumberXOffset"
                 },
                 {
@@ -4121,15 +4101,30 @@
                 {
                   "type": "row",
                   "key": "selectSpeedTextValign"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2SpeedX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2SpeedY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2SpeedFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2SpeedAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2SpeedValign"
                 }
               ],
               "rowKeys": [
                 "checkboxSpeedExtrusionScaleWithBrowser",
-                "sliderStage2SpeedX",
-                "sliderStage2SpeedY",
-                "sliderStage2SpeedFontSize",
-                "selectStage2SpeedAlign",
-                "selectStage2SpeedValign",
                 "sliderSpeedNumberXOffset",
                 "checkboxSpeedScaleWithBrowser",
                 "sliderSpeedFontSizeVw",
@@ -4143,7 +4138,12 @@
                 "sliderSpeedX",
                 "sliderSpeedY",
                 "selectSpeedTextAlign",
-                "selectSpeedTextValign"
+                "selectSpeedTextValign",
+                "sliderStage2SpeedX",
+                "sliderStage2SpeedY",
+                "sliderStage2SpeedFontSize",
+                "selectStage2SpeedAlign",
+                "selectStage2SpeedValign"
               ],
               "subgroups": []
             }
@@ -4156,26 +4156,6 @@
                 {
                   "type": "row",
                   "key": "checkboxMsPerClickExtrusionScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2MsPerClickX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2MsPerClickY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2MsPerClickFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2MsPerClickAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectStage2MsPerClickValign"
                 },
                 {
                   "type": "row",
@@ -4236,15 +4216,30 @@
                 {
                   "type": "row",
                   "key": "selectMsPerClickTextValign"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2MsPerClickX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2MsPerClickY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2MsPerClickFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2MsPerClickAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2MsPerClickValign"
                 }
               ],
               "rowKeys": [
                 "checkboxMsPerClickExtrusionScaleWithBrowser",
-                "sliderStage2MsPerClickX",
-                "sliderStage2MsPerClickY",
-                "sliderStage2MsPerClickFontSize",
-                "selectStage2MsPerClickAlign",
-                "selectStage2MsPerClickValign",
                 "sliderMsPerClickLine2Gap",
                 "sliderMsPerClickNumberXOffset",
                 "checkboxMsPerClickScaleWithBrowser",
@@ -4259,7 +4254,12 @@
                 "sliderMsPerClickX",
                 "sliderMsPerClickY",
                 "selectMsPerClickTextAlign",
-                "selectMsPerClickTextValign"
+                "selectMsPerClickTextValign",
+                "sliderStage2MsPerClickX",
+                "sliderStage2MsPerClickY",
+                "sliderStage2MsPerClickFontSize",
+                "selectStage2MsPerClickAlign",
+                "selectStage2MsPerClickValign"
               ],
               "subgroups": []
             }
@@ -4269,30 +4269,6 @@
             "section": {
               "key": "desktop:Round Breakdown",
               "items": [
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownTitle"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownData"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownWidth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownHeight"
-                },
                 {
                   "type": "row",
                   "key": "sliderRoundBreakdownPanelOpacity"
@@ -4491,15 +4467,33 @@
                     ],
                     "subgroups": []
                   }
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownTitle"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownData"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownWidth"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownHeight"
                 }
               ],
               "rowKeys": [
-                "sliderStage2RoundBreakdownTitle",
-                "sliderStage2RoundBreakdownData",
-                "sliderStage2RoundBreakdownX",
-                "sliderStage2RoundBreakdownY",
-                "sliderStage2RoundBreakdownWidth",
-                "sliderStage2RoundBreakdownHeight",
                 "sliderRoundBreakdownPanelOpacity",
                 "checkboxRoundBreakdownEnabled",
                 "checkboxRoundBreakdownScaleWithBrowser",
@@ -4514,7 +4508,13 @@
                 "checkboxRoundBreakdownRowLinesEnabled",
                 "checkboxRoundBreakdownResizerEnabled",
                 "selectRoundBreakdownFont",
-                "colorRoundBreakdownPanel"
+                "colorRoundBreakdownPanel",
+                "sliderStage2RoundBreakdownTitle",
+                "sliderStage2RoundBreakdownData",
+                "sliderStage2RoundBreakdownX",
+                "sliderStage2RoundBreakdownY",
+                "sliderStage2RoundBreakdownWidth",
+                "sliderStage2RoundBreakdownHeight"
               ],
               "subgroups": [
                 {
@@ -4725,26 +4725,6 @@
               },
               {
                 "type": "row",
-                "key": "sliderStage2HighScoreX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2HighScoreY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2HighScoreFontSize"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2HighScoreTextAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2HighScoreTextValign"
-              },
-              {
-                "type": "row",
                 "key": "sliderHighScoreRotate"
               },
               {
@@ -4806,15 +4786,30 @@
               {
                 "type": "row",
                 "key": "sliderHighScoreY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2HighScoreX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2HighScoreY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2HighScoreFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2HighScoreTextAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2HighScoreTextValign"
               }
             ],
             "rowKeys": [
               "checkboxHighScoreExtrusionScaleWithBrowser",
-              "sliderStage2HighScoreX",
-              "sliderStage2HighScoreY",
-              "sliderStage2HighScoreFontSize",
-              "selectStage2HighScoreTextAlign",
-              "selectStage2HighScoreTextValign",
               "sliderHighScoreRotate",
               "sliderHighScoreFlashDelay",
               "checkboxHighScoreScaleWithBrowser",
@@ -4830,7 +4825,12 @@
               "sliderHighScoreLetterSpacing",
               "sliderHighScoreLineHeight",
               "sliderHighScoreX",
-              "sliderHighScoreY"
+              "sliderHighScoreY",
+              "sliderStage2HighScoreX",
+              "sliderStage2HighScoreY",
+              "sliderStage2HighScoreFontSize",
+              "selectStage2HighScoreTextAlign",
+              "selectStage2HighScoreTextValign"
             ],
             "subgroups": []
           },
@@ -4844,26 +4844,6 @@
               {
                 "type": "row",
                 "key": "checkboxTryAgainExtrusionScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2StartX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2StartY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2StartFontSize"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2StartAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2StartValign"
               },
               {
                 "type": "row",
@@ -4916,16 +4896,31 @@
               {
                 "type": "row",
                 "key": "sliderTextY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2StartX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2StartY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2StartFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2StartAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2StartValign"
               }
             ],
             "rowKeys": [
               "checkboxRoundExtrusionScaleWithBrowser",
               "checkboxTryAgainExtrusionScaleWithBrowser",
-              "sliderStage2StartX",
-              "sliderStage2StartY",
-              "sliderStage2StartFontSize",
-              "selectStage2StartAlign",
-              "selectStage2StartValign",
               "checkboxTextScaleWithBrowser",
               "sliderTextFontSizeVw",
               "sliderTextFontSize",
@@ -4938,7 +4933,12 @@
               "colorRoundExtrusionBorder",
               "colorRoundOverallBorder",
               "sliderTextX",
-              "sliderTextY"
+              "sliderTextY",
+              "sliderStage2StartX",
+              "sliderStage2StartY",
+              "sliderStage2StartFontSize",
+              "selectStage2StartAlign",
+              "selectStage2StartValign"
             ],
             "subgroups": []
           },
@@ -4948,26 +4948,6 @@
               {
                 "type": "row",
                 "key": "checkboxRoundDockExtrusionScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundTextX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundTextY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundTextFontSize"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2RoundTextAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2RoundTextValign"
               },
               {
                 "type": "row",
@@ -5024,15 +5004,30 @@
               {
                 "type": "row",
                 "key": "selectRoundTextValign"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundTextX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundTextY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundTextFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2RoundTextAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2RoundTextValign"
               }
             ],
             "rowKeys": [
               "checkboxRoundDockExtrusionScaleWithBrowser",
-              "sliderStage2RoundTextX",
-              "sliderStage2RoundTextY",
-              "sliderStage2RoundTextFontSize",
-              "selectStage2RoundTextAlign",
-              "selectStage2RoundTextValign",
               "sliderRoundNumberXOffset",
               "checkboxRoundScaleWithBrowser",
               "sliderRoundFontSizeVw",
@@ -5046,7 +5041,12 @@
               "sliderRoundDockX",
               "sliderRoundDockY",
               "selectRoundTextAlign",
-              "selectRoundTextValign"
+              "selectRoundTextValign",
+              "sliderStage2RoundTextX",
+              "sliderStage2RoundTextY",
+              "sliderStage2RoundTextFontSize",
+              "selectStage2RoundTextAlign",
+              "selectStage2RoundTextValign"
             ],
             "subgroups": []
           },
@@ -5064,42 +5064,6 @@
               {
                 "type": "row",
                 "key": "checkboxTargetSuffixExtrusionScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetNumberX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetNumberY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetNumberFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetSuffixX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetSuffixY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetSuffixFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetPrefixX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetPrefixY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2TargetPrefixFontSize"
               },
               {
                 "type": "row",
@@ -5281,12 +5245,55 @@
                   ],
                   "subgroups": []
                 }
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetNumberX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetNumberY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetNumberFontSize"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetSuffixX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetSuffixY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetSuffixFontSize"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetPrefixX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetPrefixY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetPrefixFontSize"
               }
             ],
             "rowKeys": [
               "checkboxTargetPrefixExtrusionScaleWithBrowser",
               "checkboxTargetNumberExtrusionScaleWithBrowser",
               "checkboxTargetSuffixExtrusionScaleWithBrowser",
+              "checkboxTargetScaleWithBrowser",
+              "checkboxHideTargetPrefix",
+              "checkboxHideTargetSuffix",
+              "colorTargetExtrusionBorder",
+              "colorTargetOverallBorder",
+              "selectTargetTextValign",
+              "selectTargetTextAlign",
               "sliderStage2TargetNumberX",
               "sliderStage2TargetNumberY",
               "sliderStage2TargetNumberFontSize",
@@ -5295,14 +5302,7 @@
               "sliderStage2TargetSuffixFontSize",
               "sliderStage2TargetPrefixX",
               "sliderStage2TargetPrefixY",
-              "sliderStage2TargetPrefixFontSize",
-              "checkboxTargetScaleWithBrowser",
-              "checkboxHideTargetPrefix",
-              "checkboxHideTargetSuffix",
-              "colorTargetExtrusionBorder",
-              "colorTargetOverallBorder",
-              "selectTargetTextValign",
-              "selectTargetTextAlign"
+              "sliderStage2TargetPrefixFontSize"
             ],
             "subgroups": [
               {
@@ -5460,26 +5460,6 @@
               },
               {
                 "type": "row",
-                "key": "sliderStage2SpeedX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2SpeedY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2SpeedFontSize"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2SpeedAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2SpeedValign"
-              },
-              {
-                "type": "row",
                 "key": "sliderSpeedNumberXOffset"
               },
               {
@@ -5533,15 +5513,30 @@
               {
                 "type": "row",
                 "key": "selectSpeedTextValign"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2SpeedX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2SpeedY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2SpeedFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2SpeedAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2SpeedValign"
               }
             ],
             "rowKeys": [
               "checkboxSpeedExtrusionScaleWithBrowser",
-              "sliderStage2SpeedX",
-              "sliderStage2SpeedY",
-              "sliderStage2SpeedFontSize",
-              "selectStage2SpeedAlign",
-              "selectStage2SpeedValign",
               "sliderSpeedNumberXOffset",
               "checkboxSpeedScaleWithBrowser",
               "sliderSpeedFontSizeVw",
@@ -5555,7 +5550,12 @@
               "sliderSpeedX",
               "sliderSpeedY",
               "selectSpeedTextAlign",
-              "selectSpeedTextValign"
+              "selectSpeedTextValign",
+              "sliderStage2SpeedX",
+              "sliderStage2SpeedY",
+              "sliderStage2SpeedFontSize",
+              "selectStage2SpeedAlign",
+              "selectStage2SpeedValign"
             ],
             "subgroups": []
           },
@@ -5565,26 +5565,6 @@
               {
                 "type": "row",
                 "key": "checkboxMsPerClickExtrusionScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2MsPerClickX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2MsPerClickY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2MsPerClickFontSize"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2MsPerClickAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectStage2MsPerClickValign"
               },
               {
                 "type": "row",
@@ -5645,15 +5625,30 @@
               {
                 "type": "row",
                 "key": "selectMsPerClickTextValign"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2MsPerClickX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2MsPerClickY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2MsPerClickFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2MsPerClickAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2MsPerClickValign"
               }
             ],
             "rowKeys": [
               "checkboxMsPerClickExtrusionScaleWithBrowser",
-              "sliderStage2MsPerClickX",
-              "sliderStage2MsPerClickY",
-              "sliderStage2MsPerClickFontSize",
-              "selectStage2MsPerClickAlign",
-              "selectStage2MsPerClickValign",
               "sliderMsPerClickLine2Gap",
               "sliderMsPerClickNumberXOffset",
               "checkboxMsPerClickScaleWithBrowser",
@@ -5668,37 +5663,18 @@
               "sliderMsPerClickX",
               "sliderMsPerClickY",
               "selectMsPerClickTextAlign",
-              "selectMsPerClickTextValign"
+              "selectMsPerClickTextValign",
+              "sliderStage2MsPerClickX",
+              "sliderStage2MsPerClickY",
+              "sliderStage2MsPerClickFontSize",
+              "selectStage2MsPerClickAlign",
+              "selectStage2MsPerClickValign"
             ],
             "subgroups": []
           },
           {
             "key": "desktop:Round Breakdown",
             "items": [
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownTitle"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownData"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownWidth"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownHeight"
-              },
               {
                 "type": "row",
                 "key": "sliderRoundBreakdownPanelOpacity"
@@ -5897,15 +5873,33 @@
                   ],
                   "subgroups": []
                 }
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownTitle"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownData"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownWidth"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownHeight"
               }
             ],
             "rowKeys": [
-              "sliderStage2RoundBreakdownTitle",
-              "sliderStage2RoundBreakdownData",
-              "sliderStage2RoundBreakdownX",
-              "sliderStage2RoundBreakdownY",
-              "sliderStage2RoundBreakdownWidth",
-              "sliderStage2RoundBreakdownHeight",
               "sliderRoundBreakdownPanelOpacity",
               "checkboxRoundBreakdownEnabled",
               "checkboxRoundBreakdownScaleWithBrowser",
@@ -5920,7 +5914,13 @@
               "checkboxRoundBreakdownRowLinesEnabled",
               "checkboxRoundBreakdownResizerEnabled",
               "selectRoundBreakdownFont",
-              "colorRoundBreakdownPanel"
+              "colorRoundBreakdownPanel",
+              "sliderStage2RoundBreakdownTitle",
+              "sliderStage2RoundBreakdownData",
+              "sliderStage2RoundBreakdownX",
+              "sliderStage2RoundBreakdownY",
+              "sliderStage2RoundBreakdownWidth",
+              "sliderStage2RoundBreakdownHeight"
             ],
             "subgroups": [
               {
