@@ -16,6 +16,23 @@ from there.
 
 ## Currently working on
 
+**A critical, long-standing bug was found and fixed 2026-09-20: real
+(non-dev) player settings never actually restored on page load.**
+`applyLoadedSettings()` had 19 unguarded `document.getElementById(id)
+.value=`/`.checked=` assignments against real dev-panel-only elements
+(starting with the color pickers) — the first one always threw for any
+non-dev visitor, silently aborting the rest of the function every single
+time. This meant color, all text overrides, click burst customization,
+and more had never actually been restoring for a real player this whole
+time — not a regression from any of this session's own recent work, and
+not mobile-specific (mobile is just how this got noticed — a direct
+report: "I don't see anything when opened on vercel in mobile" → "the
+base color changed" → "I think my color settings got lost"). All 19 are
+now null-guarded while still applying the real underlying effect
+unconditionally; verified live on a genuinely fresh, non-dev production
+page load (zero console errors, correct color restored) on both desktop
+and mobile viewport. See CHANGELOG for the full root-cause account.
+
 The UI-Engine adoption trial (Stage 1/2 evaluation) is **fully committed
 and pushed to `main`**: a `lib/ui-engine/` folder (all 9 real engine
 files, vendored/never modified) plus a large additive block at the end of
