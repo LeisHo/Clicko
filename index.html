@@ -20132,6 +20132,18 @@
                     const btn = e.target.closest('.ui-inspector-button');
                     if (btn && btn.textContent.trim() === 'Save' && typeof saveSettings === 'function') {
                         saveSettings();
+                        // Visible confirmation on THIS button directly (2026-09-20)
+                        // - flashDevHeaderSyncStatus() above already flashes the
+                        // real dev panel's own header Sync button, but that's
+                        // invisible if the regular panel is collapsed/closed
+                        // while only the Inspector is open - which made a
+                        // successful save look like nothing happened (confirmed
+                        // via live reload test: the save/persist/load-back cycle
+                        // was actually working correctly the whole time).
+                        const original = btn.textContent;
+                        btn.textContent = 'Saved!';
+                        btn.disabled = true;
+                        setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1200);
                     }
                 }, true);
 
@@ -20493,6 +20505,72 @@
         function gapY(v) { return (v && typeof v === 'object') ? parseFloatSafe(v.y) : undefined; }
         function identity(v) { return v; }
 
+        // ------------------------------------------------------------
+        // REGULAR-DEV-PANEL REFLECTION (2026-09-20) - per direct follow-up:
+        // "when i change the anchor type or whatever in the ui inspector, i
+        // want the sliders in the regular dev panel to reflect that
+        // change. so the object itself wont move, but the x offset and y
+        // offset will". Investigated live first: the object genuinely
+        // CANNOT move from an Inspector-only anchor change today - proven
+        // by direct getBoundingClientRect() checks before/after flipping
+        // stage2ButtonX's (a real positional element, unlike the
+        // align/valign-repurposed anchor on the STANDARD_ELEMENTS) anchor
+        // from center to left, with offsetX and the button's own rect.left
+        // both provably unchanged (STAGE2_SYNC_MAP has no anchorH/anchorV
+        // entry for Button at all, so an anchor-only edit is a pure no-op
+        // on Clicko's real rendering). The REAL gap, also confirmed live
+        // on High Score: stage2SyncEngineToClicko() below already wrote
+        // the new value into cssVars/applyActiveVars() correctly, but
+        // never touched the matching REAL dev-panel control's own DOM
+        // value - e.g. changing High Score's anchor to 'left' correctly
+        // flipped cssVars['--high-score-text-align'] to 'left' (and the
+        // rendered CSS with it), while
+        // document.getElementById('selectHighScoreTextAlign').value
+        // stayed stuck on the stale 'center' it had at page load. This
+        // block closes that gap generically for every STAGE2_SYNC_MAP
+        // entry (offsets, font sizes, round-breakdown box, align/valign
+        // selects) by reusing CSS_VAR_SLIDER_MAP (defined much earlier,
+        // ~line 14052, as the real dev panel's own desktop slider-id ->
+        // cssVar table) inverted once here, plus a small explicit table
+        // for the 10 align/valign <select> controls that
+        // CSS_VAR_SLIDER_MAP doesn't cover (select controls, not
+        // sliders). Confirmed CSS_VAR_SLIDER_MAP is visible from this
+        // module scope the same way cssVars/applyActiveVars already are -
+        // top-level const/let/function declarations in a classic <script>
+        // share the realm's global environment record with <script
+        // type="module"> blocks in the same document.
+        // ------------------------------------------------------------
+        const CSS_VAR_TO_REAL_SLIDER = {};
+        if (typeof CSS_VAR_SLIDER_MAP === 'object') {
+            Object.keys(CSS_VAR_SLIDER_MAP).forEach((sliderId) => {
+                CSS_VAR_TO_REAL_SLIDER[CSS_VAR_SLIDER_MAP[sliderId]] = sliderId;
+            });
+        }
+        const CSS_VAR_TO_REAL_ALIGN_SELECT = {
+            '--high-score-text-align': 'selectHighScoreTextAlign', '--high-score-text-valign': 'selectHighScoreTextValign',
+            '--start-text-align': 'selectStartTextAlign', '--start-text-valign': 'selectStartTextValign',
+            '--round-text-align': 'selectRoundTextAlign', '--round-text-valign': 'selectRoundTextValign',
+            '--speed-text-align': 'selectSpeedTextAlign', '--speed-text-valign': 'selectSpeedTextValign',
+            '--ms-per-click-text-align': 'selectMsPerClickTextAlign', '--ms-per-click-text-valign': 'selectMsPerClickTextValign',
+        };
+        function stage2ReflectToRealControl(cssVar, value) {
+            const sliderId = CSS_VAR_TO_REAL_SLIDER[cssVar];
+            if (sliderId) {
+                const el = document.getElementById(sliderId);
+                if (el) {
+                    el.value = value;
+                    const valueEl = document.getElementById(sliderId.replace(/^slider/, 'value'));
+                    if (valueEl) valueEl.textContent = value;
+                }
+                return;
+            }
+            const selectId = CSS_VAR_TO_REAL_ALIGN_SELECT[cssVar];
+            if (selectId) {
+                const el = document.getElementById(selectId);
+                if (el) el.value = value;
+            }
+        }
+
         const STAGE2_STANDARD_ELEMENTS = [
             { key: 'HighScore', xVar: '--high-score-x-offset-vw', yVar: '--high-score-y-offset-vh', alignVar: '--high-score-text-align', valignVar: '--high-score-text-valign', fontVwVar: '--high-score-font-size-vw' },
             { key: 'Start', xVar: '--text-x-offset-vw', yVar: '--text-y-offset-vh', alignVar: '--start-text-align', valignVar: '--start-text-valign', fontVwVar: '--text-font-size-vw' },
@@ -20653,6 +20731,7 @@
                 if (extracted === undefined || (typeof extracted === 'number' && Number.isNaN(extracted))) continue;
                 if (cssVars[entry.cssVar] !== extracted) {
                     cssVars[entry.cssVar] = extracted;
+                    stage2ReflectToRealControl(entry.cssVar, extracted);
                     anyChanged = true;
                 }
             }
