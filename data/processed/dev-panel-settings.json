@@ -132,24 +132,24 @@
     "--target-prefix-font-size-px": 133,
     "--target-prefix-font-size-vw": 5.33,
     "--target-prefix-x-offset-vw": 59.28,
-    "--target-prefix-y-offset-vh": -4.79,
+    "--target-prefix-y-offset-vh": 50.13,
     "--target-number-font-size-px": 386,
     "--target-number-font-size-vw": 15.5,
     "--target-number-x-offset-vw": 49.4,
-    "--target-number-y-offset-vh": 62.28,
+    "--target-number-y-offset-vh": 59.28,
     "--target-suffix-font-size-px": 230,
     "--target-suffix-font-size-vw": 5.82,
     "--target-suffix-x-offset-vw": -23.1,
-    "--target-suffix-y-offset-vh": -123.78,
+    "--target-suffix-y-offset-vh": -50.56,
     "--target-scale-with-browser": 1,
     "--target-prefix-hidden": 0,
     "--target-suffix-hidden": 0,
     "--target-prefix-letter-spacing-px": 1.5,
     "--target-number-letter-spacing-px": -2,
     "--target-suffix-letter-spacing-px": -7,
-    "--target-prefix-line-height": 1.2,
-    "--target-number-line-height": 0.95,
-    "--target-suffix-line-height": 1.2,
+    "--target-prefix-line-height": 0.5,
+    "--target-number-line-height": 0.5,
+    "--target-suffix-line-height": 0.5,
     "--target-text-align": "left",
     "--target-text-valign": "top",
     "--target-text-align-edge-lock": 1,
@@ -205,13 +205,22 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 472,
-    "--dev-panel-left-px": 453,
-    "--dev-panel-top-px": 133,
-    "--dev-panel-height-px": 688,
+    "--dev-panel-left-px": 319,
+    "--dev-panel-top-px": 52.171875,
+    "--dev-panel-height-px": 669,
     "--round-breakdown-width-px": 320,
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
     "--round-breakdown-top-px": 54,
+    "--round-breakdown-enabled": 1,
+    "--round-breakdown-resizer-enabled": 1,
+    "--round-breakdown-font-family": "monospace",
+    "--round-breakdown-outline-enabled": 0,
+    "--round-breakdown-outline-thickness-px": 2,
+    "--round-breakdown-title-font-size-px": 16,
+    "--round-breakdown-title-bold": 1,
+    "--round-breakdown-data-font-size-px": 15,
+    "--round-breakdown-data-bold": 0,
     "--target-line-height": 1.2,
     "--try-again-question-mark-mode": "flash",
     "--try-again-rotate-speed-ms": 5000,
@@ -235,7 +244,11 @@
   },
   "colorVars": {
     "--button-color": "#ff3333",
-    "--bg-color": "#ffffff"
+    "--bg-color": "#ffffff",
+    "--round-breakdown-outline-color": "#000000",
+    "--round-breakdown-panel-color": "#ffffff",
+    "--round-breakdown-title-color": "#333333",
+    "--round-breakdown-data-color": "#333333"
   },
   "mobileCssVars": {
     "--button-diameter-vw": 99.5,
@@ -409,6 +422,9 @@
     "--round-breakdown-height-px": 320,
     "--round-breakdown-left-px": 1240,
     "--round-breakdown-top-px": 190,
+    "--round-breakdown-outline-thickness-px": 2,
+    "--round-breakdown-title-font-size-px": 14,
+    "--round-breakdown-data-font-size-px": 13,
     "--target-line-height": 0.5,
     "--target-font-size-px": 238.44,
     "--target-font-size-vw": 47.23,
@@ -634,6 +650,15 @@
     "--round-breakdown-height-px": 171,
     "--round-breakdown-left-px": 1562,
     "--round-breakdown-top-px": 54,
+    "--round-breakdown-enabled": 1,
+    "--round-breakdown-resizer-enabled": 1,
+    "--round-breakdown-font-family": "monospace",
+    "--round-breakdown-outline-enabled": 0,
+    "--round-breakdown-outline-thickness-px": 2,
+    "--round-breakdown-title-font-size-px": 16,
+    "--round-breakdown-title-bold": 1,
+    "--round-breakdown-data-font-size-px": 15,
+    "--round-breakdown-data-bold": 0,
     "--target-line-height": 1.2,
     "--try-again-question-mark-mode": "flash",
     "--try-again-rotate-speed-ms": 5000,
@@ -657,7 +682,11 @@
   },
   "landscapeColorVars": {
     "--button-color": "#ff3333",
-    "--bg-color": "#ffffff"
+    "--bg-color": "#ffffff",
+    "--round-breakdown-outline-color": "#000000",
+    "--round-breakdown-panel-color": "#ffffff",
+    "--round-breakdown-title-color": "#333333",
+    "--round-breakdown-data-color": "#333333"
   },
   "extrusionVars": {
     "font": "\"Micro 5\", monospace",
@@ -1182,6 +1211,7 @@
   },
   "sectionCollapseState": {
     "mobile:Saved Dev Settings": true,
+    "desktop:Round Breakdown": true,
     "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
@@ -1215,6 +1245,7 @@
     "desktop:Game Mechanics": true,
     "desktop:New Group (17)": true,
     "desktop:Mouse Log": false,
+    "mobile:Round Breakdown": false,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -1245,6 +1276,7 @@
     "mobile:New Group": true,
     "mobile:Rotation Animation": true,
     "mobile:New Group (17)": true,
+    "landscape:Round Breakdown": false,
     "landscape:Dev Panel": true,
     "landscape:New Group (13)": true,
     "landscape:New Group (12)": true,
@@ -1276,6 +1308,29 @@
   },
   "sectionOrder": {
     "desktopTabContent": [
+      {
+        "key": "desktop:Round Breakdown",
+        "rowKeys": [
+          "checkboxRoundBreakdownEnabled",
+          "sliderRoundBreakdownX",
+          "sliderRoundBreakdownY",
+          "sliderRoundBreakdownWidth",
+          "sliderRoundBreakdownHeight",
+          "checkboxRoundBreakdownResizerEnabled",
+          "selectRoundBreakdownFont",
+          "checkboxRoundBreakdownOutlineEnabled",
+          "sliderRoundBreakdownOutlineThickness",
+          "colorRoundBreakdownOutline",
+          "colorRoundBreakdownPanel",
+          "sliderRoundBreakdownTitleFontSize",
+          "checkboxRoundBreakdownTitleBold",
+          "colorRoundBreakdownTitle",
+          "sliderRoundBreakdownDataFontSize",
+          "checkboxRoundBreakdownDataBold",
+          "colorRoundBreakdownData"
+        ],
+        "subgroups": []
+      },
       {
         "key": "desktop:Dev Panel",
         "rowKeys": [],
@@ -1775,6 +1830,19 @@
     ],
     "mobileTabContent": [
       {
+        "key": "mobile:Round Breakdown",
+        "rowKeys": [
+          "sliderMobileRoundBreakdownX",
+          "sliderMobileRoundBreakdownY",
+          "sliderMobileRoundBreakdownWidth",
+          "sliderMobileRoundBreakdownHeight",
+          "sliderMobileRoundBreakdownOutlineThickness",
+          "sliderMobileRoundBreakdownTitleFontSize",
+          "sliderMobileRoundBreakdownDataFontSize"
+        ],
+        "subgroups": []
+      },
+      {
         "key": "mobile:Dev Panel",
         "rowKeys": [],
         "subgroups": [
@@ -2108,6 +2176,19 @@
       }
     ],
     "landscapeTabContent": [
+      {
+        "key": "landscape:Round Breakdown",
+        "rowKeys": [
+          "sliderLandscapeRoundBreakdownX",
+          "sliderLandscapeRoundBreakdownY",
+          "sliderLandscapeRoundBreakdownWidth",
+          "sliderLandscapeRoundBreakdownHeight",
+          "sliderLandscapeRoundBreakdownOutlineThickness",
+          "sliderLandscapeRoundBreakdownTitleFontSize",
+          "sliderLandscapeRoundBreakdownDataFontSize"
+        ],
+        "subgroups": []
+      },
       {
         "key": "landscape:Dev Panel",
         "rowKeys": [],
