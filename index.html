@@ -9987,24 +9987,55 @@
                     // every reload silently reset it to the hardcoded
                     // #eb2027 regardless of what was last picked, since
                     // nothing ever saved/restored the input's own .value.
+                    // CRITICAL FIX (2026-09-20, direct report: "I don't see
+                    // anything when opened on vercel in mobile"/"the base
+                    // color changed"/"I think my color settings got lost on
+                    // mobile"). Root cause: every one of these 4 lines (and
+                    // ~15 more further down this same function, all fixed
+                    // in this same pass) called document.getElementById(id)
+                    // and immediately chained .value=/.checked= onto it,
+                    // completely unguarded - colorBase/colorButton/etc. are
+                    // real dev-panel-only elements that NEVER exist for a
+                    // non-dev visitor (ensureDevPanelBuilt() never runs).
+                    // For a real player, THIS was the very first one hit,
+                    // throwing immediately and aborting the entire rest of
+                    // applyLoadedSettings() (caught by its own outer
+                    // try/catch, logged as "Failed to parse saved
+                    // settings") - meaning color, text overrides, click
+                    // burst visuals, and everything else this huge function
+                    // restores had been silently reset to hardcoded
+                    // defaults for EVERY real, non-dev player, not just
+                    // this reporting user's mobile session or anything
+                    // caused by this session's own recent changes. Fixed by
+                    // null-guarding the (possibly-missing) input element's
+                    // OWN .value assignment while ALWAYS still applying the
+                    // real color effect directly (setBaseHue()/
+                    // setButtonHue()/style.setProperty already take a raw
+                    // hex string, independent of the input element existing
+                    // at all) - refreshBaseHue()/refreshButtonHue() were
+                    // dropped here specifically because THEY re-read FROM
+                    // the (possibly missing) input rather than from
+                    // settings.baseColor directly, which would silently
+                    // skip applying the color for a non-dev visitor even
+                    // once the crash itself was fixed.
                     if (settings.baseColor) {
-                        document.getElementById('colorBase').value = settings.baseColor;
-                        refreshBaseHue();
+                        const colorBaseEl = document.getElementById('colorBase');
+                        if (colorBaseEl) colorBaseEl.value = settings.baseColor;
+                        setBaseHue(settings.baseColor);
                     }
-                    // Button Color's own gap, same as Base Color's above -
-                    // now that it drives a real tint (not decorative
-                    // hue-rotate), losing it on every reload would be a
-                    // real, user-visible regression, not just cosmetic.
                     if (settings.buttonColor) {
-                        document.getElementById('colorButton').value = settings.buttonColor;
-                        refreshButtonHue();
+                        const colorButtonEl = document.getElementById('colorButton');
+                        if (colorButtonEl) colorButtonEl.value = settings.buttonColor;
+                        setButtonHue(settings.buttonColor);
                     }
                     if (settings.buttonWinColor) {
-                        document.getElementById('colorButtonWin').value = settings.buttonWinColor;
+                        const colorButtonWinEl = document.getElementById('colorButtonWin');
+                        if (colorButtonWinEl) colorButtonWinEl.value = settings.buttonWinColor;
                         document.documentElement.style.setProperty('--button-win-tint-color', settings.buttonWinColor);
                     }
                     if (settings.buttonLoseColor) {
-                        document.getElementById('colorButtonLose').value = settings.buttonLoseColor;
+                        const colorButtonLoseEl = document.getElementById('colorButtonLose');
+                        if (colorButtonLoseEl) colorButtonLoseEl.value = settings.buttonLoseColor;
                         document.documentElement.style.setProperty('--button-lose-tint-color', settings.buttonLoseColor);
                     }
                     // Text Edit Mode overrides - restore the raw values then
@@ -10158,7 +10189,19 @@
                     // see restoreOffsetUnitCheckboxes()'s own comment.
                     restoreOffsetUnitCheckboxes();
                     // Same gap, for the Flash-With-Round checkbox.
-                    document.getElementById('checkboxGameplayResultFlashWithRound').checked = !!cssVars['--gameplay-result-flash-with-round'];
+                    // NULL-GUARDED (2026-09-20, see this function's own
+                    // color-restore comment above for the full root-cause
+                    // account) - every checkbox/select .checked/.value
+                    // assignment from here to the end of this function is a
+                    // real dev-panel-only element that doesn't exist for a
+                    // non-dev visitor; each is now read into a variable
+                    // first so the REAL effect (a classList.toggle or
+                    // style.setProperty, all already separate from the
+                    // checkbox's own display) still applies unconditionally.
+                    {
+                        const cbFlash = document.getElementById('checkboxGameplayResultFlashWithRound');
+                        if (cbFlash) cbFlash.checked = !!cssVars['--gameplay-result-flash-with-round'];
+                    }
                     // Same gap, for Base Follows Win/Lose Color - also
                     // needs the .game-container CLASS itself toggled (not
                     // just the checkbox's own .checked display), since
@@ -10167,7 +10210,8 @@
                     // that.
                     {
                         const baseFollowsChecked = !!cssVars['--base-follows-result-color'];
-                        document.getElementById('checkboxBaseFollowsResultColor').checked = baseFollowsChecked;
+                        const cbBaseFollows = document.getElementById('checkboxBaseFollowsResultColor');
+                        if (cbBaseFollows) cbBaseFollows.checked = baseFollowsChecked;
                         document.querySelector('.game-container').classList.toggle('base-follows-result-color', baseFollowsChecked);
                     }
                     // Same gap, for the 4 Hide Button/Base/Backing SVG/White
@@ -10179,13 +10223,15 @@
                         ['checkboxHideWhiteSvg', '--hide-white-svg-enabled', 'hide-white-svg'],
                     ].forEach(([id, varName, className]) => {
                         const checked = !!cssVars[varName];
-                        document.getElementById(id).checked = checked;
+                        const cb = document.getElementById(id);
+                        if (cb) cb.checked = checked;
                         buttonAssembly.classList.toggle(className, checked);
                     });
                     // Same gap, for the Hide High Score checkbox.
                     {
                         const hideHighScoreChecked = !!cssVars['--hide-high-score-enabled'];
-                        document.getElementById('checkboxHideHighScore').checked = hideHighScoreChecked;
+                        const cbHideHighScore = document.getElementById('checkboxHideHighScore');
+                        if (cbHideHighScore) cbHideHighScore.checked = hideHighScoreChecked;
                         highScoreText.classList.toggle('hidden', hideHighScoreChecked);
                     }
                     // Same gap, for the Hide "Click"/Hide "x" (Target Text
@@ -10195,7 +10241,8 @@
                         ['checkboxHideTargetSuffix', '--target-suffix-hidden', targetCountSuffix],
                     ].forEach(([id, varName, el]) => {
                         const checked = !!cssVars[varName];
-                        document.getElementById(id).checked = checked;
+                        const cb = document.getElementById(id);
+                        if (cb) cb.checked = checked;
                         el.classList.toggle('hidden', checked);
                     });
                     // Same gap, for the Round Breakdown group's own 5
@@ -10206,18 +10253,23 @@
                     // not covered by any generic restore loop).
                     {
                         const rbEnabled = cssVars['--round-breakdown-enabled'] !== 0;
-                        document.getElementById('checkboxRoundBreakdownEnabled').checked = rbEnabled;
+                        const cbRbEnabled = document.getElementById('checkboxRoundBreakdownEnabled');
+                        if (cbRbEnabled) cbRbEnabled.checked = rbEnabled;
                         const rbResizer = cssVars['--round-breakdown-resizer-enabled'] !== 0;
-                        document.getElementById('checkboxRoundBreakdownResizerEnabled').checked = rbResizer;
+                        const cbRbResizer = document.getElementById('checkboxRoundBreakdownResizerEnabled');
+                        if (cbRbResizer) cbRbResizer.checked = rbResizer;
                         roundBreakdownResizeHandle.classList.toggle('hidden', !rbResizer);
                         const rbOutline = !!cssVars['--round-breakdown-outline-enabled'];
-                        document.getElementById('checkboxRoundBreakdownOutlineEnabled').checked = rbOutline;
+                        const cbRbOutline = document.getElementById('checkboxRoundBreakdownOutlineEnabled');
+                        if (cbRbOutline) cbRbOutline.checked = rbOutline;
                         roundBreakdownPanel.classList.toggle('rb-outline-on', rbOutline);
                         const rbTitleBold = cssVars['--round-breakdown-title-bold'] !== 0;
-                        document.getElementById('checkboxRoundBreakdownTitleBold').checked = rbTitleBold;
+                        const cbRbTitleBold = document.getElementById('checkboxRoundBreakdownTitleBold');
+                        if (cbRbTitleBold) cbRbTitleBold.checked = rbTitleBold;
                         roundBreakdownPanel.classList.toggle('rb-title-bold', rbTitleBold);
                         const rbDataBold = !!cssVars['--round-breakdown-data-bold'];
-                        document.getElementById('checkboxRoundBreakdownDataBold').checked = rbDataBold;
+                        const cbRbDataBold = document.getElementById('checkboxRoundBreakdownDataBold');
+                        if (cbRbDataBold) cbRbDataBold.checked = rbDataBold;
                         roundBreakdownPanel.classList.toggle('rb-data-bold', rbDataBold);
                         const rbFont = cssVars['--round-breakdown-font-family'] || 'monospace';
                         const rbFontEl = document.getElementById('selectRoundBreakdownFont');
@@ -10228,27 +10280,37 @@
                         // generic restore loop" gap as the rest of this
                         // group.
                         const rbRowLines = cssVars['--round-breakdown-row-lines-enabled'] !== 0;
-                        document.getElementById('checkboxRoundBreakdownRowLinesEnabled').checked = rbRowLines;
+                        const cbRbRowLines = document.getElementById('checkboxRoundBreakdownRowLinesEnabled');
+                        if (cbRbRowLines) cbRbRowLines.checked = rbRowLines;
                         roundBreakdownPanel.classList.toggle('rb-row-lines-on', rbRowLines);
                         const rbScaleWithBrowser = !!cssVars['--round-breakdown-scale-with-browser'];
-                        document.getElementById('checkboxRoundBreakdownScaleWithBrowser').checked = rbScaleWithBrowser;
+                        const cbRbScaleWithBrowser = document.getElementById('checkboxRoundBreakdownScaleWithBrowser');
+                        if (cbRbScaleWithBrowser) cbRbScaleWithBrowser.checked = rbScaleWithBrowser;
                         document.documentElement.style.setProperty('--round-breakdown-scale-with-browser', rbScaleWithBrowser ? 1 : 0);
                         const rbAlign = cssVars['--round-breakdown-align'] || 'left';
                         const rbAlignEl = document.getElementById('selectRoundBreakdownAlign');
                         if (rbAlignEl) rbAlignEl.value = rbAlign;
                         const rbAlignEdgeLock = !!cssVars['--round-breakdown-align-edge-lock'];
-                        document.getElementById('checkboxRoundBreakdownAlignEdgeLock').checked = rbAlignEdgeLock;
+                        const cbRbAlignEdgeLock = document.getElementById('checkboxRoundBreakdownAlignEdgeLock');
+                        if (cbRbAlignEdgeLock) cbRbAlignEdgeLock.checked = rbAlignEdgeLock;
                         const rbValign = cssVars['--round-breakdown-valign'] || 'top';
                         const rbValignEl = document.getElementById('selectRoundBreakdownValign');
                         if (rbValignEl) rbValignEl.value = rbValign;
                         const rbValignEdgeLock = !!cssVars['--round-breakdown-valign-edge-lock'];
-                        document.getElementById('checkboxRoundBreakdownValignEdgeLock').checked = rbValignEdgeLock;
+                        const cbRbValignEdgeLock = document.getElementById('checkboxRoundBreakdownValignEdgeLock');
+                        if (cbRbValignEdgeLock) cbRbValignEdgeLock.checked = rbValignEdgeLock;
                         const rbAutoscroll = !!cssVars['--round-breakdown-autoscroll-enabled'];
-                        document.getElementById('checkboxRoundBreakdownAutoscrollEnabled').checked = rbAutoscroll;
+                        const cbRbAutoscroll = document.getElementById('checkboxRoundBreakdownAutoscrollEnabled');
+                        if (cbRbAutoscroll) cbRbAutoscroll.checked = rbAutoscroll;
                         roundBreakdownPanel.classList.toggle('rb-autoscroll-on', rbAutoscroll);
                     }
                 } catch(e) {
-                    console.error('Failed to parse saved settings');
+                    // Now logs the real error (2026-09-20) - the generic
+                    // "Failed to parse saved settings" message alone made
+                    // this critical bug far harder to diagnose than it
+                    // needed to be; the underlying cause was never a parse
+                    // failure at all, just an unguarded DOM access.
+                    console.error('Failed to apply loaded settings:', e);
                 }
         }
 
