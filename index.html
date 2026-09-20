@@ -1742,8 +1742,24 @@
             position: fixed;
             left: calc(var(--round-breakdown-left-px) * 1px);
             top: calc(var(--round-breakdown-top-px) * 1px);
-            width: calc(var(--round-breakdown-width-px) * 1px);
-            height: calc(var(--round-breakdown-height-px) * 1px);
+            /* Scale With Browser (dev-panel checkbox) - per direct request
+               ("Provide a Size with Browser check box that applies to the
+               entire panel. This should apply to the panel itself and all
+               text etc within it."). Same 0/1-multiplier blend pattern as
+               every other Scale With Browser control in this file (see
+               .start-button's own font-size comment), but derives the vw
+               side from the ALREADY-stored px value divided by a reference
+               viewport width instead of a 2nd stored vw slider - a
+               deliberate simplification (only one checkbox was asked for,
+               not a full px+vw slider pair per property) matching
+               TEMPLATE_DEV_PANEL.html's own documented Standard Text
+               Settings simplification. --round-breakdown-scale-ref-px is
+               set from getActiveDeviceProfile() in applyActiveVars()
+               (1280 desktop / 390 mobile / 844 landscape, the same
+               reference widths already used for this project's per-device
+               px-to-vw font conversions). */
+            width: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-width-px) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-width-px) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
+            height: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-height-px) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-height-px) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
             min-width: 240px;
             min-height: 140px;
             max-width: 90vw;
@@ -1754,7 +1770,6 @@
                old very-slightly-transparent white - an accepted, minor
                visual tradeoff for making this tunable. */
             background: var(--round-breakdown-panel-color, rgba(255, 255, 255, 0.94));
-            border: 1px solid #333;
             border-radius: 8px;
             z-index: 15;
             display: flex;
@@ -1808,17 +1823,26 @@
             display: none !important;
         }
 
-        /* Outline On/Off + Thickness + Color (dev-panel controls) - a
-           separate `outline` (not `border`, already used for the panel's
-           own fixed 1px edge above) so it can be toggled/tuned
-           independently. */
+        /* Outline On/Off + Thickness + Color (dev-panel controls) - this
+           used to be a SEPARATE `outline` layered on top of the panel's own
+           permanent `border: 1px solid #333` above, so toggling it off never
+           actually removed the panel's visible edge line (direct report:
+           "when i said Outline on Off, it applies to the existing outline
+           that hte breakdown panel has"). Fixed by removing that permanent
+           border entirely - this outline (kept as `outline`, not `border`,
+           so it doesn't affect box sizing/layout) is now the panel's ONLY
+           edge-line mechanism, so the checkbox genuinely controls the line
+           the panel has always shown. Default flipped to 1 (on) to match
+           the pre-existing always-visible line's appearance out of the box. */
         .round-breakdown-panel.rb-outline-on {
             outline: calc(var(--round-breakdown-outline-thickness-px, 2) * 1px) solid var(--round-breakdown-outline-color, #000000);
         }
 
         .round-breakdown-title {
             padding: 8px 10px;
-            border-bottom: 1px solid #333;
+            /* border-bottom removed per direct request ("Remove the
+               Horizontal Line at the top of the Panel. I used to be under
+               the panel title."). */
             font-weight: 700;
             font-size: 0.95vw;
             color: #333;
@@ -1845,13 +1869,33 @@
             color: #333;
         }
 
+        /* Auto Scroll On/Off (dev-panel checkbox) - per direct clarification
+           ("When Autoscroll is turned on, the manual scroll bar will not be
+           visible and the user will not be able to manually scroll... If
+           Autoscroll is turned off, the manual scroll ui will be
+           avialable"). overflow-y:hidden both hides the scrollbar AND blocks
+           wheel/touch/drag scrolling, while runRoundBreakdownAutoscroll()'s
+           own table.scrollTop writes (JS-driven, not a user gesture) still
+           work normally against a hidden-overflow element. */
+        .round-breakdown-panel.rb-autoscroll-on .round-breakdown-table {
+            overflow-y: hidden;
+        }
+
         .round-breakdown-row {
             padding: 8px 0;
-            border-bottom: 1px solid #ccc;
             line-height: 1.5;
         }
 
-        .round-breakdown-row:last-child {
+        /* Row Divider Lines On/Off (dev-panel checkbox) - per direct
+           request ("Right now tehre are lines between the rounds shown in
+           the Round Breakdown. Provide a checkbox to turn that on or
+           off."). Defaults to on (1) so the pre-existing always-visible
+           lines look unchanged until the checkbox is actually toggled. */
+        .round-breakdown-panel.rb-row-lines-on .round-breakdown-row {
+            border-bottom: 1px solid #ccc;
+        }
+
+        .round-breakdown-panel.rb-row-lines-on .round-breakdown-row:last-child {
             border-bottom: none;
         }
 
@@ -1861,8 +1905,11 @@
            below, not a hardcoded 700 any more. */
         .round-breakdown-row-title {
             font-weight: 400;
-            font-size: calc(var(--round-breakdown-title-font-size-px, 16) * 1px);
+            /* See .round-breakdown-panel's own Scale With Browser comment. */
+            font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-title-font-size-px, 16) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-title-font-size-px, 16) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
             color: var(--round-breakdown-title-color, #333);
+            letter-spacing: calc(var(--round-breakdown-title-letter-spacing-px, 0) * 1px);
+            line-height: var(--round-breakdown-title-line-height, 1.2);
             margin-bottom: 2px;
         }
 
@@ -1870,16 +1917,34 @@
             font-weight: 700;
         }
 
+        /* Lost-round Title/Data Color (dev-panel controls) - per direct
+           request ("Provide a color picker for Round Title for the round at
+           which the player lost. Provide a color picker for the Round Data
+           for that round as well."). .round-breakdown-row-lost is added to
+           the one row whose r.won is false in renderRoundBreakdown(). Higher
+           specificity than the plain color rule above so it wins regardless
+           of DOM order. */
+        .round-breakdown-row.round-breakdown-row-lost .round-breakdown-row-title {
+            color: var(--round-breakdown-lost-title-color, #cc0000);
+        }
+
         /* Round Data Font Size/Bold/Color (dev-panel controls) - the per-
            round stat lines (Click Count Target, Clicks, etc.) - see the new
            .round-breakdown-row-data class added in renderRoundBreakdown(). */
         .round-breakdown-row-data {
-            font-size: calc(var(--round-breakdown-data-font-size-px, 15) * 1px);
+            /* See .round-breakdown-panel's own Scale With Browser comment. */
+            font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-data-font-size-px, 15) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-data-font-size-px, 15) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
             color: var(--round-breakdown-data-color, #333);
+            letter-spacing: calc(var(--round-breakdown-data-letter-spacing-px, 0) * 1px);
+            line-height: var(--round-breakdown-data-line-height, 1.2);
         }
 
         .round-breakdown-panel.rb-data-bold .round-breakdown-row-data {
             font-weight: 700;
+        }
+
+        .round-breakdown-row.round-breakdown-row-lost .round-breakdown-row-data {
+            color: var(--round-breakdown-lost-data-color, #cc0000);
         }
 
         /* Dev Panel */
@@ -6557,12 +6622,32 @@
             '--round-breakdown-enabled': 1,
             '--round-breakdown-resizer-enabled': 1,
             '--round-breakdown-font-family': 'monospace',
-            '--round-breakdown-outline-enabled': 0,
+            // Outline default flipped 0->1 (2026-09-19) - was a SEPARATE
+            // layer on top of a permanent hardcoded border, defaulting off
+            // was correct back then; now it's the panel's ONLY edge-line
+            // mechanism (see .round-breakdown-panel.rb-outline-on's own CSS
+            // comment), so it needs to default on to match the pre-existing
+            // always-visible line's appearance.
+            '--round-breakdown-outline-enabled': 1,
             '--round-breakdown-outline-thickness-px': 2,
+            '--round-breakdown-row-lines-enabled': 1,
             '--round-breakdown-title-font-size-px': 16,
             '--round-breakdown-title-bold': 1,
+            '--round-breakdown-title-letter-spacing-px': 0,
+            '--round-breakdown-title-line-height': 1.2,
             '--round-breakdown-data-font-size-px': 15,
             '--round-breakdown-data-bold': 0,
+            '--round-breakdown-data-letter-spacing-px': 0,
+            '--round-breakdown-data-line-height': 1.2,
+            '--round-breakdown-scale-with-browser': 0,
+            '--round-breakdown-align': 'left',
+            '--round-breakdown-align-edge-lock': 0,
+            '--round-breakdown-valign': 'top',
+            '--round-breakdown-valign-edge-lock': 0,
+            '--round-breakdown-autoscroll-enabled': 0,
+            '--round-breakdown-autoscroll-speed-px-per-sec': 30,
+            '--round-breakdown-autoscroll-pause-before-ms': 1500,
+            '--round-breakdown-autoscroll-pause-end-ms': 1500,
         };
 
         // Color variables
@@ -6573,6 +6658,8 @@
             '--round-breakdown-panel-color': '#ffffff',
             '--round-breakdown-title-color': '#333333',
             '--round-breakdown-data-color': '#333333',
+            '--round-breakdown-lost-title-color': '#cc0000',
+            '--round-breakdown-lost-data-color': '#cc0000',
         };
 
         // fontVars/mobileFontVars used to live here (--ui-font/--text-font,
@@ -7420,7 +7507,11 @@
             '--round-breakdown-top-px': 190,
             '--round-breakdown-outline-thickness-px': 2,
             '--round-breakdown-title-font-size-px': 14,
+            '--round-breakdown-title-letter-spacing-px': 0,
+            '--round-breakdown-title-line-height': 1.2,
             '--round-breakdown-data-font-size-px': 13,
+            '--round-breakdown-data-letter-spacing-px': 0,
+            '--round-breakdown-data-line-height': 1.2,
         };
         // Landscape's own cssVars - the actual point of this whole feature:
         // a real touchscreen phone in landscape gets its OWN tuned button/
@@ -8517,6 +8608,17 @@
             // reapplication) - not the O(sliders x cssVars) pattern the
             // earlier Undo perf bug was about.
             updateTargetAnchoredPositions();
+            // Round Breakdown's own Scale With Browser reference width (see
+            // .round-breakdown-panel's own CSS comment) and Align/Valign +
+            // Edge Lock position (see applyRoundBreakdownPosition()'s own
+            // comment) - same "run on every apply" reasoning as
+            // updateTargetAnchoredPositions() just above.
+            if (roundBreakdownPanel) {
+                const rbProfile = getActiveDeviceProfile();
+                const rbScaleRef = rbProfile === 'mobile' ? 390 : (rbProfile === 'landscape' ? 844 : 1280);
+                roundBreakdownPanel.style.setProperty('--round-breakdown-scale-ref-px', rbScaleRef);
+                applyRoundBreakdownPosition();
+            }
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
@@ -8604,6 +8706,28 @@
         // failed/unavailable sync means nothing was saved at all, not just
         // a missed extra copy. The status label makes that failure clearly
         // visible rather than silently doing nothing.
+        // Flashes the HEADER Sync button itself (devHeaderSyncBtn) with a
+        // temporary checkmark/X and tooltip - per direct request ("for the
+        // save button on the top panel, shwo some sort of indication of
+        // 'Saved' after i click it"). The original bottom SYNC button
+        // already had this feedback via #saveSyncStatus (see below), but
+        // that status text lives at the BOTTOM of the panel - not visible
+        // without scrolling back up, defeating the whole point of the
+        // header button existing (see its own "add a Sync button in the
+        // header too" comment). Called from every resolution point of
+        // saveSettings()/syncSettingsToRepo() below, success or failure,
+        // same as #saveSyncStatus's own text already does.
+        function flashDevHeaderSyncStatus(success, message) {
+            const btn = document.getElementById('devHeaderSyncBtn');
+            if (!btn) return;
+            if (btn._syncFlashTimeout) clearTimeout(btn._syncFlashTimeout);
+            btn.textContent = success ? '✅' : '❌';
+            btn.title = message || (success ? 'Saved!' : 'Save failed');
+            btn._syncFlashTimeout = setTimeout(() => {
+                btn.textContent = '💾';
+                btn.title = 'Sync (Save)';
+            }, 1800);
+        }
         function syncSettingsToRepo(settings) {
             const statusEl = document.getElementById('saveSyncStatus');
             if (statusEl) { statusEl.textContent = 'Saving...'; statusEl.style.color = ''; }
@@ -8613,17 +8737,19 @@
                 body: JSON.stringify(settings),
             }).then(async (resp) => {
                 const data = await resp.json().catch(() => ({}));
-                if (statusEl) {
-                    if (resp.ok && data.ok) {
-                        statusEl.textContent = data.localDev ? 'Saved locally + synced' : 'Saved to repo';
-                        statusEl.style.color = 'var(--dev-accent-color)';
-                    } else {
-                        statusEl.textContent = 'NOT saved: ' + (data.error || resp.status);
-                        statusEl.style.color = '#ff4444';
-                    }
+                if (resp.ok && data.ok) {
+                    const msg = data.localDev ? 'Saved locally + synced' : 'Saved to repo';
+                    if (statusEl) { statusEl.textContent = msg; statusEl.style.color = 'var(--dev-accent-color)'; }
+                    flashDevHeaderSyncStatus(true, msg);
+                } else {
+                    const msg = 'NOT saved: ' + (data.error || resp.status);
+                    if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#ff4444'; }
+                    flashDevHeaderSyncStatus(false, msg);
                 }
             }).catch((err) => {
-                if (statusEl) { statusEl.textContent = 'NOT saved (offline?)'; statusEl.style.color = '#ff4444'; }
+                const msg = 'NOT saved (offline?)';
+                if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#ff4444'; }
+                flashDevHeaderSyncStatus(false, msg);
             });
         }
 
@@ -8653,9 +8779,13 @@
                     const statusEl = document.getElementById('saveSyncStatus');
                     try {
                         localStorage.setItem('clickoSettings', JSON.stringify(settings));
-                        if (statusEl) { statusEl.textContent = 'Saved locally (no server - not synced to repo)'; statusEl.style.color = 'var(--dev-accent-color)'; }
+                        const msg = 'Saved locally (no server - not synced to repo)';
+                        if (statusEl) { statusEl.textContent = msg; statusEl.style.color = 'var(--dev-accent-color)'; }
+                        flashDevHeaderSyncStatus(true, msg);
                     } catch (e) {
-                        if (statusEl) { statusEl.textContent = 'NOT saved (local storage unavailable)'; statusEl.style.color = '#ff4444'; }
+                        const msg = 'NOT saved (local storage unavailable)';
+                        if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#ff4444'; }
+                        flashDevHeaderSyncStatus(false, msg);
                     }
                 } else {
                     syncSettingsToRepo(settings);
@@ -9227,6 +9357,29 @@
                         const rbFontEl = document.getElementById('selectRoundBreakdownFont');
                         if (rbFontEl) rbFontEl.value = rbFont;
                         document.documentElement.style.setProperty('--round-breakdown-font-family', rbFont);
+                        // Row Divider Lines, Scale With Browser, Align/
+                        // Valign + Edge Lock - same "not covered by any
+                        // generic restore loop" gap as the rest of this
+                        // group.
+                        const rbRowLines = cssVars['--round-breakdown-row-lines-enabled'] !== 0;
+                        document.getElementById('checkboxRoundBreakdownRowLinesEnabled').checked = rbRowLines;
+                        roundBreakdownPanel.classList.toggle('rb-row-lines-on', rbRowLines);
+                        const rbScaleWithBrowser = !!cssVars['--round-breakdown-scale-with-browser'];
+                        document.getElementById('checkboxRoundBreakdownScaleWithBrowser').checked = rbScaleWithBrowser;
+                        document.documentElement.style.setProperty('--round-breakdown-scale-with-browser', rbScaleWithBrowser ? 1 : 0);
+                        const rbAlign = cssVars['--round-breakdown-align'] || 'left';
+                        const rbAlignEl = document.getElementById('selectRoundBreakdownAlign');
+                        if (rbAlignEl) rbAlignEl.value = rbAlign;
+                        const rbAlignEdgeLock = !!cssVars['--round-breakdown-align-edge-lock'];
+                        document.getElementById('checkboxRoundBreakdownAlignEdgeLock').checked = rbAlignEdgeLock;
+                        const rbValign = cssVars['--round-breakdown-valign'] || 'top';
+                        const rbValignEl = document.getElementById('selectRoundBreakdownValign');
+                        if (rbValignEl) rbValignEl.value = rbValign;
+                        const rbValignEdgeLock = !!cssVars['--round-breakdown-valign-edge-lock'];
+                        document.getElementById('checkboxRoundBreakdownValignEdgeLock').checked = rbValignEdgeLock;
+                        const rbAutoscroll = !!cssVars['--round-breakdown-autoscroll-enabled'];
+                        document.getElementById('checkboxRoundBreakdownAutoscrollEnabled').checked = rbAutoscroll;
+                        roundBreakdownPanel.classList.toggle('rb-autoscroll-on', rbAutoscroll);
                     }
                 } catch(e) {
                     console.error('Failed to parse saved settings');
@@ -11023,6 +11176,8 @@
             'colorRoundBreakdownPanel': '--round-breakdown-panel-color',
             'colorRoundBreakdownTitle': '--round-breakdown-title-color',
             'colorRoundBreakdownData': '--round-breakdown-data-color',
+            'colorRoundBreakdownLostTitle': '--round-breakdown-lost-title-color',
+            'colorRoundBreakdownLostData': '--round-breakdown-lost-data-color',
         };
         // The 8-bit extrusion style's colors are mobile-split (see
         // mobileExtrusionVars) but don't live in colorVars - they write
@@ -11259,6 +11414,21 @@
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 320 },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 450 },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownResizerEnabled', type: 'checkbox', label: 'Panel Resizer On/Off' },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownScaleWithBrowser', type: 'checkbox', label: 'Scale With Browser' },
+            // Align/Valign + Edge Lock (see applyRoundBreakdownPosition()'s
+            // own comment) - shared/single-bucket (not per-device) like this
+            // group's other checkbox/select entries, per the comment on the
+            // group's opening entry above.
+            { group: 'Round Breakdown', id: 'selectRoundBreakdownAlign', type: 'select', label: 'Horizontal Alignment:', options: [
+                { value: 'left', text: 'Left' },
+                { value: 'right', text: 'Right' },
+            ] },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownAlignEdgeLock', type: 'checkbox', label: 'Horizontal Edge Lock' },
+            { group: 'Round Breakdown', id: 'selectRoundBreakdownValign', type: 'select', label: 'Vertical Alignment:', options: [
+                { value: 'top', text: 'Top' },
+                { value: 'bottom', text: 'Bottom' },
+            ] },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownValignEdgeLock', type: 'checkbox', label: 'Vertical Edge Lock' },
             { group: 'Round Breakdown', id: 'selectRoundBreakdownFont', type: 'select', label: 'Font:', options: [
                 { value: 'monospace', text: 'Monospace (Default)' },
                 { value: 'Press Start 2P', text: 'Press Start 2P' },
@@ -11290,13 +11460,27 @@
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownOutlineEnabled', type: 'checkbox', label: 'Outline On/Off' },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
             { group: 'Round Breakdown', id: 'colorRoundBreakdownOutline', type: 'color', label: 'Outline Color:', value: '#000000' },
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownRowLinesEnabled', type: 'checkbox', label: 'Row Divider Lines On/Off' },
             { group: 'Round Breakdown', id: 'colorRoundBreakdownPanel', type: 'color', label: 'Panel Color:', value: '#ffffff' },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 16 },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownTitleBold', type: 'checkbox', label: 'Round Title Bold' },
             { group: 'Round Breakdown', id: 'colorRoundBreakdownTitle', type: 'color', label: 'Round Title Color:', value: '#333333' },
+            { group: 'Round Breakdown', id: 'colorRoundBreakdownLostTitle', type: 'color', label: 'Round Title Color (Lost Round):', value: '#cc0000' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownTitleLetterSpacing', type: 'slider', label: 'Round Title Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownTitleLineHeight', type: 'slider', label: 'Round Title Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownDataFontSize', type: 'slider', label: 'Round Data Font Size (px):', min: 8, max: 40, step: 1, value: 15 },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownDataBold', type: 'checkbox', label: 'Round Data Bold' },
             { group: 'Round Breakdown', id: 'colorRoundBreakdownData', type: 'color', label: 'Round Data Color:', value: '#333333' },
+            { group: 'Round Breakdown', id: 'colorRoundBreakdownLostData', type: 'color', label: 'Round Data Color (Lost Round):', value: '#cc0000' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownDataLetterSpacing', type: 'slider', label: 'Round Data Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownDataLineHeight', type: 'slider', label: 'Round Data Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
+            // Auto Scroll (see restartRoundBreakdownAutoscroll()'s own
+            // comment) - shared/single-bucket like this group's other
+            // checkbox entries.
+            { group: 'Round Breakdown', id: 'checkboxRoundBreakdownAutoscrollEnabled', type: 'checkbox', label: 'Auto Scroll On/Off' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownAutoscrollSpeed', type: 'slider', label: 'Auto Scroll Speed (px/sec):', min: 5, max: 300, step: 1, value: 30 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownAutoscrollPauseBefore', type: 'slider', label: 'Pause Before Auto Scroll (ms):', min: 0, max: 10000, step: 100, value: 1500 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownAutoscrollPauseEnd', type: 'slider', label: 'Pause At End Of Scroll (ms):', min: 0, max: 10000, step: 100, value: 1500 },
         ];
         // Resolves a group's .dev-section-content by data-sid, warning on
         // either 0 matches (group not found) or 2+ matches (a data-sid
@@ -12156,7 +12340,11 @@
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 320 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 14 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownTitleLetterSpacing', type: 'slider', label: 'Round Title Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownTitleLineHeight', type: 'slider', label: 'Round Title Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownDataFontSize', type: 'slider', label: 'Round Data Font Size (px):', min: 8, max: 40, step: 1, value: 13 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownDataLetterSpacing', type: 'slider', label: 'Round Data Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownDataLineHeight', type: 'slider', label: 'Round Data Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
         ];
         function renderMobileUniformControls() {
             MOBILE_UNIFORM_CONTROLS.forEach(ctrl => {
@@ -12291,7 +12479,11 @@
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 450 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 16 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownTitleLetterSpacing', type: 'slider', label: 'Round Title Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownTitleLineHeight', type: 'slider', label: 'Round Title Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownDataFontSize', type: 'slider', label: 'Round Data Font Size (px):', min: 8, max: 40, step: 1, value: 15 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownDataLetterSpacing', type: 'slider', label: 'Round Data Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownDataLineHeight', type: 'slider', label: 'Round Data Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
         ];
         function renderLandscapeUniformControls() {
             LANDSCAPE_UNIFORM_CONTROLS.forEach(ctrl => {
@@ -12786,7 +12978,14 @@
             'sliderRoundBreakdownHeight': '--round-breakdown-height-px',
             'sliderRoundBreakdownOutlineThickness': '--round-breakdown-outline-thickness-px',
             'sliderRoundBreakdownTitleFontSize': '--round-breakdown-title-font-size-px',
+            'sliderRoundBreakdownTitleLetterSpacing': '--round-breakdown-title-letter-spacing-px',
+            'sliderRoundBreakdownTitleLineHeight': '--round-breakdown-title-line-height',
             'sliderRoundBreakdownDataFontSize': '--round-breakdown-data-font-size-px',
+            'sliderRoundBreakdownDataLetterSpacing': '--round-breakdown-data-letter-spacing-px',
+            'sliderRoundBreakdownDataLineHeight': '--round-breakdown-data-line-height',
+            'sliderRoundBreakdownAutoscrollSpeed': '--round-breakdown-autoscroll-speed-px-per-sec',
+            'sliderRoundBreakdownAutoscrollPauseBefore': '--round-breakdown-autoscroll-pause-before-ms',
+            'sliderRoundBreakdownAutoscrollPauseEnd': '--round-breakdown-autoscroll-pause-end-ms',
         };
 
         // Desktop slider id -> extrusionVars/mobileExtrusionVars/
@@ -13360,6 +13559,9 @@
             // Prefix/Suffix below).
             targetPrefix: 'CLICK ', targetSuffix: ' X',
             highScoreLabel: 'HIGH SCORE',
+            // Round Breakdown's 5 stat labels, newline-joined - see
+            // TEXT_EDIT_TARGETS.roundBreakdownTable's own comment.
+            roundBreakdownLabels: 'Click Count Target:\nClicks:\nAverage Click Speed:\nFastest Click:\nSlowest Click:',
         };
         // The currently-ACTIVE override object - same isMobileActive()
         // viewport check every other per-device value in this file reads
@@ -13487,6 +13689,28 @@
                     msPerClickDisplayNumber.textContent = prefix != null ? prefix : gameState.maxTimeMs.toFixed(0);
                     renderMsPerClickSuffix(overrideOr(slot));
                 },
+            },
+            // Round Breakdown's 5 stat-line labels ("Click Count Target:",
+            // "Clicks:", etc.) - per direct report ("Text Edit mode doesnt
+            // work for Round breakdown text") plus a follow-up clarifying
+            // question: the panel's own title is intentionally empty (see
+            // .round-breakdown-title's CSS comment) and the per-round NUMBERS
+            // are live data, not wording, so the 5 label prefixes are what's
+            // actually editable here. Unlike every other target above, there
+            // is no single stable per-label DOM element to right-click (the
+            // labels live inside per-round rows that don't exist until
+            // roundHistory has entries, and repeat once per round) - so this
+            // one target edits all 5 as ONE newline-joined block on the
+            // always-present table container instead of registering 5
+            // separate targets. Plain Enter still commits (see the shared
+            // keydown handler's own comment) - use Shift+Enter between
+            // labels while editing, same as any other multi-line target
+            // here (msPerClickSuffix, above). render() just re-runs
+            // renderRoundBreakdown(), which reads this same override to
+            // rebuild every row's labels - see its own comment.
+            roundBreakdownTable: {
+                getSlot: () => 'roundBreakdownLabels',
+                render: () => { renderRoundBreakdown(); },
             },
         };
 
@@ -14945,6 +15169,31 @@
             if (e && e.pointerId !== undefined && roundBreakdownTitle.hasPointerCapture(e.pointerId)) {
                 roundBreakdownTitle.releasePointerCapture(e.pointerId);
             }
+            // Align/Valign + Edge Lock (dev-panel controls) - while dragging,
+            // pointermove above always writes a plain absolute left/top (the
+            // panel follows the cursor directly, same as before this
+            // feature). If Align/Valign is edge-locked, --round-breakdown-
+            // left-px/-top-px need to mean "gap from the locked edge" (see
+            // applyRoundBreakdownPosition()'s own comment) everywhere else,
+            // so re-derive that gap here, once, right after the drag that
+            // just set an absolute position - not on every pointermove tick.
+            {
+                // Align/Valign/Edge Lock are shared/single-bucket (always
+                // read from desktop cssVars, never the per-device object -
+                // see this group's own opening comment) - width/height/left/
+                // top ARE per-device, so those still come from activeVars.
+                const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
+                const align = cssVars['--round-breakdown-align'] || 'left';
+                const valign = cssVars['--round-breakdown-valign'] || 'top';
+                const width = activeVars['--round-breakdown-width-px'] || 320;
+                const height = activeVars['--round-breakdown-height-px'] || 450;
+                if (align === 'right' && cssVars['--round-breakdown-align-edge-lock']) {
+                    activeVars['--round-breakdown-left-px'] = Math.round(window.innerWidth - width - activeVars['--round-breakdown-left-px']);
+                }
+                if (valign === 'bottom' && cssVars['--round-breakdown-valign-edge-lock']) {
+                    activeVars['--round-breakdown-top-px'] = Math.round(window.innerHeight - height - activeVars['--round-breakdown-top-px']);
+                }
+            }
             // X/Y Offset dev-panel sliders - keep their displayed value in
             // sync with a direct drag, per explicit request ("responsive to
             // if i click and drag the box around"). Only at drag END (not
@@ -14954,6 +15203,7 @@
             // per gesture (its own internal deferApply batching) but would
             // add up fast called on every drag tick.
             syncSlidersFromState();
+            applyRoundBreakdownPosition();
         }
         document.addEventListener('pointerup', endBreakdownDrag);
         document.addEventListener('pointercancel', endBreakdownDrag);
@@ -15010,7 +15260,61 @@
                     activeVars['--round-breakdown-height-px'] = h;
                 }
             }
+            // Re-anchor to the locked edge (if any) now that width/height
+            // changed - e.g. a right-edge-locked panel should grow/shrink
+            // AWAY from the right edge, not just get wider while its left
+            // edge stays put. Comes free from applyRoundBreakdownPosition()
+            // always recomputing left/top from the CURRENT width/height.
+            applyRoundBreakdownPosition();
         }).observe(roundBreakdownPanel);
+
+        // Align/Valign + Edge Lock (dev-panel controls: Horizontal/Vertical
+        // Alignment selects, Horizontal/Vertical Edge Lock checkboxes) - per
+        // direct request ("Provide the Left right align and top bottom
+        // align settings for the Round breakdown panel. Also the Edge Lock
+        // selector."). This panel is a draggable position:fixed box (raw
+        // px, not the centered/translate(-50%) text-anchor pattern every
+        // OTHER element's Align/Valign/Edge Lock uses - see
+        // applyTextAlignAnchors()'s own comment) so it gets its own small,
+        // analogous mechanism instead of being forced through that generic
+        // system: --round-breakdown-left-px/-top-px mean "gap from the
+        // LEFT/TOP edge" when Align/Valign is left/top (unchanged from
+        // before this feature), or "gap from the RIGHT/BOTTOM edge" when
+        // Align/Valign is right/bottom AND that axis is edge-locked -
+        // matching this codebase's existing convention that the Align/
+        // Valign dropdown alone has no visual effect until Edge Lock is
+        // also checked (see applyTextAlignAnchors()'s "Unlocked (defaults)
+        // is untouched" comment) - so Right/Bottom without Edge Lock is a
+        // deliberate no-op, not a bug, for consistency with every other
+        // element's own Align+Edge-Lock pairing in this file. Called
+        // instead of relying on a pure-CSS calc() (unlike the text-anchor
+        // system) because this panel already has JS-driven position via
+        // drag/resize, and window.innerWidth/innerHeight need to be read
+        // fresh on every recompute (a CSS 100vw/100vh literal would work
+        // too, but keeping this logic in one place alongside the drag/
+        // resize code it has to cooperate with was simpler and less error-
+        // prone than splitting it across CSS and JS).
+        function applyRoundBreakdownPosition() {
+            if (!roundBreakdownPanel || isDraggingBreakdown) return;
+            // Align/Valign/Edge Lock: shared, always cssVars (see
+            // endBreakdownDrag()'s identical fix/comment - a real bug found
+            // via live testing on a narrow/Mobile-active viewport: reading
+            // these through activeVars silently no-op'd on Mobile/Landscape
+            // since neither var object has these keys, only desktop cssVars
+            // does). Width/height/left/top ARE per-device.
+            const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
+            const align = cssVars['--round-breakdown-align'] || 'left';
+            const valign = cssVars['--round-breakdown-valign'] || 'top';
+            const width = activeVars['--round-breakdown-width-px'] || 320;
+            const height = activeVars['--round-breakdown-height-px'] || 450;
+            const offsetX = activeVars['--round-breakdown-left-px'] || 0;
+            const offsetY = activeVars['--round-breakdown-top-px'] || 0;
+            const left = (align === 'right' && cssVars['--round-breakdown-align-edge-lock']) ? (window.innerWidth - width - offsetX) : offsetX;
+            const top = (valign === 'bottom' && cssVars['--round-breakdown-valign-edge-lock']) ? (window.innerHeight - height - offsetY) : offsetY;
+            roundBreakdownPanel.style.left = left + 'px';
+            roundBreakdownPanel.style.top = top + 'px';
+        }
+        window.addEventListener('resize', applyRoundBreakdownPosition);
 
         // Game logic
         // Round Text no longer grows to a "big" state or animates at all -
@@ -15869,15 +16173,23 @@
         // (including rounds already won before the eventual loss), each showing its
         // target, tap-speed stats, and how long it took to reach the target count.
         function renderRoundBreakdown() {
+            // Text Edit Mode's 5 editable stat labels - see
+            // TEXT_EDIT_TARGETS.roundBreakdownTable's own comment. Falls
+            // back to the individual TEXT_OVERRIDE_DEFAULTS strings (not a
+            // blank label) if the override has been edited down to fewer
+            // than 5 lines, so a partial/mid-edit override never blanks out
+            // a label outright.
+            const defaultLabels = TEXT_OVERRIDE_DEFAULTS.roundBreakdownLabels.split('\n');
+            const labelLines = overrideOr('roundBreakdownLabels').split('\n');
+            const [targetLabel, clicksLabel, avgSpeedLabel, fastestLabel, slowestLabel] = defaultLabels.map((d, i) => labelLines[i] ?? d);
             const rows = roundHistory.map(r => `
-                <div class="round-breakdown-row">
-                    <div class="round-breakdown-row-title">Round ${r.round}${r.won ? ' (won)' : ' (lost)'}</div>
-                    <div class="round-breakdown-row-data">Click Count Target: ${r.target}</div>
-                    <div class="round-breakdown-row-data">Clicks: ${r.clicks}</div>
-                    <div class="round-breakdown-row-data">Average Click Speed: ${fmtMs(r.avgGapMs)}</div>
-                    <div class="round-breakdown-row-data">Fastest Click: ${fmtMs(r.fastestGapMs)}</div>
-                    <div class="round-breakdown-row-data">Slowest Click: ${fmtMs(r.slowestGapMs)}</div>
-                    <div class="round-breakdown-row-data">Time To Hit Target: ${fmtMs(r.timeToTargetMs)}</div>
+                <div class="round-breakdown-row${r.won ? '' : ' round-breakdown-row-lost'}">
+                    <div class="round-breakdown-row-title">Round ${r.round}</div>
+                    <div class="round-breakdown-row-data">${targetLabel} ${r.target}</div>
+                    <div class="round-breakdown-row-data">${clicksLabel} ${r.clicks}</div>
+                    <div class="round-breakdown-row-data">${avgSpeedLabel} ${fmtMs(r.avgGapMs)}</div>
+                    <div class="round-breakdown-row-data">${fastestLabel} ${fmtMs(r.fastestGapMs)}</div>
+                    <div class="round-breakdown-row-data">${slowestLabel} ${fmtMs(r.slowestGapMs)}</div>
                 </div>
             `).join('');
             roundBreakdownTable.innerHTML = rows;
@@ -15888,6 +16200,76 @@
             if (cssVars['--round-breakdown-enabled'] !== 0) {
                 roundBreakdownPanel.classList.remove('hidden');
             }
+            restartRoundBreakdownAutoscroll();
+        }
+
+        // Auto Scroll On/Off/Speed/Pause-Before/Pause-At-End (dev-panel
+        // controls) - per direct request. State machine: wait
+        // pauseBeforeMs -> scroll to the bottom at speedPxPerSec -> wait
+        // pauseEndMs -> jump back to the top -> repeat (the "loop" - per
+        // direct clarification, it doesn't stop at the end, it restarts
+        // from the beginning). roundBreakdownAutoscrollToken invalidates
+        // any in-flight requestAnimationFrame loop from a PRIOR call (panel
+        // re-rendered, autoscroll re-toggled, settings reloaded, etc.) -
+        // the standard "increment a token, have the old loop's own stale
+        // closure check it and bail" pattern, since an rAF callback can't
+        // otherwise be cancelled by reference once scheduled under a
+        // changed context.
+        let roundBreakdownAutoscrollToken = 0;
+        function stopRoundBreakdownAutoscroll() {
+            roundBreakdownAutoscrollToken++;
+        }
+        function restartRoundBreakdownAutoscroll() {
+            stopRoundBreakdownAutoscroll();
+            // Shared/single-bucket, always desktop cssVars - see
+            // applyRoundBreakdownPosition()'s own comment on this exact bug
+            // class (reading a shared var through the per-device activeVars
+            // object silently no-ops on Mobile/Landscape).
+            if (!cssVars['--round-breakdown-autoscroll-enabled']) {
+                roundBreakdownPanel.classList.remove('rb-autoscroll-on');
+                return;
+            }
+            roundBreakdownPanel.classList.add('rb-autoscroll-on');
+            const myToken = roundBreakdownAutoscrollToken;
+            const table = roundBreakdownTable;
+            table.scrollTop = 0;
+            let state = 'pause-before';
+            let stateStartTime = performance.now();
+            let lastFrameTime = stateStartTime;
+            function tick(now) {
+                if (myToken !== roundBreakdownAutoscrollToken) return; // superseded/stopped
+                if (roundBreakdownPanel.classList.contains('hidden')) return; // game restarted etc.
+                const dt = now - lastFrameTime;
+                lastFrameTime = now;
+                const speedPxPerSec = cssVars['--round-breakdown-autoscroll-speed-px-per-sec'] || 30;
+                const pauseBeforeMs = cssVars['--round-breakdown-autoscroll-pause-before-ms'] || 1500;
+                const pauseEndMs = cssVars['--round-breakdown-autoscroll-pause-end-ms'] || 1500;
+                const maxScroll = table.scrollHeight - table.clientHeight;
+                if (maxScroll <= 0) {
+                    // Nothing to scroll yet (content shorter than the panel) -
+                    // keep waiting in case a later re-render adds more rows.
+                    requestAnimationFrame(tick);
+                    return;
+                }
+                if (state === 'pause-before') {
+                    if (now - stateStartTime >= pauseBeforeMs) state = 'scrolling';
+                } else if (state === 'scrolling') {
+                    table.scrollTop += speedPxPerSec * (dt / 1000);
+                    if (table.scrollTop >= maxScroll) {
+                        table.scrollTop = maxScroll;
+                        state = 'pause-end';
+                        stateStartTime = now;
+                    }
+                } else if (state === 'pause-end') {
+                    if (now - stateStartTime >= pauseEndMs) {
+                        table.scrollTop = 0;
+                        state = 'pause-before';
+                        stateStartTime = now;
+                    }
+                }
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
         }
 
         // Event listeners - Pointer Events unify mouse/touch/pen into one event
@@ -17097,6 +17479,7 @@
                 cssVars['--round-breakdown-resizer-enabled'] = e.target.checked ? 1 : 0;
                 roundBreakdownResizeHandle.classList.toggle('hidden', !e.target.checked);
             });
+            document.getElementById('checkboxRoundBreakdownOutlineEnabled').checked = true;
             document.getElementById('checkboxRoundBreakdownOutlineEnabled').addEventListener('change', (e) => {
                 cssVars['--round-breakdown-outline-enabled'] = e.target.checked ? 1 : 0;
                 roundBreakdownPanel.classList.toggle('rb-outline-on', e.target.checked);
@@ -17113,6 +17496,35 @@
             document.getElementById('selectRoundBreakdownFont').addEventListener('change', (e) => {
                 cssVars['--round-breakdown-font-family'] = e.target.value;
                 document.documentElement.style.setProperty('--round-breakdown-font-family', e.target.value);
+            });
+            document.getElementById('checkboxRoundBreakdownRowLinesEnabled').checked = true;
+            document.getElementById('checkboxRoundBreakdownRowLinesEnabled').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-row-lines-enabled'] = e.target.checked ? 1 : 0;
+                roundBreakdownPanel.classList.toggle('rb-row-lines-on', e.target.checked);
+            });
+            document.getElementById('checkboxRoundBreakdownScaleWithBrowser').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-scale-with-browser'] = e.target.checked ? 1 : 0;
+                document.documentElement.style.setProperty('--round-breakdown-scale-with-browser', e.target.checked ? 1 : 0);
+            });
+            document.getElementById('selectRoundBreakdownAlign').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-align'] = e.target.value;
+                applyRoundBreakdownPosition();
+            });
+            document.getElementById('checkboxRoundBreakdownAlignEdgeLock').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-align-edge-lock'] = e.target.checked ? 1 : 0;
+                applyRoundBreakdownPosition();
+            });
+            document.getElementById('selectRoundBreakdownValign').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-valign'] = e.target.value;
+                applyRoundBreakdownPosition();
+            });
+            document.getElementById('checkboxRoundBreakdownValignEdgeLock').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-valign-edge-lock'] = e.target.checked ? 1 : 0;
+                applyRoundBreakdownPosition();
+            });
+            document.getElementById('checkboxRoundBreakdownAutoscrollEnabled').addEventListener('change', (e) => {
+                cssVars['--round-breakdown-autoscroll-enabled'] = e.target.checked ? 1 : 0;
+                restartRoundBreakdownAutoscroll();
             });
             // No onDrop action needed - the DOM order itself IS the live state;
             // captureSectionOrder() reads it fresh whenever Copy/Save actually run.

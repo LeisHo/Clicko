@@ -65,7 +65,35 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): the dev panel's own header (title + all its
+Most recently (2026-09-19): a 15-item pass on the Round Breakdown panel
+(built by a concurrent session, see below) - merged the Outline On/Off
+checkbox with the panel's own previously-permanent border (toggling it
+off now genuinely removes the line); removed the horizontal line under
+the title and the "(won)"/"(lost)" round-name suffix; removed the "Time
+To Hit Target" stat; added per-device Letter/Line Spacing for Round
+Title/Data; added lost-round-only Title/Data color pickers; added
+Horizontal/Vertical Alignment + Edge Lock for the panel's own position
+(a new small mechanism, not the shared text-anchor system - see
+applyRoundBreakdownPosition()'s own comment); added one Scale With
+Browser checkbox for the whole panel (size + both font sizes); added a
+Row Divider Lines On/Off checkbox; registered the panel's 5 stat labels
+as a Text Edit Mode target (it had none before); and built a full Auto
+Scroll subsystem (On/Off + loop, Speed, Pause Before, Pause At End),
+which also disables manual scrolling while active. Also added a
+"Saved" flash indicator to the dev panel's HEADER Sync button
+specifically (the original bottom SYNC button already had one, but it's
+not visible from the header without scrolling back down). A real bug
+was found and fixed live: several of the new "shared" controls
+(Align/Valign/Edge-Lock/Autoscroll) were initially read through the
+same per-device lookup this group's genuinely per-device sliders use,
+which silently no-op'd on Mobile/Landscape - fixed to read desktop
+cssVars unconditionally instead, matching this group's own established
+convention for shared toggles. **Not committed/pushed** - awaiting
+explicit instruction. The currently-live saved settings predate several
+of the new/changed defaults (outline-enabled, title/data colors) and
+will show their old values until someone re-saves.
+
+Just before that (2026-09-19): the dev panel's own header (title + all its
 buttons) now correctly stays above scrolled-past content - it already
 used `position: sticky` but had no explicit `z-index`, so later siblings
 painted over it during a scroll (sticky alone only pins position, it
@@ -141,10 +169,13 @@ above — every item here has its own detailed dated entry there.
 
 ## What's next
 
-Immediate: commit and push the new Round Breakdown dev-panel group
-(2026-09-19, see above) - currently verified locally but not yet pushed,
-awaiting explicit instruction per CLAUDE.md §9. Its `sectionOrder` nesting
-under UI TEXT won't be visible on the live site until this happens.
+Immediate: commit and push both pending Round Breakdown changes
+(2026-09-19) - the original 18-control group (its `sectionOrder` nesting
+under UI TEXT won't be visible on the live site until pushed) and this
+session's own 15-item follow-up pass (outline/border merge, Align/Valign+
+Edge Lock, Scale With Browser, Auto Scroll, Text Edit Mode, etc.) - both
+currently verified locally but not yet pushed, awaiting explicit
+instruction per CLAUDE.md §9.
 
 Likely next: re-tune Target Text's Prefix ("Click") Y Offset and Suffix
 ("x") X/Y Offset sliders (Desktop/Mobile/Landscape, all 3 tabs) - their
