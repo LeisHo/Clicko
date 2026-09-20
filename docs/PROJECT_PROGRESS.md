@@ -65,7 +65,27 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): fixed `findGroupContent()`'s direct-child-
+Most recently (2026-09-20): fixed Round Breakdown's Auto Scroll visibly
+pausing every time the Try Again "?" flashes - `tick()` was reading
+`track.scrollHeight` (a layout-forcing property) unconditionally on
+EVERY frame, and the "?" flash's own periodic visibility toggle lands
+on a heavily text-shadow-extruded element, so any tick() call landing
+after a pending flash toggle forced an expensive synchronous style/
+layout recalc mid-frame - stalling that frame, which read as a visible
+pause even though the scroll's own state math was never actually wrong.
+Fixed by caching the one-copy height once, at the moment the track is
+duplicated, instead of re-measuring it every tick. Could not get a
+trustworthy before/after frame-timing number from this session's own
+browser-testing tool (confirmed it throttles/batches `requestAnimationFrame`
+unpredictably while backgrounded) - verified correctness instead (still
+duplicates exactly once, cached height matches a fresh read, transform
+still progresses smoothly). Isolated into its own commit via a targeted
+patch + stash, since a concurrent session had its own in-progress,
+not-yet-pushed Scale-With-Browser edit sitting in the same file at the
+time - that edit was restored via stash pop, completely untouched.
+Committed and pushed.
+
+Before that (2026-09-19): fixed `findGroupContent()`'s direct-child-
 only group lookup, which silently broke the "Show in Mobile/Landscape"
 checkbox for any group that had been drag-nested under another group
 (e.g. Round Breakdown under "UI TEXT") - direct report: checking

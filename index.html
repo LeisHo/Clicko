@@ -16581,6 +16581,27 @@
             let offset = 0;
             let stateStartTime = performance.now();
             let lastFrameTime = stateStartTime;
+            // Cached once the track is duplicated (see below), NOT re-read
+            // every frame any more - per direct report ("every time the '?'
+            // flashes, the autoscroll pauses a bit"). Root cause: this used
+            // to read track.scrollHeight unconditionally on EVERY tick -
+            // scrollHeight forces the browser to flush any pending style/
+            // layout work synchronously before it can answer, and the Try
+            // Again "?" flash's own periodic visibility toggle (on a
+            // heavily text-shadow-extruded element, see #startButtonFlash-
+            // CharExtrusion's own CSS comment) is exactly this kind of
+            // pending work - so every flash tick that happened to land
+            // inside a tick() call forced an expensive synchronous style/
+            // layout recalc right there on the main thread, stalling that
+            // frame and reading as a visible pause in the scroll, even
+            // though nothing about the scroll's own state was ever
+            // actually paused. one copy's height never changes once the
+            // track is built (renderRoundBreakdown() always creates a
+            // fresh track for any real content change, which already
+            // restarts this whole function - see its own call site), so
+            // there was never a reason to re-measure it every frame in the
+            // first place.
+            let oneCopyHeight = null;
             function tick(now) {
                 if (myToken !== roundBreakdownAutoscrollToken) return; // superseded/stopped
                 if (roundBreakdownPanel.classList.contains('hidden')) return; // game restarted etc.
@@ -16610,16 +16631,21 @@
                     if (track.scrollHeight <= table.clientHeight) {
                         // Single copy already fits without scrolling - stay
                         // put and keep checking each frame in case more
-                        // rounds get added later in the same run.
+                        // rounds get added later in the same run. Still a
+                        // per-frame scrollHeight read, but only while
+                        // genuinely waiting for more rounds to arrive (a
+                        // narrow, already-unusual window), not for the
+                        // entire steady-state scroll loop.
                         requestAnimationFrame(tick);
                         return;
                     }
                     track.innerHTML += track.innerHTML;
                     track.dataset.duplicated = '1';
+                    // Exactly 2 identical copies now, so one copy's height
+                    // is always half the track's own full scrollHeight -
+                    // measured ONCE, right here, not on every future tick.
+                    oneCopyHeight = track.scrollHeight / 2;
                 }
-                // Exactly 2 identical copies now, so one copy's height is
-                // always half the track's own full scrollHeight.
-                const oneCopyHeight = track.scrollHeight / 2;
                 if (state === 'pause-before') {
                     if (now - stateStartTime >= pauseBeforeMs) state = 'scrolling';
                 } else if (state === 'scrolling') {
