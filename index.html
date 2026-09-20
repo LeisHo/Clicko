@@ -149,8 +149,20 @@
                --button-min-diameter-px defaults low enough (below the
                desktop button's normal rendered size at any typical width)
                that it has no effect until the window actually gets narrow. */
-            width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * var(--cq-vw, 1vw)));
-            height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * var(--cq-vw, 1vw)));
+            /* Button diameter (and everything below that's proportional to
+               it - shadow position/scale, press-offset) now uses 1vmin
+               instead of var(--cq-vw, 1vw) (2026-09-20, direct follow-up:
+               "everything that scales with browser should scale with both
+               browser height and width. not just text") - previously the
+               button only ever responded to viewport WIDTH, same gap the
+               earlier Scale-With-Browser text fix closed for font-size.
+               Width and height both derive from this SAME term (height is
+               just width * a fixed 1.02598 ratio), so switching the one
+               shared unit keeps the button's own aspect ratio exact while
+               making the whole button respond to whichever dimension is
+               smaller. */
+            width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vmin));
+            height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vmin));
             left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
             top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
             /* scale() composed onto the same centering transform, not a
@@ -260,7 +272,7 @@
                JS/resize-listener involved). Existing stored default values
                rescaled to preserve today's exact rendered offset - see
                cssVars'/mobileCssVars' own comments on these keys. */
-            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw))) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
+            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vmin), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vmin)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
             /* brightness(0) flattens the artwork to solid black (alpha
                unchanged - the silhouette shape stays fully opaque wherever
                the source art itself was opaque); invert(0.5) then partially
@@ -442,7 +454,7 @@
            out-of-sync shadow during an eased release is a minor cosmetic
            cost next to reintroducing a known filter-driven lag source. */
         .shadow-caster-button-layer.pressed {
-            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw))) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vw));
+            transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vmin), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vmin)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vmin));
         }
 
         /* Background fill - sits BEHIND both the base and button layers, purely
@@ -631,7 +643,7 @@
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             outline: none;
-            transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)));
+            transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vmin));
             /* No static transition rule here - press/release each need their own
                independent duration (--button-press-ms/--button-release-ms, both
                dev-panel sliders), which a single CSS rule can't express since a
@@ -653,7 +665,7 @@
             pointer-events: none;
         }
         .game-button.pressed {
-            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * var(--button-diameter-vw) / 100 * var(--cq-vw, 1vw)));
+            transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * var(--button-diameter-vw) / 100 * 1vmin));
         }
         .game-button svg {
             position: absolute;
