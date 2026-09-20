@@ -6695,6 +6695,8 @@
             '--round-breakdown-height-vh': 45,
             '--round-breakdown-left-vw': 65,
             '--round-breakdown-top-vh': 5,
+            '--round-breakdown-x-offset-unit-is-px': 0,
+            '--round-breakdown-y-offset-unit-is-px': 0,
             // Round Breakdown dev-panel group (UI TEXT > Round Breakdown) -
             // the On/Off-style flags below are single-bucket/shared (only
             // ever read from this desktop cssVars, applied via JS classList
@@ -7594,6 +7596,8 @@
             '--round-breakdown-height-vh': 40,
             '--round-breakdown-left-vw': 10,
             '--round-breakdown-top-vh': 15,
+            '--round-breakdown-x-offset-unit-is-px': 0,
+            '--round-breakdown-y-offset-unit-is-px': 0,
             '--round-breakdown-outline-thickness-px': 2,
             '--round-breakdown-title-font-size-px': 14,
             '--round-breakdown-title-letter-spacing-px': 0,
@@ -11606,8 +11610,6 @@
             // CONTROLS below), matching X/Y/Width/Height's own pre-existing
             // per-device cssVars split.
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownEnabled', type: 'checkbox', label: 'Round Breakdown On/Off' },
-            { group: 'Round Breakdown', id: 'sliderRoundBreakdownX', type: 'slider', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65 },
-            { group: 'Round Breakdown', id: 'sliderRoundBreakdownY', type: 'slider', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5 },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownWidth', type: 'slider', label: 'Width (vw):', min: 10, max: 100, step: 0.1, value: 20 },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownHeight', type: 'slider', label: 'Height (vh):', min: 10, max: 100, step: 0.1, value: 45 },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownResizerEnabled', type: 'checkbox', label: 'Panel Resizer On/Off' },
@@ -11688,7 +11690,26 @@
         // render*Controls() function below instead of each repeating its
         // own querySelector call with only the missing-group case checked.
         function findGroupContent(tabId, groupSid, callerName, ctrlId) {
-            const matches = document.querySelectorAll('#' + tabId + 'TabContent > .dev-section > .dev-section-title[data-sid="' + groupSid.replace(/"/g, '\\"') + '"]');
+            // Descendant selector (not a direct-child `>` combinator) - a
+            // group is findable by its data-sid no matter how deep it's
+            // been drag-nested, not just while it's still a top-level tab
+            // child. Direct-child-only used to be fine for every call site
+            // BUILT WHILE the panel is first constructed (static groups are
+            // still top-level at that point, before applySectionOrder()
+            // ever moves anything) - but ensureDynamicDeviceRow() (the
+            // "Show in Mobile/Landscape" checkbox's own live row-creation)
+            // runs on-demand, any time AFTER the page has already restored
+            // its saved nesting, so it kept silently failing for any group
+            // a user had organized under a custom wrapper (confirmed via
+            // direct report - checking Round Breakdown's own Auto Scroll
+            // On/Off for Mobile did nothing, console showing "group not
+            // found" for it and several other now-nested groups). A
+            // descendant selector still finds an UN-nested (top-level)
+            // group exactly as before (strictly a superset of the old
+            // matches, nothing that worked before can stop working) - the
+            // existing "2+ matches" collision warning below is unchanged,
+            // still catching a genuine data-sid duplicate.
+            const matches = document.querySelectorAll('#' + tabId + 'TabContent .dev-section > .dev-section-title[data-sid="' + groupSid.replace(/"/g, '\\"') + '"]');
             if (matches.length === 0) {
                 console.warn(callerName + ': group not found', groupSid, ctrlId);
                 return null;
@@ -12532,8 +12553,6 @@
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
-            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', type: 'slider', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 10 },
-            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', type: 'slider', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 15 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownWidth', type: 'slider', label: 'Width (vw):', min: 10, max: 100, step: 0.1, value: 80 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownHeight', type: 'slider', label: 'Height (vh):', min: 10, max: 100, step: 0.1, value: 40 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
@@ -12671,8 +12690,6 @@
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
-            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownX', type: 'slider', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65 },
-            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownY', type: 'slider', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownWidth', type: 'slider', label: 'Width (vw):', min: 10, max: 100, step: 0.1, value: 20 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownHeight', type: 'slider', label: 'Height (vh):', min: 10, max: 100, step: 0.1, value: 45 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
@@ -12724,6 +12741,17 @@
             { tab: 'desktop', group: 'Speed Display (max ms between taps)', id: 'sliderSpeedX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 39.47, checkboxId: 'checkboxSpeedXOffsetUnitPx', checkboxFlagVar: '--speed-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Speed Display (max ms between taps)', id: 'sliderSpeedY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -14.85, checkboxId: 'checkboxSpeedYOffsetUnitPx', checkboxFlagVar: '--speed-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Ms/Click Display', id: 'sliderMsPerClickX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 40.2, checkboxId: 'checkboxMsPerClickXOffsetUnitPx', checkboxFlagVar: '--ms-per-click-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            // Round Breakdown's own X/Y Offset - moved here from the plain
+            // slider system (2026-09-19, direct request: "also provide the
+            // Px checkbox for x and y offset of the Round Breakdown
+            // panel"). min/max kept at 0-100 (not the -50/50 every other
+            // element here uses) - Round Breakdown's offset is always a
+            // gap FROM an edge (0-100% of the viewport), never a centered
+            // +/- offset, so the toggle's own vw<->px conversion applies
+            // to this asymmetric range exactly the same way, just starting
+            // from a different original range.
+            { tab: 'desktop', group: 'Round Breakdown', id: 'sliderRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65, checkboxId: 'checkboxRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'Round Breakdown', id: 'sliderRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5, checkboxId: 'checkboxRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Ms/Click Display', id: 'sliderMsPerClickY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -14.88, checkboxId: 'checkboxMsPerClickYOffsetUnitPx', checkboxFlagVar: '--ms-per-click-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Main Button', id: 'sliderMobileButtonX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: -2.32, checkboxId: 'checkboxMobileButtonXOffsetUnitPx', checkboxFlagVar: '--button-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Main Button', id: 'sliderMobileButtonY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 16, checkboxId: 'checkboxMobileButtonYOffsetUnitPx', checkboxFlagVar: '--button-y-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -12745,6 +12773,8 @@
             { tab: 'mobile', group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -19.5, checkboxId: 'checkboxMobileSpeedYOffsetUnitPx', checkboxFlagVar: '--speed-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Ms/Click Display', id: 'sliderMobileMsPerClickX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 24.76, checkboxId: 'checkboxMobileMsPerClickXOffsetUnitPx', checkboxFlagVar: '--ms-per-click-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Ms/Click Display', id: 'sliderMobileMsPerClickY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -26.84, checkboxId: 'checkboxMobileMsPerClickYOffsetUnitPx', checkboxFlagVar: '--ms-per-click-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 10, checkboxId: 'checkboxMobileRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 15, checkboxId: 'checkboxMobileRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Main Button', id: 'sliderLandscapeButtonX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: -2.32, checkboxId: 'checkboxLandscapeButtonXOffsetUnitPx', checkboxFlagVar: '--button-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Main Button', id: 'sliderLandscapeButtonY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 16, checkboxId: 'checkboxLandscapeButtonYOffsetUnitPx', checkboxFlagVar: '--button-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Start/Try Again Button', id: 'sliderLandscapeTextX', label: 'Button X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxLandscapeTextXOffsetUnitPx', checkboxFlagVar: '--text-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -12765,6 +12795,8 @@
             { tab: 'landscape', group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -19.5, checkboxId: 'checkboxLandscapeSpeedYOffsetUnitPx', checkboxFlagVar: '--speed-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 24.76, checkboxId: 'checkboxLandscapeMsPerClickXOffsetUnitPx', checkboxFlagVar: '--ms-per-click-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -26.84, checkboxId: 'checkboxLandscapeMsPerClickYOffsetUnitPx', checkboxFlagVar: '--ms-per-click-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65, checkboxId: 'checkboxLandscapeRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5, checkboxId: 'checkboxLandscapeRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
         ];
         function buildCompoundOffsetRow(ctrl) {
             const row = document.createElement('div');
@@ -15371,8 +15403,13 @@
             {
                 const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
                 const rect = roundBreakdownPanel.getBoundingClientRect();
-                activeVars['--round-breakdown-left-vw'] = +(rect.left / window.innerWidth * 100).toFixed(3);
-                activeVars['--round-breakdown-top-vh'] = +(rect.top / window.innerHeight * 100).toFixed(3);
+                // X/Y Offset Px checkbox (see applyRoundBreakdownPosition()'s
+                // own comment) - stores the real px directly when checked,
+                // instead of always converting to a vw/vh percentage; a
+                // drag would otherwise silently overwrite a px-mode value
+                // with a fresh percentage every time, reverting the toggle.
+                activeVars['--round-breakdown-left-vw'] = activeVars['--round-breakdown-x-offset-unit-is-px'] ? Math.round(rect.left) : +(rect.left / window.innerWidth * 100).toFixed(3);
+                activeVars['--round-breakdown-top-vh'] = activeVars['--round-breakdown-y-offset-unit-is-px'] ? Math.round(rect.top) : +(rect.top / window.innerHeight * 100).toFixed(3);
             }
             // Align/Valign + Edge Lock (dev-panel controls) - while dragging,
             // pointermove above always writes a plain absolute left/top (the
@@ -15394,13 +15431,22 @@
                 // 100 - size - offset - no window.innerWidth/innerHeight
                 // needed at all (100vw/100vh IS the full viewport by
                 // definition), simpler than the old px-based math here.
+                // In Px mode (see applyRoundBreakdownPosition()'s own
+                // comment), the equivalent gap needs the real viewport
+                // size back, same as the pre-vw-conversion math did.
                 const widthVw = activeVars['--round-breakdown-width-vw'] || 20;
                 const heightVh = activeVars['--round-breakdown-height-vh'] || 45;
+                const widthPx = widthVw / 100 * window.innerWidth;
+                const heightPx = heightVh / 100 * window.innerHeight;
                 if (align === 'right' && cssVars['--round-breakdown-align-edge-lock']) {
-                    activeVars['--round-breakdown-left-vw'] = +(100 - widthVw - activeVars['--round-breakdown-left-vw']).toFixed(3);
+                    activeVars['--round-breakdown-left-vw'] = activeVars['--round-breakdown-x-offset-unit-is-px']
+                        ? Math.round(window.innerWidth - widthPx - activeVars['--round-breakdown-left-vw'])
+                        : +(100 - widthVw - activeVars['--round-breakdown-left-vw']).toFixed(3);
                 }
                 if (valign === 'bottom' && cssVars['--round-breakdown-valign-edge-lock']) {
-                    activeVars['--round-breakdown-top-vh'] = +(100 - heightVh - activeVars['--round-breakdown-top-vh']).toFixed(3);
+                    activeVars['--round-breakdown-top-vh'] = activeVars['--round-breakdown-y-offset-unit-is-px']
+                        ? Math.round(window.innerHeight - heightPx - activeVars['--round-breakdown-top-vh'])
+                        : +(100 - heightVh - activeVars['--round-breakdown-top-vh']).toFixed(3);
                 }
             }
             // X/Y Offset dev-panel sliders - keep their displayed value in
@@ -15561,8 +15607,14 @@
             const offsetYVh = activeVars['--round-breakdown-top-vh'] || 0;
             const width = widthVw / 100 * window.innerWidth;
             const height = heightVh / 100 * window.innerHeight;
-            const offsetX = offsetXVw / 100 * window.innerWidth;
-            const offsetY = offsetYVh / 100 * window.innerHeight;
+            // X/Y Offset Px checkbox (2026-09-19, "also provide the Px
+            // checkbox for x and y offset of the Round Breakdown panel") -
+            // per-device, same as the offset values themselves. When
+            // checked, the stored number is ALREADY px (setupOffsetUnitCheckboxes()'s
+            // own toggle handler converts it at flip time), so it's used
+            // directly instead of being treated as a vw/vh percentage.
+            const offsetX = activeVars['--round-breakdown-x-offset-unit-is-px'] ? offsetXVw : offsetXVw / 100 * window.innerWidth;
+            const offsetY = activeVars['--round-breakdown-y-offset-unit-is-px'] ? offsetYVh : offsetYVh / 100 * window.innerHeight;
             const left = (align === 'right' && cssVars['--round-breakdown-align-edge-lock']) ? (window.innerWidth - width - offsetX) : offsetX;
             const top = (valign === 'bottom' && cssVars['--round-breakdown-valign-edge-lock']) ? (window.innerHeight - height - offsetY) : offsetY;
             roundBreakdownPanel.style.left = left + 'px';
@@ -16446,13 +16498,20 @@
                     <div class="round-breakdown-row-data">${slowestLabel} ${fmtMs(r.slowestGapMs)}</div>
                 </div>
             `).join('');
-            // 2 back-to-back copies inside a .round-breakdown-scroll-track
-            // ONLY while Auto Scroll is actually enabled - see that class's
-            // own CSS comment for why (seamless wrap). Manual-scroll mode
-            // (autoscroll off) stays exactly as before: a single copy,
-            // directly in the table, native overflow scrolling.
+            // ONE copy inside a .round-breakdown-scroll-track while Auto
+            // Scroll is enabled (manual-scroll mode stays exactly as
+            // before: a single copy, no wrapper, native overflow
+            // scrolling). restartRoundBreakdownAutoscroll()'s own tick()
+            // duplicates this track's content a 2nd time itself, but ONLY
+            // once it's confirmed the content actually needs to scroll -
+            // doing that duplication here unconditionally was a real bug
+            // (direct report: "when I lose on the first round, the round
+            // breakdown shows the data for Round 1 twice") - a single
+            // round's content is normally shorter than the panel, so a
+            // 2nd copy rendered eagerly was simply visible below the
+            // first, in the same view, with nothing to scroll it away.
             roundBreakdownTable.innerHTML = cssVars['--round-breakdown-autoscroll-enabled']
-                ? '<div class="round-breakdown-scroll-track">' + rows + rows + '</div>'
+                ? '<div class="round-breakdown-scroll-track">' + rows + '</div>'
                 : rows;
             // Round Breakdown On/Off (dev-panel checkbox) - per direct
             // request ("If turned off, the breakdown wont be shown"), gate
@@ -16532,19 +16591,35 @@
                 const speedPxPerSec = cssVars['--round-breakdown-autoscroll-speed-px-per-sec'] || 30;
                 const pauseBeforeMs = cssVars['--round-breakdown-autoscroll-pause-before-ms'] || 1500;
                 const pauseEndMs = cssVars['--round-breakdown-autoscroll-pause-end-ms'] || 1500;
-                // Exactly 2 identical copies (see renderRoundBreakdown()'s
-                // own comment), so one copy's height is always half the
-                // track's own full scrollHeight - no separate bookkeeping
-                // needed even as roundHistory grows round to round.
-                const oneCopyHeight = track.scrollHeight / 2;
-                if (oneCopyHeight <= table.clientHeight) {
-                    // Everything already fits without scrolling - stay put
-                    // (0 offset) and keep checking in case more rounds get
-                    // added later in the same run.
-                    track.style.transform = 'translateY(0px)';
-                    requestAnimationFrame(tick);
-                    return;
+                // renderRoundBreakdown() renders only ONE copy - the 2nd,
+                // duplicate copy needed for the seamless wrap (see
+                // .round-breakdown-scroll-track's own CSS comment) is added
+                // HERE instead, lazily, and only once the single copy is
+                // actually confirmed taller than the visible panel (real
+                // bug found live: duplicating unconditionally meant a
+                // SINGLE round's content, normally shorter than the panel,
+                // rendered twice in the same view with nothing to scroll it
+                // away - "when I lose on the first round, the round
+                // breakdown shows the data for Round 1 twice"). Guarded by
+                // dataset.duplicated so this only ever runs once per track
+                // element; a later renderRoundBreakdown() call always
+                // creates a brand-new track (fresh dataset), so a size
+                // change (a new round added) is naturally re-evaluated
+                // from scratch rather than compounding.
+                if (!track.dataset.duplicated) {
+                    if (track.scrollHeight <= table.clientHeight) {
+                        // Single copy already fits without scrolling - stay
+                        // put and keep checking each frame in case more
+                        // rounds get added later in the same run.
+                        requestAnimationFrame(tick);
+                        return;
+                    }
+                    track.innerHTML += track.innerHTML;
+                    track.dataset.duplicated = '1';
                 }
+                // Exactly 2 identical copies now, so one copy's height is
+                // always half the track's own full scrollHeight.
+                const oneCopyHeight = track.scrollHeight / 2;
                 if (state === 'pause-before') {
                     if (now - stateStartTime >= pauseBeforeMs) state = 'scrolling';
                 } else if (state === 'scrolling') {

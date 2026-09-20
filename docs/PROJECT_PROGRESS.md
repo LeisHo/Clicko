@@ -65,7 +65,50 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): Round Breakdown's Auto Scroll is now a true
+Most recently (2026-09-19): fixed `findGroupContent()`'s direct-child-
+only group lookup, which silently broke the "Show in Mobile/Landscape"
+checkbox for any group that had been drag-nested under another group
+(e.g. Round Breakdown under "UI TEXT") - direct report: checking
+Auto Scroll On/Off's own Mobile checkbox did nothing. The lookup now
+uses a descendant selector instead of a direct-child one, finding a
+group wherever it currently lives - a strict superset of the old
+matches, so nothing that worked before regressed. This is the same
+root cause flagged (but not yet fixed) for the "group not found"
+console-warning question earlier this session - fixing the one shared
+lookup function resolved it for every affected group at once (Round
+Text, High Score, Target Count Display, Speed/Ms-per-Click Display,
+Start/Try Again Button all confirmed cleared, verified via
+`syncDynamicDeviceRows()` + instrumented `console.warn`). One
+remaining, unrelated case flagged in Open Questions below (a genuine
+cross-tab group-NAME mismatch, not a nesting-depth issue - out of
+scope for this fix). Committed and pushed.
+
+Before that (2026-09-19): added a "Px" checkbox for Round Breakdown's
+X/Y Offset, matching every other position-offset slider in this file -
+migrated its 6 X/Y Offset slider entries (desktop/mobile/landscape) out
+of the plain slider system and into the shared COMPOUND_OFFSET_CONTROLS/
+buildCompoundOffsetRow() system every other element's own Px toggle
+already uses. Since Round Breakdown doesn't run through the shared
+applyTextAlignAnchors() (it has its own applyRoundBreakdownPosition(),
+for its Align/Valign+Edge-Lock feature), the new per-device
+`--round-breakdown-x/y-offset-unit-is-px` flags had to be wired in by
+hand at 2 extra sites beyond the checkbox's own generic toggle handler:
+applyRoundBreakdownPosition() itself, and endBreakdownDrag()'s end-of-
+drag persistence + Edge Lock gap-conversion math (which would otherwise
+have silently reverted a Px-mode value back to a vw/vh percentage on
+the very next drag). **Not committed/pushed yet** - awaiting explicit
+instruction.
+
+Before that (2026-09-19): fixed Auto Scroll showing a single round's
+data twice (direct report right after the marquee rework below shipped).
+The rework's own duplicate-content-for-seamless-wrap technique was
+applying UNCONDITIONALLY, so a single round's content - normally
+shorter than the panel - rendered twice in the same view with nothing
+to scroll it away. renderRoundBreakdown() now renders exactly one copy;
+the tick() loop itself duplicates it lazily, only once it confirms the
+single copy is actually taller than the visible panel.
+
+Before that (2026-09-19): Round Breakdown's Auto Scroll is now a true
 seamless marquee loop instead of scroll-then-snap-back-to-top - the
 round rows render twice back-to-back in a new `.round-breakdown-scroll-
 track` (only while Auto Scroll is on) and the animation now drives that
@@ -80,7 +123,7 @@ cleared afterward, permanently shadowing the CSS `vw`/`vh` rule (the
 same pitfall `left`/`top` had already avoided, just not yet applied
 here) - now cleared once the drag settles, so the panel's SIZE (not
 just its position) correctly keeps scaling with the viewport on every
-resize. **Not committed/pushed yet** - awaiting explicit instruction.
+resize. Committed and pushed (0273a92..f7a5729).
 
 Before that (2026-09-19): added a "Clear Highscore" button to the
 dev panel's Debug group - resets both the in-memory value and its
@@ -281,13 +324,23 @@ button and base colors, alongside their existing color pickers.
   inline-script file plus a render-blocking Google Fonts stylesheet pulling
   25 font families (was 15; +10 with the 2026-09-19 Round Breakdown Font
   control) — and not pursued as its own task yet.
-- **Known limitation, narrow edge case**: a dynamicDevice-opted control's
-  "Show in Mobile/Landscape" checkbox can only create that tab's row if the
-  control's own group already exists as a TOP-LEVEL section on that tab
-  (`findGroupContent()`'s own direct-child lookup, shared by every uniform
-  control, not something new to this feature) — if the group has been
-  drag-nested under another group on that tab (or doesn't exist there at
-  all), the checkbox silently no-ops with a console warning rather than
-  creating the group itself. Not pursued (would mean auto-creating a
-  possibly-unwanted group); the underlying mirror/independence mechanism
-  itself is fully verified correct once a target group exists.
+- **Fixed (2026-09-19)**: a dynamicDevice-opted control's "Show in Mobile/
+  Landscape" checkbox used to only find its own group if that group was
+  still a TOP-LEVEL section on that tab (`findGroupContent()`'s old
+  direct-child lookup) - drag-nesting a group under another group broke
+  it silently. See the entry above; `findGroupContent()` now searches
+  the whole tab regardless of nesting depth.
+- **Known limitation, narrow edge case**: one specific control
+  (`sliderExtrusionFontTrimAdjust`, in the "8-Bit Text Style" group)
+  still can't find its Mobile/Landscape group - NOT a nesting-depth
+  issue (the fix above doesn't apply here). Desktop's own copy of this
+  group is literally named "8-Bit Text Style (Start/Try Again/Round/
+  Win-Lose)", but Mobile/Landscape's own static copy is named "8-Bit
+  Text Style (Start/Try Again/Win-Lose)" (missing "Round") - a genuine
+  cross-tab data-sid mismatch. `ensureDynamicDeviceRow()` always
+  searches using the control's own DESKTOP-recorded group name, so it
+  can never match Mobile/Landscape's differently-named copy. Not
+  pursued - fixing it means deciding how to reconcile 2 different
+  literal group names across tabs (rename one to match, or teach the
+  lookup about a name-translation table), neither of which was asked
+  for.
