@@ -140,7 +140,7 @@
     "--target-suffix-font-size-px": 230,
     "--target-suffix-font-size-vw": 5.82,
     "--target-suffix-x-offset-vw": -5.13,
-    "--target-suffix-y-offset-vh": -40,
+    "--target-suffix-y-offset-vh": -54.09,
     "--target-scale-with-browser": 1,
     "--target-prefix-hidden": 0,
     "--target-suffix-hidden": 0,
