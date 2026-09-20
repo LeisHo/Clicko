@@ -18428,6 +18428,29 @@
         // doesn't meaningfully change the overall win (686 total controls,
         // minus these 13, still lazy for everyone who isn't isDevAllowed).
         renderGameMechanicsControls();
+        // renderClickBurstTextInputControls() gets the EXACT same eager
+        // exception as renderGameMechanicsControls() directly above, for
+        // the identical reason - found live (2026-09-20, direct report: "I
+        // click start, it doesn't register if I won or lose... I can just
+        // keep clicking forever and nothing happens. The click frames also
+        // don't show", non-dev/production build only). Root cause:
+        // spawnClickBurst() -> spawnClickBurstSide() reads
+        // document.getElementById(floorId/ceilingId).value (the Left/Right
+        // Floor/Ceiling Angle inputs this function builds) as gameplay
+        // source of truth on EVERY tap, unconditionally - for a non-dev
+        // visitor, these controls were lazy (only built by
+        // ensureDevPanelBuilt(), which per line ~19217 only ever runs when
+        // isDevAllowed), so document.getElementById(...) returned null and
+        // .value threw INSIDE handleGameButtonPress(), before
+        // totalClickCount++ - killing the click burst AND all round
+        // progression in the same uncaught exception, for every real
+        // player, every tap. Confirmed via direct reproduction on the live
+        // production site (isDevAllowed: false): inputClickBurstLeftFloorDeg
+        // was null, spawnClickBurst() threw "Cannot read properties of
+        // null (reading 'value')", tap count never incremented. The
+        // now-duplicate call inside ensureDevPanelBuilt() below was removed
+        // (calling this twice would create duplicate-id DOM elements).
+        renderClickBurstTextInputControls();
         // Lazy dev-panel build - per direct request ("what does it take...
         // go for it" after a load-time investigation measured a consistent
         // ~780-880ms gap between the HTML finishing download and
@@ -18934,7 +18957,11 @@
             buildClearHighScoreButton();
             renderSpecialColorControls();
             renderDevPanelMiscControls();
-            renderClickBurstTextInputControls();
+            // renderClickBurstTextInputControls() moved to the eager,
+            // unconditional Initialize block (~line 18430, next to
+            // renderGameMechanicsControls()) - see that call site's own
+            // comment. Calling it again here would create duplicate-id DOM
+            // elements.
             setupDevPanelStyleControls();
             // Blend Mode dropdowns (Button/Base Color) - per explicit
             // request. cssVars-backed (single/shared, like Light
@@ -19521,8 +19548,20 @@
                     document.getElementById('valueStage2HighScoreY').textContent = parseFloat(r);
                 }
             }
-            document.getElementById('checkboxHighScoreTextAlignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('x'));
-            document.getElementById('checkboxHighScoreTextValignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+            // Null-guarded (2026-09-20 fix): these real checkboxes are part
+            // of the LAZY dev-panel build - for a non-dev visitor they
+            // don't exist yet (ensureDevPanelBuilt() never runs for them),
+            // and an unguarded call here threw and could interrupt this
+            // module's remaining top-level execution - see the matching
+            // fix note on the shared registerStage2TextElement() helper and
+            // the Round Breakdown block for the full account (this one
+            // never actually reached production since High Score's row was
+            // ported before that root cause was found, but is fixed
+            // preventatively, same reasoning).
+            const hsAlignLockEl = document.getElementById('checkboxHighScoreTextAlignEdgeLock');
+            const hsValignLockEl = document.getElementById('checkboxHighScoreTextValignEdgeLock');
+            if (hsAlignLockEl) hsAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
+            if (hsValignLockEl) hsValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
         }
     </script>
 
@@ -19688,8 +19727,18 @@
                     document.getElementById('valueStage2' + cfg.key + 'Y').textContent = parseFloat(r);
                 }
             }
-            document.getElementById(cfg.realAlignLockId).addEventListener('change', () => mirrorEdgeLockToEngine('x'));
-            document.getElementById(cfg.realValignLockId).addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+            // Null-guarded (2026-09-20 fix, see the matching Round
+            // Breakdown block's own note for the full root-cause account):
+            // these real checkboxes are part of the LAZY dev-panel build -
+            // for a non-dev visitor they don't exist, and an unguarded call
+            // here threw INSIDE this module's top-level synchronous run,
+            // which could leave later code in this same script block
+            // (nothing currently follows this in this particular block, but
+            // a future edit could add some) un-executed.
+            const realAlignLockEl = document.getElementById(cfg.realAlignLockId);
+            const realValignLockEl = document.getElementById(cfg.realValignLockId);
+            if (realAlignLockEl) realAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
+            if (realValignLockEl) realValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
         }
 
         registerStage2TextElement({
@@ -20004,17 +20053,33 @@
     </div>
     <button id="stage2InspectorToggleBtn">Inspector</button>
     <script type="module">
-        import { mountInspector } from './lib/ui-engine/inspector.mjs';
-        const panel = document.getElementById('stage2InspectorPanel');
-        const mount = document.getElementById('stage2InspectorMount');
-        let mounted = false;
-        document.getElementById('stage2InspectorToggleBtn').addEventListener('click', () => {
-            panel.classList.toggle('stage2-open');
-            if (panel.classList.contains('stage2-open') && !mounted) {
-                mountInspector(mount);
-                mounted = true;
-            }
-        });
+        // Gated the same way as the rest of the dev tooling (isDevAllowed,
+        // ~line 28: file:/data:/localhost/127.0.0.1/?dev=1 only) - per
+        // direct report, the toggle button and panel were being created
+        // completely UNCONDITIONALLY for every real visitor, a real bug
+        // (every other Stage 2 addition happens to no-op safely for a
+        // normal visitor since findGroupContent() only finds anything once
+        // the dev panel itself has been built, which is itself already
+        // gated - this standalone floating panel had no such protection).
+        // A normal visitor gets neither the button nor the panel in the DOM
+        // at all, not just a hidden one.
+        if (typeof isDevAllowed !== 'undefined' && isDevAllowed) {
+            import('./lib/ui-engine/inspector.mjs').then(({ mountInspector }) => {
+                const panel = document.getElementById('stage2InspectorPanel');
+                const mount = document.getElementById('stage2InspectorMount');
+                let mounted = false;
+                document.getElementById('stage2InspectorToggleBtn').addEventListener('click', () => {
+                    panel.classList.toggle('stage2-open');
+                    if (panel.classList.contains('stage2-open') && !mounted) {
+                        mountInspector(mount);
+                        mounted = true;
+                    }
+                });
+            });
+        } else {
+            document.getElementById('stage2InspectorPanel').remove();
+            document.getElementById('stage2InspectorToggleBtn').remove();
+        }
     </script>
 
     <!-- ============================================================
@@ -20250,8 +20315,127 @@
                     document.getElementById('valueStage2RoundBreakdownY').textContent = parseFloat(getEffectiveValue('stage2RoundBreakdownX', 'offsetY', 'base').value);
                 }
             }
-            document.getElementById('checkboxRoundBreakdownAlignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('x'));
-            document.getElementById('checkboxRoundBreakdownValignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+            // Null-guarded (2026-09-20 fix) - THE ORIGINAL CRASH SITE: on a
+            // real, non-dev production visit, these 2 checkboxes don't
+            // exist yet (part of the lazy dev-panel build, per
+            // ensureDevPanelBuilt() only ever running when isDevAllowed),
+            // so the unguarded calls below threw "Cannot read properties of
+            // null (reading 'addEventListener')" on every page load for
+            // every real visitor - confirmed via direct reproduction on
+            // production. This crash was in a SEPARATE, LATER module script
+            // than the actual gameplay-breaking bug (the real root cause of
+            // "click doesn't register/no click frames" was
+            // renderClickBurstTextInputControls() being lazy too - see the
+            // Initialize block's own fix, ~line 18430) - so fixing this
+            // alone would NOT have fixed gameplay, but it's a real,
+            // separate crash on every load and is fixed here regardless.
+            const rbAlignLockEl = document.getElementById('checkboxRoundBreakdownAlignEdgeLock');
+            const rbValignLockEl = document.getElementById('checkboxRoundBreakdownValignEdgeLock');
+            if (rbAlignLockEl) rbAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
+            if (rbValignLockEl) rbValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+        }
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT, INSPECTOR WRITEBACK (2026-09-20) - per direct
+         follow-up: an edit made through the Inspector panel (mode switches,
+         relativeTo/myAnchor/targetAnchor, or any raw field edit) previously
+         lived ONLY in the engine's own in-memory config - invisible to
+         Save/Sync (buildSettingsSnapshot() only ever serializes cssVars and
+         a fixed list of other pre-existing objects, confirmed by reading it
+         directly - it has no knowledge lib/ui-engine/ even exists). This
+         block closes that gap GENERICALLY, without modifying inspector.mjs
+         (a vendored file) at all: a MutationObserver on the Inspector's own
+         mount point fires on every edit (confirmed via inspector.mjs's own
+         render(), which replaces mountedRoot.innerHTML on every single
+         change - so observing that subtree is a fully generic "something
+         changed" signal), and on each firing, a mapping table (every Stage
+         2 element+field this session has ever registered -> its real
+         Clicko cssVar) reads the CURRENT effective value and writes it
+         back. This is the SAME mapping knowledge already embedded in every
+         earlier row's own listener, consolidated here as a catch-all for
+         edits that bypass those rows entirely (i.e., made via the
+         Inspector directly). Existing rows are completely unaffected -
+         this is purely additive, runs independently, and a value it writes
+         is indistinguishable from one written by a row, per the same
+         "same cssVars key either way" reasoning already established.
+    ============================================================ -->
+    <script type="module">
+        import { getEffectiveValue } from './lib/ui-engine/registry.mjs';
+
+        function parseFloatSafe(v) { const n = parseFloat(v); return Number.isNaN(n) ? undefined : n; }
+        function blendedVw(v) { return (v && typeof v === 'object') ? v.vwValue : undefined; }
+        function blendedPx(v) { return (v && typeof v === 'object') ? v.pxValue : undefined; }
+        function gapX(v) { return (v && typeof v === 'object') ? parseFloatSafe(v.x) : undefined; }
+        function gapY(v) { return (v && typeof v === 'object') ? parseFloatSafe(v.y) : undefined; }
+        function identity(v) { return v; }
+
+        const STAGE2_STANDARD_ELEMENTS = [
+            { key: 'HighScore', xVar: '--high-score-x-offset-vw', yVar: '--high-score-y-offset-vh', alignVar: '--high-score-text-align', valignVar: '--high-score-text-valign', fontVwVar: '--high-score-font-size-vw' },
+            { key: 'Start', xVar: '--text-x-offset-vw', yVar: '--text-y-offset-vh', alignVar: '--start-text-align', valignVar: '--start-text-valign', fontVwVar: '--text-font-size-vw' },
+            { key: 'RoundText', xVar: '--round-dock-x-offset-vw', yVar: '--round-dock-y-offset-vh', alignVar: '--round-text-align', valignVar: '--round-text-valign', fontVwVar: '--round-font-size-vw' },
+            { key: 'Speed', xVar: '--speed-x-offset-vw', yVar: '--speed-y-offset-vh', alignVar: '--speed-text-align', valignVar: '--speed-text-valign', fontVwVar: '--speed-font-size-vw' },
+            { key: 'MsPerClick', xVar: '--ms-per-click-x-offset-vw', yVar: '--ms-per-click-y-offset-vh', alignVar: '--ms-per-click-text-align', valignVar: '--ms-per-click-text-valign', fontVwVar: '--ms-per-click-font-size-vw' },
+        ];
+
+        const STAGE2_SYNC_MAP = [];
+        STAGE2_STANDARD_ELEMENTS.forEach((cfg) => {
+            const posId = 'stage2' + cfg.key + 'X';
+            const fontId = 'stage2' + cfg.key + 'FontSize';
+            STAGE2_SYNC_MAP.push(
+                { id: posId, field: 'offsetX', cssVar: cfg.xVar, extract: parseFloatSafe },
+                { id: posId, field: 'offsetY', cssVar: cfg.yVar, extract: parseFloatSafe },
+                { id: posId, field: 'anchorH', cssVar: cfg.alignVar, extract: identity },
+                { id: posId, field: 'anchorV', cssVar: cfg.valignVar, extract: identity },
+                { id: fontId, field: 'widthValue', cssVar: cfg.fontVwVar, extract: blendedVw },
+            );
+        });
+        STAGE2_SYNC_MAP.push(
+            { id: 'stage2RoundBreakdownTitle', field: 'widthValue', cssVar: '--round-breakdown-title-font-size-px', extract: blendedPx },
+            { id: 'stage2RoundBreakdownData', field: 'widthValue', cssVar: '--round-breakdown-data-font-size-px', extract: blendedPx },
+            { id: 'stage2RoundBreakdownX', field: 'offsetX', cssVar: '--round-breakdown-left-vw', extract: parseFloatSafe },
+            { id: 'stage2RoundBreakdownX', field: 'offsetY', cssVar: '--round-breakdown-top-vh', extract: parseFloatSafe },
+            { id: 'stage2RoundBreakdownSize', field: 'widthValue', cssVar: '--round-breakdown-width-vw', extract: parseFloatSafe },
+            { id: 'stage2RoundBreakdownSize', field: 'heightValue', cssVar: '--round-breakdown-height-vh', extract: parseFloatSafe },
+            { id: 'stage2TargetNumberX', field: 'offsetX', cssVar: '--target-number-x-offset-vw', extract: parseFloatSafe },
+            { id: 'stage2TargetNumberX', field: 'offsetY', cssVar: '--target-number-y-offset-vh', extract: parseFloatSafe },
+            { id: 'stage2TargetNumberFontSize', field: 'widthValue', cssVar: '--target-number-font-size-vw', extract: blendedVw },
+            { id: 'stage2TargetSuffix', field: 'gap', cssVar: '--target-suffix-x-offset-vw', extract: gapX },
+            { id: 'stage2TargetSuffix', field: 'gap', cssVar: '--target-suffix-y-offset-vh', extract: gapY },
+            { id: 'stage2TargetSuffixFontSize', field: 'widthValue', cssVar: '--target-suffix-font-size-vw', extract: blendedVw },
+            { id: 'stage2TargetPrefixX', field: 'offsetX', cssVar: '--target-prefix-x-offset-vw', extract: parseFloatSafe },
+            { id: 'stage2TargetPrefixY', field: 'gap', cssVar: '--target-prefix-y-offset-vh', extract: gapY },
+            { id: 'stage2TargetPrefixFontSize', field: 'widthValue', cssVar: '--target-prefix-font-size-vw', extract: blendedVw },
+            { id: 'stage2ButtonX', field: 'offsetX', cssVar: '--button-x-offset-vw', extract: parseFloatSafe },
+            { id: 'stage2ButtonX', field: 'offsetY', cssVar: '--button-y-offset-vh', extract: parseFloatSafe },
+            { id: 'stage2ButtonDiameter', field: 'widthPreferred', cssVar: '--button-diameter-vw', extract: parseFloatSafe },
+            { id: 'stage2ButtonDiameter', field: 'widthMin', cssVar: '--button-min-diameter-px', extract: parseFloatSafe },
+        );
+
+        function stage2SyncEngineToClicko() {
+            let anyChanged = false;
+            for (const entry of STAGE2_SYNC_MAP) {
+                let result;
+                try {
+                    result = getEffectiveValue(entry.id, entry.field, 'base');
+                } catch (e) {
+                    continue; // element not registered, or field doesn't apply under its current mode - skip, not an error
+                }
+                if (!result) continue;
+                const extracted = entry.extract(result.value);
+                if (extracted === undefined || (typeof extracted === 'number' && Number.isNaN(extracted))) continue;
+                if (cssVars[entry.cssVar] !== extracted) {
+                    cssVars[entry.cssVar] = extracted;
+                    anyChanged = true;
+                }
+            }
+            if (anyChanged) applyActiveVars();
+        }
+
+        const stage2InspectorMountEl = document.getElementById('stage2InspectorMount');
+        if (stage2InspectorMountEl) {
+            const observer = new MutationObserver(() => stage2SyncEngineToClicko());
+            observer.observe(stage2InspectorMountEl, { childList: true, subtree: true, attributes: true, characterData: true });
         }
     </script>
 </body>

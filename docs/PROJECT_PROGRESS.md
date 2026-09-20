@@ -16,26 +16,54 @@ from there.
 
 ## Currently working on
 
-An experimental, **uncommitted** UI-Engine adoption trial sits in the working
-tree right now: a new `lib/ui-engine/` folder (all 9 real engine files, now
-including `inspector.mjs`/`adapter.mjs`/`canonicalSchema.mjs`/`presets.mjs`)
-plus a 1,008-line additive block at the end of `index.html`'s `<body>`.
-Covers: engine-driven dev-panel rows for every layout-relevant setting
-across 9 elements (High Score, Start/Try Again Button, Round Text, Speed
-Countdown Display, Ms/Click Display, Round Breakdown — font size AND
+**Just fixed a critical, live production bug** (2026-09-20): real (non-dev)
+visitors could not play the game at all — every tap threw an uncaught
+exception inside `handleGameButtonPress()` (via `spawnClickBurst()` reading
+a lazily-built dev-panel input as gameplay source of truth), so clicks
+never registered and click-burst frames never showed. Root-caused via
+direct reproduction on the live site and fixed by moving
+`renderClickBurstTextInputControls()` into the same eager/unconditional
+build path as the already-proven `renderGameMechanicsControls()` fix. Also
+fixed 2 bugs in this session's own Stage 2 UI-Engine work found along the
+way: the Inspector panel/button were unconditionally visible to every
+visitor (now gated behind `isDevAllowed`), and 3 places null-referenced a
+lazily-built real checkbox without a guard. See CHANGELOG for the full
+account. This fix is queued for push alongside the rest of Stage 2.
+
+The UI-Engine adoption trial (Stage 1/2 evaluation) is now **committed and
+pushed to main** (commit `ac461e9`): a `lib/ui-engine/` folder (all 9 real
+engine files) plus a large additive block at the end of `index.html`'s
+`<body>` covering engine-driven dev-panel rows for every layout-relevant
+setting across 9 elements (High Score, Start/Try Again Button, Round Text,
+Speed Countdown Display, Ms/Click Display, Round Breakdown — font size AND
 position/size, Target Count Display, Main Button — X/Y + Diameter), plus
 the engine's own REAL Inspector mounted as a floating panel (toggle button,
-bottom-right) — lets you pick any of the 20 registered elements and change
-its `position.mode` (anchor/relative/fixed/absolute) live, including
-`relativeTo`/`myAnchor`/`targetAnchor` for relative-mode, without writing
-any code. See CHANGELOG's "Stage 2" entries for the full account of each
-piece, including 2 disclosed limitations (Target Prefix's hybrid
-representation; the Inspector edits the engine's own config but doesn't
-auto-write back into Clicko's cssVars — only the per-row Stage 2 controls
-do that). Non-layout styling (color, spacing, rotation, timing) and
-anything transform-based (Shadow, Click Burst) deliberately stay untouched
-— outside the engine's boundary or a mechanism it has no concept of.
-Fully reversible: `git checkout -- index.html` + delete `lib/ui-engine/`.
+bottom-right) — lets you pick any registered element and change its
+`position.mode` (anchor/relative/fixed/absolute) live, including
+`relativeTo`/`myAnchor`/`targetAnchor` for relative mode, without writing
+any code.
+
+A follow-up, still **uncommitted**: the Inspector's own edits now write
+back into Clicko's real `cssVars` too (a `MutationObserver` on the
+Inspector's mount point + a ~26-entry mapping table, added without touching
+the vendored `inspector.mjs`) — confirmed via `buildSettingsSnapshot()`
+directly that a real Save would now persist an Inspector-made edit, closing
+the gap where those edits previously lived only in the engine's in-memory
+state and were silently lost on reload. One disclosed, deliberately-unfixed
+cosmetic gap remains: the slider/select widgets themselves don't refresh
+their displayed value when the edit came from the Inspector (data and the
+actual game visual are both correct; only the widget's own on-screen number
+is stale until next reload).
+
+See CHANGELOG's "Stage 2" entries for the full account of each piece,
+including a 3rd disclosed limitation (Target Prefix's hybrid
+representation — see CHANGELOG for detail). Non-layout styling (color,
+spacing, rotation, timing) and anything transform-based (Shadow, Click
+Burst) deliberately stay untouched — outside the engine's boundary or a
+mechanism it has no concept of. The committed portion is on `main`; the
+Inspector-writeback follow-up is reversible the same way:
+`git checkout -- index.html` (only reverts the uncommitted writeback block,
+since everything else is already committed).
 Not wired into anything else — safe to ignore or remove.
 
 Otherwise nothing in progress. Development here proceeds as rapid,
