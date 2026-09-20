@@ -51,6 +51,13 @@ captures each element's full structural layout config (fixed 2026-09-20,
 after this exact gap surfaced as a direct report — mode had no cssVar to
 live in, so the earlier value-only writeback fix never covered it) — see
 CHANGELOG for the full investigation and live verification on both fixes.
+**The sync between the Inspector and the real dev panel is now
+bidirectional** — a real slider/select edit made directly (bypassing the
+Inspector) now live-updates the Inspector's own displayed value too, for
+whichever element is currently selected there (fixed 2026-09-20,
+`stage2SyncClickoToEngine()`, hooked into `applyActiveVars()`) — before
+this, only Inspector→Clicko was synced; a direct real-slider edit left the
+Inspector's own engine value stale until the element was reselected.
 
 One disclosed limitation remains: Target Prefix's hybrid X/Y
 representation (X independent/anchor-mode, Y relative-mode, split across 2
