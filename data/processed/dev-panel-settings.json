@@ -129,17 +129,17 @@
     "--round-blink4-hide-ms": 300,
     "--high-score-flash-delay-ms": 0,
     "--gameplay-result-flash-with-round": 1,
-    "--target-prefix-font-size-px": 133,
-    "--target-prefix-font-size-vw": 4,
-    "--target-prefix-x-offset-vw": 56,
+    "--target-prefix-font-size-px": 141,
+    "--target-prefix-font-size-vw": 8.81,
+    "--target-prefix-x-offset-vw": 64,
     "--target-prefix-y-offset-vh": 43.84,
     "--target-number-font-size-px": 386,
-    "--target-number-font-size-vw": 15.5,
-    "--target-number-x-offset-vw": 49.4,
+    "--target-number-font-size-vw": 32.9,
+    "--target-number-x-offset-vw": 64,
     "--target-number-y-offset-vh": 59.28,
     "--target-suffix-font-size-px": 230,
-    "--target-suffix-font-size-vw": 5.82,
-    "--target-suffix-x-offset-vw": -5.13,
+    "--target-suffix-font-size-vw": 12.43,
+    "--target-suffix-x-offset-vw": -21.6,
     "--target-suffix-y-offset-vh": -54.09,
     "--target-scale-with-browser": 1,
     "--target-prefix-hidden": 0,
@@ -205,10 +205,10 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 532,
-    "--dev-panel-left-px": 747,
+    "--dev-panel-left-px": 1294,
     "--dev-panel-top-px": 6,
     "--dev-panel-height-px": 788,
-    "--round-breakdown-width-vw": 29.849,
+    "--round-breakdown-width-vw": 29.848,
     "--round-breakdown-height-vh": 60.938,
     "--round-breakdown-left-vw": 2.026,
     "--round-breakdown-top-vh": 28.37,
@@ -1292,7 +1292,7 @@
     "desktop:Target Count Display": false,
     "desktop:New Group (24)": true,
     "desktop:New Group (22)": true,
-    "desktop:New Group (23)": true,
+    "desktop:New Group (23)": false,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
     "desktop:Round Breakdown": true,
@@ -3538,15 +3538,15 @@
                       },
                       {
                         "type": "row",
+                        "key": "sliderTargetPrefixLineHeight"
+                      },
+                      {
+                        "type": "row",
                         "key": "sliderTargetPrefixXOffset"
                       },
                       {
                         "type": "row",
                         "key": "sliderTargetPrefixYOffset"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderTargetPrefixLineHeight"
                       }
                     ],
                     "rowKeys": [
@@ -3555,9 +3555,9 @@
                       "sliderTargetPrefixExtrusionDepth",
                       "sliderTargetPrefixOverallBorderThickness",
                       "sliderTargetPrefixLetterSpacing",
+                      "sliderTargetPrefixLineHeight",
                       "sliderTargetPrefixXOffset",
-                      "sliderTargetPrefixYOffset",
-                      "sliderTargetPrefixLineHeight"
+                      "sliderTargetPrefixYOffset"
                     ],
                     "subgroups": []
                   }
@@ -3581,7 +3581,7 @@
                       },
                       {
                         "type": "row",
-                        "key": "sliderTargetSuffixLetterSpacing"
+                        "key": "sliderTargetSuffixFontSizeVw"
                       },
                       {
                         "type": "row",
@@ -3593,7 +3593,7 @@
                       },
                       {
                         "type": "row",
-                        "key": "sliderTargetSuffixFontSizeVw"
+                        "key": "sliderTargetSuffixLetterSpacing"
                       },
                       {
                         "type": "row",
@@ -3604,10 +3604,10 @@
                       "sliderTargetSuffixYOffset",
                       "sliderTargetSuffixXOffset",
                       "sliderTargetSuffixFontSize",
-                      "sliderTargetSuffixLetterSpacing",
+                      "sliderTargetSuffixFontSizeVw",
                       "sliderTargetSuffixOverallBorderThickness",
                       "sliderTargetSuffixExtrusionDepth",
-                      "sliderTargetSuffixFontSizeVw",
+                      "sliderTargetSuffixLetterSpacing",
                       "sliderTargetSuffixLineHeight"
                     ],
                     "subgroups": []
@@ -3697,15 +3697,15 @@
                     },
                     {
                       "type": "row",
+                      "key": "sliderTargetPrefixLineHeight"
+                    },
+                    {
+                      "type": "row",
                       "key": "sliderTargetPrefixXOffset"
                     },
                     {
                       "type": "row",
                       "key": "sliderTargetPrefixYOffset"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderTargetPrefixLineHeight"
                     }
                   ],
                   "rowKeys": [
@@ -3714,9 +3714,9 @@
                     "sliderTargetPrefixExtrusionDepth",
                     "sliderTargetPrefixOverallBorderThickness",
                     "sliderTargetPrefixLetterSpacing",
+                    "sliderTargetPrefixLineHeight",
                     "sliderTargetPrefixXOffset",
-                    "sliderTargetPrefixYOffset",
-                    "sliderTargetPrefixLineHeight"
+                    "sliderTargetPrefixYOffset"
                   ],
                   "subgroups": []
                 },
@@ -3737,7 +3737,7 @@
                     },
                     {
                       "type": "row",
-                      "key": "sliderTargetSuffixLetterSpacing"
+                      "key": "sliderTargetSuffixFontSizeVw"
                     },
                     {
                       "type": "row",
@@ -3749,7 +3749,7 @@
                     },
                     {
                       "type": "row",
-                      "key": "sliderTargetSuffixFontSizeVw"
+                      "key": "sliderTargetSuffixLetterSpacing"
                     },
                     {
                       "type": "row",
@@ -3760,10 +3760,10 @@
                     "sliderTargetSuffixYOffset",
                     "sliderTargetSuffixXOffset",
                     "sliderTargetSuffixFontSize",
-                    "sliderTargetSuffixLetterSpacing",
+                    "sliderTargetSuffixFontSizeVw",
                     "sliderTargetSuffixOverallBorderThickness",
                     "sliderTargetSuffixExtrusionDepth",
-                    "sliderTargetSuffixFontSizeVw",
+                    "sliderTargetSuffixLetterSpacing",
                     "sliderTargetSuffixLineHeight"
                   ],
                   "subgroups": []
@@ -4708,15 +4708,15 @@
                     },
                     {
                       "type": "row",
+                      "key": "sliderTargetPrefixLineHeight"
+                    },
+                    {
+                      "type": "row",
                       "key": "sliderTargetPrefixXOffset"
                     },
                     {
                       "type": "row",
                       "key": "sliderTargetPrefixYOffset"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderTargetPrefixLineHeight"
                     }
                   ],
                   "rowKeys": [
@@ -4725,9 +4725,9 @@
                     "sliderTargetPrefixExtrusionDepth",
                     "sliderTargetPrefixOverallBorderThickness",
                     "sliderTargetPrefixLetterSpacing",
+                    "sliderTargetPrefixLineHeight",
                     "sliderTargetPrefixXOffset",
-                    "sliderTargetPrefixYOffset",
-                    "sliderTargetPrefixLineHeight"
+                    "sliderTargetPrefixYOffset"
                   ],
                   "subgroups": []
                 }
@@ -4751,7 +4751,7 @@
                     },
                     {
                       "type": "row",
-                      "key": "sliderTargetSuffixLetterSpacing"
+                      "key": "sliderTargetSuffixFontSizeVw"
                     },
                     {
                       "type": "row",
@@ -4763,7 +4763,7 @@
                     },
                     {
                       "type": "row",
-                      "key": "sliderTargetSuffixFontSizeVw"
+                      "key": "sliderTargetSuffixLetterSpacing"
                     },
                     {
                       "type": "row",
@@ -4774,10 +4774,10 @@
                     "sliderTargetSuffixYOffset",
                     "sliderTargetSuffixXOffset",
                     "sliderTargetSuffixFontSize",
-                    "sliderTargetSuffixLetterSpacing",
+                    "sliderTargetSuffixFontSizeVw",
                     "sliderTargetSuffixOverallBorderThickness",
                     "sliderTargetSuffixExtrusionDepth",
-                    "sliderTargetSuffixFontSizeVw",
+                    "sliderTargetSuffixLetterSpacing",
                     "sliderTargetSuffixLineHeight"
                   ],
                   "subgroups": []
@@ -4867,15 +4867,15 @@
                   },
                   {
                     "type": "row",
+                    "key": "sliderTargetPrefixLineHeight"
+                  },
+                  {
+                    "type": "row",
                     "key": "sliderTargetPrefixXOffset"
                   },
                   {
                     "type": "row",
                     "key": "sliderTargetPrefixYOffset"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderTargetPrefixLineHeight"
                   }
                 ],
                 "rowKeys": [
@@ -4884,9 +4884,9 @@
                   "sliderTargetPrefixExtrusionDepth",
                   "sliderTargetPrefixOverallBorderThickness",
                   "sliderTargetPrefixLetterSpacing",
+                  "sliderTargetPrefixLineHeight",
                   "sliderTargetPrefixXOffset",
-                  "sliderTargetPrefixYOffset",
-                  "sliderTargetPrefixLineHeight"
+                  "sliderTargetPrefixYOffset"
                 ],
                 "subgroups": []
               },
@@ -4907,7 +4907,7 @@
                   },
                   {
                     "type": "row",
-                    "key": "sliderTargetSuffixLetterSpacing"
+                    "key": "sliderTargetSuffixFontSizeVw"
                   },
                   {
                     "type": "row",
@@ -4919,7 +4919,7 @@
                   },
                   {
                     "type": "row",
-                    "key": "sliderTargetSuffixFontSizeVw"
+                    "key": "sliderTargetSuffixLetterSpacing"
                   },
                   {
                     "type": "row",
@@ -4930,10 +4930,10 @@
                   "sliderTargetSuffixYOffset",
                   "sliderTargetSuffixXOffset",
                   "sliderTargetSuffixFontSize",
-                  "sliderTargetSuffixLetterSpacing",
+                  "sliderTargetSuffixFontSizeVw",
                   "sliderTargetSuffixOverallBorderThickness",
                   "sliderTargetSuffixExtrusionDepth",
-                  "sliderTargetSuffixFontSizeVw",
+                  "sliderTargetSuffixLetterSpacing",
                   "sliderTargetSuffixLineHeight"
                 ],
                 "subgroups": []
