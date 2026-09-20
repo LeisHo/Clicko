@@ -385,14 +385,14 @@
     "--ms-per-click-font-size-px": 81.4,
     "--ms-per-click-font-size-vw": 13.2,
     "--ms-per-click-scale-with-browser": 1,
-    "--ms-per-click-x-offset-vw": 41.8,
+    "--ms-per-click-x-offset-vw": 41.2,
     "--ms-per-click-x-offset-unit-is-px": 1,
-    "--ms-per-click-number-x-offset-px": -30,
+    "--ms-per-click-number-x-offset-px": -19,
     "--ms-per-click-y-offset-vh": 82,
     "--ms-per-click-y-offset-unit-is-px": 1,
     "--ms-per-click-letter-spacing-px": 1.5,
-    "--ms-per-click-line-height": 1.05,
-    "--ms-per-click-line2-gap-px": 11,
+    "--ms-per-click-line-height": 1.15,
+    "--ms-per-click-line2-gap-px": 0,
     "--ms-per-click-text-align": "right",
     "--ms-per-click-text-valign": "top",
     "--ms-per-click-text-align-edge-lock": 1,
@@ -3219,7 +3219,8 @@
       "sliderMsPerClickLineHeight": "1.05",
       "sliderMsPerClickLine2Gap": "17",
       "sliderMsPerClickLetterSpacing": "1.5",
-      "sliderMsPerClickX": "50"
+      "sliderMsPerClickX": "31.15",
+      "sliderMsPerClickNumberXOffset": "-19"
     },
     "landscape": {}
   },
