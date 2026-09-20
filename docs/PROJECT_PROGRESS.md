@@ -65,7 +65,15 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): dev-panel groups and settings can now be
+Most recently (2026-09-19): added a "Clear Highscore" button to the
+dev panel's Debug group - resets both the in-memory value and its
+`localStorage` persistence, then refreshes the on-screen number.
+Reused Mouse Log's own `resolveDebugGroupSid()` + `findGroupContent()`
+lookup and dual sync/async call-site pattern (Clicko's "DEBUG" group is
+a user-renamed custom group, not a literal static one, so it has to be
+found by current display name). Committed and pushed.
+
+Before that (2026-09-19): dev-panel groups and settings can now be
 reordered fully interleaved via drag (a group can land above/below/
 between settings, not forced to sort separately from them) - fixed
 across 3 systems: `setupDragReorder()`'s sibling-position comparison
@@ -76,8 +84,9 @@ fallback for an old-format saved settings file), and
 `syncTabOrderToDesktop()`'s Desktop->Mobile/Landscape order-mirroring
 translator (2 leftover-append sites were also writing to the wrong,
 now-unread field). Built and verified in `.claude/TEMPLATE_DEV_PANEL.html`
-first, then ported here. **Not committed/pushed yet** - awaiting
-explicit instruction.
+first, then ported here. Committed and pushed (this doc's own earlier
+"not committed/pushed" note was stale - confirmed on origin as of the
+entry above).
 
 Before that (2026-09-19): fixed the Round Breakdown panel showing on
 startup instead of only on a loss (`renderRoundBreakdown()`'s own

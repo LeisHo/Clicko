@@ -7865,6 +7865,17 @@
         function updateHighScoreDisplay() {
             highScoreNumber.textContent = highScore;
         }
+        // Clear Highscore (Debug group dev-panel button) - per direct
+        // request. Resets both the in-memory value and its localStorage
+        // persistence, then refreshes the on-screen number immediately -
+        // same 3-step shape as checkHighScore()'s own update just below,
+        // minus the blink (a manual dev-tool reset isn't "achieving" a new
+        // score, so no celebratory flash).
+        function clearHighScore() {
+            highScore = 0;
+            localStorage.removeItem(HIGH_SCORE_KEY);
+            updateHighScoreDisplay();
+        }
         function checkHighScore(round) {
             if (round > highScore) {
                 highScore = round;
@@ -9308,6 +9319,9 @@
                     // this is the call site that actually succeeds on a
                     // real page load, per that section's own top comment.
                     if (devPanelBuilt) buildMouseLogWidget();
+                    // Clear Highscore button - same "real call site on a
+                    // real page load" reasoning as Mouse Log just above.
+                    if (devPanelBuilt) buildClearHighScoreButton();
                     // Generic slider display-sync-after-load - every
                     // CSS_VAR_SLIDER_MAP/EXTRUSION_SLIDER_MAP-driven slider's
                     // underlying value already restores correctly via the
@@ -17447,6 +17461,31 @@
             clearMouseLog();
             logMouseLogContext('start');
         }
+        // Clear Highscore button (Debug group) - per direct request ("add
+        // a 'Clear Highscore' button"). A plain trigger button directly in
+        // the Debug group's own content, not a nested subgroup (unlike
+        // Mouse Log above) - same idempotent-by-id-check + resolveDebugGroupSid()/
+        // findGroupContent() lookup + dual sync/async call-site pattern as
+        // buildMouseLogWidget() (see that function's own top comment for
+        // why 2 call sites are needed - devTextOverrides may still be
+        // empty on the synchronous one).
+        function buildClearHighScoreButton() {
+            if (document.getElementById('btnClearHighScore')) return;
+            const debugSid = resolveDebugGroupSid();
+            if (!debugSid) return;
+            const debugContent = findGroupContent('desktop', debugSid, 'buildClearHighScoreButton', 'btnClearHighScore');
+            if (!debugContent) return;
+            const row = document.createElement('div');
+            row.className = 'dev-row';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'dev-trigger-btn';
+            btn.id = 'btnClearHighScore';
+            btn.textContent = 'Clear Highscore';
+            btn.addEventListener('click', clearHighScore);
+            row.appendChild(btn);
+            debugContent.appendChild(row);
+        }
         function setupMouseLog() {
             if (setupMouseLog._done) return;
             setupMouseLog._done = true;
@@ -17586,6 +17625,8 @@
             // async settings-load completion below.
             buildMouseLogWidget();
             setupMouseLog();
+            // Clear Highscore button - same dual-call-site reasoning.
+            buildClearHighScoreButton();
             renderSpecialColorControls();
             renderDevPanelMiscControls();
             renderClickBurstTextInputControls();
