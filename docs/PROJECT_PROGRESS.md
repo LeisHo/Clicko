@@ -16,19 +16,26 @@ from there.
 
 ## Currently working on
 
-**Just fixed a critical, live production bug** (2026-09-20): real (non-dev)
-visitors could not play the game at all — every tap threw an uncaught
-exception inside `handleGameButtonPress()` (via `spawnClickBurst()` reading
-a lazily-built dev-panel input as gameplay source of truth), so clicks
-never registered and click-burst frames never showed. Root-caused via
-direct reproduction on the live site and fixed by moving
-`renderClickBurstTextInputControls()` into the same eager/unconditional
-build path as the already-proven `renderGameMechanicsControls()` fix. Also
-fixed 2 bugs in this session's own Stage 2 UI-Engine work found along the
-way: the Inspector panel/button were unconditionally visible to every
-visitor (now gated behind `isDevAllowed`), and 3 places null-referenced a
-lazily-built real checkbox without a guard. See CHANGELOG for the full
-account. This fix is queued for push alongside the rest of Stage 2.
+**Two real bugs found and fixed today in this session's own UI-Engine
+Stage 2 work** (both committed and pushed — `7f16e5e` and the commit
+after it):
+1. A critical, live production bug: real (non-dev) visitors could not play
+   the game at all — every tap threw inside `handleGameButtonPress()` (via
+   `spawnClickBurst()` reading a lazily-built dev-panel input as gameplay
+   source of truth). Fixed by moving `renderClickBurstTextInputControls()`
+   into the same eager/unconditional build path as the already-proven
+   `renderGameMechanicsControls()` fix. Also closed 2 related gaps found
+   alongside it: the Inspector panel/button were unconditionally visible to
+   every visitor (now gated behind `isDevAllowed`), and 3 places
+   null-referenced a lazily-built real checkbox without a guard.
+2. The Inspector-writeback sync (see below) was pushing every registered
+   element's stale, page-load-time engine state into Clicko's real cssVars
+   the instant the Inspector was opened — moving UI elements to "vastly
+   incorrect" locations with no edit made at all. Fixed by scoping the sync
+   to only the currently-selected element, and priming the engine from
+   current reality before ever pushing anything out.
+
+See CHANGELOG for the full account of both.
 
 The UI-Engine adoption trial (Stage 1/2 evaluation) is now **committed and
 pushed to main** (commit `ac461e9`): a `lib/ui-engine/` folder (all 9 real

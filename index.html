@@ -20361,7 +20361,8 @@
          "same cssVars key either way" reasoning already established.
     ============================================================ -->
     <script type="module">
-        import { getEffectiveValue } from './lib/ui-engine/registry.mjs';
+        import { getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+        import { refreshInspector } from './lib/ui-engine/inspector.mjs';
 
         function parseFloatSafe(v) { const n = parseFloat(v); return Number.isNaN(n) ? undefined : n; }
         function blendedVw(v) { return (v && typeof v === 'object') ? v.vwValue : undefined; }
@@ -20412,14 +20413,118 @@
             { id: 'stage2ButtonDiameter', field: 'widthMin', cssVar: '--button-min-diameter-px', extract: parseFloatSafe },
         );
 
+        // ------------------------------------------------------------
+        // BUG FIX (2026-09-20, direct report: "when im in desktop dev
+        // mode... hit Inspector button, all my ui moves to a vastly
+        // incorrect location"). Root cause, confirmed live: every Stage 2
+        // element is registered with the engine SYNCHRONOUSLY at this
+        // module's own load time, reading cssVars at that exact instant -
+        // but Clicko's real settings (loadSettings()'s async fetch) can
+        // resolve LATER than that, meaning the engine's stored config can
+        // be stale (page-load-default values) relative to what cssVars
+        // actually holds by the time a user opens the Inspector. The
+        // ORIGINAL version of this block pushed EVERY one of the ~26
+        // mapped fields to cssVars the instant the Inspector's mount point
+        // first rendered (even just showing the "select an element" hint,
+        // before anything was selected or edited) - confirmed via direct
+        // reproduction: merely clicking the Inspector toggle changed BOTH
+        // High Score's AND Button's real cssVars, with nothing selected or
+        // edited.
+        //
+        // Fix, 2 parts:
+        // 1. SCOPE - only ever sync fields belonging to the element
+        //    CURRENTLY SELECTED in the Inspector's own dropdown, never the
+        //    full ~26-entry table on every render.
+        // 2. PRIME-BEFORE-PUSH - the FIRST time a given element is seen as
+        //    selected (a fresh selection, or the panel's first open),
+        //    instead of pushing the engine's (possibly stale) value OUT,
+        //    pull cssVars' CURRENT real value IN to the engine first (via
+        //    updateElement()) and skip pushing that round. Only once the
+        //    engine's own state has been re-primed from live reality does
+        //    a SUBSEQUENT edit correctly push forward - which is exactly
+        //    "an edit you actually made," never "whatever this element
+        //    happened to look like at page-load time."
+        // ------------------------------------------------------------
+        let stage2LastPrimedId = null;
+
+        function stage2PrimeEntry(entry) {
+            const raw = cssVars[entry.cssVar];
+            if (raw === undefined) return;
+            try {
+                if (entry.field === 'anchorH') {
+                    updateElement(entry.id, { position: { horizontal: { anchor: raw } } });
+                } else if (entry.field === 'anchorV') {
+                    updateElement(entry.id, { position: { vertical: { anchor: raw } } });
+                } else if (entry.field === 'offsetX' || entry.field === 'offsetY') {
+                    const current = getEffectiveValue(entry.id, entry.field, 'base').value;
+                    const unitMatch = typeof current === 'string' ? /[a-z%]+$/i.exec(current) : null;
+                    const unit = unitMatch ? unitMatch[0] : (entry.field === 'offsetX' ? 'vw' : 'vh');
+                    const axis = entry.field === 'offsetX' ? 'horizontal' : 'vertical';
+                    updateElement(entry.id, { position: { [axis]: { offset: raw + unit } } });
+                } else if (entry.field === 'widthValue') {
+                    const current = getEffectiveValue(entry.id, 'widthValue', 'base').value;
+                    if (current && typeof current === 'object') {
+                        const key = entry.extract === blendedPx ? 'pxValue' : 'vwValue';
+                        updateElement(entry.id, { size: { width: { value: { ...current, [key]: raw } } } });
+                    } else {
+                        updateElement(entry.id, { size: { width: { value: raw + 'vw' } } });
+                    }
+                } else if (entry.field === 'heightValue') {
+                    updateElement(entry.id, { size: { height: { value: raw + 'vh' } } });
+                } else if (entry.field === 'gap') {
+                    const current = getEffectiveValue(entry.id, 'gap', 'base').value;
+                    const axis = entry.extract === gapX ? 'x' : 'y';
+                    updateElement(entry.id, { position: { gap: { ...(current && typeof current === 'object' ? current : {}), [axis]: raw + 'px' } } });
+                } else if (entry.field === 'widthPreferred') {
+                    updateElement(entry.id, { size: { width: { preferred: raw + 'vmin' } } });
+                } else if (entry.field === 'widthMin') {
+                    updateElement(entry.id, { size: { width: { min: raw + 'px' } } });
+                }
+            } catch (e) {
+                // Field doesn't apply under this element's current mode (e.g.
+                // switched to 'relative' via the Inspector, offsetX no
+                // longer exists) - skip, not an error.
+            }
+        }
+
         function stage2SyncEngineToClicko() {
+            const selectEl = document.querySelector('.ui-inspector-select');
+            const selectedId = selectEl ? selectEl.value : '';
+            if (!selectedId) { stage2LastPrimedId = null; return; } // nothing selected - never sync anything
+
+            const relevantEntries = STAGE2_SYNC_MAP.filter((e) => e.id === selectedId);
+            if (relevantEntries.length === 0) return; // selected element isn't one of ours (e.g. a font-size sub-element with no direct cssVar of its own under a different id) - nothing to do
+
+            if (selectedId !== stage2LastPrimedId) {
+                // Freshly selected (or the panel just opened onto this
+                // element for the first time) - re-prime from reality,
+                // don't push anything out yet. refreshInspector() forces
+                // the panel to redraw against the just-primed values - the
+                // Inspector's own render() has no idea an external
+                // updateElement() call just changed anything, so without
+                // this its displayed text would keep showing the
+                // pre-prime (stale) value even though the underlying
+                // engine data is already correct (confirmed live: engine
+                // read -1.83vw, displayed input still read 0vw, until this
+                // call was added). Safe against re-triggering this same
+                // MutationObserver in a loop - the next firing sees
+                // selectedId === stage2LastPrimedId already, goes to the
+                // push branch, finds nothing actually changed (we just
+                // primed with the same value cssVars already had), and
+                // stops.
+                relevantEntries.forEach(stage2PrimeEntry);
+                stage2LastPrimedId = selectedId;
+                refreshInspector();
+                return;
+            }
+
             let anyChanged = false;
-            for (const entry of STAGE2_SYNC_MAP) {
+            for (const entry of relevantEntries) {
                 let result;
                 try {
                     result = getEffectiveValue(entry.id, entry.field, 'base');
                 } catch (e) {
-                    continue; // element not registered, or field doesn't apply under its current mode - skip, not an error
+                    continue; // field doesn't apply under the current mode - skip, not an error
                 }
                 if (!result) continue;
                 const extracted = entry.extract(result.value);
