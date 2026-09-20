@@ -3047,10 +3047,16 @@
            .dev-section-title (same rename-survival reasoning as the lock
            icon just above), positioned just to its left so the two never
            overlap. */
+        /* Shifted from right:30px to right:52px (2026-09-20) to make room
+           for the new Undock button between this and the Lock icon - per
+           direct spec: "from the far left [of the title text, i.e.
+           reading right-to-left from the outer edge] should be Lock/
+           Unlock, Dock/Undock, then the Show in Mobile/Landscape
+           Checkbox" (checkbox stays closest to the title text). */
         .dev-group-device-checkbox {
             position: absolute;
             top: 50%;
-            right: 30px;
+            right: 52px;
             transform: translateY(-50%);
             accent-color: var(--dev-accent-color);
             cursor: pointer;
@@ -3133,8 +3139,11 @@
             /* Left padding widened to reserve room for .dev-group-drag-
                handle (a sibling, absolutely positioned at left:8px) so it
                doesn't sit on top of the collapse arrow (▼/▶), which is
-               always the title's own first character. */
-            padding: 5px 5px 5px 22px;
+               always the title's own first character. Right padding
+               widened 5px -> 78px (2026-09-20) to fit the 3 right-side
+               icons (Lock, Undock, "Show in Mobile/Landscape" checkbox -
+               see their own CSS below). */
+            padding: 5px 78px 5px 22px;
             background: var(--dev-group-label-bg-color, #134e4a);
             border-radius: 3px;
             /* Corrected: the title itself is NO LONGER the drag handle for

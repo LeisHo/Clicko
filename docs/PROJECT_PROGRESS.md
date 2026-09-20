@@ -65,7 +65,20 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): 2nd fix for Round Breakdown's Auto Scroll
+Most recently (2026-09-20): fixed a real, live overlap between the
+"Show in Mobile/Landscape" checkbox and the new Undock button in every
+group's title bar - found while investigating the Auto Scroll fix
+below (that Undock feature was still another session's own in-progress
+work at the time, since finished and pushed - see the entry further
+down); their commit landed the Undock button at the same right:30px
+position the checkbox already used, and hadn't yet reached the spacing
+fix. Applied the fix already prepared for exactly this: checkbox moved
+to right:52px, title's own right padding widened 5px -> 78px for all 3
+icons (Lock/Undock/checkbox). Live-verified via real
+getBoundingClientRect() measurements on a group with all 3 icons -
+zero overlap, was previously overlapping. Committed and pushed.
+
+Before that (2026-09-20): 2nd fix for Round Breakdown's Auto Scroll
 pausing on the Try Again "?" flash - direct follow-up ("Its better than
 before, but its still happeing... it happens when the '?' dissppears
 as well as when it reappears") confirmed the earlier tick()-side fix
