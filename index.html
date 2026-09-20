@@ -1740,36 +1740,41 @@
            serialize generically with no extra code needed. */
         .round-breakdown-panel {
             position: fixed;
-            left: calc(var(--round-breakdown-left-px) * 1px);
-            top: calc(var(--round-breakdown-top-px) * 1px);
-            /* Scale With Browser (dev-panel checkbox) - per direct request
-               ("Provide a Size with Browser check box that applies to the
-               entire panel. This should apply to the panel itself and all
-               text etc within it."). Same 0/1-multiplier blend pattern as
-               every other Scale With Browser control in this file (see
-               .start-button's own font-size comment), but derives the vw
-               side from the ALREADY-stored px value divided by a reference
-               viewport width instead of a 2nd stored vw slider - a
-               deliberate simplification (only one checkbox was asked for,
-               not a full px+vw slider pair per property) matching
-               TEMPLATE_DEV_PANEL.html's own documented Standard Text
-               Settings simplification. --round-breakdown-scale-ref-px is
-               set from getActiveDeviceProfile() in applyActiveVars()
-               (1280 desktop / 390 mobile / 844 landscape, the same
-               reference widths already used for this project's per-device
-               px-to-vw font conversions). */
-            width: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-width-px) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-width-px) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
-            height: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-height-px) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-height-px) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
+            /* X/Y Offset, Width, Height are now vw/vh-native (per direct
+               request), not px - matches this codebase's own established
+               convention for every other position/size dev-panel offset
+               (--button-x-offset-vw, --high-score-x-offset-vw, etc, per
+               CLAUDE.md Section 12a). Left/top's real rendering is actually
+               driven by applyRoundBreakdownPosition()'s own JS-set inline
+               style (needed for the Align/Valign+Edge-Lock feature below),
+               not this calc() - this rule only matters for the very first
+               paint of a fresh page load, before that JS has run once. */
+            left: calc(var(--round-breakdown-left-vw) * 1vw);
+            top: calc(var(--round-breakdown-top-vh) * 1vh);
+            /* Scale With Browser (dev-panel checkbox) now only blends
+               TEXT font-size (see .round-breakdown-row-title/-row-data's
+               own rules below) - it used to also blend the panel's own
+               width/height between px and a derived vw, but now that
+               Width/Height are genuinely vw/vh-native controls (see above),
+               they already scale with the viewport unconditionally by
+               construction - the checkbox literally can't do anything
+               different for these 2 properties any more, so the blend
+               formula was removed here rather than left as dead weight. */
+            width: calc(var(--round-breakdown-width-vw) * 1vw);
+            height: calc(var(--round-breakdown-height-vh) * 1vh);
             min-width: 240px;
             min-height: 140px;
             max-width: 90vw;
             max-height: 90vh;
-            /* Panel Color (dev-panel control) - was a hardcoded rgba() with
-               0.94 alpha; a native <input type="color"> can't hold alpha, so
-               the picker's default (#ffffff) is fully opaque instead of the
-               old very-slightly-transparent white - an accepted, minor
-               visual tradeoff for making this tunable. */
-            background: var(--round-breakdown-panel-color, rgba(255, 255, 255, 0.94));
+            /* Panel Color/Panel Opacity (dev-panel controls) - background is
+               NOT set directly here any more; per direct request ("provide
+               a Panel Opacity slider that sets the opacity of the
+               background only"), it now lives on the ::before layer below
+               instead, so the opacity slider affects only the background
+               fill - the border/outline, text, and resize handle all stay
+               fully opaque regardless of this setting (a plain `opacity`
+               on the panel element itself would have faded everything). */
+            background: none;
             border-radius: 8px;
             z-index: 15;
             display: flex;
@@ -1788,6 +1793,28 @@
                (see JS) exactly as before - only the drag mechanism changed. */
             resize: none;
             overflow: auto;
+        }
+
+        /* Panel Color/Panel Opacity (dev-panel controls) - the actual
+           background fill, on its own layer behind the panel's real
+           content so Opacity only fades the fill, never the border/
+           outline/text/resize-handle (see .round-breakdown-panel's own
+           comment on `background: none` above). `position:absolute` inside
+           the panel (its nearest positioned ancestor, `position:fixed`)
+           with `inset:0` fills exactly the panel's own box; `z-index:-1`
+           (relative to that same containing block) drops it below the
+           panel's other, normal-flow children without needing z-index on
+           any of THEM. `border-radius:inherit` keeps its corners matching
+           the panel's own rounded corners instead of showing square ones
+           peeking past the border. */
+        .round-breakdown-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: var(--round-breakdown-panel-color, #ffffff);
+            opacity: var(--round-breakdown-panel-opacity, 0.94);
+            border-radius: inherit;
+            z-index: -1;
         }
 
         .round-breakdown-resize-handle {
@@ -1838,22 +1865,28 @@
             outline: calc(var(--round-breakdown-outline-thickness-px, 2) * 1px) solid var(--round-breakdown-outline-color, #000000);
         }
 
+        /* Drag handle for moving the panel - see JS. Used to be a real,
+           padded/bordered title bar (the panel's own former "ROUND
+           BREAKDOWN" heading); per direct follow-up requests ("Remove the
+           text line where the Round breakdown Panel title was. The 1st
+           data entry should be the first thing within the panel") it no
+           longer reserves any layout space at all - position:absolute (out
+           of the panel's own flex flow entirely, so .round-breakdown-table
+           below is the ONLY flex child and fills the full panel height,
+           putting its own first row's content flush against the panel's
+           top edge) with a small height, purely as an invisible pointer-
+           event target to grab for dragging. touch-action:none so a touch
+           drag here isn't captured by the browser's own scroll gesture
+           first. */
         .round-breakdown-title {
-            padding: 8px 10px;
-            /* border-bottom removed per direct request ("Remove the
-               Horizontal Line at the top of the Panel. I used to be under
-               the panel title."). */
-            font-weight: 700;
-            font-size: 0.95vw;
-            color: #333;
-            text-align: center;
-            /* Drag handle for moving the panel - see JS. Title TEXT itself
-               was removed (per direct request - "Remove the title of the
-               round breakdown") but this element stays in the DOM empty,
-               still carrying its own padding, so it remains grabbable. */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            z-index: 2;
             cursor: grab;
-            user-select: none;
-            flex-shrink: 0;
+            touch-action: none;
         }
 
         .round-breakdown-title.dragging {
@@ -1911,6 +1944,13 @@
             letter-spacing: calc(var(--round-breakdown-title-letter-spacing-px, 0) * 1px);
             line-height: var(--round-breakdown-title-line-height, 1.2);
             margin-bottom: 2px;
+            /* Per direct request ("when i edit the text, multiple spaces
+               should show as multiple spaces") - plain HTML/`white-space:
+               normal` collapses consecutive spaces to one regardless of
+               what the underlying string actually holds; `pre-wrap`
+               preserves every space typed while still wrapping normally at
+               the panel's own width. */
+            white-space: pre-wrap;
         }
 
         .round-breakdown-panel.rb-title-bold .round-breakdown-row-title {
@@ -1937,6 +1977,12 @@
             color: var(--round-breakdown-data-color, #333);
             letter-spacing: calc(var(--round-breakdown-data-letter-spacing-px, 0) * 1px);
             line-height: var(--round-breakdown-data-line-height, 1.2);
+            /* Same reasoning as .round-breakdown-row-title's own comment -
+               this is the one that actually holds the user-editable stat
+               labels (Click Count Target/Clicks/etc, see TEXT_EDIT_TARGETS.
+               roundBreakdownTable), so this is the element the report was
+               actually about. */
+            white-space: pre-wrap;
         }
 
         .round-breakdown-panel.rb-data-bold .round-breakdown-row-data {
@@ -6609,10 +6655,19 @@
             '--dev-panel-left-px': 26,
             '--dev-panel-top-px': 6,
             '--dev-panel-height-px': 120,
-            '--round-breakdown-width-px': 320,
-            '--round-breakdown-height-px': 450,
-            '--round-breakdown-left-px': 1562,
-            '--round-breakdown-top-px': 54,
+            // X/Y Offset/Width/Height are vw/vh-native (per direct request -
+            // see .round-breakdown-panel's own CSS comment) - defaults
+            // below place the panel in roughly the same right-side, modest-
+            // size area the old px defaults (1562/54/320/450 at whatever
+            // viewport those were tuned against) intended, not a literal
+            // pixel-preserving conversion (the old numbers don't correspond
+            // to sensible vw/vh values at every viewport - Mobile's own old
+            // 1240px left, for one, was never actually on-screen for a real
+            // phone width).
+            '--round-breakdown-width-vw': 20,
+            '--round-breakdown-height-vh': 45,
+            '--round-breakdown-left-vw': 65,
+            '--round-breakdown-top-vh': 5,
             // Round Breakdown dev-panel group (UI TEXT > Round Breakdown) -
             // the On/Off-style flags below are single-bucket/shared (only
             // ever read from this desktop cssVars, applied via JS classList
@@ -6648,6 +6703,13 @@
             '--round-breakdown-autoscroll-speed-px-per-sec': 30,
             '--round-breakdown-autoscroll-pause-before-ms': 1500,
             '--round-breakdown-autoscroll-pause-end-ms': 1500,
+            // Panel Opacity (dev-panel slider) - opacity of the background
+            // FILL only (see .round-breakdown-panel::before's own CSS
+            // comment), not the whole panel. Defaults to 0.94, matching the
+            // panel's original pre-Panel-Color hardcoded rgba() alpha, so a
+            // fresh/never-tuned install looks the same as before either
+            // control existed.
+            '--round-breakdown-panel-opacity': 0.94,
         };
 
         // Color variables
@@ -7501,10 +7563,10 @@
             '--result-text-valign': 'center',
             '--result-text-align-edge-lock': 0,
             '--result-text-valign-edge-lock': 0,
-            '--round-breakdown-width-px': 280,
-            '--round-breakdown-height-px': 320,
-            '--round-breakdown-left-px': 1240,
-            '--round-breakdown-top-px': 190,
+            '--round-breakdown-width-vw': 80,
+            '--round-breakdown-height-vh': 40,
+            '--round-breakdown-left-vw': 10,
+            '--round-breakdown-top-vh': 15,
             '--round-breakdown-outline-thickness-px': 2,
             '--round-breakdown-title-font-size-px': 14,
             '--round-breakdown-title-letter-spacing-px': 0,
@@ -11409,10 +11471,10 @@
             // CONTROLS below), matching X/Y/Width/Height's own pre-existing
             // per-device cssVars split.
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownEnabled', type: 'checkbox', label: 'Round Breakdown On/Off' },
-            { group: 'Round Breakdown', id: 'sliderRoundBreakdownX', type: 'slider', label: 'X Offset (px):', min: 0, max: 3000, step: 1, value: 1562 },
-            { group: 'Round Breakdown', id: 'sliderRoundBreakdownY', type: 'slider', label: 'Y Offset (px):', min: 0, max: 2000, step: 1, value: 54 },
-            { group: 'Round Breakdown', id: 'sliderRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 320 },
-            { group: 'Round Breakdown', id: 'sliderRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 450 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownX', type: 'slider', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownY', type: 'slider', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownWidth', type: 'slider', label: 'Width (vw):', min: 10, max: 100, step: 0.1, value: 20 },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownHeight', type: 'slider', label: 'Height (vh):', min: 10, max: 100, step: 0.1, value: 45 },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownResizerEnabled', type: 'checkbox', label: 'Panel Resizer On/Off' },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownScaleWithBrowser', type: 'checkbox', label: 'Scale With Browser' },
             // Align/Valign + Edge Lock (see applyRoundBreakdownPosition()'s
@@ -11462,6 +11524,7 @@
             { group: 'Round Breakdown', id: 'colorRoundBreakdownOutline', type: 'color', label: 'Outline Color:', value: '#000000' },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownRowLinesEnabled', type: 'checkbox', label: 'Row Divider Lines On/Off' },
             { group: 'Round Breakdown', id: 'colorRoundBreakdownPanel', type: 'color', label: 'Panel Color:', value: '#ffffff' },
+            { group: 'Round Breakdown', id: 'sliderRoundBreakdownPanelOpacity', type: 'slider', label: 'Panel Opacity (Background Only):', min: 0, max: 1, step: 0.01, value: 0.94 },
             { group: 'Round Breakdown', id: 'sliderRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 16 },
             { group: 'Round Breakdown', id: 'checkboxRoundBreakdownTitleBold', type: 'checkbox', label: 'Round Title Bold' },
             { group: 'Round Breakdown', id: 'colorRoundBreakdownTitle', type: 'color', label: 'Round Title Color:', value: '#333333' },
@@ -12334,10 +12397,10 @@
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderMobileMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
-            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', type: 'slider', label: 'X Offset (px):', min: 0, max: 3000, step: 1, value: 1240 },
-            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', type: 'slider', label: 'Y Offset (px):', min: 0, max: 2000, step: 1, value: 190 },
-            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 280 },
-            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 320 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', type: 'slider', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 10 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', type: 'slider', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 15 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownWidth', type: 'slider', label: 'Width (vw):', min: 10, max: 100, step: 0.1, value: 80 },
+            { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownHeight', type: 'slider', label: 'Height (vh):', min: 10, max: 100, step: 0.1, value: 40 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 14 },
             { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownTitleLetterSpacing', type: 'slider', label: 'Round Title Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -12473,10 +12536,10 @@
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickNumberXOffset', type: 'slider', label: 'Number X Offset (Px):', min: -50, max: 50, step: 1, value: 0 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLineHeight', type: 'slider', label: 'Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
             { group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickLine2Gap', type: 'slider', label: 'Line 2-3 Spacing (px):', min: -100, max: 200, step: 1, value: 0 },
-            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownX', type: 'slider', label: 'X Offset (px):', min: 0, max: 3000, step: 1, value: 1562 },
-            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownY', type: 'slider', label: 'Y Offset (px):', min: 0, max: 2000, step: 1, value: 54 },
-            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownWidth', type: 'slider', label: 'Width (px):', min: 240, max: 900, step: 1, value: 320 },
-            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownHeight', type: 'slider', label: 'Height (px):', min: 140, max: 1200, step: 1, value: 450 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownX', type: 'slider', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownY', type: 'slider', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownWidth', type: 'slider', label: 'Width (vw):', min: 10, max: 100, step: 0.1, value: 20 },
+            { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownHeight', type: 'slider', label: 'Height (vh):', min: 10, max: 100, step: 0.1, value: 45 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownOutlineThickness', type: 'slider', label: 'Outline Thickness (px):', min: 0, max: 20, step: 1, value: 2 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownTitleFontSize', type: 'slider', label: 'Round Title Font Size (px):', min: 8, max: 60, step: 1, value: 16 },
             { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownTitleLetterSpacing', type: 'slider', label: 'Round Title Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
@@ -12972,10 +13035,10 @@
             'sliderResultLoseY': '--result-lose-y-offset-vh',
             'sliderResultLoseLetterSpacing': '--result-lose-letter-spacing-px',
             'sliderResultLineHeight': '--result-line-height',
-            'sliderRoundBreakdownX': '--round-breakdown-left-px',
-            'sliderRoundBreakdownY': '--round-breakdown-top-px',
-            'sliderRoundBreakdownWidth': '--round-breakdown-width-px',
-            'sliderRoundBreakdownHeight': '--round-breakdown-height-px',
+            'sliderRoundBreakdownX': '--round-breakdown-left-vw',
+            'sliderRoundBreakdownY': '--round-breakdown-top-vh',
+            'sliderRoundBreakdownWidth': '--round-breakdown-width-vw',
+            'sliderRoundBreakdownHeight': '--round-breakdown-height-vh',
             'sliderRoundBreakdownOutlineThickness': '--round-breakdown-outline-thickness-px',
             'sliderRoundBreakdownTitleFontSize': '--round-breakdown-title-font-size-px',
             'sliderRoundBreakdownTitleLetterSpacing': '--round-breakdown-title-letter-spacing-px',
@@ -12986,6 +13049,7 @@
             'sliderRoundBreakdownAutoscrollSpeed': '--round-breakdown-autoscroll-speed-px-per-sec',
             'sliderRoundBreakdownAutoscrollPauseBefore': '--round-breakdown-autoscroll-pause-before-ms',
             'sliderRoundBreakdownAutoscrollPauseEnd': '--round-breakdown-autoscroll-pause-end-ms',
+            'sliderRoundBreakdownPanelOpacity': '--round-breakdown-panel-opacity',
         };
 
         // Desktop slider id -> extrusionVars/mobileExtrusionVars/
@@ -15139,27 +15203,21 @@
 
         document.addEventListener('pointermove', (e) => {
             if (!isDraggingBreakdown) return;
-            const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             const dx = e.clientX - breakdownDragStart.pointerX;
             const dy = e.clientY - breakdownDragStart.pointerY;
             const panelRect = roundBreakdownPanel.getBoundingClientRect();
-            // Clamp so the panel can't be dragged fully off-screen.
+            // Clamp so the panel can't be dragged fully off-screen. Live
+            // feedback during the drag itself stays real-px, direct-
+            // cursor-following (set as inline style, not the calc()-based
+            // CSS rule) - X/Y Offset's underlying storage is vw/vh (see
+            // below + the sliders' own comment), but converting on every
+            // single pointermove tick and re-deriving px from THAT would
+            // just be lossy round-tripping for no benefit while the drag is
+            // actively live.
             const newLeft = Math.max(0, Math.min(window.innerWidth - panelRect.width, breakdownDragStart.panelLeft + dx));
             const newTop = Math.max(0, Math.min(window.innerHeight - panelRect.height, breakdownDragStart.panelTop + dy));
-            activeVars['--round-breakdown-left-px'] = Math.round(newLeft);
-            activeVars['--round-breakdown-top-px'] = Math.round(newTop);
-            // Bare number, not 'px'-suffixed - see the identical note on the
-            // dev panel's own drag handler (found via direct testing while
-            // building that feature): a 'px' suffix here, combined with the
-            // CSS's own calc(var(...) * 1px), silently halves the rendered
-            // offset instead of erroring. The stored cssVars value was
-            // always correct; only this live-drag DOM write was wrong, so
-            // the panel visually trailed the cursor at half-distance while
-            // actively dragging (a reload/settings-reapply would jump it to
-            // the correct final position, masking the bug from a value-only
-            // check).
-            document.documentElement.style.setProperty('--round-breakdown-left-px', newLeft);
-            document.documentElement.style.setProperty('--round-breakdown-top-px', newTop);
+            roundBreakdownPanel.style.left = newLeft + 'px';
+            roundBreakdownPanel.style.top = newTop + 'px';
         });
 
         function endBreakdownDrag(e) {
@@ -15169,11 +15227,23 @@
             if (e && e.pointerId !== undefined && roundBreakdownTitle.hasPointerCapture(e.pointerId)) {
                 roundBreakdownTitle.releasePointerCapture(e.pointerId);
             }
+            // Persist the drag's final real-px position as vw/vh, ONCE,
+            // here at drag-end (not per-tick, matching the dev panel's own
+            // drag-persistence pattern) - reads the panel's own live
+            // getBoundingClientRect() rather than re-deriving from
+            // pointermove's last delta, so this is correct regardless of
+            // how the live drag above computed its position.
+            {
+                const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
+                const rect = roundBreakdownPanel.getBoundingClientRect();
+                activeVars['--round-breakdown-left-vw'] = +(rect.left / window.innerWidth * 100).toFixed(3);
+                activeVars['--round-breakdown-top-vh'] = +(rect.top / window.innerHeight * 100).toFixed(3);
+            }
             // Align/Valign + Edge Lock (dev-panel controls) - while dragging,
             // pointermove above always writes a plain absolute left/top (the
             // panel follows the cursor directly, same as before this
             // feature). If Align/Valign is edge-locked, --round-breakdown-
-            // left-px/-top-px need to mean "gap from the locked edge" (see
+            // left-vw/-top-vh need to mean "gap from the locked edge" (see
             // applyRoundBreakdownPosition()'s own comment) everywhere else,
             // so re-derive that gap here, once, right after the drag that
             // just set an absolute position - not on every pointermove tick.
@@ -15185,13 +15255,17 @@
                 const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
                 const align = cssVars['--round-breakdown-align'] || 'left';
                 const valign = cssVars['--round-breakdown-valign'] || 'top';
-                const width = activeVars['--round-breakdown-width-px'] || 320;
-                const height = activeVars['--round-breakdown-height-px'] || 450;
+                // In vw/vh, "gap from the right/bottom edge" is just
+                // 100 - size - offset - no window.innerWidth/innerHeight
+                // needed at all (100vw/100vh IS the full viewport by
+                // definition), simpler than the old px-based math here.
+                const widthVw = activeVars['--round-breakdown-width-vw'] || 20;
+                const heightVh = activeVars['--round-breakdown-height-vh'] || 45;
                 if (align === 'right' && cssVars['--round-breakdown-align-edge-lock']) {
-                    activeVars['--round-breakdown-left-px'] = Math.round(window.innerWidth - width - activeVars['--round-breakdown-left-px']);
+                    activeVars['--round-breakdown-left-vw'] = +(100 - widthVw - activeVars['--round-breakdown-left-vw']).toFixed(3);
                 }
                 if (valign === 'bottom' && cssVars['--round-breakdown-valign-edge-lock']) {
-                    activeVars['--round-breakdown-top-px'] = Math.round(window.innerHeight - height - activeVars['--round-breakdown-top-px']);
+                    activeVars['--round-breakdown-top-vh'] = +(100 - heightVh - activeVars['--round-breakdown-top-vh']).toFixed(3);
                 }
             }
             // X/Y Offset dev-panel sliders - keep their displayed value in
@@ -15249,15 +15323,17 @@
         document.addEventListener('pointercancel', endBreakdownResize);
 
         // Native `resize` (the panel's own CSS) sets width/height directly on
-        // the element - catch the result here and persist it the same way.
+        // the element - catch the result here and persist it the same way,
+        // converting real-px (getBoundingClientRect etc. are inherently px)
+        // to vw/vh at this one persistence boundary.
         new ResizeObserver((entries) => {
             const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             for (const entry of entries) {
-                const w = Math.round(entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width);
-                const h = Math.round(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
+                const w = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+                const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
                 if (w > 0 && h > 0) {
-                    activeVars['--round-breakdown-width-px'] = w;
-                    activeVars['--round-breakdown-height-px'] = h;
+                    activeVars['--round-breakdown-width-vw'] = +(w / window.innerWidth * 100).toFixed(3);
+                    activeVars['--round-breakdown-height-vh'] = +(h / window.innerHeight * 100).toFixed(3);
                 }
             }
             // Re-anchor to the locked edge (if any) now that width/height
@@ -15272,28 +15348,26 @@
         // Alignment selects, Horizontal/Vertical Edge Lock checkboxes) - per
         // direct request ("Provide the Left right align and top bottom
         // align settings for the Round breakdown panel. Also the Edge Lock
-        // selector."). This panel is a draggable position:fixed box (raw
-        // px, not the centered/translate(-50%) text-anchor pattern every
-        // OTHER element's Align/Valign/Edge Lock uses - see
-        // applyTextAlignAnchors()'s own comment) so it gets its own small,
-        // analogous mechanism instead of being forced through that generic
-        // system: --round-breakdown-left-px/-top-px mean "gap from the
-        // LEFT/TOP edge" when Align/Valign is left/top (unchanged from
-        // before this feature), or "gap from the RIGHT/BOTTOM edge" when
-        // Align/Valign is right/bottom AND that axis is edge-locked -
-        // matching this codebase's existing convention that the Align/
-        // Valign dropdown alone has no visual effect until Edge Lock is
-        // also checked (see applyTextAlignAnchors()'s "Unlocked (defaults)
-        // is untouched" comment) - so Right/Bottom without Edge Lock is a
-        // deliberate no-op, not a bug, for consistency with every other
-        // element's own Align+Edge-Lock pairing in this file. Called
-        // instead of relying on a pure-CSS calc() (unlike the text-anchor
-        // system) because this panel already has JS-driven position via
-        // drag/resize, and window.innerWidth/innerHeight need to be read
-        // fresh on every recompute (a CSS 100vw/100vh literal would work
-        // too, but keeping this logic in one place alongside the drag/
-        // resize code it has to cooperate with was simpler and less error-
-        // prone than splitting it across CSS and JS).
+        // selector."). This panel is a draggable position:fixed box, so it
+        // gets its own small, analogous mechanism instead of being forced
+        // through the generic centered/translate(-50%) text-anchor system
+        // every OTHER element's Align/Valign/Edge Lock uses (see
+        // applyTextAlignAnchors()'s own comment): --round-breakdown-left-vw/
+        // -top-vh mean "gap from the LEFT/TOP edge" when Align/Valign is
+        // left/top (unchanged from before this feature), or "gap from the
+        // RIGHT/BOTTOM edge" when Align/Valign is right/bottom AND that
+        // axis is edge-locked - matching this codebase's existing
+        // convention that the Align/Valign dropdown alone has no visual
+        // effect until Edge Lock is also checked (see
+        // applyTextAlignAnchors()'s "Unlocked (defaults) is untouched"
+        // comment) - so Right/Bottom without Edge Lock is a deliberate
+        // no-op, not a bug, for consistency with every other element's own
+        // Align+Edge-Lock pairing in this file. Called instead of relying
+        // on a pure-CSS calc() (unlike the text-anchor system) because this
+        // panel already has JS-driven position via drag/resize, and keeping
+        // this logic in one place alongside the drag/resize code it has to
+        // cooperate with was simpler and less error-prone than splitting it
+        // across CSS and JS.
         function applyRoundBreakdownPosition() {
             if (!roundBreakdownPanel || isDraggingBreakdown) return;
             // Align/Valign/Edge Lock: shared, always cssVars (see
@@ -15301,14 +15375,20 @@
             // via live testing on a narrow/Mobile-active viewport: reading
             // these through activeVars silently no-op'd on Mobile/Landscape
             // since neither var object has these keys, only desktop cssVars
-            // does). Width/height/left/top ARE per-device.
+            // does). Width/height/left/top ARE per-device, and (per direct
+            // request) now vw/vh-native, so the real px position for THIS
+            // viewport is derived here, once, at render time.
             const activeVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             const align = cssVars['--round-breakdown-align'] || 'left';
             const valign = cssVars['--round-breakdown-valign'] || 'top';
-            const width = activeVars['--round-breakdown-width-px'] || 320;
-            const height = activeVars['--round-breakdown-height-px'] || 450;
-            const offsetX = activeVars['--round-breakdown-left-px'] || 0;
-            const offsetY = activeVars['--round-breakdown-top-px'] || 0;
+            const widthVw = activeVars['--round-breakdown-width-vw'] || 20;
+            const heightVh = activeVars['--round-breakdown-height-vh'] || 45;
+            const offsetXVw = activeVars['--round-breakdown-left-vw'] || 0;
+            const offsetYVh = activeVars['--round-breakdown-top-vh'] || 0;
+            const width = widthVw / 100 * window.innerWidth;
+            const height = heightVh / 100 * window.innerHeight;
+            const offsetX = offsetXVw / 100 * window.innerWidth;
+            const offsetY = offsetYVh / 100 * window.innerHeight;
             const left = (align === 'right' && cssVars['--round-breakdown-align-edge-lock']) ? (window.innerWidth - width - offsetX) : offsetX;
             const top = (valign === 'bottom' && cssVars['--round-breakdown-valign-edge-lock']) ? (window.innerHeight - height - offsetY) : offsetY;
             roundBreakdownPanel.style.left = left + 'px';
@@ -16197,7 +16277,18 @@
             // request ("If turned off, the breakdown wont be shown"), gate
             // right here at the one call site that ever un-hides the panel,
             // rather than a separate persistent visibility mechanism.
-            if (cssVars['--round-breakdown-enabled'] !== 0) {
+            // ALSO gated on an actual loss existing in roundHistory (added
+            // per direct report - "Round Breakdown is currently showing on
+            // startup. make sure it only shows on Lose") - this function is
+            // ALSO called generically by refreshAllTextOverrides() (runs on
+            // every page load and every window resize/orientation change,
+            // to restore Text Edit Mode's saved label overrides - see
+            // TEXT_EDIT_TARGETS.roundBreakdownTable's own comment), which
+            // has nothing to do with an actual loss just happening - without
+            // this guard, that generic sweep un-hid the panel on every
+            // fresh page load even with an empty roundHistory.
+            const hasLoss = roundHistory.some(r => !r.won);
+            if (cssVars['--round-breakdown-enabled'] !== 0 && hasLoss) {
                 roundBreakdownPanel.classList.remove('hidden');
             }
             restartRoundBreakdownAutoscroll();
@@ -16893,15 +16984,13 @@
         // loadSettings() completes (to correctly no-op past whatever it
         // just restored, or resolve fresh if it restored nothing).
         function resolvePositionSentinels() {
-            [
-                [cssVars, 1000, 200],
-                [mobileCssVars, 20, 100],
-            ].forEach(([vars, defaultLeft, defaultTop]) => {
-                if (vars['--round-breakdown-left-px'] === defaultLeft && vars['--round-breakdown-top-px'] === defaultTop) {
-                    vars['--round-breakdown-left-px'] = Math.max(16, window.innerWidth - vars['--round-breakdown-width-px'] - 16);
-                    vars['--round-breakdown-top-px'] = Math.max(16, (window.innerHeight - vars['--round-breakdown-height-px']) / 2);
-                }
-            });
+            // Round Breakdown's own sentinel-resolution block used to live
+            // here (converting a placeholder px default into a real
+            // viewport-safe number at load time) - removed now that X/Y/
+            // Width/Height are vw/vh-native (per direct request - see
+            // .round-breakdown-panel's own CSS comment): a vw/vh default is
+            // ALREADY viewport-relative/safe by construction, so there's no
+            // "sentinel" left to resolve.
             // Dev panel: same sentinel-default pattern, reproducing its old
             // fixed right:0/top:0/bottom:0 CSS anchor as real numbers.
             if (cssVars['--dev-panel-left-px'] === -1 && cssVars['--dev-panel-top-px'] === -1 && cssVars['--dev-panel-height-px'] === -1) {

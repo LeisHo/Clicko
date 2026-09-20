@@ -65,7 +65,30 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): a 15-item pass on the Round Breakdown panel
+Most recently (2026-09-19): fixed the Round Breakdown panel showing on
+startup instead of only on a loss (`renderRoundBreakdown()`'s own
+un-hide call fires from `refreshAllTextOverrides()`, which runs on
+every page load/resize, not just a real loss - now also gated on an
+actual loss existing in `roundHistory`); converted X/Y Offset/Width/
+Height from raw px to vw/vh-native sliders, matching every other
+position/size dev-panel offset in this codebase (this also simplified
+the recently-added Align/Valign edge-lock math - "gap from the right/
+bottom edge" is just `100 - size - offset` in vw/vh, no
+window.innerWidth/innerHeight lookup needed); added a Panel Opacity
+slider that fades ONLY the background fill (moved onto a new `::before`
+layer) while the border/outline/text/resize-handle stay fully opaque;
+removed the title bar's remaining reserved space so the first data row
+is genuinely the first thing in the panel (the drag handle is now a
+zero-height, invisible absolutely-positioned strip); and preserved
+multiple spaces in the panel's editable text (`white-space: pre-wrap`).
+Confirmed, not fixed (pre-existing, outside this task's scope): the
+Width/X-Offset slider's own displayed value can lag one interaction
+behind a real resize-drag, since `syncSlidersFromState()` reads state
+synchronously on pointerup while the ResizeObserver's own write is
+async - this exact ordering already existed before this task. Committed
+and pushed.
+
+Before that (2026-09-19): a 15-item pass on the Round Breakdown panel
 (built by a concurrent session, see below) - merged the Outline On/Off
 checkbox with the panel's own previously-permanent border (toggling it
 off now genuinely removes the line); removed the horizontal line under
@@ -75,23 +98,25 @@ Title/Data; added lost-round-only Title/Data color pickers; added
 Horizontal/Vertical Alignment + Edge Lock for the panel's own position
 (a new small mechanism, not the shared text-anchor system - see
 applyRoundBreakdownPosition()'s own comment); added one Scale With
-Browser checkbox for the whole panel (size + both font sizes); added a
-Row Divider Lines On/Off checkbox; registered the panel's 5 stat labels
-as a Text Edit Mode target (it had none before); and built a full Auto
-Scroll subsystem (On/Off + loop, Speed, Pause Before, Pause At End),
-which also disables manual scrolling while active. Also added a
-"Saved" flash indicator to the dev panel's HEADER Sync button
-specifically (the original bottom SYNC button already had one, but it's
-not visible from the header without scrolling back down). A real bug
-was found and fixed live: several of the new "shared" controls
-(Align/Valign/Edge-Lock/Autoscroll) were initially read through the
-same per-device lookup this group's genuinely per-device sliders use,
-which silently no-op'd on Mobile/Landscape - fixed to read desktop
-cssVars unconditionally instead, matching this group's own established
-convention for shared toggles. **Not committed/pushed** - awaiting
-explicit instruction. The currently-live saved settings predate several
-of the new/changed defaults (outline-enabled, title/data colors) and
-will show their old values until someone re-saves.
+Browser checkbox for the whole panel (size + both font sizes, now just
+font sizes - see above); added a Row Divider Lines On/Off checkbox;
+registered the panel's 5 stat labels as a Text Edit Mode target (it had
+none before); and built a full Auto Scroll subsystem (On/Off + loop,
+Speed, Pause Before, Pause At End), which also disables manual
+scrolling while active. Also added a "Saved" flash indicator to the dev
+panel's HEADER Sync button specifically (the original bottom SYNC
+button already had one, but it's not visible from the header without
+scrolling back down). A real bug was found and fixed live: several of
+the new "shared" controls (Align/Valign/Edge-Lock/Autoscroll) were
+initially read through the same per-device lookup this group's
+genuinely per-device sliders use, which silently no-op'd on Mobile/
+Landscape - fixed to read desktop cssVars unconditionally instead,
+matching this group's own established convention for shared toggles.
+Committed and pushed (confirmed on origin as of the entry above - this
+doc's own earlier "not committed/pushed" note was stale). The
+currently-live saved settings predate several of the new/changed
+defaults (outline-enabled, title/data colors) and will show their old
+values until someone re-saves.
 
 Just before that (2026-09-19): the dev panel's own header (title + all its
 buttons) now correctly stays above scrolled-past content - it already
@@ -115,12 +140,9 @@ page, relocated there via a direct `sectionOrder` edit to
 `data/processed/dev-panel-settings.json` - the config-array control
 system can only target a group already present in static HTML, so a
 user-organized custom group like UI TEXT can't be targeted directly).
-The panel's own hardcoded title text was also removed (the drag-handle
-element itself stays, just empty). **Not yet committed/pushed** (a
-separate, still-active Claude session's own work) - the `sectionOrder`
-nesting won't take visible effect on the live site until this is
-pushed, since production `loadSettings()` reads the settings file from
-GitHub's API, not this local copy.
+The panel's own hardcoded title text was also removed (superseded by
+the 2026-09-19 entries above, which removed the title element's
+reserved space entirely). Committed and pushed.
 
 Before that (2026-09-19): Target Text's Prefix/Number/Suffix each got
 their own independent Line Spacing slider (replacing the old single
@@ -169,14 +191,6 @@ above — every item here has its own detailed dated entry there.
 
 ## What's next
 
-Immediate: commit and push both pending Round Breakdown changes
-(2026-09-19) - the original 18-control group (its `sectionOrder` nesting
-under UI TEXT won't be visible on the live site until pushed) and this
-session's own 15-item follow-up pass (outline/border merge, Align/Valign+
-Edge Lock, Scale With Browser, Auto Scroll, Text Edit Mode, etc.) - both
-currently verified locally but not yet pushed, awaiting explicit
-instruction per CLAUDE.md §9.
-
 Likely next: re-tune Target Text's Prefix ("Click") Y Offset and Suffix
 ("x") X/Y Offset sliders (Desktop/Mobile/Landscape, all 3 tabs) - their
 current values were calibrated against the OLD shared anchor point,
@@ -190,6 +204,17 @@ button and base colors, alongside their existing color pickers.
 
 ## Open questions / blockers
 
+- **Known limitation, narrow edge case**: the Round Breakdown panel's
+  Width and X Offset dev-panel sliders can show a one-interaction-stale
+  value immediately after a real resize-handle drag - `endBreakdownResize()`
+  calls `syncSlidersFromState()` synchronously on pointerup, but the
+  ResizeObserver that actually writes the new width/height into cssVars
+  fires asynchronously, so the sync can read the pre-resize value. The
+  underlying persisted value itself is always correct (confirmed - a
+  second sync, e.g. from any other settings-apply, catches it up); only
+  the slider's own displayed number can lag by one interaction. This
+  exact call ordering pre-dates the 2026-09-19 vw/vh conversion - not a
+  new regression, not pursued (outside that task's own scope).
 - **Known bug, not yet fixed**: right-click-editing either the Speed
   Display or the Ms/Click Display in Text Edit Mode permanently detaches
   their child spans from the DOM after committing (the same "stuck"
