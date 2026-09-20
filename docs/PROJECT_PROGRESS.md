@@ -65,7 +65,39 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): fixed Edge Lock visually jumping an
+Most recently (2026-09-20): 4 dev-panel fixes/features landed in one
+commit (d46c77f) - drag-reorder handles now call setPointerCapture()
+(fixes an intermittent "not-allowed cursor, drag doesn't register"
+report - without capture, a fast pointer move could leave the tiny
+22px handle before the next pointermove, triggering the browser's
+native gesture-rejection cursor); Target Count's Prefix/Number/Suffix
+X/Y Offset sliders get Px/vw-vh toggle checkboxes matching every other
+UI Text element (all 3 parts per axis share one flagVar, since the
+underlying anchor unit is already shared - generalized
+setupOffsetUnitCheckboxes() to sync every slider bound to the same
+flagVar together); Extrusion Depth/Border Thickness Scale With Browser
+checkboxes added for all 11 independent depth+thickness pairs across
+the game, on all 3 tabs (a new scaledExtrusionPx() helper, since these
+2 sliders feed a JS-computed discrete shadow string rather than a live
+CSS calc() the way Font Size's own Scale With Browser does); and Add
+Group + selection now nests the new group inside the selection's own
+deepest common containing group instead of always landing at the top
+of the tab. Bundled into one commit rather than pushed separately as
+asked (holding back the Add-Group change) because heavy concurrent-
+session write activity on this file made safe hunk-isolation
+unreliable during this session - two attempts to verify the isolated
+diff transiently showed this session's own uncommitted work as
+entirely missing (a read-during-write race with another session's
+rapid commits, resolved moments later, not real loss) - continuing to
+delay for a clean split was judged riskier than committing everything
+at once, already verified working. Also carries a small README.md
+doc addition (dev-server.js phone-tuning instructions) recovered from
+a concurrent session's own uncommitted work via the stash-isolation
+safety net. Ported the drag-capture fix (a shared mechanism, not
+Clicko-specific) into TEMPLATE_DEV_PANEL.html too. Live-verified each
+feature individually in the browser. Committed and pushed.
+
+Before that (2026-09-20): fixed Edge Lock visually jumping an
 element the instant it's toggled - direct follow-up right after Main
 Button's own Align/Edge Lock shipped ("When i set texts to be center
 aligned with Edge Lock, its X and Y offsets should respond to
