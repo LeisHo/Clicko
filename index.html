@@ -1906,12 +1906,39 @@
            ("When Autoscroll is turned on, the manual scroll bar will not be
            visible and the user will not be able to manually scroll... If
            Autoscroll is turned off, the manual scroll ui will be
-           avialable"). overflow-y:hidden both hides the scrollbar AND blocks
-           wheel/touch/drag scrolling, while runRoundBreakdownAutoscroll()'s
-           own table.scrollTop writes (JS-driven, not a user gesture) still
-           work normally against a hidden-overflow element. */
+           avialable"). overflow-y:hidden hides the scrollbar AND blocks
+           wheel/touch/drag scrolling; it's now ALSO load-bearing for
+           clipping (2026-09-19, see .round-breakdown-scroll-track's own
+           comment) - the track's own translateY animation moves 2x the
+           panel's content height through this box, and without overflow
+           hidden here the un-scrolled-to portion would spill out past the
+           panel's edges instead of being clipped away. */
         .round-breakdown-panel.rb-autoscroll-on .round-breakdown-table {
             overflow-y: hidden;
+        }
+        /* Auto Scroll's inner track (2026-09-19, replacing a direct
+           table.scrollTop animation) - per direct feedback that the old
+           scrollTop-driven version "dosnt quite look very smooth. its a
+           bit jittery" (scrollTop writes force a synchronous layout/paint
+           each frame in most browsers) and that reaching the end should
+           never visibly "jump back to the top" ("I wanted the existing
+           shown text to continue scrolling, and the text just begins
+           again after the last entry... it will look as if it is
+           scrolling trhough Round 1, Round 2, Round 3, Last Round, Round
+           1, Round 2, Round 3, Last Round, and so on. It should be smooth
+           and continuous"). renderRoundBreakdown() renders the round rows
+           TWICE back to back inside this track (only while autoscroll is
+           actually enabled - manual-scroll mode stays a single copy,
+           unchanged) - restartRoundBreakdownAutoscroll() then animates
+           ONLY this element's own `transform: translateY()`, a compositor-
+           only property that doesn't force layout the way scrollTop does,
+           from 0 up to the height of ONE copy, at which point it resets
+           straight back to 0 - since copy 2 is pixel-identical to copy 1,
+           that reset is completely invisible, producing the "Round 1
+           reappears seamlessly after the Last Round" effect with no
+           visible snap. */
+        .round-breakdown-scroll-track {
+            will-change: transform;
         }
 
         .round-breakdown-row {
@@ -15426,6 +15453,16 @@
             // Width/Height dev-panel sliders - same reasoning as
             // endBreakdownDrag()'s own sync call just above.
             syncSlidersFromState();
+            // Safety-net duplicate of the ResizeObserver's own inline-
+            // style cleanup (see its own comment) - ResizeObserver
+            // callbacks fire on their own async batch timing, not
+            // synchronously with this pointerup handler, so there's no
+            // strict guarantee its !isResizingBreakdown-gated cleanup
+            // always lands after this flag flips false above. Harmless if
+            // the observer already did it (removeProperty on an already-
+            // unset property is a no-op).
+            roundBreakdownPanel.style.removeProperty('width');
+            roundBreakdownPanel.style.removeProperty('height');
         }
         document.addEventListener('pointerup', endBreakdownResize);
         document.addEventListener('pointercancel', endBreakdownResize);
@@ -15443,6 +15480,35 @@
                     activeVars['--round-breakdown-width-vw'] = +(w / window.innerWidth * 100).toFixed(3);
                     activeVars['--round-breakdown-height-vh'] = +(h / window.innerHeight * 100).toFixed(3);
                 }
+            }
+            // Clears the resize-drag handler's own inline style.width/
+            // height (set for live feedback WHILE dragging, see its own
+            // pointermove handler above) now that the equivalent vw/vh has
+            // been captured - per direct report ("if i shrink the browser
+            // slightly, the height and placement look slightly off. It
+            // should be scaling smoothly"): an inline px width/height
+            // permanently shadows the CSS rule below (`width: calc(var(
+            // --round-breakdown-width-vw) * 1vw)`) regardless of the
+            // custom property's later value, exactly the same pitfall
+            // already avoided for left/top (see this ResizeObserver's own
+            // next line, and endBreakdownDrag()'s identical left/top
+            // comment) - it just hadn't been applied to width/height yet.
+            // Leaving these set meant the panel's SIZE silently stopped
+            // tracking the viewport the instant it was ever resized once,
+            // even though its POSITION kept recalculating correctly on
+            // every resize (via applyRoundBreakdownPosition() below) -
+            // producing exactly the "placement looks slightly off" symptom,
+            // since that position math is computed from the (correctly
+            // rescaling) vw/vh values while the panel's REAL on-screen size
+            // stayed frozen at its old px. Guarded on !isResizingBreakdown -
+            // this observer also fires DURING an active drag (the handle's
+            // own pointermove sets style.width/height on every tick, which
+            // is itself a size change ResizeObserver reports), and clearing
+            // the inline style mid-drag would fight that same-frame live
+            // feedback instead of just cleaning up after it ends.
+            if (!isResizingBreakdown) {
+                roundBreakdownPanel.style.removeProperty('width');
+                roundBreakdownPanel.style.removeProperty('height');
             }
             // Re-anchor to the locked edge (if any) now that width/height
             // changed - e.g. a right-edge-locked panel should grow/shrink
@@ -16380,7 +16446,14 @@
                     <div class="round-breakdown-row-data">${slowestLabel} ${fmtMs(r.slowestGapMs)}</div>
                 </div>
             `).join('');
-            roundBreakdownTable.innerHTML = rows;
+            // 2 back-to-back copies inside a .round-breakdown-scroll-track
+            // ONLY while Auto Scroll is actually enabled - see that class's
+            // own CSS comment for why (seamless wrap). Manual-scroll mode
+            // (autoscroll off) stays exactly as before: a single copy,
+            // directly in the table, native overflow scrolling.
+            roundBreakdownTable.innerHTML = cssVars['--round-breakdown-autoscroll-enabled']
+                ? '<div class="round-breakdown-scroll-track">' + rows + rows + '</div>'
+                : rows;
             // Round Breakdown On/Off (dev-panel checkbox) - per direct
             // request ("If turned off, the breakdown wont be shown"), gate
             // right here at the one call site that ever un-hides the panel,
@@ -16403,17 +16476,31 @@
         }
 
         // Auto Scroll On/Off/Speed/Pause-Before/Pause-At-End (dev-panel
-        // controls) - per direct request. State machine: wait
-        // pauseBeforeMs -> scroll to the bottom at speedPxPerSec -> wait
-        // pauseEndMs -> jump back to the top -> repeat (the "loop" - per
-        // direct clarification, it doesn't stop at the end, it restarts
-        // from the beginning). roundBreakdownAutoscrollToken invalidates
-        // any in-flight requestAnimationFrame loop from a PRIOR call (panel
-        // re-rendered, autoscroll re-toggled, settings reloaded, etc.) -
-        // the standard "increment a token, have the old loop's own stale
-        // closure check it and bail" pattern, since an rAF callback can't
-        // otherwise be cancelled by reference once scheduled under a
-        // changed context.
+        // controls) - per direct request, reworked 2026-09-19 into a true
+        // seamless marquee loop per direct follow-up feedback ("I didnt
+        // want it to jump back to the top. Instead, I wanted the existing
+        // shown text to continue scrolling, and the text just begins again
+        // after the last entry... Round 1, Round 2, Round 3, Last Round,
+        // Round 1, Round 2... It should be smooth and continuous" / "the
+        // auto scrolling dosnt quite look very smooth. its a bit
+        // jittery"). See .round-breakdown-scroll-track's own CSS comment
+        // for the technique (2 duplicated copies, animate transform:
+        // translateY() instead of scrollTop - both the seamless-wrap fix
+        // and the smoothness fix come from the same change, since
+        // scrollTop writes are what caused the jitter in the first place).
+        // State machine: wait pauseBeforeMs -> translate from 0 up to ONE
+        // copy's height at speedPxPerSec -> wait pauseEndMs (frozen at
+        // that position - Round N still fully visible, per "then it will
+        // continue to scroll upwards" implying the pause happens WITH the
+        // last round showing, not after it's already scrolled past) ->
+        // reset the translate back to 0 (invisible, since copy 2 at that
+        // scroll position is pixel-identical to copy 1 at position 0) ->
+        // repeat. roundBreakdownAutoscrollToken invalidates any in-flight
+        // requestAnimationFrame loop from a PRIOR call (panel re-rendered,
+        // autoscroll re-toggled, settings reloaded, etc.) - the standard
+        // "increment a token, have the old loop's own stale closure check
+        // it and bail" pattern, since an rAF callback can't otherwise be
+        // cancelled by reference once scheduled under a changed context.
         let roundBreakdownAutoscrollToken = 0;
         function stopRoundBreakdownAutoscroll() {
             roundBreakdownAutoscrollToken++;
@@ -16431,41 +16518,50 @@
             roundBreakdownPanel.classList.add('rb-autoscroll-on');
             const myToken = roundBreakdownAutoscrollToken;
             const table = roundBreakdownTable;
-            table.scrollTop = 0;
             let state = 'pause-before';
+            let offset = 0;
             let stateStartTime = performance.now();
             let lastFrameTime = stateStartTime;
             function tick(now) {
                 if (myToken !== roundBreakdownAutoscrollToken) return; // superseded/stopped
                 if (roundBreakdownPanel.classList.contains('hidden')) return; // game restarted etc.
+                const track = table.querySelector(':scope > .round-breakdown-scroll-track');
+                if (!track) return; // renderRoundBreakdown() only builds one while autoscroll-enabled - see its own comment
                 const dt = now - lastFrameTime;
                 lastFrameTime = now;
                 const speedPxPerSec = cssVars['--round-breakdown-autoscroll-speed-px-per-sec'] || 30;
                 const pauseBeforeMs = cssVars['--round-breakdown-autoscroll-pause-before-ms'] || 1500;
                 const pauseEndMs = cssVars['--round-breakdown-autoscroll-pause-end-ms'] || 1500;
-                const maxScroll = table.scrollHeight - table.clientHeight;
-                if (maxScroll <= 0) {
-                    // Nothing to scroll yet (content shorter than the panel) -
-                    // keep waiting in case a later re-render adds more rows.
+                // Exactly 2 identical copies (see renderRoundBreakdown()'s
+                // own comment), so one copy's height is always half the
+                // track's own full scrollHeight - no separate bookkeeping
+                // needed even as roundHistory grows round to round.
+                const oneCopyHeight = track.scrollHeight / 2;
+                if (oneCopyHeight <= table.clientHeight) {
+                    // Everything already fits without scrolling - stay put
+                    // (0 offset) and keep checking in case more rounds get
+                    // added later in the same run.
+                    track.style.transform = 'translateY(0px)';
                     requestAnimationFrame(tick);
                     return;
                 }
                 if (state === 'pause-before') {
                     if (now - stateStartTime >= pauseBeforeMs) state = 'scrolling';
                 } else if (state === 'scrolling') {
-                    table.scrollTop += speedPxPerSec * (dt / 1000);
-                    if (table.scrollTop >= maxScroll) {
-                        table.scrollTop = maxScroll;
+                    offset += speedPxPerSec * (dt / 1000);
+                    if (offset >= oneCopyHeight) {
+                        offset = oneCopyHeight;
                         state = 'pause-end';
                         stateStartTime = now;
                     }
                 } else if (state === 'pause-end') {
                     if (now - stateStartTime >= pauseEndMs) {
-                        table.scrollTop = 0;
+                        offset = 0; // seamless - copy 2 here looks identical to copy 1 at 0
                         state = 'pause-before';
                         stateStartTime = now;
                     }
                 }
+                track.style.transform = 'translateY(-' + offset + 'px)';
                 requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);

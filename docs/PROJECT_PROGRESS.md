@@ -65,7 +65,24 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): added a "Clear Highscore" button to the
+Most recently (2026-09-19): Round Breakdown's Auto Scroll is now a true
+seamless marquee loop instead of scroll-then-snap-back-to-top - the
+round rows render twice back-to-back in a new `.round-breakdown-scroll-
+track` (only while Auto Scroll is on) and the animation now drives that
+wrapper's own `transform: translateY()` instead of `table.scrollTop`
+(the scrollTop approach was also the source of a reported jitter, since
+it forces a layout/paint each frame) - the wrap-back-to-0 is invisible
+since copy 2 at the end looks pixel-identical to copy 1 at the start.
+Also fixed the panel's own Width/Height silently freezing at a fixed px
+size the first time it was ever manually resized - the resize-handle's
+live-drag feedback set an inline `style.width/height` that nothing ever
+cleared afterward, permanently shadowing the CSS `vw`/`vh` rule (the
+same pitfall `left`/`top` had already avoided, just not yet applied
+here) - now cleared once the drag settles, so the panel's SIZE (not
+just its position) correctly keeps scaling with the viewport on every
+resize. **Not committed/pushed yet** - awaiting explicit instruction.
+
+Before that (2026-09-19): added a "Clear Highscore" button to the
 dev panel's Debug group - resets both the in-memory value and its
 `localStorage` persistence, then refreshes the on-screen number.
 Reused Mouse Log's own `resolveDebugGroupSid()` + `findGroupContent()`
@@ -214,9 +231,10 @@ above — every item here has its own detailed dated entry there.
 
 ## What's next
 
-Immediate: commit and push the interleaved group/setting reordering fix
-(2026-09-19, see above) - currently verified locally but not yet pushed,
-awaiting explicit instruction per CLAUDE.md §9.
+Immediate: commit and push the Auto Scroll seamless-marquee rework and
+the Width/Height scaling fix (2026-09-19, see above) - currently
+verified locally but not yet pushed, awaiting explicit instruction per
+CLAUDE.md §9.
 
 Likely next: re-tune Target Text's Prefix ("Click") Y Offset and Suffix
 ("x") X/Y Offset sliders (Desktop/Mobile/Landscape, all 3 tabs) - their
