@@ -16,8 +16,14 @@ from there.
 
 ## Currently working on
 
-**Two real bugs found and fixed today in this session's own UI-Engine
-Stage 2 work** (both committed and pushed — `7f16e5e` and the commit
+**The Inspector panel is now resizable (all 4 edges/corners) and
+draggable** (reusing Clicko's own real panel-resize function), and its
+Save button now actually persists to Clicko's real save system instead of
+silently writing to a disconnected engine-only localStorage key — both per
+direct request, both committed and pushed. See CHANGELOG for detail.
+
+**Three real bugs found and fixed today in this session's own UI-Engine
+Stage 2 work** (all committed and pushed — `7f16e5e` and the 2 commits
 after it):
 1. A critical, live production bug: real (non-dev) visitors could not play
    the game at all — every tap threw inside `handleGameButtonPress()` (via
