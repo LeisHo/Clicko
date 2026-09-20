@@ -65,7 +65,41 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): added Horizontal/Vertical Align + Edge
+Most recently (2026-09-20): fixed Edge Lock visually jumping an
+element the instant it's toggled - direct follow-up right after Main
+Button's own Align/Edge Lock shipped ("When i set texts to be center
+aligned with Edge Lock, its X and Y offsets should respond to
+that... regardless of how i scale the browser size, the Button and
+the start text should always be equally center aligned and never
+misalign"). Investigated rather than assuming the report's own
+"misaligns when height changes" framing was literally correct - a
+controlled height-only resize test showed X position was actually
+STABLE once locked; the real bug was a large CONSTANT misalignment at
+any height, caused by Edge Lock swapping an offset's UNIT (vw ->px)
+while leaving its stored NUMBER untouched, so a large proportional
+number like Start Text's -44.34 got reinterpreted as -44.34px the
+instant it locked. Presented the finding plus 2 fix options via
+AskUserQuestion; user chose "Fix the mechanism" over retuning just the
+2 reported elements. Added `preserveVisualPositionOnLockToggle()`,
+called before the lock flag itself changes - reads the element's
+CURRENT rendered position, then solves the position formula backwards
+under the NEW base/sign/unit to find the offset number that reproduces
+it, working in both lock and unlock directions. Deliberately excludes
+Target and Result/Win-Lose (bespoke multi-offset position systems this
+generic single-offset conversion isn't safe for). Live-verified via
+real checkbox `change` events measuring rendered centers before/after:
+Start Text moved 0.0125px on lock (was ~43px), 0px on unlock, offset
+round-tripped back to -44.341; replicated the user's exact 2-element
+scenario end-to-end across a real height resize (diff stayed at
+0.000015px throughout); spot-checked a 3rd, previously-untouched
+element (High Score) to confirm the fix isn't just Button/Start-Text-
+specific. Isolated into its own commit via the same targeted-patch-
+against-a-stash technique as recent prior fixes - a 5th concurrent
+session's own substantial in-progress work was in the same file;
+verified zero overlap before committing, restored their work
+afterward untouched. Committed and pushed.
+
+Before that (2026-09-20): added Horizontal/Vertical Align + Edge
 Lock to the Main Button, matching every other positioned element - the
 button's whole assembly (base+button+shadow, one wrapper,
 `.button-assembly`) had never plugged into the shared

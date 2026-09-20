@@ -13918,7 +13918,14 @@
             document.querySelectorAll('.dev-edge-lock-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
                     const { device } = resolveDevControlId(checkbox.id);
-                    (device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars)[checkbox.dataset.var] = checkbox.checked ? 1 : 0;
+                    const activeVars = device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars;
+                    // Read the element's CURRENT rendered position and
+                    // convert its offset number BEFORE the lock flag below
+                    // changes - see preserveVisualPositionOnLockToggle()'s
+                    // own comment for why (prevents the visual jump this
+                    // was built to fix).
+                    preserveVisualPositionOnLockToggle(checkbox.dataset.var, checkbox.checked, activeVars);
+                    activeVars[checkbox.dataset.var] = checkbox.checked ? 1 : 0;
                     applyActiveVars();
                 });
             });
@@ -14044,6 +14051,67 @@
             '--ms-per-click': 'ms-per-click',
             '--button': 'button',
         };
+        // Preserves an element's CURRENT visual position across an Edge
+        // Lock checkbox toggle, in EITHER direction - per direct request/
+        // report ("regardless of how i scale the browser size, the Button
+        // and the start text should always be equally center aligned and
+        // never misalign... Currently when i make the browser height
+        // different, the Start Text and the button seem to misalign").
+        // Root cause: toggling Edge Lock only ever swapped the offset's
+        // UNIT (vw/vh <-> px) while leaving its stored NUMBER untouched -
+        // harmless for an element already tuned near 0 in proportional
+        // mode (e.g. the button's own X offset, -1), but any element whose
+        // offset represents a large proportional distance (Start Text's
+        // own -44.34, "44% of viewport width left of center") jumped to a
+        // wildly different absolute distance the instant that same number
+        // got reinterpreted as pixels - a large, CONSTANT misalignment
+        // between differently-tuned elements once both are locked, not a
+        // live drift as the viewport resizes (confirmed via direct
+        // measurement before fixing: X position is provably stable across
+        // a height change once both are locked - the mismatch was already
+        // there, unchanged, at every height tested).
+        // Solves the left/top calc() formula backwards: given the
+        // element's own rendered left/top (read BEFORE this toggle's
+        // effects apply, still reflecting the OLD lock state) and the NEW
+        // base/sign/unit this toggle is about to activate, computes
+        // exactly which offset number reproduces that same visual
+        // position under the new unit - called from
+        // setupTextEdgeLockCheckboxes() before it writes the new lock
+        // flag and re-applies.
+        // Deliberately excludes Target (--target-*) and Result/Win-Lose
+        // (--result-*) - both have their own bespoke multi-element/multi-
+        // offset position systems (Target's Prefix/Number/Suffix anchor
+        // off each OTHER's own rendered edges, not just this shared base/
+        // sign formula - see updateTargetAnchoredPositions(); Result
+        // splits Win/Lose into 2 independent offset vars driven by one
+        // align var) that this generic single-offset-var conversion isn't
+        // safe to apply to blindly.
+        function preserveVisualPositionOnLockToggle(edgeLockVarName, willLock, activeVars) {
+            const axis = edgeLockVarName.includes('-valign-') ? 'y' : 'x';
+            const alignVarName = edgeLockVarName.replace('-edge-lock', '');
+            const xPrefix = alignVarName.replace(/-text-(valign|align)$/, '');
+            if (xPrefix === '--target' || xPrefix === '--result') return;
+            const elId = (axis === 'x' ? TEXT_ALIGN_TARGET_ELEMENT_IDS : TEXT_VALIGN_TARGET_ELEMENT_IDS)[alignVarName];
+            const el = elId && document.getElementById(elId);
+            if (!el || !el.offsetParent) return;
+            const offsetPrefix = OFFSET_UNIT_FLAG_PREFIX[xPrefix];
+            if (!offsetPrefix) return;
+            const offsetVarName = axis === 'x' ? ('--' + offsetPrefix + '-x-offset-vw') : ('--' + offsetPrefix + '-y-offset-vh');
+            if (!(offsetVarName in activeVars)) return;
+            const cs = getComputedStyle(el);
+            const currentPx = parseFloat(axis === 'x' ? cs.left : cs.top);
+            if (isNaN(currentPx)) return;
+            const containerRect = el.offsetParent.getBoundingClientRect();
+            const containerSize = axis === 'x' ? containerRect.width : containerRect.height;
+            const align = activeVars[alignVarName] || 'center';
+            const newBasePercent = willLock ? parseFloat(EDGE_LOCK_BASE[align] || '50%') : 50;
+            const newBasePx = containerSize * newBasePercent / 100;
+            const newSign = willLock ? (EDGE_LOCK_SIGN[align] || 1) : 1;
+            const viewportSize = axis === 'x' ? window.innerWidth : window.innerHeight;
+            const newUnitPx = willLock ? 1 : (viewportSize / 100);
+            if (!newSign || !newUnitPx) return;
+            activeVars[offsetVarName] = +(((currentPx - newBasePx) / newSign) / newUnitPx).toFixed(3);
+        }
         function applyTextAlignAnchors() {
             const activeCssVars = isMobileActive() ? getActiveMobileVars() : cssVars;
             Object.entries(TEXT_ALIGN_TARGET_ELEMENT_IDS).forEach(([varName, elId]) => {
