@@ -13161,6 +13161,16 @@
     },
     "landscape": {}
   },
+  "stage2EngineOverrides": {
+    "stage2TargetPrefixX": {
+      "position": {
+        "mode": "relative",
+        "relativeTo": null,
+        "myAnchor": "top-center",
+        "targetAnchor": "bottom-center"
+      }
+    }
+  },
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
   "buttonWinColor": "#27b942",
