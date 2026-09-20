@@ -1850,8 +1850,18 @@
                formula was removed here rather than left as dead weight. */
             width: calc(var(--round-breakdown-width-vw) * 1vw);
             height: calc(var(--round-breakdown-height-vh) * 1vh);
-            min-width: 240px;
-            min-height: 140px;
+            /* min-width/min-height removed (2026-09-20, direct request:
+               "it seems limited to a minimum width and minimum height.
+               Can you remove those limitations?") - previously a hard
+               240px/140px floor regardless of what the Width/Height
+               sliders or drag-resize said. The drag-resize handler itself
+               (roundBreakdownResizeHandle's pointermove listener) reads
+               these same min/max values live via getComputedStyle(), so
+               removing them here fixes drag-resize too, not just the
+               sliders - no separate hardcoded limit existed anywhere else.
+               max-width/max-height (90vw/90vh) are untouched - not what
+               was asked about, and they're a "stay on screen" safety rail
+               rather than an arbitrary size floor. */
             max-width: 90vw;
             max-height: 90vh;
             /* Panel Color/Panel Opacity (dev-panel controls) - background is
