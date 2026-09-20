@@ -13165,9 +13165,9 @@
     "stage2TargetPrefixX": {
       "position": {
         "mode": "relative",
-        "relativeTo": null,
-        "myAnchor": "top-center",
-        "targetAnchor": "bottom-center"
+        "relativeTo": "stage2TargetNumberX",
+        "myAnchor": "top-left",
+        "targetAnchor": "top-left"
       }
     }
   },
