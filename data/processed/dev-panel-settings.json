@@ -205,9 +205,9 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 532,
-    "--dev-panel-left-px": 1367,
-    "--dev-panel-top-px": 28,
-    "--dev-panel-height-px": 869,
+    "--dev-panel-left-px": 747,
+    "--dev-panel-top-px": 6,
+    "--dev-panel-height-px": 788,
     "--round-breakdown-width-vw": 29.849,
     "--round-breakdown-height-vh": 60.938,
     "--round-breakdown-left-vw": 2.026,
@@ -1277,9 +1277,9 @@
     "desktop:New Group (8)": true,
     "desktop:New Group (15)": true,
     "desktop:New Group (14)": true,
-    "desktop:New Group (16)": false,
-    "desktop:New Group (5)": true,
-    "desktop:Main Button": false,
+    "desktop:New Group (16)": true,
+    "desktop:New Group (5)": false,
+    "desktop:Main Button": true,
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
@@ -1287,9 +1287,12 @@
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
     "desktop:High Score": true,
-    "desktop:Start/Try Again Button": false,
+    "desktop:Start/Try Again Button": true,
     "desktop:Round Text": true,
-    "desktop:Target Count Display": true,
+    "desktop:Target Count Display": false,
+    "desktop:New Group (24)": true,
+    "desktop:New Group (22)": true,
+    "desktop:New Group (23)": true,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
     "desktop:Round Breakdown": true,
@@ -1304,7 +1307,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": false,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": false,
+    "desktop:New Group (17)": true,
     "desktop:Mouse Log": true,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
@@ -3431,103 +3434,7 @@
               "items": [
                 {
                   "type": "row",
-                  "key": "sliderTargetPrefixLineHeight"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberLineHeight"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixLineHeight"
-                },
-                {
-                  "type": "row",
                   "key": "checkboxTargetScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixFontSizeVw"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixExtrusionDepth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixLetterSpacing"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixXOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetPrefixYOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberFontSizeVw"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberExtrusionDepth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberLetterSpacing"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberXOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetNumberYOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixFontSizeVw"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixExtrusionDepth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixLetterSpacing"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixXOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderTargetSuffixYOffset"
                 },
                 {
                   "type": "row",
@@ -3536,6 +3443,159 @@
                 {
                   "type": "row",
                   "key": "checkboxHideTargetSuffix"
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "desktop:New Group (24)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberLineHeight"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberFontSizeVw"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberExtrusionDepth"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberOverallBorderThickness"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberXOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetNumberYOffset"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderTargetNumberLineHeight",
+                      "sliderTargetNumberFontSizeVw",
+                      "sliderTargetNumberFontSize",
+                      "sliderTargetNumberExtrusionDepth",
+                      "sliderTargetNumberOverallBorderThickness",
+                      "sliderTargetNumberLetterSpacing",
+                      "sliderTargetNumberXOffset",
+                      "sliderTargetNumberYOffset"
+                    ],
+                    "subgroups": []
+                  }
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "desktop:New Group (22)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixFontSizeVw"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixExtrusionDepth"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixOverallBorderThickness"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixXOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixYOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetPrefixLineHeight"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderTargetPrefixFontSize",
+                      "sliderTargetPrefixFontSizeVw",
+                      "sliderTargetPrefixExtrusionDepth",
+                      "sliderTargetPrefixOverallBorderThickness",
+                      "sliderTargetPrefixLetterSpacing",
+                      "sliderTargetPrefixXOffset",
+                      "sliderTargetPrefixYOffset",
+                      "sliderTargetPrefixLineHeight"
+                    ],
+                    "subgroups": []
+                  }
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "desktop:New Group (23)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixYOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixXOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixOverallBorderThickness"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixExtrusionDepth"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixFontSizeVw"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderTargetSuffixLineHeight"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderTargetSuffixYOffset",
+                      "sliderTargetSuffixXOffset",
+                      "sliderTargetSuffixFontSize",
+                      "sliderTargetSuffixLetterSpacing",
+                      "sliderTargetSuffixOverallBorderThickness",
+                      "sliderTargetSuffixExtrusionDepth",
+                      "sliderTargetSuffixFontSizeVw",
+                      "sliderTargetSuffixLineHeight"
+                    ],
+                    "subgroups": []
+                  }
                 },
                 {
                   "type": "row",
@@ -3555,31 +3615,7 @@
                 }
               ],
               "rowKeys": [
-                "sliderTargetPrefixLineHeight",
-                "sliderTargetNumberLineHeight",
-                "sliderTargetSuffixLineHeight",
                 "checkboxTargetScaleWithBrowser",
-                "sliderTargetPrefixFontSizeVw",
-                "sliderTargetPrefixFontSize",
-                "sliderTargetPrefixExtrusionDepth",
-                "sliderTargetPrefixOverallBorderThickness",
-                "sliderTargetPrefixLetterSpacing",
-                "sliderTargetPrefixXOffset",
-                "sliderTargetPrefixYOffset",
-                "sliderTargetNumberFontSizeVw",
-                "sliderTargetNumberFontSize",
-                "sliderTargetNumberExtrusionDepth",
-                "sliderTargetNumberOverallBorderThickness",
-                "sliderTargetNumberLetterSpacing",
-                "sliderTargetNumberXOffset",
-                "sliderTargetNumberYOffset",
-                "sliderTargetSuffixFontSizeVw",
-                "sliderTargetSuffixExtrusionDepth",
-                "sliderTargetSuffixOverallBorderThickness",
-                "sliderTargetSuffixLetterSpacing",
-                "sliderTargetSuffixFontSize",
-                "sliderTargetSuffixXOffset",
-                "sliderTargetSuffixYOffset",
                 "checkboxHideTargetPrefix",
                 "checkboxHideTargetSuffix",
                 "colorTargetExtrusionBorder",
@@ -3587,7 +3623,152 @@
                 "selectTargetTextAlign",
                 "selectTargetTextValign"
               ],
-              "subgroups": []
+              "subgroups": [
+                {
+                  "key": "desktop:New Group (24)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberLineHeight"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberYOffset"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderTargetNumberLineHeight",
+                    "sliderTargetNumberFontSizeVw",
+                    "sliderTargetNumberFontSize",
+                    "sliderTargetNumberExtrusionDepth",
+                    "sliderTargetNumberOverallBorderThickness",
+                    "sliderTargetNumberLetterSpacing",
+                    "sliderTargetNumberXOffset",
+                    "sliderTargetNumberYOffset"
+                  ],
+                  "subgroups": []
+                },
+                {
+                  "key": "desktop:New Group (22)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixYOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderTargetPrefixFontSize",
+                    "sliderTargetPrefixFontSizeVw",
+                    "sliderTargetPrefixExtrusionDepth",
+                    "sliderTargetPrefixOverallBorderThickness",
+                    "sliderTargetPrefixLetterSpacing",
+                    "sliderTargetPrefixXOffset",
+                    "sliderTargetPrefixYOffset",
+                    "sliderTargetPrefixLineHeight"
+                  ],
+                  "subgroups": []
+                },
+                {
+                  "key": "desktop:New Group (23)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixYOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderTargetSuffixYOffset",
+                    "sliderTargetSuffixXOffset",
+                    "sliderTargetSuffixFontSize",
+                    "sliderTargetSuffixLetterSpacing",
+                    "sliderTargetSuffixOverallBorderThickness",
+                    "sliderTargetSuffixExtrusionDepth",
+                    "sliderTargetSuffixFontSizeVw",
+                    "sliderTargetSuffixLineHeight"
+                  ],
+                  "subgroups": []
+                }
+              ]
             }
           },
           {
@@ -4423,103 +4604,7 @@
             "items": [
               {
                 "type": "row",
-                "key": "sliderTargetPrefixLineHeight"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberLineHeight"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixLineHeight"
-              },
-              {
-                "type": "row",
                 "key": "checkboxTargetScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixFontSizeVw"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixExtrusionDepth"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixLetterSpacing"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixXOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetPrefixYOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberFontSizeVw"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberExtrusionDepth"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberLetterSpacing"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberXOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetNumberYOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixFontSizeVw"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixExtrusionDepth"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixLetterSpacing"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixXOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderTargetSuffixYOffset"
               },
               {
                 "type": "row",
@@ -4528,6 +4613,159 @@
               {
                 "type": "row",
                 "key": "checkboxHideTargetSuffix"
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "desktop:New Group (24)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberLineHeight"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetNumberYOffset"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderTargetNumberLineHeight",
+                    "sliderTargetNumberFontSizeVw",
+                    "sliderTargetNumberFontSize",
+                    "sliderTargetNumberExtrusionDepth",
+                    "sliderTargetNumberOverallBorderThickness",
+                    "sliderTargetNumberLetterSpacing",
+                    "sliderTargetNumberXOffset",
+                    "sliderTargetNumberYOffset"
+                  ],
+                  "subgroups": []
+                }
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "desktop:New Group (22)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixYOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetPrefixLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderTargetPrefixFontSize",
+                    "sliderTargetPrefixFontSizeVw",
+                    "sliderTargetPrefixExtrusionDepth",
+                    "sliderTargetPrefixOverallBorderThickness",
+                    "sliderTargetPrefixLetterSpacing",
+                    "sliderTargetPrefixXOffset",
+                    "sliderTargetPrefixYOffset",
+                    "sliderTargetPrefixLineHeight"
+                  ],
+                  "subgroups": []
+                }
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "desktop:New Group (23)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixYOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderTargetSuffixLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderTargetSuffixYOffset",
+                    "sliderTargetSuffixXOffset",
+                    "sliderTargetSuffixFontSize",
+                    "sliderTargetSuffixLetterSpacing",
+                    "sliderTargetSuffixOverallBorderThickness",
+                    "sliderTargetSuffixExtrusionDepth",
+                    "sliderTargetSuffixFontSizeVw",
+                    "sliderTargetSuffixLineHeight"
+                  ],
+                  "subgroups": []
+                }
               },
               {
                 "type": "row",
@@ -4547,31 +4785,7 @@
               }
             ],
             "rowKeys": [
-              "sliderTargetPrefixLineHeight",
-              "sliderTargetNumberLineHeight",
-              "sliderTargetSuffixLineHeight",
               "checkboxTargetScaleWithBrowser",
-              "sliderTargetPrefixFontSizeVw",
-              "sliderTargetPrefixFontSize",
-              "sliderTargetPrefixExtrusionDepth",
-              "sliderTargetPrefixOverallBorderThickness",
-              "sliderTargetPrefixLetterSpacing",
-              "sliderTargetPrefixXOffset",
-              "sliderTargetPrefixYOffset",
-              "sliderTargetNumberFontSizeVw",
-              "sliderTargetNumberFontSize",
-              "sliderTargetNumberExtrusionDepth",
-              "sliderTargetNumberOverallBorderThickness",
-              "sliderTargetNumberLetterSpacing",
-              "sliderTargetNumberXOffset",
-              "sliderTargetNumberYOffset",
-              "sliderTargetSuffixFontSizeVw",
-              "sliderTargetSuffixExtrusionDepth",
-              "sliderTargetSuffixOverallBorderThickness",
-              "sliderTargetSuffixLetterSpacing",
-              "sliderTargetSuffixFontSize",
-              "sliderTargetSuffixXOffset",
-              "sliderTargetSuffixYOffset",
               "checkboxHideTargetPrefix",
               "checkboxHideTargetSuffix",
               "colorTargetExtrusionBorder",
@@ -4579,7 +4793,152 @@
               "selectTargetTextAlign",
               "selectTargetTextValign"
             ],
-            "subgroups": []
+            "subgroups": [
+              {
+                "key": "desktop:New Group (24)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberLineHeight"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberFontSizeVw"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberExtrusionDepth"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberOverallBorderThickness"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberXOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetNumberYOffset"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderTargetNumberLineHeight",
+                  "sliderTargetNumberFontSizeVw",
+                  "sliderTargetNumberFontSize",
+                  "sliderTargetNumberExtrusionDepth",
+                  "sliderTargetNumberOverallBorderThickness",
+                  "sliderTargetNumberLetterSpacing",
+                  "sliderTargetNumberXOffset",
+                  "sliderTargetNumberYOffset"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "desktop:New Group (22)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixFontSizeVw"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixExtrusionDepth"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixOverallBorderThickness"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixXOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixYOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetPrefixLineHeight"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderTargetPrefixFontSize",
+                  "sliderTargetPrefixFontSizeVw",
+                  "sliderTargetPrefixExtrusionDepth",
+                  "sliderTargetPrefixOverallBorderThickness",
+                  "sliderTargetPrefixLetterSpacing",
+                  "sliderTargetPrefixXOffset",
+                  "sliderTargetPrefixYOffset",
+                  "sliderTargetPrefixLineHeight"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "desktop:New Group (23)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixYOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixXOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixOverallBorderThickness"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixExtrusionDepth"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixFontSizeVw"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderTargetSuffixLineHeight"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderTargetSuffixYOffset",
+                  "sliderTargetSuffixXOffset",
+                  "sliderTargetSuffixFontSize",
+                  "sliderTargetSuffixLetterSpacing",
+                  "sliderTargetSuffixOverallBorderThickness",
+                  "sliderTargetSuffixExtrusionDepth",
+                  "sliderTargetSuffixFontSizeVw",
+                  "sliderTargetSuffixLineHeight"
+                ],
+                "subgroups": []
+              }
+            ]
           },
           {
             "key": "desktop:Speed Display (max ms between taps)",
@@ -11731,7 +12090,11 @@
     "mobile:New Group (18)": "ROUND BREAKDOWN - ROUND TITLE",
     "sliderMobileRoundBreakdownDataLetterSpacing": null,
     "sliderMobileRoundBreakdownDataLineHeight": null,
-    "mobile:New Group (19)": "ROUND BREAKDOWN - ROUND DATA"
+    "mobile:New Group (19)": "ROUND BREAKDOWN - ROUND DATA",
+    "sliderTargetPrefixLineHeight": "\"CLICK\" Line Spacing:",
+    "desktop:New Group (22)": "\"CLICK\"",
+    "desktop:New Group (23)": "\"X\"",
+    "desktop:New Group (24)": "TARGET NUMBER"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -11775,7 +12138,11 @@
     "desktop:New Group (18)",
     "desktop:New Group (19)",
     "desktop:New Group (20)",
-    "desktop:New Group (21)"
+    "desktop:New Group (21)",
+    "sliderTargetPrefixLineHeight",
+    "desktop:New Group (22)",
+    "desktop:New Group (23)",
+    "desktop:New Group (24)"
   ],
   "lockedGroups": [
     "desktop:New Group (16)",
