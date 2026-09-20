@@ -9352,6 +9352,28 @@
                 roundBreakdownPanel.style.setProperty('--round-breakdown-scale-ref-px', rbScaleRef);
                 applyRoundBreakdownPosition();
             }
+            // Keep the UI-Engine Inspector's own live element in sync with
+            // ANY real dev-panel slider/select edit, not just edits made
+            // through the Inspector itself (2026-09-20, direct request:
+            // "fix that so all sliders are reactive to the ui inspector
+            // settings" - after live-verifying that moving the real
+            // "Prefix X Offset" slider directly left the Inspector's own
+            // engine value stale at its page-load default, confirmed by
+            // reading getEffectiveValue() before/after a direct real-
+            // slider move). applyActiveVars() is the single choke point
+            // already called after every real slider/select edit anywhere
+            // in the file (the CSS_VAR_SLIDER_MAP-driven generic input
+            // handling, every one-off listener, tab switches, resize) -
+            // exactly the same role stage2SyncEngineToClicko()'s own
+            // MutationObserver plays for Inspector-originated edits, just
+            // the opposite direction. Defined in the Inspector-writeback
+            // <script type="module"> block further down and bridged here
+            // via window.* (a classic script can't see a module's own
+            // top-level declarations directly - the reverse of how that
+            // module already reads this file's own cssVars/etc.) - guarded
+            // since this classic script runs before the deferred module
+            // has loaded on first paint.
+            if (typeof window.stage2SyncClickoToEngine === 'function') window.stage2SyncClickoToEngine();
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
@@ -20800,6 +20822,60 @@
                 }
             }
         }
+
+        // ------------------------------------------------------------
+        // REVERSE SYNC: real dev-panel edit -> engine (2026-09-20, direct
+        // request: "fix that so all sliders are reactive to the ui
+        // inspector settings" - the counterpart to stage2SyncEngineToClicko
+        // above, which only ever handled the OTHER direction (Inspector
+        // edit -> Clicko). Live-verified gap this closes: moving the REAL
+        // "Prefix X Offset" slider directly updated cssVars/rendering
+        // correctly (that was never broken), but the ENGINE's own internal
+        // value for the currently-selected Inspector element stayed stale
+        // at whatever it was primed to before - confirmed via
+        // getEffectiveValue() reading '49.2px' (the page-load default)
+        // immediately after cssVars had already moved to 123.45 through a
+        // direct real-slider edit. Left uncorrected, that stale engine
+        // value could even get PUSHED back out and silently revert the
+        // real slider's edit the next time any Inspector edit fired the
+        // existing push branch above (the same "prime-before-push" class
+        // of bug the Inspector-jump fix addressed earlier, just triggered
+        // from the opposite direction).
+        //
+        // Only ever acts on whichever element is CURRENTLY SELECTED in the
+        // Inspector - an unselected element already gets a correct, fresh
+        // read the next time it's selected (the existing "freshly
+        // selected" prime branch above), so there's nothing to keep
+        // continuously in sync for those.
+        function stage2SyncClickoToEngine() {
+            const selectEl = document.querySelector('.ui-inspector-select');
+            const selectedId = selectEl ? selectEl.value : '';
+            if (!selectedId || selectedId !== stage2LastPrimedId) return; // nothing selected, or not primed yet - the existing prime-on-select branch already covers this case
+            const relevantEntries = STAGE2_SYNC_MAP.filter((e) => e.id === selectedId);
+            if (relevantEntries.length === 0) return;
+            let anyRestored = false;
+            for (const entry of relevantEntries) {
+                const realValue = cssVars[entry.cssVar];
+                if (realValue === undefined) continue;
+                let currentResolved;
+                try {
+                    currentResolved = entry.extract(getEffectiveValue(entry.id, entry.field, 'base').value);
+                } catch (e) {
+                    continue; // field doesn't apply under the current mode - skip, not an error
+                }
+                if (currentResolved === realValue) continue;
+                stage2PrimeEntry(entry); // reuses the exact same field-write logic the initial prime branch already uses
+                anyRestored = true;
+            }
+            if (anyRestored) refreshInspector(); // makes the Inspector's own displayed value follow the real slider live, not just internally
+        }
+        // Bridged onto window - a classic <script> (applyActiveVars(), the
+        // single choke point already called after every real slider/select
+        // edit anywhere in the file) has no direct visibility into this
+        // module's own top-level declarations, the reverse of how this
+        // module already reads the classic script's cssVars/etc. See
+        // applyActiveVars()'s own matching comment for the call site.
+        window.stage2SyncClickoToEngine = stage2SyncClickoToEngine;
 
         const stage2InspectorMountEl = document.getElementById('stage2InspectorMount');
         if (stage2InspectorMountEl) {
