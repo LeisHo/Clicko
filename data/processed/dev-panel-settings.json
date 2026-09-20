@@ -1308,7 +1308,7 @@
     "desktop:Rotation Animation": false,
     "desktop:Game Mechanics": true,
     "desktop:New Group (17)": true,
-    "desktop:Mouse Log": true,
+    "desktop:Mouse Log": false,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -3445,6 +3445,18 @@
                   "key": "checkboxHideTargetSuffix"
                 },
                 {
+                  "type": "row",
+                  "key": "colorTargetExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorTargetOverallBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "selectTargetTextValign"
+                },
+                {
                   "type": "group",
                   "section": {
                     "key": "desktop:New Group (24)",
@@ -3599,19 +3611,7 @@
                 },
                 {
                   "type": "row",
-                  "key": "colorTargetExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorTargetOverallBorder"
-                },
-                {
-                  "type": "row",
                   "key": "selectTargetTextAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectTargetTextValign"
                 }
               ],
               "rowKeys": [
@@ -3620,8 +3620,8 @@
                 "checkboxHideTargetSuffix",
                 "colorTargetExtrusionBorder",
                 "colorTargetOverallBorder",
-                "selectTargetTextAlign",
-                "selectTargetTextValign"
+                "selectTargetTextValign",
+                "selectTargetTextAlign"
               ],
               "subgroups": [
                 {
@@ -4615,6 +4615,18 @@
                 "key": "checkboxHideTargetSuffix"
               },
               {
+                "type": "row",
+                "key": "colorTargetExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorTargetOverallBorder"
+              },
+              {
+                "type": "row",
+                "key": "selectTargetTextValign"
+              },
+              {
                 "type": "group",
                 "section": {
                   "key": "desktop:New Group (24)",
@@ -4769,19 +4781,7 @@
               },
               {
                 "type": "row",
-                "key": "colorTargetExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorTargetOverallBorder"
-              },
-              {
-                "type": "row",
                 "key": "selectTargetTextAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectTargetTextValign"
               }
             ],
             "rowKeys": [
@@ -4790,8 +4790,8 @@
               "checkboxHideTargetSuffix",
               "colorTargetExtrusionBorder",
               "colorTargetOverallBorder",
-              "selectTargetTextAlign",
-              "selectTargetTextValign"
+              "selectTargetTextValign",
+              "selectTargetTextAlign"
             ],
             "subgroups": [
               {
