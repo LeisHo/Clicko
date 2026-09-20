@@ -1542,15 +1542,36 @@
             line-height: var(--target-prefix-line-height, 1.2);
             text-shadow: var(--target-prefix-extrusion-shadow);
             position: absolute;
+            /* X stays exactly as it always was - independent of the
+               group anchor, NEVER tied to the Number at any point in
+               this element's history, so it has only ONE real mode and
+               needs no branching. Unchanged from before 2026-09-20. */
             left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, 49.20) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            /* Anchored to the Number's own rendered BOTTOM edge (--target-number-bottom-px,
-               a live px measurement kept current by updateTargetAnchoredPositions()
-               below), not the shared group anchor - per direct request ("I want
-               the word 'Clicks' to be anchored to the bottom of the Target
-               number. So the y offset will be relative to that"). The Y Offset
-               slider still works exactly as before, just as a nudge FROM this
-               new reference point instead of from --target-y-base. */
-            top: calc(var(--target-number-bottom-px, var(--target-y-base, 50%)) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-vh, 9.19) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            /* --target-prefix-top-base/-y-offset-active are per-element
+               custom properties SET BY updateTargetAnchoredPositions()
+               (JS), not fixed here - each one holds a var() REFERENCE
+               (not a literal number), chosen based on Prefix's own
+               current UI-Engine position.mode (anchor vs relative). This
+               is "JS picks WHICH variable applies, CSS still does the
+               actual math" - added 2026-09-20 per direct request ("if an
+               object is set to anchor mode, only show the anchor mode
+               relevant sliders. if its set to relative, only show the
+               relative sliders"). Relative mode (the default, matching
+               this rule's ORIGINAL pre-2026-09-20 behavior exactly, so a
+               fresh deploy with nothing yet saved to
+               stage2EngineOverrides is visually a no-op): base ->
+               --target-number-bottom-px (tied to the Number's own
+               rendered bottom edge), offset-active -> the SAME
+               --target-prefix-y-offset-vh slider this rule already used
+               before this change - reused as-is, not replaced, so an
+               already-tuned value stays meaningful. Anchor mode (new):
+               base -> --target-y-base (group anchor, independent of the
+               Number), offset-active -> a new, separate anchor-mode-only
+               slider (defaults to 0 - never tuned before, since this
+               mode didn't exist). See updateTargetAnchoredPositions() for
+               the actual mode check - only Y branches; X (above) never
+               does. */
+            top: calc(var(--target-prefix-top-base, var(--target-number-bottom-px, var(--target-y-base, 50%))) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-active, var(--target-prefix-y-offset-vh, 9.19)) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -1575,17 +1596,18 @@
             line-height: var(--target-suffix-line-height, 1.2);
             text-shadow: var(--target-suffix-extrusion-shadow);
             position: absolute;
-            /* Anchored to the Number's own rendered RIGHT edge AND BOTTOM edge
-               (--target-number-right-px/--target-number-bottom-px, live px
-               measurements kept current by updateTargetAnchoredPositions()
-               below) - per direct request ("I want the 'X' to be anchored to
-               the bottom of the Target number. I also want it to be anchored
-               to the right edge of the Target number. So the x and y offset
-               of the 'X' will be relative to that"). Both offset sliders
-               still work exactly as before, just as a nudge FROM these new
-               reference points instead of from --target-x-base/-y-base. */
-            left: calc(var(--target-number-right-px, var(--target-x-base, 50%)) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-vw, 324.34) * var(--target-x-unit, var(--cq-vw, 1vw)));
-            top: calc(var(--target-number-bottom-px, var(--target-y-base, 50%)) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-vh, 11.60) * var(--target-y-unit, var(--cq-vh, 1vh)));
+            /* --target-suffix-left-base/-top-base and -x-offset-active/
+               -y-offset-active - same JS-picks-which-var-applies mechanism
+               as #targetCountPrefix above (see its own comment for the
+               full account) - added 2026-09-20. Relative mode (the
+               default, matching this rule's ORIGINAL pre-2026-09-20
+               behavior exactly): base -> --target-number-right-px/
+               -bottom-px, offset-active -> the SAME --target-suffix-x/y-
+               offset-vw/vh sliders this rule already used, reused as-is.
+               Anchor mode (new): base -> --target-x-base/-y-base,
+               offset-active -> the new anchor-mode-specific sliders. */
+            left: calc(var(--target-suffix-left-base, var(--target-number-right-px, var(--target-x-base, 50%))) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-active, var(--target-suffix-x-offset-vw, 324.34)) * var(--target-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--target-suffix-top-base, var(--target-number-bottom-px, var(--target-y-base, 50%))) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-active, var(--target-suffix-y-offset-vh, 11.60)) * var(--target-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             z-index: 10;
             text-box-trim: trim-start;
@@ -3079,6 +3101,15 @@
             z-index: 1;
         }
         .dev-row-hidden-by-checkbox {
+            display: none !important;
+        }
+        /* Hides a real dev-panel row whose value has no real effect under
+           the element's CURRENT UI-Engine position.mode (2026-09-20,
+           direct request: "if an object is set to anchor mode, only show
+           the anchor mode relevant sliders. if its set to relative, only
+           show the relative sliders") - see the Inspector-writeback
+           module's stage2SyncRowVisibility() for what toggles this. */
+        .dev-row-hidden-by-mode {
             display: none !important;
         }
         .dev-section-hidden-empty {
@@ -7119,6 +7150,14 @@
             '--target-prefix-font-size-vw': 11.72,
             '--target-prefix-x-offset-vw': 49.20,
             '--target-prefix-y-offset-vh': 9.19,
+            // Anchor-mode counterparts (2026-09-20) - only ever used when
+            // Prefix/Suffix's own UI-Engine position.mode is switched away
+            // from the default 'relative' via the Inspector (see
+            // updateTargetAnchoredPositions()'s own comment). Default 0 -
+            // never tuned before, since this mode didn't exist previously;
+            // Prefix has no anchor-mode X (X was never mode-dependent, see
+            // #targetCountPrefix's own CSS comment), so only Y gets one.
+            '--target-prefix-y-anchor-offset-vh': 0,
             '--target-number-font-size-px': 500,
             '--target-number-font-size-vw': 39.06,
             '--target-number-x-offset-vw': 200.24,
@@ -7127,6 +7166,12 @@
             '--target-suffix-font-size-vw': 11.72,
             '--target-suffix-x-offset-vw': 324.34,
             '--target-suffix-y-offset-vh': 11.60,
+            // Anchor-mode counterparts (2026-09-20) - same reasoning as
+            // Prefix's above. Suffix genuinely has both axes tied to the
+            // Number today (no independent mode yet for either), so both
+            // X and Y get one.
+            '--target-suffix-x-anchor-offset-vw': 0,
+            '--target-suffix-y-anchor-offset-vh': 0,
             // Shared by all 3 parts (Prefix/Number/Suffix), not per-part -
             // see COMPOUND_OFFSET_CONTROLS' own comment on why.
             '--target-x-offset-unit-is-px': 0,
@@ -8135,6 +8180,7 @@
             '--target-prefix-font-size-vw': 5.47,
             '--target-prefix-x-offset-vw': 37.50,
             '--target-prefix-y-offset-vh': -29.31,
+            '--target-prefix-y-anchor-offset-vh': 0,
             '--target-prefix-letter-spacing-px': 0,
             '--target-number-font-size-px': 238.44,
             '--target-number-font-size-vw': 18.63,
@@ -8145,6 +8191,8 @@
             '--target-suffix-font-size-vw': 5.47,
             '--target-suffix-x-offset-vw': 165.75,
             '--target-suffix-y-offset-vh': 16.02,
+            '--target-suffix-x-anchor-offset-vw': 0,
+            '--target-suffix-y-anchor-offset-vh': 0,
             '--target-suffix-letter-spacing-px': 0,
             // Shared by all 3 parts, not per-part - see
             // COMPOUND_OFFSET_CONTROLS' own comment.
@@ -8488,6 +8536,49 @@
             const numberRect = targetCountNumber.getBoundingClientRect();
             targetCount.style.setProperty('--target-number-bottom-px', (numberRect.bottom - containerRect.top) + 'px');
             targetCount.style.setProperty('--target-number-right-px', (numberRect.right - containerRect.left) + 'px');
+
+            // Per-element mode-driven top-base/y-offset-active properties
+            // (2026-09-20, see #targetCountPrefix/#targetCountSuffix's own
+            // CSS comments for the full mechanism) - each one is set to a
+            // var() REFERENCE STRING (not a computed number), so CSS still
+            // does the actual arithmetic; this function only ever decides
+            // WHICH variable applies, based on stage2EngineOverrides
+            // (read directly, not the live engine - correct even before
+            // the Inspector has ever primed this specific element this
+            // session, since stage2EngineOverrides is the same object
+            // applyLoadedSettings() already restores on load/Undo).
+            // Defaults to 'relative' when nothing is saved yet, matching
+            // both elements' ORIGINAL pre-2026-09-20 behavior exactly -
+            // so a fresh deploy with no stage2EngineOverrides entry for
+            // either element is a visual no-op. Prefix's X is NOT branched
+            // here - see #targetCountPrefix's own CSS comment for why
+            // (it's never had a second mode; only Y does).
+            if (targetCountPrefix) {
+                const prefixSaved = (typeof stage2EngineOverrides !== 'undefined') ? stage2EngineOverrides['stage2TargetPrefixY'] : null;
+                const prefixMode = (prefixSaved && prefixSaved.position && prefixSaved.position.mode) ? prefixSaved.position.mode : 'relative';
+                if (prefixMode === 'anchor') {
+                    targetCountPrefix.style.setProperty('--target-prefix-top-base', 'var(--target-y-base, 50%)');
+                    targetCountPrefix.style.setProperty('--target-prefix-y-offset-active', 'var(--target-prefix-y-anchor-offset-vh, 0)');
+                } else {
+                    targetCountPrefix.style.setProperty('--target-prefix-top-base', 'var(--target-number-bottom-px, var(--target-y-base, 50%))');
+                    targetCountPrefix.style.setProperty('--target-prefix-y-offset-active', 'var(--target-prefix-y-offset-vh, 9.19)');
+                }
+            }
+            if (targetCountSuffix) {
+                const suffixSaved = (typeof stage2EngineOverrides !== 'undefined') ? stage2EngineOverrides['stage2TargetSuffix'] : null;
+                const suffixMode = (suffixSaved && suffixSaved.position && suffixSaved.position.mode) ? suffixSaved.position.mode : 'relative';
+                if (suffixMode === 'anchor') {
+                    targetCountSuffix.style.setProperty('--target-suffix-left-base', 'var(--target-x-base, 50%)');
+                    targetCountSuffix.style.setProperty('--target-suffix-x-offset-active', 'var(--target-suffix-x-anchor-offset-vw, 0)');
+                    targetCountSuffix.style.setProperty('--target-suffix-top-base', 'var(--target-y-base, 50%)');
+                    targetCountSuffix.style.setProperty('--target-suffix-y-offset-active', 'var(--target-suffix-y-anchor-offset-vh, 0)');
+                } else {
+                    targetCountSuffix.style.setProperty('--target-suffix-left-base', 'var(--target-number-right-px, var(--target-x-base, 50%))');
+                    targetCountSuffix.style.setProperty('--target-suffix-x-offset-active', 'var(--target-suffix-x-offset-vw, 324.34)');
+                    targetCountSuffix.style.setProperty('--target-suffix-top-base', 'var(--target-number-bottom-px, var(--target-y-base, 50%))');
+                    targetCountSuffix.style.setProperty('--target-suffix-y-offset-active', 'var(--target-suffix-y-offset-vh, 11.60)');
+                }
+            }
         }
         // Re-measures whenever the Number's own rendered BOX changes size for
         // any reason - text content, font-size (including viewport-driven vw
@@ -9374,6 +9465,15 @@
             // since this classic script runs before the deferred module
             // has loaded on first paint.
             if (typeof window.stage2SyncClickoToEngine === 'function') window.stage2SyncClickoToEngine();
+            // Real dev-panel row visibility by current Inspector mode
+            // (2026-09-20, "big pass") - same bridging reasoning as just
+            // above. Covers initial page load (this function's own first
+            // real call) and every other trigger generically; the
+            // Inspector-writeback module ALSO calls this directly on its
+            // own two branches for instant feedback the moment a mode
+            // changes, since a pure mode switch (no value change) doesn't
+            // always flow through anyChanged/applyActiveVars() above.
+            if (typeof window.stage2SyncAllRowVisibility === 'function') window.stage2SyncAllRowVisibility();
         }
         MOBILE_MEDIA_QUERY.addEventListener('change', applyActiveVars);
         // Belt-and-suspenders: some viewport-emulation/testing contexts don't
@@ -13750,10 +13850,26 @@
             // comment.
             { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20, checkboxId: 'checkboxTargetPrefixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19, checkboxId: 'checkboxTargetPrefixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            // Anchor-mode counterparts (2026-09-20, direct request: "if an
+            // object is set to anchor mode, only show the anchor mode
+            // relevant sliders. if its set to relative, only show the
+            // relative sliders. but i should have x and y for both
+            // instances") - only visible/relevant when that element's own
+            // UI-Engine position.mode is switched to 'anchor' via the
+            // Inspector (dynamic show/hide wired in the Inspector-writeback
+            // module further down - see stage2SyncRowVisibility()). Share
+            // the SAME --target-y-offset-unit-is-px flag as every other
+            // Y slider in this group, no dedicated checkbox needed.
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetPrefixYAnchorOffset', label: 'Prefix Y Offset (Anchor Mode) (vh):', min: -700, max: 700, step: 0.01, value: 0 },
             { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetNumberXOffset', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24, checkboxId: 'checkboxTargetNumberXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetNumberYOffset', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00, checkboxId: 'checkboxTargetNumberYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34, checkboxId: 'checkboxTargetSuffixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60, checkboxId: 'checkboxTargetSuffixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            // Anchor-mode counterparts (2026-09-20) - same reasoning as
+            // Prefix's above. Suffix genuinely has both axes tied to the
+            // Number today, so both get one.
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetSuffixXAnchorOffset', label: 'Suffix X Offset (Anchor Mode) (vw):', min: -700, max: 700, step: 0.01, value: 0 },
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetSuffixYAnchorOffset', label: 'Suffix Y Offset (Anchor Mode) (vh):', min: -700, max: 700, step: 0.01, value: 0 },
             { tab: 'mobile', group: 'Main Button', id: 'sliderMobileButtonX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: -2.32, checkboxId: 'checkboxMobileButtonXOffsetUnitPx', checkboxFlagVar: '--button-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Main Button', id: 'sliderMobileButtonY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 16, checkboxId: 'checkboxMobileButtonYOffsetUnitPx', checkboxFlagVar: '--button-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Start/Try Again Button', id: 'sliderMobileTextX', label: 'Button X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxMobileTextXOffsetUnitPx', checkboxFlagVar: '--text-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -13779,10 +13895,13 @@
             // on why all 3 parts' checkboxes share one flagVar per axis.
             { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 37.50, checkboxId: 'checkboxMobileTargetPrefixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -29.31, checkboxId: 'checkboxMobileTargetPrefixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetPrefixYAnchorOffset', label: 'Prefix Y Offset (Anchor Mode) (vh):', min: -700, max: 700, step: 0.01, value: 0 },
             { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 111.06, checkboxId: 'checkboxMobileTargetNumberXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 34.90, checkboxId: 'checkboxMobileTargetNumberYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 165.75, checkboxId: 'checkboxMobileTargetSuffixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 16.02, checkboxId: 'checkboxMobileTargetSuffixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetSuffixXAnchorOffset', label: 'Suffix X Offset (Anchor Mode) (vw):', min: -700, max: 700, step: 0.01, value: 0 },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetSuffixYAnchorOffset', label: 'Suffix Y Offset (Anchor Mode) (vh):', min: -700, max: 700, step: 0.01, value: 0 },
             { tab: 'mobile', group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 10, checkboxId: 'checkboxMobileRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 15, checkboxId: 'checkboxMobileRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Main Button', id: 'sliderLandscapeButtonX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: -2.32, checkboxId: 'checkboxLandscapeButtonXOffsetUnitPx', checkboxFlagVar: '--button-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -13812,10 +13931,13 @@
             // on why all 3 parts' checkboxes share one flagVar per axis.
             { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20, checkboxId: 'checkboxLandscapeTargetPrefixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19, checkboxId: 'checkboxLandscapeTargetPrefixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYAnchorOffset', label: 'Prefix Y Offset (Anchor Mode) (vh):', min: -700, max: 700, step: 0.01, value: 0 },
             { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24, checkboxId: 'checkboxLandscapeTargetNumberXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00, checkboxId: 'checkboxLandscapeTargetNumberYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34, checkboxId: 'checkboxLandscapeTargetSuffixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60, checkboxId: 'checkboxLandscapeTargetSuffixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXAnchorOffset', label: 'Suffix X Offset (Anchor Mode) (vw):', min: -700, max: 700, step: 0.01, value: 0 },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYAnchorOffset', label: 'Suffix Y Offset (Anchor Mode) (vh):', min: -700, max: 700, step: 0.01, value: 0 },
         ];
         function buildCompoundOffsetRow(ctrl) {
             const row = document.createElement('div');
@@ -14184,6 +14306,7 @@
             'sliderTargetPrefixFontSizeVw': '--target-prefix-font-size-vw',
             'sliderTargetPrefixXOffset': '--target-prefix-x-offset-vw',
             'sliderTargetPrefixYOffset': '--target-prefix-y-offset-vh',
+            'sliderTargetPrefixYAnchorOffset': '--target-prefix-y-anchor-offset-vh',
             'sliderTargetPrefixLetterSpacing': '--target-prefix-letter-spacing-px',
             'sliderTargetNumberFontSize': '--target-number-font-size-px',
             'sliderTargetNumberFontSizeVw': '--target-number-font-size-vw',
@@ -14194,6 +14317,8 @@
             'sliderTargetSuffixFontSizeVw': '--target-suffix-font-size-vw',
             'sliderTargetSuffixXOffset': '--target-suffix-x-offset-vw',
             'sliderTargetSuffixYOffset': '--target-suffix-y-offset-vh',
+            'sliderTargetSuffixXAnchorOffset': '--target-suffix-x-anchor-offset-vw',
+            'sliderTargetSuffixYAnchorOffset': '--target-suffix-y-anchor-offset-vh',
             'sliderTargetSuffixLetterSpacing': '--target-suffix-letter-spacing-px',
             'sliderSpeedFontSize': '--speed-font-size-px',
             'sliderSpeedFontSizeVw': '--speed-font-size-vw',
@@ -20646,15 +20771,113 @@
             { id: 'stage2TargetNumberFontSize', field: 'widthValue', cssVar: '--target-number-font-size-vw', extract: blendedVw },
             { id: 'stage2TargetSuffix', field: 'gap', cssVar: '--target-suffix-x-offset-vw', extract: gapX },
             { id: 'stage2TargetSuffix', field: 'gap', cssVar: '--target-suffix-y-offset-vh', extract: gapY },
+            // Anchor-mode counterparts (2026-09-20, "big pass" request) -
+            // Suffix's own mode can be switched to 'anchor' via the
+            // Inspector (already generically possible - createUIElement()
+            // never restricted this), in which case 'gap' no longer
+            // applies (try/catch above already skips it silently) and
+            // these 2 entries become the live ones instead. Both point at
+            // NEW cssVars/real sliders (see CSS_VAR_SLIDER_MAP/the desktop
+            // slider array above) - the existing gap entries above keep
+            // pointing at the ORIGINAL, already-tuned relative-mode
+            // sliders, untouched.
+            { id: 'stage2TargetSuffix', field: 'offsetX', cssVar: '--target-suffix-x-anchor-offset-vw', extract: parseFloatSafe },
+            { id: 'stage2TargetSuffix', field: 'offsetY', cssVar: '--target-suffix-y-anchor-offset-vh', extract: parseFloatSafe },
             { id: 'stage2TargetSuffixFontSize', field: 'widthValue', cssVar: '--target-suffix-font-size-vw', extract: blendedVw },
             { id: 'stage2TargetPrefixX', field: 'offsetX', cssVar: '--target-prefix-x-offset-vw', extract: parseFloatSafe },
             { id: 'stage2TargetPrefixY', field: 'gap', cssVar: '--target-prefix-y-offset-vh', extract: gapY },
+            // Anchor-mode counterpart (2026-09-20) - same reasoning as
+            // Suffix's above. Prefix's X (the entry directly above) has no
+            // counterpart - it was never mode-dependent, see
+            // #targetCountPrefix's own CSS comment - so only Y needs one.
+            { id: 'stage2TargetPrefixY', field: 'offsetY', cssVar: '--target-prefix-y-anchor-offset-vh', extract: parseFloatSafe },
             { id: 'stage2TargetPrefixFontSize', field: 'widthValue', cssVar: '--target-prefix-font-size-vw', extract: blendedVw },
             { id: 'stage2ButtonX', field: 'offsetX', cssVar: '--button-x-offset-vw', extract: parseFloatSafe },
             { id: 'stage2ButtonX', field: 'offsetY', cssVar: '--button-y-offset-vh', extract: parseFloatSafe },
             { id: 'stage2ButtonDiameter', field: 'widthPreferred', cssVar: '--button-diameter-vw', extract: parseFloatSafe },
             { id: 'stage2ButtonDiameter', field: 'widthMin', cssVar: '--button-min-diameter-px', extract: parseFloatSafe },
         );
+
+        // ------------------------------------------------------------
+        // REAL-ROW VISIBILITY BY MODE (2026-09-20, "big pass" - direct
+        // request: "if an object is set to anchor mode, only show the
+        // anchor mode relevant sliders. if its set to relative, only show
+        // the relative sliders... whatever i set the UI inspector settings
+        // to, I should have the relevant settings available", confirmed to
+        // apply to every object, not just Target Prefix). For the 8
+        // elements below that only ever had ONE real position.mode
+        // (anchor) wired up - their real X/Y sliders are hidden whenever
+        // the Inspector's own mode dropdown is switched to anything else
+        // (relative/fixed/absolute/flow), since none of those currently
+        // have real cssVar backing for them (editing them would be inert).
+        // Target Suffix and Target Prefix's Y each genuinely support BOTH
+        // anchor and relative (see the STAGE2_SYNC_MAP entries above and
+        // updateTargetAnchoredPositions()'s own comment) - their entry
+        // below lists BOTH mode's real rows, toggled between.
+        const STAGE2_MODE_ROW_MAP = {
+            stage2HighScoreX: { anchor: ['sliderHighScoreX', 'sliderHighScoreY'] },
+            stage2StartX: { anchor: ['sliderTextX', 'sliderTextY'] },
+            stage2RoundTextX: { anchor: ['sliderRoundDockX', 'sliderRoundDockY'] },
+            stage2SpeedX: { anchor: ['sliderSpeedX', 'sliderSpeedY'] },
+            stage2MsPerClickX: { anchor: ['sliderMsPerClickX', 'sliderMsPerClickY'] },
+            stage2RoundBreakdownX: { anchor: ['sliderRoundBreakdownX', 'sliderRoundBreakdownY'] },
+            stage2TargetNumberX: { anchor: ['sliderTargetNumberXOffset', 'sliderTargetNumberYOffset'] },
+            stage2ButtonX: { anchor: ['sliderButtonX', 'sliderButtonY'] },
+            stage2TargetSuffix: { anchor: ['sliderTargetSuffixXAnchorOffset', 'sliderTargetSuffixYAnchorOffset'], relative: ['sliderTargetSuffixXOffset', 'sliderTargetSuffixYOffset'] },
+            stage2TargetPrefixY: { anchor: ['sliderTargetPrefixYAnchorOffset'], relative: ['sliderTargetPrefixYOffset'] },
+        };
+        // Default mode used when nothing has ever been saved to
+        // stage2EngineOverrides for that element yet - matches each
+        // element's own real, original (pre-2026-09-20) behavior exactly,
+        // so a fresh page load with no overrides shows the SAME rows it
+        // always has.
+        const STAGE2_DEFAULT_MODE = {
+            stage2HighScoreX: 'anchor', stage2StartX: 'anchor', stage2RoundTextX: 'anchor',
+            stage2SpeedX: 'anchor', stage2MsPerClickX: 'anchor', stage2RoundBreakdownX: 'anchor',
+            stage2TargetNumberX: 'anchor', stage2ButtonX: 'anchor',
+            stage2TargetSuffix: 'relative', stage2TargetPrefixY: 'relative',
+        };
+        function stage2CurrentSavedMode(elementId) {
+            const saved = stage2EngineOverrides[elementId];
+            const fallback = STAGE2_DEFAULT_MODE[elementId] || 'anchor';
+            return (saved && saved.position && saved.position.mode) ? saved.position.mode : fallback;
+        }
+        function stage2SyncRowVisibility(elementId) {
+            const modeMap = STAGE2_MODE_ROW_MAP[elementId];
+            if (!modeMap) return;
+            const currentMode = stage2CurrentSavedMode(elementId);
+            Object.keys(modeMap).forEach((modeKey) => {
+                const shouldShow = modeKey === currentMode;
+                modeMap[modeKey].forEach((rowId) => {
+                    const controlEl = document.getElementById(rowId);
+                    if (!controlEl) return;
+                    const row = controlEl.closest('.dev-row');
+                    if (!row) return;
+                    row.classList.toggle('dev-row-hidden-by-mode', !shouldShow);
+                });
+            });
+        }
+        function stage2SyncAllRowVisibility() {
+            Object.keys(STAGE2_MODE_ROW_MAP).forEach(stage2SyncRowVisibility);
+        }
+        // Bridged onto window - applyActiveVars() (classic script) has no
+        // direct visibility into this module's own top-level declarations,
+        // same reasoning as window.stage2SyncClickoToEngine above.
+        window.stage2SyncAllRowVisibility = stage2SyncAllRowVisibility;
+        // Also run once immediately, right here at module-load time - the
+        // window.applyActiveVars() hook alone isn't a reliable enough
+        // trigger for the INITIAL state (confirmed live: applyActiveVars()
+        // runs a couple of times synchronously during page bootstrap,
+        // BEFORE this deferred module has even executed once, so those
+        // early calls correctly no-op per their own typeof guard - but if
+        // nothing calls applyActiveVars() again afterward (e.g. real
+        // settings load resolves without incident, or a local/offline test
+        // context with no working settings fetch at all), the correct
+        // initial row visibility would never get set). This direct call
+        // guarantees correct initial state regardless of that timing;
+        // applyActiveVars()'s own hook remains in place as the ongoing/
+        // live-update path for anything that changes after this point.
+        stage2SyncAllRowVisibility();
 
         // ------------------------------------------------------------
         // BUG FIX (2026-09-20, direct report: "when im in desktop dev
@@ -20783,6 +21006,7 @@
                 }
                 relevantEntries.forEach(stage2PrimeEntry);
                 stage2LastPrimedId = selectedId;
+                stage2SyncRowVisibility(selectedId);
                 refreshInspector();
                 return;
             }
@@ -20807,11 +21031,20 @@
             if (anyChanged) applyActiveVars();
 
             // STRUCTURAL capture - mirrors the restore above. Position mode
-            // (and size mode, if present) has no cssVar and no rendering
-            // consequence in Clicko, so it's captured independently of
-            // anyChanged/applyActiveVars() above - it only ever needs to
-            // reach stage2EngineOverrides, which Save/Copy/Named-States
-            // already include (buildSettingsSnapshot() etc.) and
+            // (and size mode, if present) has no cssVar of its OWN, but
+            // for Target Suffix/Prefix-Y specifically it now DOES have a
+            // real rendering consequence (2026-09-20, "big pass" -
+            // updateTargetAnchoredPositions() branches their base/offset-
+            // active custom properties on this exact mode) - captured
+            // independently of anyChanged/applyActiveVars() above since a
+            // PURE mode switch with no value change wouldn't otherwise set
+            // anyChanged at all (confirmed live: switching Suffix's mode
+            // alone, before touching any slider, left computedLeft
+            // completely unchanged - applyActiveVars() literally never
+            // re-ran, so updateTargetAnchoredPositions() never re-resolved
+            // which base/offset-active variables applied). Reaches
+            // stage2EngineOverrides, which Save/Copy/Named-States already
+            // include (buildSettingsSnapshot() etc.) and
             // applyLoadedSettings() already restores on load/Undo.
             const liveEl = getElement(selectedId);
             if (liveEl && liveEl.layout) {
@@ -20819,6 +21052,8 @@
                 const savedJson = JSON.stringify(stage2EngineOverrides[selectedId] || null);
                 if (JSON.stringify(liveStructural) !== savedJson) {
                     stage2EngineOverrides[selectedId] = JSON.parse(JSON.stringify(liveStructural));
+                    stage2SyncRowVisibility(selectedId);
+                    if (!anyChanged) applyActiveVars(); // force a re-resolve even when no cssVar value itself changed - see comment above
                 }
             }
         }
