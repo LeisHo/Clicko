@@ -208,10 +208,10 @@
     "--dev-panel-left-px": 644,
     "--dev-panel-top-px": 324,
     "--dev-panel-height-px": 421,
-    "--round-breakdown-width-vw": 29.905,
-    "--round-breakdown-height-vh": 42.018,
-    "--round-breakdown-left-vw": 1.931,
-    "--round-breakdown-top-vh": 40.046,
+    "--round-breakdown-width-vw": 30.582,
+    "--round-breakdown-height-vh": 49.104,
+    "--round-breakdown-left-vw": 1.721,
+    "--round-breakdown-top-vh": 35.283,
     "--round-breakdown-enabled": 1,
     "--round-breakdown-resizer-enabled": 1,
     "--round-breakdown-font-family": "Bungee",
@@ -1277,7 +1277,7 @@
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
-    "desktop:New Group (6)": false,
+    "desktop:New Group (6)": true,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
     "desktop:High Score": true,
@@ -1298,7 +1298,7 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": false,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": true,
+    "desktop:New Group (17)": false,
     "desktop:Mouse Log": false,
     "mobile:Round Breakdown": true,
     "mobile:Dev Panel": true,
@@ -5830,11 +5830,16 @@
               ],
               "subgroups": []
             }
+          },
+          {
+            "type": "row",
+            "key": "btnClearHighScore"
           }
         ],
         "rowKeys": [
           "checkboxClickCounter",
-          "checkboxShowTopDebugLines"
+          "checkboxShowTopDebugLines",
+          "btnClearHighScore"
         ],
         "subgroups": [
           {
