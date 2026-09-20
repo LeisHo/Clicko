@@ -205,12 +205,12 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 350,
-    "--dev-panel-left-px": 644,
-    "--dev-panel-top-px": 324,
-    "--dev-panel-height-px": 421,
-    "--round-breakdown-width-vw": 30.582,
-    "--round-breakdown-height-vh": 49.104,
-    "--round-breakdown-left-vw": 1.721,
+    "--dev-panel-left-px": 35,
+    "--dev-panel-top-px": 37,
+    "--dev-panel-height-px": 435,
+    "--round-breakdown-width-vw": 30.96,
+    "--round-breakdown-height-vh": 48.438,
+    "--round-breakdown-left-vw": 2.6,
     "--round-breakdown-top-vh": 35.283,
     "--round-breakdown-enabled": 1,
     "--round-breakdown-resizer-enabled": 1,
@@ -439,16 +439,16 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 0,
     "--result-text-valign-edge-lock": 0,
-    "--round-breakdown-width-vw": 80,
-    "--round-breakdown-height-vh": 40,
-    "--round-breakdown-left-vw": 10,
-    "--round-breakdown-top-vh": 15,
+    "--round-breakdown-width-vw": 89.992,
+    "--round-breakdown-height-vh": 18.543,
+    "--round-breakdown-left-vw": 3.444,
+    "--round-breakdown-top-vh": 71.289,
     "--round-breakdown-outline-thickness-px": 2,
     "--round-breakdown-title-font-size-px": 14,
     "--round-breakdown-title-letter-spacing-px": 0,
     "--round-breakdown-title-line-height": 1.2,
-    "--round-breakdown-data-font-size-px": 13,
-    "--round-breakdown-data-letter-spacing-px": 0,
+    "--round-breakdown-data-font-size-px": 10,
+    "--round-breakdown-data-letter-spacing-px": 1,
     "--round-breakdown-data-line-height": 1.2,
     "--round-breakdown-width-px": 280,
     "--round-breakdown-height-px": 320,
@@ -1277,7 +1277,7 @@
     "desktop:New Group (3)": true,
     "desktop:Shadow": true,
     "desktop:Click Burst": true,
-    "desktop:New Group (6)": true,
+    "desktop:New Group (6)": false,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
     "desktop:High Score": true,
@@ -1298,9 +1298,8 @@
     "desktop:New Group": true,
     "desktop:Rotation Animation": false,
     "desktop:Game Mechanics": true,
-    "desktop:New Group (17)": false,
+    "desktop:New Group (17)": true,
     "desktop:Mouse Log": false,
-    "mobile:Round Breakdown": true,
     "mobile:Dev Panel": true,
     "mobile:New Group (13)": true,
     "mobile:New Group (12)": true,
@@ -1322,9 +1321,13 @@
     "mobile:High Score": true,
     "mobile:Start/Try Again Button": true,
     "mobile:Round Text": true,
-    "mobile:Target Count Display": false,
+    "mobile:Target Count Display": true,
     "mobile:Speed Display (max ms between taps)": true,
-    "mobile:Ms/Click Display": false,
+    "mobile:Ms/Click Display": true,
+    "mobile:Round Breakdown": false,
+    "mobile:New Group (20)": true,
+    "mobile:New Group (18)": true,
+    "mobile:New Group (19)": true,
     "mobile:New Group (7)": true,
     "mobile:Win/Lose Text": true,
     "mobile:New Group (2)": true,
@@ -5881,69 +5884,6 @@
     ],
     "mobileTabContent": [
       {
-        "key": "mobile:Round Breakdown",
-        "items": [
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownTitleLetterSpacing"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownTitleLineHeight"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownDataLetterSpacing"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownDataLineHeight"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownX"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownY"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownWidth"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownHeight"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownOutlineThickness"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownTitleFontSize"
-          },
-          {
-            "type": "row",
-            "key": "sliderMobileRoundBreakdownDataFontSize"
-          }
-        ],
-        "rowKeys": [
-          "sliderMobileRoundBreakdownTitleLetterSpacing",
-          "sliderMobileRoundBreakdownTitleLineHeight",
-          "sliderMobileRoundBreakdownDataLetterSpacing",
-          "sliderMobileRoundBreakdownDataLineHeight",
-          "sliderMobileRoundBreakdownX",
-          "sliderMobileRoundBreakdownY",
-          "sliderMobileRoundBreakdownWidth",
-          "sliderMobileRoundBreakdownHeight",
-          "sliderMobileRoundBreakdownOutlineThickness",
-          "sliderMobileRoundBreakdownTitleFontSize",
-          "sliderMobileRoundBreakdownDataFontSize"
-        ],
-        "subgroups": []
-      },
-      {
         "key": "mobile:Dev Panel",
         "items": [
           {
@@ -7209,6 +7149,165 @@
               ],
               "subgroups": []
             }
+          },
+          {
+            "type": "group",
+            "section": {
+              "key": "mobile:Round Breakdown",
+              "items": [
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBreakdownX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBreakdownY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBreakdownWidth"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBreakdownHeight"
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "mobile:New Group (20)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownOutlineThickness"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderMobileRoundBreakdownOutlineThickness"
+                    ],
+                    "subgroups": []
+                  }
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "mobile:New Group (18)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownTitleFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownTitleLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownTitleLineHeight"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderMobileRoundBreakdownTitleFontSize",
+                      "sliderMobileRoundBreakdownTitleLetterSpacing",
+                      "sliderMobileRoundBreakdownTitleLineHeight"
+                    ],
+                    "subgroups": []
+                  }
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "mobile:New Group (19)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownDataFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownDataLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileRoundBreakdownDataLineHeight"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderMobileRoundBreakdownDataFontSize",
+                      "sliderMobileRoundBreakdownDataLetterSpacing",
+                      "sliderMobileRoundBreakdownDataLineHeight"
+                    ],
+                    "subgroups": []
+                  }
+                }
+              ],
+              "rowKeys": [
+                "sliderMobileRoundBreakdownX",
+                "sliderMobileRoundBreakdownY",
+                "sliderMobileRoundBreakdownWidth",
+                "sliderMobileRoundBreakdownHeight"
+              ],
+              "subgroups": [
+                {
+                  "key": "mobile:New Group (20)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownOutlineThickness"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileRoundBreakdownOutlineThickness"
+                  ],
+                  "subgroups": []
+                },
+                {
+                  "key": "mobile:New Group (18)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownTitleFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownTitleLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownTitleLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileRoundBreakdownTitleFontSize",
+                    "sliderMobileRoundBreakdownTitleLetterSpacing",
+                    "sliderMobileRoundBreakdownTitleLineHeight"
+                  ],
+                  "subgroups": []
+                },
+                {
+                  "key": "mobile:New Group (19)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownDataFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownDataLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownDataLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileRoundBreakdownDataFontSize",
+                    "sliderMobileRoundBreakdownDataLetterSpacing",
+                    "sliderMobileRoundBreakdownDataLineHeight"
+                  ],
+                  "subgroups": []
+                }
+              ]
+            }
           }
         ],
         "rowKeys": [],
@@ -7707,6 +7806,162 @@
               "selectMobileMsPerClickTextValign"
             ],
             "subgroups": []
+          },
+          {
+            "key": "mobile:Round Breakdown",
+            "items": [
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBreakdownX"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBreakdownY"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBreakdownWidth"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBreakdownHeight"
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "mobile:New Group (20)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownOutlineThickness"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileRoundBreakdownOutlineThickness"
+                  ],
+                  "subgroups": []
+                }
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "mobile:New Group (18)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownTitleFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownTitleLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownTitleLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileRoundBreakdownTitleFontSize",
+                    "sliderMobileRoundBreakdownTitleLetterSpacing",
+                    "sliderMobileRoundBreakdownTitleLineHeight"
+                  ],
+                  "subgroups": []
+                }
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "mobile:New Group (19)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownDataFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownDataLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileRoundBreakdownDataLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileRoundBreakdownDataFontSize",
+                    "sliderMobileRoundBreakdownDataLetterSpacing",
+                    "sliderMobileRoundBreakdownDataLineHeight"
+                  ],
+                  "subgroups": []
+                }
+              }
+            ],
+            "rowKeys": [
+              "sliderMobileRoundBreakdownX",
+              "sliderMobileRoundBreakdownY",
+              "sliderMobileRoundBreakdownWidth",
+              "sliderMobileRoundBreakdownHeight"
+            ],
+            "subgroups": [
+              {
+                "key": "mobile:New Group (20)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownOutlineThickness"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderMobileRoundBreakdownOutlineThickness"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (18)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownTitleFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownTitleLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownTitleLineHeight"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderMobileRoundBreakdownTitleFontSize",
+                  "sliderMobileRoundBreakdownTitleLetterSpacing",
+                  "sliderMobileRoundBreakdownTitleLineHeight"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (19)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownDataFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownDataLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileRoundBreakdownDataLineHeight"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderMobileRoundBreakdownDataFontSize",
+                  "sliderMobileRoundBreakdownDataLetterSpacing",
+                  "sliderMobileRoundBreakdownDataLineHeight"
+                ],
+                "subgroups": []
+              }
+            ]
           }
         ]
       },
@@ -11003,7 +11258,14 @@
     "desktop:New Group (18)": "ROUND BREAKDOWN - ROUND TITLE",
     "desktop:New Group (19)": "ROUND BREAKDOWN - ROUND DATA",
     "desktop:New Group (20)": "ROUND BREAKDOWN OUTLINE",
-    "desktop:New Group (21)": "ROUND BREAKDOWN AUTOSCROLL"
+    "desktop:New Group (21)": "ROUND BREAKDOWN AUTOSCROLL",
+    "mobile:New Group (20)": "ROUND BREAKDOWN OUTLINE",
+    "sliderMobileRoundBreakdownTitleLetterSpacing": null,
+    "sliderMobileRoundBreakdownTitleLineHeight": null,
+    "mobile:New Group (18)": "ROUND BREAKDOWN - ROUND TITLE",
+    "sliderMobileRoundBreakdownDataLetterSpacing": null,
+    "sliderMobileRoundBreakdownDataLineHeight": null,
+    "mobile:New Group (19)": "ROUND BREAKDOWN - ROUND DATA"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -11193,7 +11455,10 @@
       "sliderMsPerClickLine2Gap": "17",
       "sliderMsPerClickLetterSpacing": "1.5",
       "sliderMsPerClickX": "31.15",
-      "sliderMsPerClickNumberXOffset": "-19"
+      "sliderMsPerClickNumberXOffset": "-19",
+      "sliderRoundBreakdownHeight": "10",
+      "sliderRoundBreakdownWidth": "100",
+      "sliderRoundBreakdownDataLetterSpacing": "1"
     },
     "landscape": {}
   },
