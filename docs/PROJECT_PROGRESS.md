@@ -65,7 +65,21 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-19): fixed the Round Breakdown panel showing on
+Most recently (2026-09-19): dev-panel groups and settings can now be
+reordered fully interleaved via drag (a group can land above/below/
+between settings, not forced to sort separately from them) - fixed
+across 3 systems: `setupDragReorder()`'s sibling-position comparison
+(was same-type-only), `captureSection()`/`applySectionOrder()`'s
+persistence shape (was 2 separate rowKeys/subgroups arrays with no
+combined order between them - now one ordered `items` list, with a
+fallback for an old-format saved settings file), and
+`syncTabOrderToDesktop()`'s Desktop->Mobile/Landscape order-mirroring
+translator (2 leftover-append sites were also writing to the wrong,
+now-unread field). Built and verified in `.claude/TEMPLATE_DEV_PANEL.html`
+first, then ported here. **Not committed/pushed yet** - awaiting
+explicit instruction.
+
+Before that (2026-09-19): fixed the Round Breakdown panel showing on
 startup instead of only on a loss (`renderRoundBreakdown()`'s own
 un-hide call fires from `refreshAllTextOverrides()`, which runs on
 every page load/resize, not just a real loss - now also gated on an
@@ -190,6 +204,10 @@ See `docs/CHANGELOG.txt` for full details and reasoning on all of the
 above — every item here has its own detailed dated entry there.
 
 ## What's next
+
+Immediate: commit and push the interleaved group/setting reordering fix
+(2026-09-19, see above) - currently verified locally but not yet pushed,
+awaiting explicit instruction per CLAUDE.md §9.
 
 Likely next: re-tune Target Text's Prefix ("Click") Y Offset and Suffix
 ("x") X/Y Offset sliders (Desktop/Mobile/Landscape, all 3 tabs) - their

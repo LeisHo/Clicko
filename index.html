@@ -10548,6 +10548,19 @@
         //     drag settings between groups"), letting a dragged row cross
         //     into a DIFFERENT group's content instead of only reordering
         //     among its own group's existing siblings.
+        // Used for the SIBLING-POSITION comparison inside setupDragReorder()
+        // (not for `itemSelector`, which stays per-call and decides what the
+        // drag HANDLE actually picks up) - ported from TEMPLATE_DEV_PANEL.html
+        // (2026-09-19, direct request: "I want to be able to reorder nested
+        // groups and settings such that Nested groups can be placed above
+        // settings. there should be no prioritization in terms of settings
+        // area lways above groups or anyting liek that"). Before this, the
+        // 2 setupDragReorder() calls below (one for '.dev-section', one for
+        // '.dev-row') each only ever compared position against same-type
+        // siblings, since the sibling query used the call's own itemSelector -
+        // meaning a dragged group could never be interleaved with rows, and a
+        // dragged row could never be interleaved with groups.
+        const REORDERABLE_SIBLING_SELECTOR = ':scope > .dev-section, :scope > .dev-row';
         function setupDragReorder(handleSelector, itemSelector, onDrop, crossContainerSelector) {
             let dragging = null;
             let startY = 0;
@@ -10742,7 +10755,9 @@
                         });
                     }
                     if (!targetContainer) return;
-                    const targetSiblings = Array.from(targetContainer.querySelectorAll(':scope > ' + itemSelector)).filter(el => el !== dragging);
+                    // Combined selector (not the per-call itemSelector alone) -
+                    // see REORDERABLE_SIBLING_SELECTOR's own comment.
+                    const targetSiblings = Array.from(targetContainer.querySelectorAll(REORDERABLE_SIBLING_SELECTOR)).filter(el => el !== dragging);
                     const before = targetSiblings.find(sib => e.clientY < sib.getBoundingClientRect().top + sib.getBoundingClientRect().height / 2);
                     if (before) {
                         targetContainer.insertBefore(dragging, before);
@@ -10751,7 +10766,7 @@
                     }
                     return;
                 }
-                const siblings = Array.from(dragging.parentElement.querySelectorAll(':scope > ' + itemSelector)).filter(el => el !== dragging);
+                const siblings = Array.from(dragging.parentElement.querySelectorAll(REORDERABLE_SIBLING_SELECTOR)).filter(el => el !== dragging);
                 for (const sib of siblings) {
                     const rect = sib.getBoundingClientRect();
                     const mid = rect.top + rect.height / 2;
@@ -10876,15 +10891,31 @@
         // NESTED subgroup's own separate content div (they're still
         // descendants of this section, just one level further in), double-
         // counting/misattributing them to the wrong group.
+        // items: a SINGLE ordered list, interleaving rows and subgroups in
+        // real DOM order (2026-09-19, ported from TEMPLATE_DEV_PANEL.html) -
+        // replaces the old separate rowKeys/subgroups arrays, which could
+        // only ever express "all rows, then all subgroups" (or vice versa
+        // on restore), never an actual interleaved order. Direct request:
+        // "I want to be able to reorder nested groups and settings such
+        // that Nested groups can be placed above settings. there should be
+        // no prioritization in terms of settings area lways above groups
+        // or anyting liek that." rowKeys/subgroups are still populated
+        // alongside items (derived from it, not a 2nd source of truth) so
+        // anything still reading them directly (translateGroup() below,
+        // findByKey/collectKeys) keeps working unchanged.
         function captureSection(sec) {
             const titleEl = sec.querySelector(':scope > .dev-section-title');
             const content = sec.querySelector(':scope > .dev-section-content');
-            const rows = Array.from(content.querySelectorAll(':scope > .dev-row'));
-            const subSections = Array.from(content.querySelectorAll(':scope > .dev-section'));
+            const items = Array.from(content.querySelectorAll(':scope > .dev-row, :scope > .dev-section')).map((el, i) => {
+                return el.classList.contains('dev-row')
+                    ? { type: 'row', key: getRowKey(el, i) }
+                    : { type: 'group', section: captureSection(el) };
+            });
             return {
                 key: getSectionKey(titleEl),
-                rowKeys: rows.map((row, i) => getRowKey(row, i)),
-                subgroups: subSections.map(sub => captureSection(sub)),
+                items,
+                rowKeys: items.filter(it => it.type === 'row').map(it => it.key),
+                subgroups: items.filter(it => it.type === 'group').map(it => it.section),
             };
         }
         function captureSectionOrder() {
@@ -10972,11 +11003,28 @@
                     }
                     parentContainer.appendChild(sec); // moves to the end, in saved order -> reproduces the full saved sequence
                     const content = sec.querySelector(':scope > .dev-section-content');
-                    (savedSec.rowKeys || []).forEach(rowKey => {
-                        const row = rowsByKey[rowKey];
-                        if (row) content.appendChild(row);
-                    });
-                    (savedSec.subgroups || []).forEach(sub => placeSection(sub, content));
+                    // Interleaved order (savedSec.items, see captureSection()'s
+                    // own comment) - falls back to the OLD "all rows, then all
+                    // subgroups" shape for a save made before this change, so
+                    // an existing saved dev-panel-settings.json still loads
+                    // correctly (just without any interleaving it never had
+                    // to begin with) instead of erroring or dropping content.
+                    if (savedSec.items) {
+                        savedSec.items.forEach(item => {
+                            if (item.type === 'row') {
+                                const row = rowsByKey[item.key];
+                                if (row) content.appendChild(row);
+                            } else {
+                                placeSection(item.section, content);
+                            }
+                        });
+                    } else {
+                        (savedSec.rowKeys || []).forEach(rowKey => {
+                            const row = rowsByKey[rowKey];
+                            if (row) content.appendChild(row);
+                        });
+                        (savedSec.subgroups || []).forEach(sub => placeSection(sub, content));
+                    }
                 }
                 savedSections.forEach(savedSec => placeSection(savedSec, tabEl));
             });
@@ -11119,36 +11167,60 @@
                     overridesChanged = true;
                 }
             }
+            // Walks desktopGroup.items (the interleaved row/subgroup order -
+            // 2026-09-19, ported from TEMPLATE_DEV_PANEL.html's own
+            // captureSection()/translateGroup() fix, see its own comment)
+            // instead of the old separate rowKeys/subgroups arrays, so a
+            // row placed ABOVE a subgroup on Desktop mirrors that same
+            // interleaved order onto Mobile/Landscape, not "all rows
+            // first." Falls back to the pre-2026-09-19 rowKeys-then-
+            // subgroups shape for a desktopGroup captured before this
+            // change (there is none in practice - captureSectionOrder()
+            // always produces the new shape now - but keeps this correct
+            // even against an externally-sourced legacy sectionOrder).
             function translateGroup(desktopGroup) {
                 const desktopTitle = desktopGroup.key.replace(/^desktop:/, '');
                 const mobileSec = mobileSectionsByNormTitle[stripParen(desktopTitle)];
-                const mobileRowKeys = [];
-                desktopGroup.rowKeys.forEach(desktopRowId => {
-                    const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1' + tabPrefix);
-                    if (mobileRowIdSet.has(mobileRowId) && !placedRowIds.has(mobileRowId)) {
-                        mobileRowKeys.push(mobileRowId);
-                        placedRowIds.add(mobileRowId);
-                        // Setting/row-label rename mirroring - previously
-                        // only group TITLES carried over here, never
-                        // individual setting names, so a Desktop row rename
-                        // never reached its Mobile/Landscape counterpart at
-                        // all (found via direct report - "setting names
-                        // dont sync"). Same manual-override guard as titles.
-                        syncRename(desktopRowId, mobileRowId);
+                const items = desktopGroup.items || [
+                    ...(desktopGroup.rowKeys || []).map(key => ({ type: 'row', key })),
+                    ...(desktopGroup.subgroups || []).map(section => ({ type: 'group', section })),
+                ];
+                const translatedItems = items.map(item => {
+                    if (item.type === 'row') {
+                        const desktopRowId = item.key;
+                        const mobileRowId = desktopRowId.replace(/^(slider|color|select|checkbox|input)/, '$1' + tabPrefix);
+                        if (mobileRowIdSet.has(mobileRowId) && !placedRowIds.has(mobileRowId)) {
+                            placedRowIds.add(mobileRowId);
+                            // Setting/row-label rename mirroring - previously
+                            // only group TITLES carried over here, never
+                            // individual setting names, so a Desktop row rename
+                            // never reached its Mobile/Landscape counterpart at
+                            // all (found via direct report - "setting names
+                            // dont sync"). Same manual-override guard as titles.
+                            syncRename(desktopRowId, mobileRowId);
+                            return { type: 'row', key: mobileRowId };
+                        }
+                        return null;
                     }
-                });
-                const translatedSubgroups = (desktopGroup.subgroups || []).map(translateGroup).filter(Boolean);
+                    const translatedSub = translateGroup(item.section);
+                    return translatedSub ? { type: 'group', section: translatedSub } : null;
+                }).filter(Boolean);
 
                 let mobileKey;
                 if (!mobileSec) {
-                    if (mobileRowKeys.length === 0 && translatedSubgroups.length === 0) return null; // truly Desktop-only (Game Mechanics, Background) - nothing to mirror
+                    if (translatedItems.length === 0) return null; // truly Desktop-only (Game Mechanics, Background) - nothing to mirror
                     mobileKey = keyPrefix + desktopTitle;
                 } else {
                     mobileKey = getSectionKey(mobileSec.querySelector(':scope > .dev-section-title'));
                 }
                 placedGroupKeys.add(mobileKey);
                 syncRename(desktopGroup.key, mobileKey);
-                return { key: mobileKey, rowKeys: mobileRowKeys, subgroups: translatedSubgroups };
+                return {
+                    key: mobileKey,
+                    items: translatedItems,
+                    rowKeys: translatedItems.filter(it => it.type === 'row').map(it => it.key),
+                    subgroups: translatedItems.filter(it => it.type === 'group').map(it => it.section),
+                };
             }
             const newMobileOrder = desktopOrder.map(translateGroup).filter(Boolean);
 
@@ -11179,7 +11251,21 @@
                 content.querySelectorAll(':scope > .dev-section').forEach(subSec => {
                     const subKey = getSectionKey(subSec.querySelector(':scope > .dev-section-title'));
                     if (!placedGroupKeys.has(subKey)) {
-                        (translatedParent ? translatedParent.subgroups : newMobileOrder).push(captureSection(subSec));
+                        const captured = captureSection(subSec);
+                        // Pushed into BOTH items and subgroups when landing
+                        // inside a translated PARENT group - same "items is
+                        // what placeSection() actually reads now" reasoning
+                        // as appendLeftoverRows()'s own identical fix just
+                        // below. Landing at the top level (newMobileOrder)
+                        // needs no such fix - that array IS what
+                        // applySectionOrder() reads directly, it has no
+                        // wrapping items/subgroups field of its own.
+                        if (translatedParent) {
+                            translatedParent.items.push({ type: 'group', section: captured });
+                            translatedParent.subgroups.push(captured);
+                        } else {
+                            newMobileOrder.push(captured);
+                        }
                         placedGroupKeys.add(subKey);
                     }
                 });
@@ -11200,6 +11286,14 @@
                     Array.from(content.querySelectorAll(':scope > .dev-row')).forEach((row, i) => {
                         const rowKey = getRowKey(row, i);
                         if (!placedRowIds.has(rowKey)) {
+                            // Pushed into BOTH items (what applySectionOrder()
+                            // actually reads now - see placeSection()'s own
+                            // comment) and the derived rowKeys, so this
+                            // leftover row doesn't silently vanish on restore
+                            // the way it would if only rowKeys were updated
+                            // here (2026-09-19 - see the identical fix/
+                            // comment in TEMPLATE_DEV_PANEL.html).
+                            group.items.push({ type: 'row', key: rowKey });
                             group.rowKeys.push(rowKey);
                             placedRowIds.add(rowKey);
                         }
