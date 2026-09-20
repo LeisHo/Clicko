@@ -65,7 +65,57 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): ported Lock + Undock/Dock + the 3-icon
+Most recently (2026-09-20): 2nd fix for Round Breakdown's Auto Scroll
+pausing on the Try Again "?" flash - direct follow-up ("Its better than
+before, but its still happeing... it happens when the '?' dissppears
+as well as when it reappears") confirmed the earlier tick()-side fix
+(caching scrollHeight, see below) was real but incomplete. The flash's
+own `visibility` toggle turned out to be independently expensive -
+`#startButtonFlashCharExtrusion`'s text-shadow stacks dozens of layers
+(one per pixel of extrusion depth, times an 8-direction border ring at
+every depth), and repainting that stack on every show/hide was enough
+on its own to stall the marquee, symmetric in both directions exactly
+as reported. Fixed by switching the flash to `opacity` (0/1) plus
+`will-change: opacity` - opacity on a will-change-promoted element is
+compositor-only, never touching the main thread's paint pipeline the
+way `visibility` does. Verified the mechanism directly (will-change
+computed correctly, opacity alternates over real time, nothing else in
+the codebase read this element's own `.visibility`) rather than
+re-attempting frame-timing measurement in this session's own
+browser-testing tool (already confirmed unreliable for this while
+verifying the 1st fix). Isolated into its own commit the same way as
+the 1st fix - 2 more concurrent sessions had their own substantial
+uncommitted work (Undock/Dock, Button diameter's own vmin fix) sitting
+in the same file; verified the extracted patch was exactly these 2
+hunks before committing, restored their work afterward untouched.
+Committed and pushed.
+
+Before that (2026-09-20): the button itself (diameter, and its 4
+dependent shadow/press-offset formulas) now also scales with both
+viewport width AND height, not just width - a direct follow-up
+("everything that scales with browser should scale with both browser
+height and width. not just text") to the Scale-With-Browser text fix
+below. Re-confirmed all 15 text font-size formulas were already fixed;
+found one more always-on (non-toggle-gated) width-only mechanism -
+`--button-diameter-vw` (the button's own width/height) plus 4
+proportional formulas (shadow x/y position transform x2 rule-sites,
+button height-offset/press-intensity translateY x2 rule-sites) - and
+changed all of them from `var(--cq-vw, 1vw)`/bare `1vw` to `1vmin`.
+Width and height both derive from the same term (height = width *
+1.02598), so one shared vmin unit keeps the button's exact aspect
+ratio while making the whole button respond to whichever viewport
+dimension is smaller. Deliberately left the ~40 remaining cq-vw/cq-vh
+occurrences untouched elsewhere - those are X/Y positional OFFSET
+formulas, already correctly axis-matched, not part of this bug.
+Verified: brace balance unchanged (2108/2108), grep confirms no other
+size formula missed, live browser check showed zero new console
+errors and a real non-zero rendered button width ("500px" via
+getComputedStyle - a genuine positive signal, unlike several earlier
+checks this session that could only fall back to CSS.supports()-only
+verification). **Not committed/pushed yet** - awaiting explicit
+instruction.
+
+Before that (2026-09-20): ported Lock + Undock/Dock + the 3-icon
 title-bar layout from TEMPLATE_DEV_PANEL.html into Clicko's own dev
 panel - Undock had only ever been built in the template (an earlier
 explicit scope choice), and a direct report ("i still dont see the

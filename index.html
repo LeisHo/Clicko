@@ -1072,6 +1072,28 @@
             transform: translate(-50%, var(--anchor-ty, -50%));
             display: inline-block;
             pointer-events: none;
+            /* Promotes this element to its own compositor layer ahead of
+               time - per direct follow-up report that the Auto Scroll
+               "pause on flash" fix (see startTryAgainFlash()'s own JS
+               comment) helped but didn't fully fix it, happening on both
+               the appear AND disappear edge of the flash. Root cause,
+               round 2: the flash's OWN visibility toggle is expensive on
+               its own, independent of the earlier tick()-side fix -
+               #startButtonFlashCharExtrusion's text-shadow is built from
+               ONE shadow layer per pixel of extrusion depth PLUS a full
+               8-direction border-ring repeated at every one of those
+               depths (see buildExtrusionShadow()/buildBorderRingShadow()'s
+               own comments) - dozens of shadow layers in practice, and
+               `visibility` toggling forces the browser to actually
+               repaint that whole stack on the main thread every time,
+               each direction (show AND hide) equally, blocking whatever
+               else - including the marquee's own rAF callback - was
+               about to run. will-change:opacity tells the browser to
+               keep this element pre-composited on its own layer, so the
+               opacity toggle below (visibility's replacement) becomes a
+               compositor-only operation that never touches the main
+               thread's paint pipeline at all. */
+            will-change: opacity;
         }
         #startButtonFlashChar.hidden {
             display: none !important;
@@ -16193,7 +16215,15 @@
             function cycle(visible) {
                 const charEl = document.getElementById('startButtonFlashChar');
                 if (!charEl) return; // defensive only - this is a permanent element now
-                charEl.style.visibility = visible ? 'visible' : 'hidden';
+                // opacity, not visibility - see #startButtonFlashChar's own
+                // will-change:opacity CSS comment for why (a visibility
+                // toggle forces a real repaint of this element's own heavy
+                // multi-layer extrusion shadow on the main thread; opacity
+                // on a will-change-promoted element is compositor-only).
+                // pointer-events:none already makes this element ignore
+                // clicks regardless of visibility state, so nothing else
+                // depended on the old visibility-specific behavior.
+                charEl.style.opacity = visible ? '1' : '0';
                 const delay = visible ? cssVars['--try-again-hold-duration-ms'] : cssVars['--try-again-flash-duration-ms'];
                 tryAgainFlashTimeoutId = setTimeout(() => cycle(!visible), delay);
             }
