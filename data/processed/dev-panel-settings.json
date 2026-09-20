@@ -1059,7 +1059,7 @@
     "targetPrefix": "CLICKS ",
     "targetSuffix": "*",
     "highScoreLabel": "HIGH SCORE ",
-    "roundBreakdownLabels": " Target:\nClicks:\nAverage Click:\nFastest Click:\nSlowest Click:"
+    "roundBreakdownLabels": " Target:\nClicks:\nAverage Click   :\nFastest Click          :\nSlowest Click   :"
   },
   "mobileTextOverrides": {
     "startLabel": null,
