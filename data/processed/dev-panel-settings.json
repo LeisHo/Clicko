@@ -145,6 +145,19 @@
     "--target-suffix-font-size-vw": 12.43,
     "--target-suffix-x-offset-vw": -21.6,
     "--target-suffix-y-offset-vh": -54.09,
+    "--target-x-offset-unit-is-px": 0,
+    "--target-y-offset-unit-is-px": 0,
+    "--round-extrusion-scale-with-browser": 0,
+    "--try-again-extrusion-scale-with-browser": 0,
+    "--try-again-question-mark-extrusion-scale-with-browser": 0,
+    "--round-dock-extrusion-scale-with-browser": 0,
+    "--high-score-extrusion-scale-with-browser": 0,
+    "--target-prefix-extrusion-scale-with-browser": 0,
+    "--target-number-extrusion-scale-with-browser": 0,
+    "--target-suffix-extrusion-scale-with-browser": 0,
+    "--speed-extrusion-scale-with-browser": 0,
+    "--ms-per-click-extrusion-scale-with-browser": 0,
+    "--result-extrusion-scale-with-browser": 0,
     "--target-scale-with-browser": 1,
     "--target-prefix-hidden": 0,
     "--target-suffix-hidden": 0,
@@ -209,9 +222,9 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 532,
-    "--dev-panel-left-px": 1382,
-    "--dev-panel-top-px": 12.8125,
-    "--dev-panel-height-px": 799,
+    "--dev-panel-left-px": 1150,
+    "--dev-panel-top-px": 17,
+    "--dev-panel-height-px": 804,
     "--round-breakdown-width-vw": 29.848,
     "--round-breakdown-height-vh": 60.938,
     "--round-breakdown-left-vw": 2.026,
@@ -391,6 +404,19 @@
     "--target-suffix-x-offset-vw": -11,
     "--target-suffix-y-offset-vh": -41.13,
     "--target-suffix-letter-spacing-px": 1.5,
+    "--target-x-offset-unit-is-px": 0,
+    "--target-y-offset-unit-is-px": 0,
+    "--round-extrusion-scale-with-browser": 0,
+    "--try-again-extrusion-scale-with-browser": 0,
+    "--try-again-question-mark-extrusion-scale-with-browser": 0,
+    "--round-dock-extrusion-scale-with-browser": 0,
+    "--high-score-extrusion-scale-with-browser": 0,
+    "--target-prefix-extrusion-scale-with-browser": 0,
+    "--target-number-extrusion-scale-with-browser": 0,
+    "--target-suffix-extrusion-scale-with-browser": 0,
+    "--speed-extrusion-scale-with-browser": 0,
+    "--ms-per-click-extrusion-scale-with-browser": 0,
+    "--result-extrusion-scale-with-browser": 0,
     "--target-scale-with-browser": 1,
     "--target-prefix-line-height": 0.5,
     "--target-number-line-height": 0.5,
@@ -624,6 +650,19 @@
     "--target-suffix-font-size-vw": 11.72,
     "--target-suffix-x-offset-vw": 324.34,
     "--target-suffix-y-offset-vh": 11.6,
+    "--target-x-offset-unit-is-px": 0,
+    "--target-y-offset-unit-is-px": 0,
+    "--round-extrusion-scale-with-browser": 0,
+    "--try-again-extrusion-scale-with-browser": 0,
+    "--try-again-question-mark-extrusion-scale-with-browser": 0,
+    "--round-dock-extrusion-scale-with-browser": 0,
+    "--high-score-extrusion-scale-with-browser": 0,
+    "--target-prefix-extrusion-scale-with-browser": 0,
+    "--target-number-extrusion-scale-with-browser": 0,
+    "--target-suffix-extrusion-scale-with-browser": 0,
+    "--speed-extrusion-scale-with-browser": 0,
+    "--ms-per-click-extrusion-scale-with-browser": 0,
+    "--result-extrusion-scale-with-browser": 0,
     "--target-scale-with-browser": 1,
     "--target-prefix-hidden": 0,
     "--target-suffix-hidden": 0,
@@ -2452,6 +2491,22 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "sliderStage2ButtonX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonDiameter"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2ButtonMinDiameter"
+                },
+                {
+                  "type": "row",
                   "key": "selectButtonTextAlign"
                 },
                 {
@@ -2564,6 +2619,10 @@
                 }
               ],
               "rowKeys": [
+                "sliderStage2ButtonX",
+                "sliderStage2ButtonY",
+                "sliderStage2ButtonDiameter",
+                "sliderStage2ButtonMinDiameter",
                 "selectButtonTextAlign",
                 "selectButtonTextValign",
                 "checkboxFlipButtonSvg",
@@ -2802,6 +2861,22 @@
             "items": [
               {
                 "type": "row",
+                "key": "sliderStage2ButtonX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonDiameter"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2ButtonMinDiameter"
+              },
+              {
+                "type": "row",
                 "key": "selectButtonTextAlign"
               },
               {
@@ -2914,6 +2989,10 @@
               }
             ],
             "rowKeys": [
+              "sliderStage2ButtonX",
+              "sliderStage2ButtonY",
+              "sliderStage2ButtonDiameter",
+              "sliderStage2ButtonMinDiameter",
               "selectButtonTextAlign",
               "selectButtonTextValign",
               "checkboxFlipButtonSvg",
@@ -3218,6 +3297,30 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxHighScoreExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2HighScoreX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2HighScoreY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2HighScoreFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2HighScoreTextAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2HighScoreTextValign"
+                },
+                {
+                  "type": "row",
                   "key": "sliderHighScoreRotate"
                 },
                 {
@@ -3282,6 +3385,12 @@
                 }
               ],
               "rowKeys": [
+                "checkboxHighScoreExtrusionScaleWithBrowser",
+                "sliderStage2HighScoreX",
+                "sliderStage2HighScoreY",
+                "sliderStage2HighScoreFontSize",
+                "selectStage2HighScoreTextAlign",
+                "selectStage2HighScoreTextValign",
                 "sliderHighScoreRotate",
                 "sliderHighScoreFlashDelay",
                 "checkboxHighScoreScaleWithBrowser",
@@ -3307,6 +3416,34 @@
             "section": {
               "key": "desktop:Start/Try Again Button",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxRoundExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxTryAgainExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2StartX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2StartY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2StartFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2StartAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2StartValign"
+                },
                 {
                   "type": "row",
                   "key": "checkboxTextScaleWithBrowser"
@@ -3361,6 +3498,13 @@
                 }
               ],
               "rowKeys": [
+                "checkboxRoundExtrusionScaleWithBrowser",
+                "checkboxTryAgainExtrusionScaleWithBrowser",
+                "sliderStage2StartX",
+                "sliderStage2StartY",
+                "sliderStage2StartFontSize",
+                "selectStage2StartAlign",
+                "selectStage2StartValign",
                 "checkboxTextScaleWithBrowser",
                 "sliderTextFontSizeVw",
                 "sliderTextFontSize",
@@ -3383,6 +3527,30 @@
             "section": {
               "key": "desktop:Round Text",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxRoundDockExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundTextX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundTextY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundTextFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2RoundTextAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2RoundTextValign"
+                },
                 {
                   "type": "row",
                   "key": "sliderRoundNumberXOffset"
@@ -3441,6 +3609,12 @@
                 }
               ],
               "rowKeys": [
+                "checkboxRoundDockExtrusionScaleWithBrowser",
+                "sliderStage2RoundTextX",
+                "sliderStage2RoundTextY",
+                "sliderStage2RoundTextFontSize",
+                "selectStage2RoundTextAlign",
+                "selectStage2RoundTextValign",
                 "sliderRoundNumberXOffset",
                 "checkboxRoundScaleWithBrowser",
                 "sliderRoundFontSizeVw",
@@ -3464,6 +3638,54 @@
             "section": {
               "key": "desktop:Target Count Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxTargetPrefixExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxTargetNumberExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxTargetSuffixExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetNumberX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetNumberY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetNumberFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetSuffixX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetSuffixY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetSuffixFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetPrefixX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetPrefixY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TargetPrefixFontSize"
+                },
                 {
                   "type": "row",
                   "key": "checkboxTargetScaleWithBrowser"
@@ -3647,6 +3869,18 @@
                 }
               ],
               "rowKeys": [
+                "checkboxTargetPrefixExtrusionScaleWithBrowser",
+                "checkboxTargetNumberExtrusionScaleWithBrowser",
+                "checkboxTargetSuffixExtrusionScaleWithBrowser",
+                "sliderStage2TargetNumberX",
+                "sliderStage2TargetNumberY",
+                "sliderStage2TargetNumberFontSize",
+                "sliderStage2TargetSuffixX",
+                "sliderStage2TargetSuffixY",
+                "sliderStage2TargetSuffixFontSize",
+                "sliderStage2TargetPrefixX",
+                "sliderStage2TargetPrefixY",
+                "sliderStage2TargetPrefixFontSize",
                 "checkboxTargetScaleWithBrowser",
                 "checkboxHideTargetPrefix",
                 "checkboxHideTargetSuffix",
@@ -3810,6 +4044,30 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxSpeedExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2SpeedX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2SpeedY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2SpeedFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2SpeedAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2SpeedValign"
+                },
+                {
+                  "type": "row",
                   "key": "sliderSpeedNumberXOffset"
                 },
                 {
@@ -3866,6 +4124,12 @@
                 }
               ],
               "rowKeys": [
+                "checkboxSpeedExtrusionScaleWithBrowser",
+                "sliderStage2SpeedX",
+                "sliderStage2SpeedY",
+                "sliderStage2SpeedFontSize",
+                "selectStage2SpeedAlign",
+                "selectStage2SpeedValign",
                 "sliderSpeedNumberXOffset",
                 "checkboxSpeedScaleWithBrowser",
                 "sliderSpeedFontSizeVw",
@@ -3889,6 +4153,30 @@
             "section": {
               "key": "desktop:Ms/Click Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxMsPerClickExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2MsPerClickX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2MsPerClickY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2MsPerClickFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2MsPerClickAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2MsPerClickValign"
+                },
                 {
                   "type": "row",
                   "key": "sliderMsPerClickLine2Gap"
@@ -3951,6 +4239,12 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMsPerClickExtrusionScaleWithBrowser",
+                "sliderStage2MsPerClickX",
+                "sliderStage2MsPerClickY",
+                "sliderStage2MsPerClickFontSize",
+                "selectStage2MsPerClickAlign",
+                "selectStage2MsPerClickValign",
                 "sliderMsPerClickLine2Gap",
                 "sliderMsPerClickNumberXOffset",
                 "checkboxMsPerClickScaleWithBrowser",
@@ -3975,6 +4269,30 @@
             "section": {
               "key": "desktop:Round Breakdown",
               "items": [
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownTitle"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownData"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownWidth"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2RoundBreakdownHeight"
+                },
                 {
                   "type": "row",
                   "key": "sliderRoundBreakdownPanelOpacity"
@@ -4176,6 +4494,12 @@
                 }
               ],
               "rowKeys": [
+                "sliderStage2RoundBreakdownTitle",
+                "sliderStage2RoundBreakdownData",
+                "sliderStage2RoundBreakdownX",
+                "sliderStage2RoundBreakdownY",
+                "sliderStage2RoundBreakdownWidth",
+                "sliderStage2RoundBreakdownHeight",
                 "sliderRoundBreakdownPanelOpacity",
                 "checkboxRoundBreakdownEnabled",
                 "checkboxRoundBreakdownScaleWithBrowser",
@@ -4397,6 +4721,30 @@
             "items": [
               {
                 "type": "row",
+                "key": "checkboxHighScoreExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2HighScoreX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2HighScoreY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2HighScoreFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2HighScoreTextAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2HighScoreTextValign"
+              },
+              {
+                "type": "row",
                 "key": "sliderHighScoreRotate"
               },
               {
@@ -4461,6 +4809,12 @@
               }
             ],
             "rowKeys": [
+              "checkboxHighScoreExtrusionScaleWithBrowser",
+              "sliderStage2HighScoreX",
+              "sliderStage2HighScoreY",
+              "sliderStage2HighScoreFontSize",
+              "selectStage2HighScoreTextAlign",
+              "selectStage2HighScoreTextValign",
               "sliderHighScoreRotate",
               "sliderHighScoreFlashDelay",
               "checkboxHighScoreScaleWithBrowser",
@@ -4483,6 +4837,34 @@
           {
             "key": "desktop:Start/Try Again Button",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxRoundExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxTryAgainExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2StartX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2StartY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2StartFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2StartAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2StartValign"
+              },
               {
                 "type": "row",
                 "key": "checkboxTextScaleWithBrowser"
@@ -4537,6 +4919,13 @@
               }
             ],
             "rowKeys": [
+              "checkboxRoundExtrusionScaleWithBrowser",
+              "checkboxTryAgainExtrusionScaleWithBrowser",
+              "sliderStage2StartX",
+              "sliderStage2StartY",
+              "sliderStage2StartFontSize",
+              "selectStage2StartAlign",
+              "selectStage2StartValign",
               "checkboxTextScaleWithBrowser",
               "sliderTextFontSizeVw",
               "sliderTextFontSize",
@@ -4556,6 +4945,30 @@
           {
             "key": "desktop:Round Text",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxRoundDockExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundTextX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundTextY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundTextFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2RoundTextAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2RoundTextValign"
+              },
               {
                 "type": "row",
                 "key": "sliderRoundNumberXOffset"
@@ -4614,6 +5027,12 @@
               }
             ],
             "rowKeys": [
+              "checkboxRoundDockExtrusionScaleWithBrowser",
+              "sliderStage2RoundTextX",
+              "sliderStage2RoundTextY",
+              "sliderStage2RoundTextFontSize",
+              "selectStage2RoundTextAlign",
+              "selectStage2RoundTextValign",
               "sliderRoundNumberXOffset",
               "checkboxRoundScaleWithBrowser",
               "sliderRoundFontSizeVw",
@@ -4634,6 +5053,54 @@
           {
             "key": "desktop:Target Count Display",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxTargetPrefixExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxTargetNumberExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxTargetSuffixExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetNumberX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetNumberY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetNumberFontSize"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetSuffixX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetSuffixY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetSuffixFontSize"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetPrefixX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetPrefixY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TargetPrefixFontSize"
+              },
               {
                 "type": "row",
                 "key": "checkboxTargetScaleWithBrowser"
@@ -4817,6 +5284,18 @@
               }
             ],
             "rowKeys": [
+              "checkboxTargetPrefixExtrusionScaleWithBrowser",
+              "checkboxTargetNumberExtrusionScaleWithBrowser",
+              "checkboxTargetSuffixExtrusionScaleWithBrowser",
+              "sliderStage2TargetNumberX",
+              "sliderStage2TargetNumberY",
+              "sliderStage2TargetNumberFontSize",
+              "sliderStage2TargetSuffixX",
+              "sliderStage2TargetSuffixY",
+              "sliderStage2TargetSuffixFontSize",
+              "sliderStage2TargetPrefixX",
+              "sliderStage2TargetPrefixY",
+              "sliderStage2TargetPrefixFontSize",
               "checkboxTargetScaleWithBrowser",
               "checkboxHideTargetPrefix",
               "checkboxHideTargetSuffix",
@@ -4977,6 +5456,30 @@
             "items": [
               {
                 "type": "row",
+                "key": "checkboxSpeedExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2SpeedX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2SpeedY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2SpeedFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2SpeedAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2SpeedValign"
+              },
+              {
+                "type": "row",
                 "key": "sliderSpeedNumberXOffset"
               },
               {
@@ -5033,6 +5536,12 @@
               }
             ],
             "rowKeys": [
+              "checkboxSpeedExtrusionScaleWithBrowser",
+              "sliderStage2SpeedX",
+              "sliderStage2SpeedY",
+              "sliderStage2SpeedFontSize",
+              "selectStage2SpeedAlign",
+              "selectStage2SpeedValign",
               "sliderSpeedNumberXOffset",
               "checkboxSpeedScaleWithBrowser",
               "sliderSpeedFontSizeVw",
@@ -5053,6 +5562,30 @@
           {
             "key": "desktop:Ms/Click Display",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMsPerClickExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2MsPerClickX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2MsPerClickY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2MsPerClickFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2MsPerClickAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2MsPerClickValign"
+              },
               {
                 "type": "row",
                 "key": "sliderMsPerClickLine2Gap"
@@ -5115,6 +5648,12 @@
               }
             ],
             "rowKeys": [
+              "checkboxMsPerClickExtrusionScaleWithBrowser",
+              "sliderStage2MsPerClickX",
+              "sliderStage2MsPerClickY",
+              "sliderStage2MsPerClickFontSize",
+              "selectStage2MsPerClickAlign",
+              "selectStage2MsPerClickValign",
               "sliderMsPerClickLine2Gap",
               "sliderMsPerClickNumberXOffset",
               "checkboxMsPerClickScaleWithBrowser",
@@ -5136,6 +5675,30 @@
           {
             "key": "desktop:Round Breakdown",
             "items": [
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownTitle"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownData"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownWidth"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2RoundBreakdownHeight"
+              },
               {
                 "type": "row",
                 "key": "sliderRoundBreakdownPanelOpacity"
@@ -5337,6 +5900,12 @@
               }
             ],
             "rowKeys": [
+              "sliderStage2RoundBreakdownTitle",
+              "sliderStage2RoundBreakdownData",
+              "sliderStage2RoundBreakdownX",
+              "sliderStage2RoundBreakdownY",
+              "sliderStage2RoundBreakdownWidth",
+              "sliderStage2RoundBreakdownHeight",
               "sliderRoundBreakdownPanelOpacity",
               "checkboxRoundBreakdownEnabled",
               "checkboxRoundBreakdownScaleWithBrowser",
@@ -5508,6 +6077,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxResultExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "colorGameplayWinText"
                 },
                 {
@@ -5576,6 +6149,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxResultExtrusionScaleWithBrowser",
                 "colorGameplayWinText",
                 "colorGameplayWinBorder",
                 "checkboxGameplayResultFlashWithRound",
@@ -5741,6 +6315,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxTryAgainQuestionMarkExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "selectTryAgainQuestionMarkTextAlign"
                 },
                 {
@@ -5793,6 +6371,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxTryAgainQuestionMarkExtrusionScaleWithBrowser",
                 "selectTryAgainQuestionMarkTextAlign",
                 "selectTryAgainQuestionMarkTextValign",
                 "checkboxTryAgainQuestionMarkScaleWithBrowser",
@@ -5816,6 +6395,10 @@
           {
             "key": "desktop:Win/Lose Text",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxResultExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "colorGameplayWinText"
@@ -5886,6 +6469,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxResultExtrusionScaleWithBrowser",
               "colorGameplayWinText",
               "colorGameplayWinBorder",
               "checkboxGameplayResultFlashWithRound",
@@ -6042,6 +6626,10 @@
             "items": [
               {
                 "type": "row",
+                "key": "checkboxTryAgainQuestionMarkExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
                 "key": "selectTryAgainQuestionMarkTextAlign"
               },
               {
@@ -6094,6 +6682,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxTryAgainQuestionMarkExtrusionScaleWithBrowser",
               "selectTryAgainQuestionMarkTextAlign",
               "selectTryAgainQuestionMarkTextValign",
               "checkboxTryAgainQuestionMarkScaleWithBrowser",
@@ -6195,15 +6784,6 @@
             "type": "group",
             "section": {
               "key": "desktop:Mouse Log",
-              "items": [],
-              "rowKeys": [],
-              "subgroups": []
-            }
-          },
-          {
-            "type": "group",
-            "section": {
-              "key": "desktop:Mouse Log",
               "items": [
                 {
                   "type": "row",
@@ -6242,12 +6822,6 @@
           "btnClearHighScore"
         ],
         "subgroups": [
-          {
-            "key": "desktop:Mouse Log",
-            "items": [],
-            "rowKeys": [],
-            "subgroups": []
-          },
           {
             "key": "desktop:Mouse Log",
             "items": [
@@ -7073,6 +7647,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxMobileHighScoreExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "sliderMobileHighScoreRotate"
                 },
                 {
@@ -7133,6 +7711,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileHighScoreExtrusionScaleWithBrowser",
                 "sliderMobileHighScoreRotate",
                 "checkboxMobileHighScoreScaleWithBrowser",
                 "selectMobileHighScoreTextAlign",
@@ -7157,6 +7736,14 @@
             "section": {
               "key": "mobile:Start/Try Again Button",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxMobileRoundExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxMobileTryAgainExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "checkboxMobileTextScaleWithBrowser"
@@ -7211,6 +7798,8 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileRoundExtrusionScaleWithBrowser",
+                "checkboxMobileTryAgainExtrusionScaleWithBrowser",
                 "checkboxMobileTextScaleWithBrowser",
                 "sliderMobileTextFontSizeVw",
                 "sliderMobileTextFontSize",
@@ -7233,6 +7822,10 @@
             "section": {
               "key": "mobile:Round Text",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxMobileRoundDockExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderMobileRoundNumberXOffset"
@@ -7323,6 +7916,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileRoundDockExtrusionScaleWithBrowser",
                 "sliderMobileRoundNumberXOffset",
                 "checkboxMobileRoundScaleWithBrowser",
                 "sliderMobileRoundFontSizeVw",
@@ -7354,6 +7948,18 @@
             "section": {
               "key": "mobile:Target Count Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxMobileTargetPrefixExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxMobileTargetNumberExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxMobileTargetSuffixExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderMobileTargetPrefixLineHeight"
@@ -7480,6 +8086,9 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileTargetPrefixExtrusionScaleWithBrowser",
+                "checkboxMobileTargetNumberExtrusionScaleWithBrowser",
+                "checkboxMobileTargetSuffixExtrusionScaleWithBrowser",
                 "sliderMobileTargetPrefixLineHeight",
                 "sliderMobileTargetNumberLineHeight",
                 "sliderMobileTargetSuffixLineHeight",
@@ -7520,6 +8129,10 @@
             "section": {
               "key": "mobile:Speed Display (max ms between taps)",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxMobileSpeedExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderMobileSpeedNumberXOffset"
@@ -7578,6 +8191,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileSpeedExtrusionScaleWithBrowser",
                 "sliderMobileSpeedNumberXOffset",
                 "checkboxMobileSpeedScaleWithBrowser",
                 "sliderMobileSpeedFontSizeVw",
@@ -7601,6 +8215,10 @@
             "section": {
               "key": "mobile:Ms/Click Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxMobileMsPerClickExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderMobileMsPerClickLine2Gap"
@@ -7663,6 +8281,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileMsPerClickExtrusionScaleWithBrowser",
                 "sliderMobileMsPerClickLine2Gap",
                 "sliderMobileMsPerClickNumberXOffset",
                 "checkboxMobileMsPerClickScaleWithBrowser",
@@ -7861,6 +8480,10 @@
             "items": [
               {
                 "type": "row",
+                "key": "checkboxMobileHighScoreExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
                 "key": "sliderMobileHighScoreRotate"
               },
               {
@@ -7921,6 +8544,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileHighScoreExtrusionScaleWithBrowser",
               "sliderMobileHighScoreRotate",
               "checkboxMobileHighScoreScaleWithBrowser",
               "selectMobileHighScoreTextAlign",
@@ -7942,6 +8566,14 @@
           {
             "key": "mobile:Start/Try Again Button",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMobileRoundExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxMobileTryAgainExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "checkboxMobileTextScaleWithBrowser"
@@ -7996,6 +8628,8 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileRoundExtrusionScaleWithBrowser",
+              "checkboxMobileTryAgainExtrusionScaleWithBrowser",
               "checkboxMobileTextScaleWithBrowser",
               "sliderMobileTextFontSizeVw",
               "sliderMobileTextFontSize",
@@ -8015,6 +8649,10 @@
           {
             "key": "mobile:Round Text",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMobileRoundDockExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderMobileRoundNumberXOffset"
@@ -8105,6 +8743,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileRoundDockExtrusionScaleWithBrowser",
               "sliderMobileRoundNumberXOffset",
               "checkboxMobileRoundScaleWithBrowser",
               "sliderMobileRoundFontSizeVw",
@@ -8133,6 +8772,18 @@
           {
             "key": "mobile:Target Count Display",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMobileTargetPrefixExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxMobileTargetNumberExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxMobileTargetSuffixExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderMobileTargetPrefixLineHeight"
@@ -8259,6 +8910,9 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileTargetPrefixExtrusionScaleWithBrowser",
+              "checkboxMobileTargetNumberExtrusionScaleWithBrowser",
+              "checkboxMobileTargetSuffixExtrusionScaleWithBrowser",
               "sliderMobileTargetPrefixLineHeight",
               "sliderMobileTargetNumberLineHeight",
               "sliderMobileTargetSuffixLineHeight",
@@ -8296,6 +8950,10 @@
           {
             "key": "mobile:Speed Display (max ms between taps)",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMobileSpeedExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderMobileSpeedNumberXOffset"
@@ -8354,6 +9012,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileSpeedExtrusionScaleWithBrowser",
               "sliderMobileSpeedNumberXOffset",
               "checkboxMobileSpeedScaleWithBrowser",
               "sliderMobileSpeedFontSizeVw",
@@ -8374,6 +9033,10 @@
           {
             "key": "mobile:Ms/Click Display",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMobileMsPerClickExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderMobileMsPerClickLine2Gap"
@@ -8436,6 +9099,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileMsPerClickExtrusionScaleWithBrowser",
               "sliderMobileMsPerClickLine2Gap",
               "sliderMobileMsPerClickNumberXOffset",
               "checkboxMobileMsPerClickScaleWithBrowser",
@@ -8622,6 +9286,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxMobileResultExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "sliderMobileResultWinLetterSpacing"
                 },
                 {
@@ -8670,6 +9338,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileResultExtrusionScaleWithBrowser",
                 "sliderMobileResultWinLetterSpacing",
                 "sliderMobileResultExtrusionAngle",
                 "checkboxMobileResultWinScaleWithBrowser",
@@ -8800,6 +9469,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "selectMobileTryAgainQuestionMarkTextAlign"
                 },
                 {
@@ -8836,6 +9509,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser",
                 "selectMobileTryAgainQuestionMarkTextAlign",
                 "selectMobileTryAgainQuestionMarkTextValign",
                 "checkboxMobileTryAgainQuestionMarkScaleWithBrowser",
@@ -8855,6 +9529,10 @@
           {
             "key": "mobile:Win/Lose Text",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxMobileResultExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderMobileResultWinLetterSpacing"
@@ -8905,6 +9583,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileResultExtrusionScaleWithBrowser",
               "sliderMobileResultWinLetterSpacing",
               "sliderMobileResultExtrusionAngle",
               "checkboxMobileResultWinScaleWithBrowser",
@@ -9026,6 +9705,10 @@
             "items": [
               {
                 "type": "row",
+                "key": "checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
                 "key": "selectMobileTryAgainQuestionMarkTextAlign"
               },
               {
@@ -9062,6 +9745,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser",
               "selectMobileTryAgainQuestionMarkTextAlign",
               "selectMobileTryAgainQuestionMarkTextValign",
               "checkboxMobileTryAgainQuestionMarkScaleWithBrowser",
@@ -9928,6 +10612,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxLandscapeHighScoreExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "sliderLandscapeHighScoreFontSize"
                 },
                 {
@@ -9988,6 +10676,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeHighScoreExtrusionScaleWithBrowser",
                 "sliderLandscapeHighScoreFontSize",
                 "sliderLandscapeHighScoreFontSizeVw",
                 "sliderLandscapeHighScoreExtrusionDepth",
@@ -10012,6 +10701,14 @@
             "section": {
               "key": "landscape:Start/Try Again Button",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeRoundExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeTryAgainExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderLandscapeTextFontSize"
@@ -10066,6 +10763,8 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeRoundExtrusionScaleWithBrowser",
+                "checkboxLandscapeTryAgainExtrusionScaleWithBrowser",
                 "sliderLandscapeTextFontSize",
                 "sliderLandscapeTextFontSizeVw",
                 "sliderLandscapeRoundExtrusionDepth",
@@ -10088,6 +10787,10 @@
             "section": {
               "key": "landscape:Round Text",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeRoundDockExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderLandscapeRoundFontSize"
@@ -10178,6 +10881,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeRoundDockExtrusionScaleWithBrowser",
                 "sliderLandscapeRoundFontSize",
                 "sliderLandscapeRoundFontSizeVw",
                 "sliderLandscapeRoundDockExtrusionDepth",
@@ -10209,6 +10913,18 @@
             "section": {
               "key": "landscape:Target Count Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeTargetNumberExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderLandscapeTargetPrefixLineHeight"
@@ -10335,6 +11051,9 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser",
+                "checkboxLandscapeTargetNumberExtrusionScaleWithBrowser",
+                "checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser",
                 "sliderLandscapeTargetPrefixLineHeight",
                 "sliderLandscapeTargetNumberLineHeight",
                 "sliderLandscapeTargetSuffixLineHeight",
@@ -10375,6 +11094,10 @@
             "section": {
               "key": "landscape:Speed Display (max ms between taps)",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeSpeedExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderLandscapeSpeedFontSize"
@@ -10433,6 +11156,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeSpeedExtrusionScaleWithBrowser",
                 "sliderLandscapeSpeedFontSize",
                 "sliderLandscapeSpeedFontSizeVw",
                 "sliderLandscapeSpeedExtrusionDepth",
@@ -10456,6 +11180,10 @@
             "section": {
               "key": "landscape:Ms/Click Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeMsPerClickExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderLandscapeMsPerClickFontSize"
@@ -10518,6 +11246,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeMsPerClickExtrusionScaleWithBrowser",
                 "sliderLandscapeMsPerClickFontSize",
                 "sliderLandscapeMsPerClickFontSizeVw",
                 "sliderLandscapeMsPerClickExtrusionDepth",
@@ -10549,6 +11278,10 @@
           {
             "key": "landscape:High Score",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeHighScoreExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeHighScoreFontSize"
@@ -10611,6 +11344,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeHighScoreExtrusionScaleWithBrowser",
               "sliderLandscapeHighScoreFontSize",
               "sliderLandscapeHighScoreFontSizeVw",
               "sliderLandscapeHighScoreExtrusionDepth",
@@ -10632,6 +11366,14 @@
           {
             "key": "landscape:Start/Try Again Button",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeRoundExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxLandscapeTryAgainExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeTextFontSize"
@@ -10686,6 +11428,8 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeRoundExtrusionScaleWithBrowser",
+              "checkboxLandscapeTryAgainExtrusionScaleWithBrowser",
               "sliderLandscapeTextFontSize",
               "sliderLandscapeTextFontSizeVw",
               "sliderLandscapeRoundExtrusionDepth",
@@ -10705,6 +11449,10 @@
           {
             "key": "landscape:Round Text",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeRoundDockExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeRoundFontSize"
@@ -10795,6 +11543,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeRoundDockExtrusionScaleWithBrowser",
               "sliderLandscapeRoundFontSize",
               "sliderLandscapeRoundFontSizeVw",
               "sliderLandscapeRoundDockExtrusionDepth",
@@ -10823,6 +11572,18 @@
           {
             "key": "landscape:Target Count Display",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxLandscapeTargetNumberExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
+                "key": "checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeTargetPrefixLineHeight"
@@ -10949,6 +11710,9 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser",
+              "checkboxLandscapeTargetNumberExtrusionScaleWithBrowser",
+              "checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser",
               "sliderLandscapeTargetPrefixLineHeight",
               "sliderLandscapeTargetNumberLineHeight",
               "sliderLandscapeTargetSuffixLineHeight",
@@ -10986,6 +11750,10 @@
           {
             "key": "landscape:Speed Display (max ms between taps)",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeSpeedExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeSpeedFontSize"
@@ -11044,6 +11812,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeSpeedExtrusionScaleWithBrowser",
               "sliderLandscapeSpeedFontSize",
               "sliderLandscapeSpeedFontSizeVw",
               "sliderLandscapeSpeedExtrusionDepth",
@@ -11064,6 +11833,10 @@
           {
             "key": "landscape:Ms/Click Display",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeMsPerClickExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeMsPerClickFontSize"
@@ -11126,6 +11899,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeMsPerClickExtrusionScaleWithBrowser",
               "sliderLandscapeMsPerClickFontSize",
               "sliderLandscapeMsPerClickFontSizeVw",
               "sliderLandscapeMsPerClickExtrusionDepth",
@@ -11154,6 +11928,10 @@
             "section": {
               "key": "landscape:Win/Lose Text",
               "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxLandscapeResultExtrusionScaleWithBrowser"
+                },
                 {
                   "type": "row",
                   "key": "sliderLandscapeResultWinLetterSpacing"
@@ -11204,6 +11982,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeResultExtrusionScaleWithBrowser",
                 "sliderLandscapeResultWinLetterSpacing",
                 "sliderLandscapeResultExtrusionAngle",
                 "checkboxLandscapeResultWinScaleWithBrowser",
@@ -11334,6 +12113,10 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "checkboxLandscapeTryAgainQuestionMarkExtrusionScaleWithBrowser"
+                },
+                {
+                  "type": "row",
                   "key": "selectLandscapeTryAgainQuestionMarkTextAlign"
                 },
                 {
@@ -11370,6 +12153,7 @@
                 }
               ],
               "rowKeys": [
+                "checkboxLandscapeTryAgainQuestionMarkExtrusionScaleWithBrowser",
                 "selectLandscapeTryAgainQuestionMarkTextAlign",
                 "selectLandscapeTryAgainQuestionMarkTextValign",
                 "checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser",
@@ -11389,6 +12173,10 @@
           {
             "key": "landscape:Win/Lose Text",
             "items": [
+              {
+                "type": "row",
+                "key": "checkboxLandscapeResultExtrusionScaleWithBrowser"
+              },
               {
                 "type": "row",
                 "key": "sliderLandscapeResultWinLetterSpacing"
@@ -11439,6 +12227,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeResultExtrusionScaleWithBrowser",
               "sliderLandscapeResultWinLetterSpacing",
               "sliderLandscapeResultExtrusionAngle",
               "checkboxLandscapeResultWinScaleWithBrowser",
@@ -11560,6 +12349,10 @@
             "items": [
               {
                 "type": "row",
+                "key": "checkboxLandscapeTryAgainQuestionMarkExtrusionScaleWithBrowser"
+              },
+              {
+                "type": "row",
                 "key": "selectLandscapeTryAgainQuestionMarkTextAlign"
               },
               {
@@ -11596,6 +12389,7 @@
               }
             ],
             "rowKeys": [
+              "checkboxLandscapeTryAgainQuestionMarkExtrusionScaleWithBrowser",
               "selectLandscapeTryAgainQuestionMarkTextAlign",
               "selectLandscapeTryAgainQuestionMarkTextValign",
               "checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser",
