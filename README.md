@@ -16,7 +16,24 @@ Project description and overview goes here.
 
 ## Getting Started
 
-Instructions for setup and running the project.
+For regular static serving:
+
+```cmd
+python -m http.server 8000 --bind 0.0.0.0
+```
+
+For phone tuning with live settings sync, use the local dev sync server:
+
+```cmd
+node dev-server.js 8001
+```
+
+Open the desktop panel at `http://localhost:8001/?dev=1`, and open the
+same server from the phone with the laptop's Wi-Fi IP, for example
+`http://192.168.1.42:8001/`. While controls move on desktop, the server
+broadcasts preview settings to open local tabs so the phone updates
+without a page refresh. When SAVE is pressed locally, the server also
+writes `data/processed/dev-panel-settings.json`.
 
 ### Dev panel settings sync (one-time Vercel setup)
 

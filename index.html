@@ -4794,6 +4794,22 @@
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
                 </div>
+                <!-- Extrusion Depth/Border Thickness Scale With Browser -
+                     per direct request ("for every text object with a
+                     Border Thickness and Extrusion Depth slider, add a
+                     checkbox that sets if those values also scales with
+                     Browser"). A DISTINCT flag from the Font Size one
+                     above (that blends a separate px/vw slider pair; these
+                     2 sliders only ever store ONE px number each) - see
+                     applyExtrusionStyles()'s own comment on how the flag
+                     derives an effective px value from the current
+                     viewport instead. -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundExtrusionScaleWithBrowser" data-css-var="--round-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundExtrusionScaleWithBrowser', '--round-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectStartTextAlign" data-var="--start-text-align">
@@ -4819,6 +4835,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainExtrusionScaleWithBrowser" data-css-var="--try-again-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainExtrusionScaleWithBrowser', '--try-again-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -4876,6 +4898,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainQuestionMarkExtrusionScaleWithBrowser" data-css-var="--try-again-question-mark-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainQuestionMarkExtrusionScaleWithBrowser', '--try-again-question-mark-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">"?" Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectTryAgainQuestionMarkTextAlign" data-var="--try-again-question-mark-text-align">
                         <option value="left">Left</option>
@@ -4914,6 +4942,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundScaleWithBrowser', '--round-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundDockExtrusionScaleWithBrowser" data-css-var="--round-dock-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundDockExtrusionScaleWithBrowser', '--round-dock-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -4958,6 +4992,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxHighScoreScaleWithBrowser" data-css-var="--high-score-scale-with-browser" onchange="updateScaleWithBrowser('checkboxHighScoreScaleWithBrowser', '--high-score-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxHighScoreExtrusionScaleWithBrowser" data-css-var="--high-score-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxHighScoreExtrusionScaleWithBrowser', '--high-score-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5016,6 +5056,18 @@
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
                 </div>
+                <!-- One shared checkbox (not per Win/Lose) - Extrusion
+                     Depth/Border Thickness are already a single shared pair
+                     between Win and Lose (see resultDepth/
+                     resultOverallBorderThickness's own comment), unlike the
+                     2 Scale With Browser checkboxes above (Win/Lose each
+                     have their own independent FONT SIZE vw/px pair). -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultExtrusionScaleWithBrowser" data-css-var="--result-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultExtrusionScaleWithBrowser', '--result-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectResultTextAlign" data-var="--result-text-align">
@@ -5064,6 +5116,30 @@
                     <span class="dev-label">Scale With Browser:</span>
                     <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxTargetScaleWithBrowser', '--target-scale-with-browser')">
                 </div>
+                <!-- 3 independent checkboxes, not 1 shared - Prefix/Number/
+                     Suffix each have their OWN Extrusion Depth/Border
+                     Thickness (targetPrefixDepth/targetNumberDepth/
+                     targetSuffixDepth etc.), unlike the X/Y Offset unit
+                     toggle above (COMPOUND_OFFSET_CONTROLS) which is
+                     deliberately shared across all 3. -->
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetPrefixExtrusionScaleWithBrowser" data-css-var="--target-prefix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetPrefixExtrusionScaleWithBrowser', '--target-prefix-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Prefix Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetNumberExtrusionScaleWithBrowser" data-css-var="--target-number-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetNumberExtrusionScaleWithBrowser', '--target-number-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Number Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetSuffixExtrusionScaleWithBrowser" data-css-var="--target-suffix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetSuffixExtrusionScaleWithBrowser', '--target-suffix-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Suffix Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
                 <!-- Font dropdown removed - Target now shares the ONE
                      8-Bit Text Style font (select8BitFont), per explicit
                      request that every 8-bit-capable text share a single
@@ -5100,6 +5176,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxSpeedExtrusionScaleWithBrowser" data-css-var="--speed-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxSpeedExtrusionScaleWithBrowser', '--speed-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectSpeedTextAlign" data-var="--speed-text-align">
                         <option value="left">Left</option>
@@ -5130,6 +5212,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMsPerClickExtrusionScaleWithBrowser" data-css-var="--ms-per-click-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMsPerClickExtrusionScaleWithBrowser', '--ms-per-click-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5353,6 +5441,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileRoundExtrusionScaleWithBrowser" data-css-var="--round-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileRoundExtrusionScaleWithBrowser', '--round-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileStartTextAlign" data-var="--start-text-align">
                         <option value="left">Left</option>
@@ -5374,6 +5468,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTryAgainExtrusionScaleWithBrowser" data-css-var="--try-again-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTryAgainExtrusionScaleWithBrowser', '--try-again-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5408,6 +5508,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser" data-css-var="--try-again-question-mark-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser', '--try-again-question-mark-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5447,6 +5553,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileRoundDockExtrusionScaleWithBrowser" data-css-var="--round-dock-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileRoundDockExtrusionScaleWithBrowser', '--round-dock-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileRoundTextAlign" data-var="--round-text-align">
                         <option value="left">Left</option>
@@ -5477,6 +5589,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileHighScoreScaleWithBrowser" data-css-var="--high-score-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileHighScoreScaleWithBrowser', '--high-score-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileHighScoreExtrusionScaleWithBrowser" data-css-var="--high-score-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileHighScoreExtrusionScaleWithBrowser', '--high-score-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5520,6 +5638,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileResultExtrusionScaleWithBrowser" data-css-var="--result-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileResultExtrusionScaleWithBrowser', '--result-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileResultTextAlign" data-var="--result-text-align">
                         <option value="left">Left</option>
@@ -5552,6 +5676,24 @@
                 <div class="dev-row">
                     <span class="dev-label">Scale With Browser:</span>
                     <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxMobileTargetScaleWithBrowser', '--target-scale-with-browser')">
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetPrefixExtrusionScaleWithBrowser" data-css-var="--target-prefix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTargetPrefixExtrusionScaleWithBrowser', '--target-prefix-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Prefix Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetNumberExtrusionScaleWithBrowser" data-css-var="--target-number-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTargetNumberExtrusionScaleWithBrowser', '--target-number-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Number Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetSuffixExtrusionScaleWithBrowser" data-css-var="--target-suffix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTargetSuffixExtrusionScaleWithBrowser', '--target-suffix-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Suffix Extrusion/Border Scale With Browser</span>
+                    </label>
                 </div>
 
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
@@ -5592,6 +5734,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileSpeedExtrusionScaleWithBrowser" data-css-var="--speed-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileSpeedExtrusionScaleWithBrowser', '--speed-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileSpeedTextAlign" data-var="--speed-text-align">
                         <option value="left">Left</option>
@@ -5623,6 +5771,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileMsPerClickExtrusionScaleWithBrowser" data-css-var="--ms-per-click-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileMsPerClickExtrusionScaleWithBrowser', '--ms-per-click-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5810,6 +5964,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeRoundExtrusionScaleWithBrowser" data-css-var="--round-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeRoundExtrusionScaleWithBrowser', '--round-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectLandscapeStartTextAlign" data-var="--start-text-align">
                         <option value="left">Left</option>
@@ -5831,6 +5991,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTryAgainExtrusionScaleWithBrowser" data-css-var="--try-again-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTryAgainExtrusionScaleWithBrowser', '--try-again-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5865,6 +6031,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTryAgainQuestionMarkExtrusionScaleWithBrowser" data-css-var="--try-again-question-mark-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTryAgainQuestionMarkExtrusionScaleWithBrowser', '--try-again-question-mark-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5904,6 +6076,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeRoundDockExtrusionScaleWithBrowser" data-css-var="--round-dock-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeRoundDockExtrusionScaleWithBrowser', '--round-dock-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectLandscapeRoundTextAlign" data-var="--round-text-align">
                         <option value="left">Left</option>
@@ -5934,6 +6112,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeHighScoreScaleWithBrowser" data-css-var="--high-score-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeHighScoreScaleWithBrowser', '--high-score-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeHighScoreExtrusionScaleWithBrowser" data-css-var="--high-score-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeHighScoreExtrusionScaleWithBrowser', '--high-score-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -5977,6 +6161,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeResultExtrusionScaleWithBrowser" data-css-var="--result-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeResultExtrusionScaleWithBrowser', '--result-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectLandscapeResultTextAlign" data-var="--result-text-align">
                         <option value="left">Left</option>
@@ -6009,6 +6199,24 @@
                 <div class="dev-row">
                     <span class="dev-label">Scale With Browser:</span>
                     <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxLandscapeTargetScaleWithBrowser', '--target-scale-with-browser')">
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser" data-css-var="--target-prefix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser', '--target-prefix-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Prefix Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetNumberExtrusionScaleWithBrowser" data-css-var="--target-number-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTargetNumberExtrusionScaleWithBrowser', '--target-number-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Number Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser" data-css-var="--target-suffix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser', '--target-suffix-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Suffix Extrusion/Border Scale With Browser</span>
+                    </label>
                 </div>
                 <!-- Font dropdown removed - shares the ONE 8-Bit Text
                      Style font (select8BitFont, not landscape-split), per
@@ -6048,6 +6256,12 @@
                     </label>
                 </div>
                 <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeSpeedExtrusionScaleWithBrowser" data-css-var="--speed-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeSpeedExtrusionScaleWithBrowser', '--speed-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectLandscapeSpeedTextAlign" data-var="--speed-text-align">
                         <option value="left">Left</option>
@@ -6079,6 +6293,12 @@
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
+                    </label>
+                </div>
+                <div class="dev-row">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeMsPerClickExtrusionScaleWithBrowser" data-css-var="--ms-per-click-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeMsPerClickExtrusionScaleWithBrowser', '--ms-per-click-extrusion-scale-with-browser')">
+                        <span class="dev-label" style="min-width:auto;">Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
                 <div class="dev-row">
@@ -6836,6 +7056,28 @@
             '--target-suffix-font-size-vw': 11.72,
             '--target-suffix-x-offset-vw': 324.34,
             '--target-suffix-y-offset-vh': 11.60,
+            // Shared by all 3 parts (Prefix/Number/Suffix), not per-part -
+            // see COMPOUND_OFFSET_CONTROLS' own comment on why.
+            '--target-x-offset-unit-is-px': 0,
+            '--target-y-offset-unit-is-px': 0,
+            // Extrusion Depth/Border Thickness Scale With Browser - see
+            // applyExtrusionStyles()'s own scaledExtrusionPx() comment for
+            // why this is a DISTINCT mechanism from Font Size's own Scale
+            // With Browser flags below, despite the similar name. Off by
+            // default (0), same as every existing Font Size flag except
+            // Target's own (matches that convention, not a new default
+            // philosophy).
+            '--round-extrusion-scale-with-browser': 0,
+            '--try-again-extrusion-scale-with-browser': 0,
+            '--try-again-question-mark-extrusion-scale-with-browser': 0,
+            '--round-dock-extrusion-scale-with-browser': 0,
+            '--high-score-extrusion-scale-with-browser': 0,
+            '--target-prefix-extrusion-scale-with-browser': 0,
+            '--target-number-extrusion-scale-with-browser': 0,
+            '--target-suffix-extrusion-scale-with-browser': 0,
+            '--speed-extrusion-scale-with-browser': 0,
+            '--ms-per-click-extrusion-scale-with-browser': 0,
+            '--result-extrusion-scale-with-browser': 0,
             // Scale With Browser - per direct request, reintroduced after
             // the earlier wrapper-level one was removed as vestigial (it
             // stopped affecting anything once Prefix/Number/Suffix each
@@ -7450,37 +7692,85 @@
             'gameplayWinTextColor', 'gameplayWinBorderColor',
             'gameplayLoseTextColor', 'gameplayLoseBorderColor',
         ];
+        // Reference viewport width the raw px sliders were tuned against -
+        // same simplification as Round Breakdown's own Scale With Browser
+        // (CLAUDE.md Section 12p's own note on this pattern): derives an
+        // effective px value from ONE stored number and a ratio to this
+        // reference, rather than requiring a 2nd explicit vw slider per
+        // element. vmin-based (Math.min of width/height), not vw-only -
+        // per this session's own earlier width-only Scale-With-Browser bug
+        // fix, applied correctly here from the start.
+        const EXTRUSION_SCALE_REF_PX = 1280;
+        // Per direct request ("for every text object with a Border
+        // Thickness and Extrusion Depth slider, add a checkbox that sets
+        // if those values also scales with Browser" / "right now
+        // extrusion and border seem to not scale"). Unlike Font Size's own
+        // Scale With Browser (a pure CSS calc() blend - see each element's
+        // own font-size rule), Extrusion Depth/Border Thickness feed into
+        // buildCombinedShadow()/buildExtrusionShadow(), which JS-computes
+        // a DISCRETE, integer-pixel-stepped text-shadow STRING - there's
+        // no live CSS calc() to blend into, so scaling has to happen HERE,
+        // by computing an effective px value from the flag+viewport before
+        // ever calling buildCombinedShadow(). This function already reruns
+        // on every resize (called from applyActiveVars(), which is
+        // window.resize-listened), so no new resize listener is needed -
+        // just feeding a viewport-relative number through the existing
+        // pipeline.
         function applyExtrusionStyles() {
             const root = document.documentElement.style;
             const deviceExt = isMobileActive() ? getActiveMobileExtrusionVars() : extrusionVars;
             const ext = { ...deviceExt };
+            // Mirrors applyTextAlignAnchors()'s own device resolution -
+            // these flags live in cssVars/mobileCssVars/landscapeCssVars
+            // (paralleling Font Size's own Scale With Browser flags), not
+            // in extrusionVars/deviceExt, even though the RAW depth/
+            // thickness numbers they modulate do live there. Recomputed
+            // fresh on every call (NOT hoisted to module scope) - a
+            // module-scope version of this line crashed with "Cannot
+            // access 'LANDSCAPE_TOUCH_QUERY' before initialization" (a
+            // real TDZ bug found live: isMobileActive() -> isLandscapeActive()
+            // reads a const declared much further down the file, which is
+            // fine once the whole script has finished its own top-to-
+            // bottom initial run, but not if evaluated as part of THAT
+            // same initial run - which a module-level statement here
+            // would be, since this function itself is only ever CALLED
+            // later, well after full script init). Local to the function
+            // body sidesteps that entirely and also fixes what would
+            // otherwise be a real staleness bug (a module-level value
+            // would never update across a desktop<->mobile breakpoint
+            // crossing or a Desktop/Mobile/Landscape tab switch).
+            const activeCssVarsForScale = isMobileActive() ? getActiveMobileVars() : cssVars;
+            function scaledExtrusionPx(rawPx, flagVar) {
+                if (!activeCssVarsForScale[flagVar]) return rawPx;
+                return rawPx / EXTRUSION_SCALE_REF_PX * Math.min(window.innerWidth, window.innerHeight);
+            }
             EXTRUSION_COLOR_FIELD_NAMES.forEach(field => { ext[field] = extrusionVars[field]; });
             root.setProperty('--extrusion-font', extrusionVars.font);
             // Now the Start/Try Again button's extrusion look, not Round
             // Text's (which no longer has a "big" state) - see .start-button.
-            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(ext.roundDepth, ext.roundBorderColor, ext.roundOverallBorderThickness, ext.roundOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--round-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.roundDepth, '--round-extrusion-scale-with-browser'), ext.roundBorderColor, scaledExtrusionPx(ext.roundOverallBorderThickness, '--round-extrusion-scale-with-browser'), ext.roundOverallBorderColor, ext.overallBorderEnabled));
             // Try Again's own colors, same depth/thickness as Start (see
             // .start-button.try-again-state's CSS). Depth/thickness now
             // independent from Start/Round's own roundDepth/
             // roundOverallBorderThickness too - per direct follow-up
             // request, completing the same independence color already had.
-            root.setProperty('--try-again-extrusion-shadow', buildCombinedShadow(ext.tryAgainDepth, ext.tryAgainBorderColor, ext.tryAgainOverallBorderThickness, ext.tryAgainOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--try-again-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.tryAgainDepth, '--try-again-extrusion-scale-with-browser'), ext.tryAgainBorderColor, scaledExtrusionPx(ext.tryAgainOverallBorderThickness, '--try-again-extrusion-scale-with-browser'), ext.tryAgainOverallBorderColor, ext.overallBorderEnabled));
             // The "?" glyph's own extrusion/border, independent from the
             // "Try again" text above - per explicit request.
-            root.setProperty('--try-again-question-mark-extrusion-shadow', buildCombinedShadow(ext.questionMarkDepth, ext.questionMarkFillColor, ext.questionMarkOverallBorderThickness, ext.questionMarkOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--try-again-question-mark-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.questionMarkDepth, '--try-again-question-mark-extrusion-scale-with-browser'), ext.questionMarkFillColor, scaledExtrusionPx(ext.questionMarkOverallBorderThickness, '--try-again-question-mark-extrusion-scale-with-browser'), ext.questionMarkOverallBorderColor, ext.overallBorderEnabled));
             // Round Text's one permanent extrusion look - read directly by
             // .game-text's CSS, unconditionally.
-            root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(ext.roundDockDepth, ext.roundDockBorderColor, ext.roundDockOverallBorderThickness, ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
-            root.setProperty('--high-score-shadow', buildCombinedShadow(ext.highScoreDepth, ext.highScoreBorderColor, ext.highScoreOverallBorderThickness, ext.highScoreOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--round-dock-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.roundDockDepth, '--round-dock-extrusion-scale-with-browser'), ext.roundDockBorderColor, scaledExtrusionPx(ext.roundDockOverallBorderThickness, '--round-dock-extrusion-scale-with-browser'), ext.roundDockOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--high-score-shadow', buildCombinedShadow(scaledExtrusionPx(ext.highScoreDepth, '--high-score-extrusion-scale-with-browser'), ext.highScoreBorderColor, scaledExtrusionPx(ext.highScoreOverallBorderThickness, '--high-score-extrusion-scale-with-browser'), ext.highScoreOverallBorderColor, ext.overallBorderEnabled));
             // Depth/thickness decomposed into 3 independent per-part shadows
             // (Prefix/Number/Suffix each read their own --target-X-
             // extrusion-shadow directly - see #targetCountPrefix/Number/
             // Suffix's own CSS) - color stays shared, per direct request.
-            root.setProperty('--target-prefix-extrusion-shadow', buildCombinedShadow(ext.targetPrefixDepth, ext.targetBorderColor, ext.targetPrefixOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
-            root.setProperty('--target-number-extrusion-shadow', buildCombinedShadow(ext.targetNumberDepth, ext.targetBorderColor, ext.targetNumberOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
-            root.setProperty('--target-suffix-extrusion-shadow', buildCombinedShadow(ext.targetSuffixDepth, ext.targetBorderColor, ext.targetSuffixOverallBorderThickness, ext.targetOverallBorderColor, ext.overallBorderEnabled));
-            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(ext.speedDepth, ext.speedBorderColor, ext.speedOverallBorderThickness, ext.speedOverallBorderColor, ext.overallBorderEnabled));
-            root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(ext.msPerClickDepth, ext.msPerClickBorderColor, ext.msPerClickOverallBorderThickness, ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--target-prefix-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.targetPrefixDepth, '--target-prefix-extrusion-scale-with-browser'), ext.targetBorderColor, scaledExtrusionPx(ext.targetPrefixOverallBorderThickness, '--target-prefix-extrusion-scale-with-browser'), ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--target-number-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.targetNumberDepth, '--target-number-extrusion-scale-with-browser'), ext.targetBorderColor, scaledExtrusionPx(ext.targetNumberOverallBorderThickness, '--target-number-extrusion-scale-with-browser'), ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--target-suffix-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.targetSuffixDepth, '--target-suffix-extrusion-scale-with-browser'), ext.targetBorderColor, scaledExtrusionPx(ext.targetSuffixOverallBorderThickness, '--target-suffix-extrusion-scale-with-browser'), ext.targetOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--speed-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.speedDepth, '--speed-extrusion-scale-with-browser'), ext.speedBorderColor, scaledExtrusionPx(ext.speedOverallBorderThickness, '--speed-extrusion-scale-with-browser'), ext.speedOverallBorderColor, ext.overallBorderEnabled));
+            root.setProperty('--ms-per-click-extrusion-shadow', buildCombinedShadow(scaledExtrusionPx(ext.msPerClickDepth, '--ms-per-click-extrusion-scale-with-browser'), ext.msPerClickBorderColor, scaledExtrusionPx(ext.msPerClickOverallBorderThickness, '--ms-per-click-extrusion-scale-with-browser'), ext.msPerClickOverallBorderColor, ext.overallBorderEnabled));
             root.setProperty('--result-win-fill-color', ext.winFillColor);
             // Overall Border ring now reuses each state's OWN Border Color
             // (winBorderColor/loseBorderColor) for both the extrusion trail
@@ -7491,9 +7781,9 @@
             // (the ring and trail can no longer disagree, by construction)
             // rather than requiring the shared picker to be kept in sync by
             // hand.
-            root.setProperty('--result-win-shadow', buildCombinedShadow(ext.resultDepth, ext.winBorderColor, ext.resultOverallBorderThickness, ext.winBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
+            root.setProperty('--result-win-shadow', buildCombinedShadow(scaledExtrusionPx(ext.resultDepth, '--result-extrusion-scale-with-browser'), ext.winBorderColor, scaledExtrusionPx(ext.resultOverallBorderThickness, '--result-extrusion-scale-with-browser'), ext.winBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
             root.setProperty('--result-lose-fill-color', ext.loseFillColor);
-            root.setProperty('--result-lose-shadow', buildCombinedShadow(ext.resultDepth, ext.loseBorderColor, ext.resultOverallBorderThickness, ext.loseBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
+            root.setProperty('--result-lose-shadow', buildCombinedShadow(scaledExtrusionPx(ext.resultDepth, '--result-extrusion-scale-with-browser'), ext.loseBorderColor, scaledExtrusionPx(ext.resultOverallBorderThickness, '--result-extrusion-scale-with-browser'), ext.loseBorderColor, ext.overallBorderEnabled, ext.resultExtrusionAngle));
             // Each element's own "Text Color" picker now IS its glyph's real
             // fill, not just the extrusion/shadow layer's color - per direct
             // report ("my text currently shows as white" - the glyph was
@@ -7785,6 +8075,23 @@
             '--target-suffix-x-offset-vw': 165.75,
             '--target-suffix-y-offset-vh': 16.02,
             '--target-suffix-letter-spacing-px': 0,
+            // Shared by all 3 parts, not per-part - see
+            // COMPOUND_OFFSET_CONTROLS' own comment.
+            '--target-x-offset-unit-is-px': 0,
+            '--target-y-offset-unit-is-px': 0,
+            // Extrusion Depth/Border Thickness Scale With Browser - see
+            // cssVars' own identical block above.
+            '--round-extrusion-scale-with-browser': 0,
+            '--try-again-extrusion-scale-with-browser': 0,
+            '--try-again-question-mark-extrusion-scale-with-browser': 0,
+            '--round-dock-extrusion-scale-with-browser': 0,
+            '--high-score-extrusion-scale-with-browser': 0,
+            '--target-prefix-extrusion-scale-with-browser': 0,
+            '--target-number-extrusion-scale-with-browser': 0,
+            '--target-suffix-extrusion-scale-with-browser': 0,
+            '--speed-extrusion-scale-with-browser': 0,
+            '--ms-per-click-extrusion-scale-with-browser': 0,
+            '--result-extrusion-scale-with-browser': 0,
             '--target-scale-with-browser': 1,
             '--target-prefix-line-height': 0.65,
             '--target-number-line-height': 0.65,
@@ -10377,18 +10684,58 @@
             });
         }
 
+        // Walks UP from one selected element (a .dev-row or a whole selected
+        // .dev-section) to every GROUP that contains it, deepest first -
+        // never includes the element itself, only real ancestor groups.
+        // Relies on the fixed DOM shape every group already has:
+        // .dev-section > .dev-section-content > (rows and/or subsections) -
+        // so "el's parent is a .dev-section-content" is exactly "el sits
+        // directly inside some group", and that content's own parent is the
+        // .dev-section that owns it. A top-level item (direct child of
+        // tabEl, no containing custom group) naturally produces an empty
+        // chain, since tabEl itself is never a .dev-section-content.
+        function devSelectionAncestorGroupChain(el) {
+            const chain = [];
+            let node = el;
+            while (node.parentElement && node.parentElement.classList.contains('dev-section-content')) {
+                const sec = node.parentElement.parentElement;
+                if (!sec || !sec.classList.contains('dev-section')) break;
+                chain.push(sec);
+                node = sec;
+            }
+            return chain;
+        }
+        // The DEEPEST group that contains every one of the given selected
+        // elements, or null if they share no common containing group (all
+        // top-level, or spanning two subtrees with nothing in common below
+        // the tab root). Per direct request (2026-09-20): "the added group
+        // should be within the same settings group that the selected
+        // settings were in. If selected settings...are within different
+        // setting groups, place the new group in the first layer of nest
+        // groups that both settings are within" - e.g. selecting something
+        // in "# Flashing" and something in "High Score", both nested inside
+        // "UI Text", should nest the new group in "UI Text"; selecting two
+        // things both already inside "# Flashing" should nest it directly
+        // in "# Flashing" instead.
+        function findDevSelectionCommonAncestorGroup(elements) {
+            if (!elements.length) return null;
+            const chains = elements.map(devSelectionAncestorGroupChain);
+            const [first, ...rest] = chains;
+            for (const candidate of first) {
+                if (rest.every(chain => chain.includes(candidate))) return candidate;
+            }
+            return null;
+        }
         function addDevGroup(tab) {
             const tabEl = document.getElementById(tab + 'TabContent');
             // Considers EVERY group in the tab, not just top-level siblings
             // - now that groups-within-groups exists (see getSectionKey()'s
             // own comment on why group KEYS stay flat/unprefixed rather
-            // than depending on current nesting), a new top-level group's
-            // name still needs to be unique against an EXISTING NESTED
-            // group's name too, or the two would collide in captured
-            // sectionOrder despite being genuinely different groups. A new
-            // group created here is always placed at the top level
-            // regardless (drag it into another group afterward to nest
-            // it) - this only widens which EXISTING names get checked.
+            // than depending on current nesting), a new group's name still
+            // needs to be unique against an EXISTING NESTED group's name
+            // too, or the two would collide in captured sectionOrder
+            // despite being genuinely different groups - this applies
+            // regardless of where the new group itself ends up placed below.
             const existingNames = new Set(
                 Array.from(tabEl.querySelectorAll('.dev-section > .dev-section-title'))
                     .map(t => t.dataset.sid)
@@ -10397,33 +10744,48 @@
             let n = 2;
             while (existingNames.has(name)) { name = 'New Group (' + n + ')'; n++; }
             const section = createDevGroupElement(name);
-            // Per direct request ("When I add a new group, place it at the
-            // top of the list instead of the bottom") - inserted right
-            // after the built-in Dev Panel/Debug groups, which stay first
-            // per CLAUDE.md Section 12i/12i-1's own mandatory ordering
-            // (buttons, then Dev Panel, then Debug, THEN any project-
-            // specific groups) - so this is the top of the project-specific
-            // group list, not a literal position-0 insert that would push
-            // a new custom group above those 2 mandatory ones. Falls back
-            // through Debug -> Dev Panel -> position 0, not straight to
-            // position 0 the moment Debug isn't found at the top level - a
-            // user (or a fold-into-new-group action) can legally nest
-            // Debug somewhere else, and jumping straight to position 0 in
-            // that case would incorrectly place a new custom group above
-            // Dev Panel too. Clicko's own "DEBUG" group is a renamed
-            // custom group (see resolveDebugGroupSid()'s own comment), so
-            // its CURRENT internal sid is resolved at runtime rather than
-            // assumed to be the literal string "Debug" the way the
-            // template's own built-in group is. Ported from
-            // TEMPLATE_DEV_PANEL.html (2026-09-16).
-            const debugSid = resolveDebugGroupSid();
-            const debugSection = debugSid ? tabEl.querySelector(':scope > .dev-section > .dev-section-title[data-sid="' + debugSid + '"]')?.closest('.dev-section') : null;
-            const devPanelSection = tabEl.querySelector(':scope > .dev-section > .dev-section-title[data-sid="Dev Panel"]')?.closest('.dev-section');
-            const anchorSection = debugSection || devPanelSection;
-            if (anchorSection) {
-                tabEl.insertBefore(section, anchorSection.nextSibling);
+            const selectedInTab = Array.from(devPanelSelectedItems).filter(el => tabEl.contains(el));
+            // Placement (2026-09-20 rework): when there's a selection, the
+            // new group now nests inside the selection's own deepest common
+            // containing group (see findDevSelectionCommonAncestorGroup()'s
+            // own comment) instead of always landing at the top of the
+            // tab's project-specific list. Only the no-selection (or
+            // no-common-ancestor, e.g. an all-top-level selection) case
+            // falls back to that original top-of-list placement.
+            const commonAncestor = selectedInTab.length ? findDevSelectionCommonAncestorGroup(selectedInTab) : null;
+            if (commonAncestor) {
+                const targetContent = commonAncestor.querySelector(':scope > .dev-section-content');
+                targetContent.insertBefore(section, targetContent.firstChild);
             } else {
-                tabEl.insertBefore(section, tabEl.firstChild);
+                // Per direct request ("When I add a new group, place it at
+                // the top of the list instead of the bottom") - inserted
+                // right after the built-in Dev Panel/Debug groups, which
+                // stay first per CLAUDE.md Section 12i/12i-1's own mandatory
+                // ordering (buttons, then Dev Panel, then Debug, THEN any
+                // project-specific groups) - so this is the top of the
+                // project-specific group list, not a literal position-0
+                // insert that would push a new custom group above those 2
+                // mandatory ones. Falls back through Debug -> Dev Panel ->
+                // position 0, not straight to position 0 the moment Debug
+                // isn't found at the top level - a user (or an earlier
+                // fold-into-new-group action) can legally nest Debug
+                // somewhere else, and jumping straight to position 0 in
+                // that case would incorrectly place a new custom group
+                // above Dev Panel too. Clicko's own "DEBUG" group is a
+                // renamed custom group (see resolveDebugGroupSid()'s own
+                // comment), so its CURRENT internal sid is resolved at
+                // runtime rather than assumed to be the literal string
+                // "Debug" the way the template's own built-in group is.
+                // Ported from TEMPLATE_DEV_PANEL.html (2026-09-16).
+                const debugSid = resolveDebugGroupSid();
+                const debugSection = debugSid ? tabEl.querySelector(':scope > .dev-section > .dev-section-title[data-sid="' + debugSid + '"]')?.closest('.dev-section') : null;
+                const devPanelSection = tabEl.querySelector(':scope > .dev-section > .dev-section-title[data-sid="Dev Panel"]')?.closest('.dev-section');
+                const anchorSection = debugSection || devPanelSection;
+                if (anchorSection) {
+                    tabEl.insertBefore(section, anchorSection.nextSibling);
+                } else {
+                    tabEl.insertBefore(section, tabEl.firstChild);
+                }
             }
             // Per direct request ("when i hold the Shift key... Once
             // selected, when i click Add Group, the selected things will
@@ -10434,7 +10796,6 @@
             // relocating cross-tab - see setupDevGroupSelection()'s own
             // comment).
             const content = section.querySelector(':scope > .dev-section-content');
-            const selectedInTab = Array.from(devPanelSelectedItems).filter(el => tabEl.contains(el));
             if (selectedInTab.length) {
                 selectedInTab.forEach(el => content.appendChild(el));
                 clearDevSelection();
@@ -11048,6 +11409,32 @@
             let dragging = null;
             let startY = 0;
             let moved = false;
+            // BUG (found live, direct report: "when i clcik and drag the
+            // icon, it doesnt register. Instead my cursor becomes tot he
+            // NA Icon... the dragging doesnt work" - intermittent, "if i
+            // try eough, the ones that fail sometimes work"). Unlike every
+            // other custom pointer-drag in this file (the panel's own
+            // resize handles, its move-by-header drag, Round Breakdown's
+            // title/resize handles - see their own pointerdown handlers),
+            // this one never called setPointerCapture() on the handle. The
+            // handle is only 22px wide/tall (see .dev-group-drag-handle's
+            // own comment) with touch-action:none - without capture, a
+            // fast pointer move can carry the cursor outside that tiny hit
+            // area before the next pointermove tick lands, and the browser
+            // re-evaluates touch-action against whatever's now underneath
+            // (which DOES allow the gesture) mid-drag - exactly the
+            // ambiguous state Chromium/the OS shows the native "not-
+            // allowed" cursor for, and silently drops the gesture instead
+            // of ever reaching this handler's own pointermove/pointerup.
+            // Explains both symptoms at once: intermittent (depends on
+            // pointer speed/path, not a fixed condition) and "retry
+            // sometimes works" (a slower or more contained repeat gesture
+            // never leaves the handle's bounds). Capturing the pointer on
+            // the handle itself, same as every other drag handle here,
+            // routes every subsequent event for this pointerId to it
+            // regardless of where the cursor visually travels, removing
+            // the ambiguity entirely.
+            let capturedHandle = null;
             const THRESHOLD = 8;
 
             // Touch needs a hold-to-arm gate that mouse doesn't: the handles
@@ -11093,6 +11480,14 @@
                     const ownTitle = ownSection && ownSection.querySelector(':scope > .dev-section-title');
                     if (ownTitle && lockedGroups.has(getSectionKey(ownTitle))) return;
                 }
+
+                // See capturedHandle's own top-of-function comment - routes
+                // every subsequent pointer event for this pointerId to the
+                // handle regardless of where the cursor travels, same
+                // try/catch-wrapped best-effort convention as every other
+                // setPointerCapture() call in this file.
+                try { handle.setPointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
+                capturedHandle = handle;
 
                 if (e.pointerType === 'touch') {
                     const startX0 = e.clientX, startY0 = e.clientY, pointerId = e.pointerId;
@@ -11264,8 +11659,21 @@
                 }
             }, { passive: false });
 
+            // Releases the pointer capture taken in pointerdown above -
+            // BEFORE the `if (!dragging) return` early exit, since capture
+            // is taken on EVERY handle pointerdown (including a touch
+            // still pending its hold-to-arm timer, where dragging is still
+            // null) and has to be released even when a drag never actually
+            // started, or it stays stuck captured on the handle for the
+            // rest of that pointerId's lifetime.
+            function releaseCapturedHandle(e) {
+                if (!capturedHandle) return;
+                try { if (capturedHandle.hasPointerCapture(e.pointerId)) capturedHandle.releasePointerCapture(e.pointerId); } catch (err) { /* best-effort only */ }
+                capturedHandle = null;
+            }
             document.addEventListener('pointerup', (e) => {
                 if (pendingTouch && e.pointerId === pendingTouch.pointerId) cancelPendingTouch();
+                releaseCapturedHandle(e);
                 if (!dragging) return;
                 dragging.classList.remove('dev-reorder-dragging');
                 if (moved) {
@@ -11277,6 +11685,7 @@
             });
             document.addEventListener('pointercancel', (e) => {
                 if (pendingTouch && e.pointerId === pendingTouch.pointerId) cancelPendingTouch();
+                releaseCapturedHandle(e);
                 if (!dragging) return;
                 dragging.classList.remove('dev-reorder-dragging');
                 dragging = null;
@@ -11481,6 +11890,27 @@
                         // getSectionKey()'s own comment on how a subgroup's
                         // key is built).
                         const name = savedSec.key.split('>').pop().replace(/^(desktop|mobile|landscape):/, '');
+                        // BUG (found live, direct report "why do we have 2
+                        // mouse logs in the debug group"): "Mouse Log" is a
+                        // .dev-section, so a save made any time after it was
+                        // first built captures it in sectionOrder just like
+                        // any other group. On a real page load this
+                        // placeSection() run (called from loadSettings(), see
+                        // applySectionOrder(settings.sectionOrder) above)
+                        // happens BEFORE buildMouseLogWidget() (also called
+                        // from loadSettings(), a bit further down - it needs
+                        // devTextOverrides already populated to resolve the
+                        // "DEBUG" group by name, see that call site's own
+                        // comment) - so at THIS point the real Mouse Log
+                        // section never exists yet, and the generic
+                        // missing-custom-group path above would recreate an
+                        // empty shell of it, sitting right alongside the
+                        // real, fully-wired one buildMouseLogWidget() builds
+                        // moments later. Skip it here instead - it is never a
+                        // real custom group, always exactly one dynamically-
+                        // built widget that (re)creates and repopulates
+                        // itself.
+                        if (name === 'Mouse Log') return;
                         sec = createDevGroupElement(name);
                         sectionsByKey[savedSec.key] = sec;
                     }
@@ -12005,16 +12435,17 @@
             { group: 'Target Count Display', id: 'sliderTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20 },
-            { group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19 },
             { group: 'Target Count Display', id: 'sliderTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
             { group: 'Target Count Display', id: 'sliderTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 39.06 },
-            { group: 'Target Count Display', id: 'sliderTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24 },
-            { group: 'Target Count Display', id: 'sliderTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34 },
-            { group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60 },
+            // X/Y Offset sliders for Prefix/Number/Suffix moved to
+            // COMPOUND_OFFSET_CONTROLS (2026-09-20, direct request: "the X
+            // and Y offset sliders for the target Number, Click and X
+            // should be similar tot he other Ui text settings. THey are by
+            // default vw and vh, unless i click the checkbox taht says
+            // Px") - see that array's own comment on why all 3 parts'
+            // checkboxes per axis share ONE flagVar.
             { group: 'Target Count Display', id: 'checkboxHideTargetPrefix', type: 'checkbox', label: 'Hide "Click" (Prefix)' },
             { group: 'Target Count Display', id: 'checkboxHideTargetSuffix', type: 'checkbox', label: 'Hide "x" (Suffix)' },
             { group: 'Speed Display (max ms between taps)', id: 'sliderSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 89.34 },
@@ -12966,16 +13397,12 @@
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
             { group: 'Target Count Display', id: 'sliderMobileTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.47 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 37.50 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -29.31 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 238.44 },
             { group: 'Target Count Display', id: 'sliderMobileTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 18.63 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 111.06 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 34.90 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 70 },
             { group: 'Target Count Display', id: 'sliderMobileTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 5.47 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 165.75 },
-            { group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 16.02 },
+            // X/Y Offset sliders moved to COMPOUND_OFFSET_CONTROLS - see
+            // its own comment (ported from the Desktop tab's identical note).
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 9.93 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
@@ -13103,16 +13530,12 @@
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixLetterSpacing', type: 'slider', label: 'Suffix Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: -7 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSize', type: 'slider', label: 'Prefix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixFontSizeVw', type: 'slider', label: 'Prefix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', type: 'slider', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', type: 'slider', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSize', type: 'slider', label: 'Number Font Size (px):', min: 5, max: 500, step: 1, value: 500 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberFontSizeVw', type: 'slider', label: 'Number Font Size (vw):', min: 1, max: 60, step: 0.01, value: 39.06 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', type: 'slider', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', type: 'slider', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSize', type: 'slider', label: 'Suffix Font Size (px):', min: 5, max: 500, step: 1, value: 150 },
             { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixFontSizeVw', type: 'slider', label: 'Suffix Font Size (vw):', min: 1, max: 60, step: 0.01, value: 11.72 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', type: 'slider', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34 },
-            { group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', type: 'slider', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60 },
+            // X/Y Offset sliders moved to COMPOUND_OFFSET_CONTROLS - see
+            // its own comment (ported from the Desktop tab's identical note).
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSize', type: 'slider', label: 'Font Size (px):', min: 5, max: 300, step: 0.01, value: 38.73 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedFontSizeVw', type: 'slider', label: 'Font Size (vw):', min: 1, max: 60, step: 0.01, value: 9.93 },
             { group: 'Speed Display (max ms between taps)', id: 'sliderLandscapeSpeedExtrusionDepth', type: 'slider', label: 'Extrusion Depth (px):', min: 0, max: 20, step: 1, value: 4 },
@@ -13191,6 +13614,32 @@
             { tab: 'desktop', group: 'Round Breakdown', id: 'sliderRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65, checkboxId: 'checkboxRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Round Breakdown', id: 'sliderRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5, checkboxId: 'checkboxRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'desktop', group: 'Ms/Click Display', id: 'sliderMsPerClickY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -14.88, checkboxId: 'checkboxMsPerClickYOffsetUnitPx', checkboxFlagVar: '--ms-per-click-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            // Target Count's Prefix/Number/Suffix X/Y offsets - per direct
+            // request ("the X and Y offset sliders for the target Number,
+            // Click and X should be similar tot he other Ui text
+            // settings... unless i click the checkbox taht says Px").
+            // Unlike every other element here, all 3 parts share ONE X
+            // unit and ONE Y unit (--target-x-unit/--target-y-unit,
+            // inherited from .target-count down to all 3 children - see
+            // OFFSET_UNIT_FLAG_PREFIX's own comment and each part's own
+            // CSS rule) - only the OFFSET AMOUNT is independent per part,
+            // not the anchor/unit itself (a deliberate earlier scope
+            // decision, not something this change reopens). So all 3
+            // parts' X checkboxes share the SAME checkboxFlagVar
+            // (--target-x-offset-unit-is-px), and all 3 Y checkboxes share
+            // --target-y-offset-unit-is-px - setupOffsetUnitCheckboxes()
+            // was generalized to convert/sync every slider bound to the
+            // SAME flagVar+device together (previously assumed exactly one
+            // slider per flagVar), so toggling any one of these 3 X
+            // checkboxes converts and re-checks all 3 in lockstep, instead
+            // of only the one that was clicked - see that function's own
+            // comment.
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetPrefixXOffset', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20, checkboxId: 'checkboxTargetPrefixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetPrefixYOffset', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19, checkboxId: 'checkboxTargetPrefixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetNumberXOffset', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24, checkboxId: 'checkboxTargetNumberXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetNumberYOffset', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00, checkboxId: 'checkboxTargetNumberYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetSuffixXOffset', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34, checkboxId: 'checkboxTargetSuffixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'desktop', group: 'Target Count Display', id: 'sliderTargetSuffixYOffset', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60, checkboxId: 'checkboxTargetSuffixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Main Button', id: 'sliderMobileButtonX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: -2.32, checkboxId: 'checkboxMobileButtonXOffsetUnitPx', checkboxFlagVar: '--button-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Main Button', id: 'sliderMobileButtonY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: 16, checkboxId: 'checkboxMobileButtonYOffsetUnitPx', checkboxFlagVar: '--button-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Start/Try Again Button', id: 'sliderMobileTextX', label: 'Button X Offset (vw):', min: -40, max: 40, step: 0.01, value: 0, checkboxId: 'checkboxMobileTextXOffsetUnitPx', checkboxFlagVar: '--text-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -13211,6 +13660,15 @@
             { tab: 'mobile', group: 'Speed Display (max ms between taps)', id: 'sliderMobileSpeedY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -19.5, checkboxId: 'checkboxMobileSpeedYOffsetUnitPx', checkboxFlagVar: '--speed-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Ms/Click Display', id: 'sliderMobileMsPerClickX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: 24.76, checkboxId: 'checkboxMobileMsPerClickXOffsetUnitPx', checkboxFlagVar: '--ms-per-click-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Ms/Click Display', id: 'sliderMobileMsPerClickY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -26.84, checkboxId: 'checkboxMobileMsPerClickYOffsetUnitPx', checkboxFlagVar: '--ms-per-click-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            // Target Count's Prefix/Number/Suffix X/Y offsets - see the
+            // Desktop tab's identical entries above for the full comment
+            // on why all 3 parts' checkboxes share one flagVar per axis.
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetPrefixXOffset', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 37.50, checkboxId: 'checkboxMobileTargetPrefixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetPrefixYOffset', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -29.31, checkboxId: 'checkboxMobileTargetPrefixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetNumberXOffset', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 111.06, checkboxId: 'checkboxMobileTargetNumberXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetNumberYOffset', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 34.90, checkboxId: 'checkboxMobileTargetNumberYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetSuffixXOffset', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 165.75, checkboxId: 'checkboxMobileTargetSuffixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'mobile', group: 'Target Count Display', id: 'sliderMobileTargetSuffixYOffset', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 16.02, checkboxId: 'checkboxMobileTargetSuffixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 10, checkboxId: 'checkboxMobileRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'mobile', group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 15, checkboxId: 'checkboxMobileRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Main Button', id: 'sliderLandscapeButtonX', label: 'X Offset (vw):', min: -50, max: 50, step: 0.01, value: -2.32, checkboxId: 'checkboxLandscapeButtonXOffsetUnitPx', checkboxFlagVar: '--button-x-offset-unit-is-px', checkboxLabel: 'Px' },
@@ -13235,6 +13693,15 @@
             { tab: 'landscape', group: 'Ms/Click Display', id: 'sliderLandscapeMsPerClickY', label: 'Y Offset (vh):', min: -50, max: 50, step: 0.01, value: -26.84, checkboxId: 'checkboxLandscapeMsPerClickYOffsetUnitPx', checkboxFlagVar: '--ms-per-click-y-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownX', label: 'X Offset (vw):', min: 0, max: 100, step: 0.1, value: 65, checkboxId: 'checkboxLandscapeRoundBreakdownXOffsetUnitPx', checkboxFlagVar: '--round-breakdown-x-offset-unit-is-px', checkboxLabel: 'Px' },
             { tab: 'landscape', group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownY', label: 'Y Offset (vh):', min: 0, max: 100, step: 0.1, value: 5, checkboxId: 'checkboxLandscapeRoundBreakdownYOffsetUnitPx', checkboxFlagVar: '--round-breakdown-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            // Target Count's Prefix/Number/Suffix X/Y offsets - see the
+            // Desktop tab's identical entries above for the full comment
+            // on why all 3 parts' checkboxes share one flagVar per axis.
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixXOffset', label: 'Prefix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 49.20, checkboxId: 'checkboxLandscapeTargetPrefixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetPrefixYOffset', label: 'Prefix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 9.19, checkboxId: 'checkboxLandscapeTargetPrefixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetNumberXOffset', label: 'Number X Offset (vw):', min: -700, max: 700, step: 0.01, value: 200.24, checkboxId: 'checkboxLandscapeTargetNumberXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetNumberYOffset', label: 'Number Y Offset (vh):', min: -700, max: 700, step: 0.01, value: -50.00, checkboxId: 'checkboxLandscapeTargetNumberYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixXOffset', label: 'Suffix X Offset (vw):', min: -700, max: 700, step: 0.01, value: 324.34, checkboxId: 'checkboxLandscapeTargetSuffixXOffsetUnitPx', checkboxFlagVar: '--target-x-offset-unit-is-px', checkboxLabel: 'Px' },
+            { tab: 'landscape', group: 'Target Count Display', id: 'sliderLandscapeTargetSuffixYOffset', label: 'Suffix Y Offset (vh):', min: -700, max: 700, step: 0.01, value: 11.60, checkboxId: 'checkboxLandscapeTargetSuffixYOffsetUnitPx', checkboxFlagVar: '--target-y-offset-unit-is-px', checkboxLabel: 'Px' },
         ];
         function buildCompoundOffsetRow(ctrl) {
             const row = document.createElement('div');
@@ -13739,34 +14206,52 @@
         function setupOffsetUnitCheckboxes() {
             document.querySelectorAll('.dev-offset-unit-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
-                    const sliderId = checkbox.dataset.slider;
                     const flagVar = checkbox.dataset.flagVar;
-                    const slider = document.getElementById(sliderId);
-                    if (!slider) return;
-                    const { device } = resolveDevControlId(sliderId);
+                    const { device } = resolveDevControlId(checkbox.dataset.slider);
                     const activeCssVars = device === 'landscape' ? landscapeCssVars : device === 'mobile' ? mobileCssVars : cssVars;
                     const isX = flagVar.endsWith('-x-offset-unit-is-px');
                     const refPx = isX ? window.innerWidth : window.innerHeight;
                     const checkedNow = checkbox.checked;
                     // vw/vh -> px when checking, px -> vw/vh when unchecking.
                     const factor = checkedNow ? (refPx / 100) : (100 / refPx);
-                    const oldValue = parseFloat(slider.value);
-                    const oldMin = parseFloat(slider.min);
-                    const oldMax = parseFloat(slider.max);
-                    const newValue = oldValue * factor;
-                    slider.min = Math.min(oldMin * factor, oldMax * factor);
-                    slider.max = Math.max(oldMin * factor, oldMax * factor);
-                    slider.value = newValue;
                     activeCssVars[flagVar] = checkedNow ? 1 : 0;
-                    // Pushes the converted number through the exact same
-                    // pipeline a real drag would use (also updates the
-                    // value-display span and re-applies live) - the flag
-                    // set just above is what makes the SAME cssVar now read
-                    // under the new unit once applyTextAlignAnchors()/
-                    // applyActiveVars() (called by applySliderValue via
-                    // applyActiveVars(), and again explicitly below for the
-                    // 9 anchored elements) recompute the unit token.
-                    applySliderValue(slider, newValue);
+                    // A flagVar can be shared by more than one slider on the
+                    // SAME device (Target Count's Prefix/Number/Suffix all
+                    // share one --target-x-unit/--target-y-unit anchor - see
+                    // COMPOUND_OFFSET_CONTROLS' own comment) - previously
+                    // this only ever converted/re-checked the ONE checkbox
+                    // that was actually clicked, which for a shared flagVar
+                    // would silently leave the other 2 parts' numbers under
+                    // the OLD unit while the CSS formula now reads the NEW
+                    // one (a real visual jump) and their own checkboxes
+                    // unchecked despite the shared flag now being true.
+                    // Converting every checkbox/slider pair bound to this
+                    // exact flagVar+device together closes that gap - for
+                    // every OTHER element here (still exactly one slider per
+                    // flagVar), this loop body runs once, identical to the
+                    // old single-slider behavior.
+                    document.querySelectorAll('.dev-offset-unit-checkbox').forEach(cb => {
+                        if (cb.dataset.flagVar !== flagVar) return;
+                        if (resolveDevControlId(cb.dataset.slider).device !== device) return;
+                        const slider = document.getElementById(cb.dataset.slider);
+                        if (!slider) return;
+                        const oldValue = parseFloat(slider.value);
+                        const oldMin = parseFloat(slider.min);
+                        const oldMax = parseFloat(slider.max);
+                        const newValue = oldValue * factor;
+                        slider.min = Math.min(oldMin * factor, oldMax * factor);
+                        slider.max = Math.max(oldMin * factor, oldMax * factor);
+                        slider.value = newValue;
+                        cb.checked = checkedNow;
+                        // Pushes the converted number through the exact same
+                        // pipeline a real drag would use (also updates the
+                        // value-display span and re-applies live) - the flag
+                        // set above is what makes the SAME cssVar now read
+                        // under the new unit once applyTextAlignAnchors()/
+                        // applyActiveVars() (called by applySliderValue via
+                        // applyActiveVars()) recompute the unit token.
+                        applySliderValue(slider, newValue);
+                    });
                     applyTextAlignAnchors();
                 });
             });
