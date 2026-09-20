@@ -44,8 +44,13 @@ floating Inspector was open, which was the likely source of a "save
 doesn't work" report — investigated live and confirmed the save itself
 was always persisting and reloading correctly). Confirmed live that an
 anchor-only Inspector edit cannot move the object on screen today (no
-position-preserving math needed) — see CHANGELOG for the full
-investigation and the getBoundingClientRect() proof.
+position-preserving math needed). **A `position.mode`/`size.mode` change
+(e.g. switching Target Prefix X from anchor to relative) now also
+persists across Save/reload** — a separate `stage2EngineOverrides` bucket
+captures each element's full structural layout config (fixed 2026-09-20,
+after this exact gap surfaced as a direct report — mode had no cssVar to
+live in, so the earlier value-only writeback fix never covered it) — see
+CHANGELOG for the full investigation and live verification on both fixes.
 
 One disclosed limitation remains: Target Prefix's hybrid X/Y
 representation (X independent/anchor-mode, Y relative-mode, split across 2
