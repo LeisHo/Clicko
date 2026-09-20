@@ -3506,6 +3506,57 @@
         .dev-panel.dev-bold-settings .dev-label {
             font-weight: bold;
         }
+
+        /* ============================================================
+           STAGE 2 EXPERIMENT - UI-Engine's REAL Inspector, mounted as its
+           own floating panel (mirrors the engine's own demo/index.html
+           pattern exactly - copied CSS, not reinvented). Toggled by
+           #stage2InspectorToggleBtn. Entirely separate from Clicko's own
+           .dev-panel system - reversible by deleting this block + the
+           matching HTML/JS blocks near the end of <body>.
+        ============================================================ */
+        #stage2InspectorPanel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 340px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: #0a0a0a;
+            border: 2px solid #0ff;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            z-index: 999999;
+            color: #ccc;
+        }
+        #stage2InspectorPanel.stage2-open { display: block; }
+        #stage2InspectorPanel h1 { font-size: 13px; color: #0ff; margin: 0 0 8px; }
+        #stage2InspectorToggleBtn {
+            position: fixed; bottom: 60px; right: 20px; z-index: 999999;
+            background: #0ff; color: #000; border: none; border-radius: 4px;
+            padding: 6px 10px; font-family: monospace; font-weight: bold;
+            font-size: 11px; cursor: pointer;
+        }
+        .ui-inspector-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+        .ui-inspector-label { color: #9ca3af; min-width: 90px; font-size: 10px; }
+        .ui-inspector-select, .ui-inspector-text-input { background: #222; color: #0ff; border: 1px solid #0ff; border-radius: 3px; font-family: monospace; font-size: 10px; padding: 2px 4px; flex: 1; min-width: 60px; }
+        .ui-inspector-button { background: #0ff; color: #000; border: none; border-radius: 3px; padding: 4px 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .ui-inspector-section { margin: 10px 0; border-top: 1px solid #333; padding-top: 6px; }
+        .ui-inspector-section-title { color: #0ff; font-weight: bold; margin-bottom: 4px; }
+        .ui-inspector-section-body.ui-inspector-collapsed { display: none; }
+        .ui-inspector-hint, .ui-inspector-note { color: #6b7280; font-style: italic; }
+        .ui-inspector-config-dump { background: #111; color: #9ca3af; padding: 6px; font-size: 9px; max-height: 160px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+        .ui-inspector-context-tabs { gap: 4px; }
+        .ui-inspector-tab-button { opacity: 0.6; }
+        .ui-inspector-tab-active { opacity: 1; box-shadow: 0 0 0 2px #fff inset; }
+        .ui-inspector-group-label { color: #9ca3af; font-size: 10px; font-style: italic; }
+        .ui-inspector-add-override-picker { border: 1px dashed #0ff; padding: 6px; margin-top: 6px; border-radius: 4px; }
+        .ui-diagnostics-box { position: fixed; border: 2px solid #0f0; pointer-events: none; z-index: 999998; }
+        .ui-diagnostics-parent-box { position: fixed; border: 2px dashed #f0f; pointer-events: none; z-index: 999997; }
+        .ui-diagnostics-anchor-dot { position: fixed; width: 8px; height: 8px; margin-left: -4px; margin-top: -4px; background: #ff0; border-radius: 50%; z-index: 999999; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -19245,6 +19296,963 @@
                 setupLiveSettingsPreviewSync();
             }
         })();
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT (2026-09-20) - UI-Engine-driven preview rows for
+         EVERY layout-relevant High Score setting, per the UI-Engine adoption
+         evaluation (J:\CLAUDE\PROJECTS\HTML UI ENGINE). "Layout-relevant"
+         deliberately excludes Text/Border Color, Letter/Line Spacing,
+         Rotation, Flash Delay, Extrusion Depth, and Hide - all non-layout
+         styling/behavior, outside the engine's own designed boundary (see
+         docs/CHANGELOG.txt's Stage 2 entries for the full reasoning). This
+         block is 100% ADDITIVE: it does not modify COMPOUND_OFFSET_CONTROLS,
+         buildCompoundOffsetRow, renderCompoundOffsetControls, or any of the
+         existing High Score controls/handlers - it only appends new,
+         separate rows into the same "High Score" group, reading/writing the
+         SAME real CSS vars so nothing ever becomes a second source of truth.
+         REVERSIBLE: delete this <script type="module"> block and the
+         lib/ui-engine/ folder to remove every trace. Nothing else in this
+         file references either.
+    ============================================================ -->
+    <script type="module">
+        import { createUIElement, getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+
+        const stage2Content = findGroupContent('desktop', 'High Score', 'stage2Experiment', 'stage2HighScoreX');
+        if (!stage2Content) {
+            console.warn('[Stage 2 experiment] "High Score" group not found - no preview rows added.');
+        } else {
+            // ------------------------------------------------------------
+            // Shared position element - carries X/Y offset AND both anchors
+            // together, mirroring how Clicko's OWN single position formula
+            // for this element already combines all 4 (one calc() for left,
+            // one for top, each keyed off the SAME align/valign + edge-lock
+            // state). Edge Lock's real base/sign/unit mapping (read directly
+            // from EDGE_LOCK_BASE/EDGE_LOCK_SIGN, index.html ~line 14518):
+            // locked -> anchor = the align/valign value itself, offset in
+            // px; unlocked -> anchor is ALWAYS 'center' regardless of the
+            // align/valign dropdown, offset in vw/vh. This is exactly the
+            // engine's own anchorH/anchorV vocabulary - no translation layer
+            // needed beyond picking which anchor point per lock state.
+            // ------------------------------------------------------------
+            const alignLocked = !!cssVars['--high-score-text-align-edge-lock'];
+            const valignLocked = !!cssVars['--high-score-text-valign-edge-lock'];
+            const initAnchorH = alignLocked ? (cssVars['--high-score-text-align'] || 'center') : 'center';
+            const initAnchorV = valignLocked ? (cssVars['--high-score-text-valign'] || 'top') : 'center';
+            const initOffsetXUnit = alignLocked ? 'px' : 'vw';
+            const initOffsetYUnit = valignLocked ? 'px' : 'vh';
+            const initX = Number(cssVars['--high-score-x-offset-vw']) || 0;
+            const initY = Number(cssVars['--high-score-y-offset-vh']) || 0;
+
+            createUIElement({
+                id: 'stage2HighScoreX',
+                role: 'text',
+                layout: {
+                    position: {
+                        mode: 'anchor',
+                        horizontal: { anchor: initAnchorH, offset: initX + initOffsetXUnit },
+                        vertical: { anchor: initAnchorV, offset: initY + initOffsetYUnit },
+                    },
+                },
+            });
+
+            // Separate element for Font Size, since it's a SIZE field
+            // (widthValue), not a position field - the blended-length shape
+            // {pxValue, vwValue, blend, vwUnit} is v0.2.3's own mechanism,
+            // tested here interactively for the first time (Stage 1 only
+            // ever checked it via a domNode-less hand-evaluated harness).
+            createUIElement({
+                id: 'stage2HighScoreFontSize',
+                role: 'text',
+                layout: {
+                    // position.mode is unconditionally required by
+                    // createUIElement() even for a size-only registration
+                    // (confirmed live - the engine has no size-only
+                    // shorthand) - an inert anchor is harmless since nothing
+                    // ever reads this element's position fields.
+                    position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                    size: {
+                        width: {
+                            mode: 'fixed',
+                            value: {
+                                pxValue: Number(cssVars['--high-score-font-size-px']) || 0,
+                                vwValue: Number(cssVars['--high-score-font-size-vw']) || 0,
+                                blend: Number(cssVars['--high-score-scale-with-browser']) || 0,
+                                vwUnit: 'vmin',
+                            },
+                        },
+                    },
+                },
+            });
+
+            function addStage2Row(row) {
+                row.style.borderTop = '1px dashed #5b9dff';
+                row.style.marginTop = '4px';
+                row.style.paddingTop = '4px';
+                stage2Content.appendChild(row);
+                return row;
+            }
+
+            // ---- 1. X Offset ----
+            addStage2Row(buildSliderRow({
+                id: 'sliderStage2HighScoreX', label: '(Stage 2, engine-driven) X Offset:',
+                min: -50, max: 50, step: 0.01, value: initX,
+            }));
+            document.getElementById('sliderStage2HighScoreX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = document.getElementById('checkboxHighScoreTextAlignEdgeLock').checked ? 'px' : 'vw';
+                updateElement('stage2HighScoreX', { position: { horizontal: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2HighScoreX', 'offsetX', 'base').value);
+                document.getElementById('valueStage2HighScoreX').textContent = resolvedNum;
+                cssVars['--high-score-x-offset-vw'] = resolvedNum;
+                applyActiveVars();
+                const realSlider = document.getElementById('sliderHighScoreX');
+                const realValueEl = document.getElementById('valueHighScoreX');
+                if (realSlider) realSlider.value = resolvedNum;
+                if (realValueEl) realValueEl.textContent = resolvedNum;
+            });
+
+            // ---- 2. Y Offset ----
+            addStage2Row(buildSliderRow({
+                id: 'sliderStage2HighScoreY', label: '(Stage 2, engine-driven) Y Offset:',
+                min: -50, max: 50, step: 0.01, value: initY,
+            }));
+            document.getElementById('sliderStage2HighScoreY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = document.getElementById('checkboxHighScoreTextValignEdgeLock').checked ? 'px' : 'vh';
+                updateElement('stage2HighScoreX', { position: { vertical: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2HighScoreX', 'offsetY', 'base').value);
+                document.getElementById('valueStage2HighScoreY').textContent = resolvedNum;
+                cssVars['--high-score-y-offset-vh'] = resolvedNum;
+                applyActiveVars();
+                const realSlider = document.getElementById('sliderHighScoreY');
+                const realValueEl = document.getElementById('valueHighScoreY');
+                if (realSlider) realSlider.value = resolvedNum;
+                if (realValueEl) realValueEl.textContent = resolvedNum;
+            });
+
+            // ---- 3. Font Size (vw component of the blended-length value) ----
+            addStage2Row(buildSliderRow({
+                id: 'sliderStage2HighScoreFontSize', label: '(Stage 2, engine-driven) Font Size (vw):',
+                min: 0, max: 50, step: 0.01, value: Number(cssVars['--high-score-font-size-vw']) || 0,
+            }));
+            document.getElementById('sliderStage2HighScoreFontSize').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const current = getEffectiveValue('stage2HighScoreFontSize', 'widthValue', 'base').value;
+                // Round-trips the FULL blended-length object through the
+                // real engine (updateElement -> validateConfig, which
+                // v0.2.3 taught to accept this shape -> getEffectiveValue) -
+                // proves the object survives storage/retrieval unmangled,
+                // not just that a plain number does.
+                updateElement('stage2HighScoreFontSize', { size: { width: { value: { ...current, vwValue: num } } } });
+                const resolved = getEffectiveValue('stage2HighScoreFontSize', 'widthValue', 'base').value;
+                document.getElementById('valueStage2HighScoreFontSize').textContent = resolved.vwValue;
+                cssVars['--high-score-font-size-vw'] = resolved.vwValue;
+                applyActiveVars();
+                const realSlider = document.getElementById('sliderHighScoreFontSizeVw');
+                const realValueEl = document.getElementById('valueHighScoreFontSizeVw');
+                if (realSlider) realSlider.value = resolved.vwValue;
+                if (realValueEl) realValueEl.textContent = resolved.vwValue;
+            });
+
+            // ---- 4. Text Align (horizontal anchor) ----
+            addStage2Row(buildSelectRow({
+                id: 'selectStage2HighScoreTextAlign', label: '(Stage 2, engine-driven) Text Align:',
+                options: [{ value: 'left', text: 'Left' }, { value: 'center', text: 'Center' }, { value: 'right', text: 'Right' }],
+            }));
+            document.getElementById('selectStage2HighScoreTextAlign').value = cssVars['--high-score-text-align'] || 'center';
+            document.getElementById('selectStage2HighScoreTextAlign').addEventListener('change', (e) => {
+                // Only meaningful while unlocked (locked mode derives its
+                // anchor from align+lock together - see the Edge Lock
+                // listeners below, which own that combined recompute).
+                updateElement('stage2HighScoreX', { position: { horizontal: { anchor: e.target.value } } });
+                const resolvedAnchor = getEffectiveValue('stage2HighScoreX', 'anchorH', 'base').value;
+                cssVars['--high-score-text-align'] = resolvedAnchor;
+                applyActiveVars();
+                const realSelect = document.getElementById('selectHighScoreTextAlign');
+                if (realSelect) realSelect.value = resolvedAnchor;
+            });
+
+            // ---- 5. Vertical Align (vertical anchor) ----
+            addStage2Row(buildSelectRow({
+                id: 'selectStage2HighScoreTextValign', label: '(Stage 2, engine-driven) Vertical Align:',
+                options: [{ value: 'top', text: 'Top' }, { value: 'center', text: 'Center' }, { value: 'bottom', text: 'Bottom' }],
+            }));
+            document.getElementById('selectStage2HighScoreTextValign').value = cssVars['--high-score-text-valign'] || 'top';
+            document.getElementById('selectStage2HighScoreTextValign').addEventListener('change', (e) => {
+                updateElement('stage2HighScoreX', { position: { vertical: { anchor: e.target.value } } });
+                const resolvedAnchor = getEffectiveValue('stage2HighScoreX', 'anchorV', 'base').value;
+                cssVars['--high-score-text-valign'] = resolvedAnchor;
+                applyActiveVars();
+                const realSelect = document.getElementById('selectHighScoreTextValign');
+                if (realSelect) realSelect.value = resolvedAnchor;
+            });
+
+            // ---- 6. Edge Lock mirroring (both axes) ----
+            // Deliberately NOT a new control - listens to the REAL Edge Lock
+            // checkboxes (registered AFTER Clicko's own listener, so this
+            // always runs with Clicko's already-recomputed, position-
+            // preserving offset number already in cssVars) and mirrors the
+            // resulting state into the engine's fields, proving the schema
+            // can represent both lock states faithfully. The actual
+            // position-preserving MATH stays Clicko's own
+            // preserveVisualPositionOnLockToggle() - per the engine repo's
+            // own v0.2.3 finding, that computation is host-specific, not
+            // something to reimplement here.
+            function mirrorEdgeLockToEngine(axis) {
+                const locked = axis === 'x'
+                    ? document.getElementById('checkboxHighScoreTextAlignEdgeLock').checked
+                    : document.getElementById('checkboxHighScoreTextValignEdgeLock').checked;
+                const align = cssVars['--high-score-text-align'] || 'center';
+                const valign = cssVars['--high-score-text-valign'] || 'top';
+                if (axis === 'x') {
+                    const anchor = locked ? align : 'center';
+                    const unit = locked ? 'px' : 'vw';
+                    const num = Number(cssVars['--high-score-x-offset-vw']) || 0;
+                    updateElement('stage2HighScoreX', { position: { horizontal: { anchor, offset: num + unit } } });
+                    const r = getEffectiveValue('stage2HighScoreX', 'offsetX', 'base').value;
+                    document.getElementById('valueStage2HighScoreX').textContent = parseFloat(r);
+                } else {
+                    const anchor = locked ? valign : 'center';
+                    const unit = locked ? 'px' : 'vh';
+                    const num = Number(cssVars['--high-score-y-offset-vh']) || 0;
+                    updateElement('stage2HighScoreX', { position: { vertical: { anchor, offset: num + unit } } });
+                    const r = getEffectiveValue('stage2HighScoreX', 'offsetY', 'base').value;
+                    document.getElementById('valueStage2HighScoreY').textContent = parseFloat(r);
+                }
+            }
+            document.getElementById('checkboxHighScoreTextAlignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('x'));
+            document.getElementById('checkboxHighScoreTextValignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+        }
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT, BATCH 2 (2026-09-20) - the same engine-driven
+         pattern as High Score's own block above, generalized into one
+         reusable function and applied to Start/Try Again Button, Round
+         Text, Speed (Countdown Timer) Display, and Ms/Click Display - all 4
+         share High Score's exact "anchor + offset, X/Y/FontSize/Align/
+         Valign/EdgeLock" shape. Target Count Display and Round Breakdown
+         are handled in their own, separate blocks further below since they
+         genuinely don't fit this shape (Target uses relative-anchor
+         chaining; Round Breakdown is a dragged/resized panel, not a plain
+         anchored text element). Same additive/reversible/read-existing-
+         write-existing-cssVars discipline as every Stage 2 block before it.
+    ============================================================ -->
+    <script type="module">
+        import { createUIElement, getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+
+        function registerStage2TextElement(cfg) {
+            const content = findGroupContent('desktop', cfg.groupName, 'stage2Batch2', cfg.key);
+            if (!content) {
+                console.warn('[Stage 2 batch 2] group not found - skipping', cfg.groupName);
+                return;
+            }
+            const alignLocked = !!cssVars[cfg.alignLockVar];
+            const valignLocked = !!cssVars[cfg.valignLockVar];
+            const initAnchorH = alignLocked ? (cssVars[cfg.alignVar] || 'center') : 'center';
+            const initAnchorV = valignLocked ? (cssVars[cfg.valignVar] || 'top') : 'center';
+            const initX = Number(cssVars[cfg.xVar]) || 0;
+            const initY = Number(cssVars[cfg.yVar]) || 0;
+            const elId = 'stage2' + cfg.key + 'X';
+
+            createUIElement({
+                id: elId,
+                role: 'text',
+                layout: {
+                    position: {
+                        mode: 'anchor',
+                        horizontal: { anchor: initAnchorH, offset: initX + (alignLocked ? 'px' : 'vw') },
+                        vertical: { anchor: initAnchorV, offset: initY + (valignLocked ? 'px' : 'vh') },
+                    },
+                },
+            });
+
+            function addRow(row) {
+                row.style.borderTop = '1px dashed #5b9dff';
+                row.style.marginTop = '4px';
+                row.style.paddingTop = '4px';
+                content.appendChild(row);
+                return row;
+            }
+
+            // X Offset
+            addRow(buildSliderRow({ id: 'sliderStage2' + cfg.key + 'X', label: '(Stage 2, engine-driven) X Offset:', min: -50, max: 50, step: 0.01, value: initX }));
+            document.getElementById('sliderStage2' + cfg.key + 'X').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = document.getElementById(cfg.realAlignLockId).checked ? 'px' : 'vw';
+                updateElement(elId, { position: { horizontal: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue(elId, 'offsetX', 'base').value);
+                document.getElementById('valueStage2' + cfg.key + 'X').textContent = resolvedNum;
+                cssVars[cfg.xVar] = resolvedNum;
+                applyActiveVars();
+                const realSlider = document.getElementById(cfg.realXId);
+                const realValueEl = document.getElementById(cfg.realXId.replace(/^slider/, 'value'));
+                if (realSlider) realSlider.value = resolvedNum;
+                if (realValueEl) realValueEl.textContent = resolvedNum;
+            });
+
+            // Y Offset
+            addRow(buildSliderRow({ id: 'sliderStage2' + cfg.key + 'Y', label: '(Stage 2, engine-driven) Y Offset:', min: -50, max: 50, step: 0.01, value: initY }));
+            document.getElementById('sliderStage2' + cfg.key + 'Y').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = document.getElementById(cfg.realValignLockId).checked ? 'px' : 'vh';
+                updateElement(elId, { position: { vertical: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue(elId, 'offsetY', 'base').value);
+                document.getElementById('valueStage2' + cfg.key + 'Y').textContent = resolvedNum;
+                cssVars[cfg.yVar] = resolvedNum;
+                applyActiveVars();
+                const realSlider = document.getElementById(cfg.realYId);
+                const realValueEl = document.getElementById(cfg.realYId.replace(/^slider/, 'value'));
+                if (realSlider) realSlider.value = resolvedNum;
+                if (realValueEl) realValueEl.textContent = resolvedNum;
+            });
+
+            // Font Size (vw) - separate size element, blended-length
+            const fontSizeElId = 'stage2' + cfg.key + 'FontSize';
+            createUIElement({
+                id: fontSizeElId,
+                role: 'text',
+                layout: {
+                    position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                    size: { width: { mode: 'fixed', value: {
+                        pxValue: Number(cssVars[cfg.fontPxVar]) || 0,
+                        vwValue: Number(cssVars[cfg.fontVwVar]) || 0,
+                        blend: Number(cssVars[cfg.scaleVar]) || 0,
+                        vwUnit: 'vmin',
+                    } } },
+                },
+            });
+            addRow(buildSliderRow({ id: 'sliderStage2' + cfg.key + 'FontSize', label: '(Stage 2, engine-driven) Font Size (vw):', min: 0, max: 50, step: 0.01, value: Number(cssVars[cfg.fontVwVar]) || 0 }));
+            document.getElementById('sliderStage2' + cfg.key + 'FontSize').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const current = getEffectiveValue(fontSizeElId, 'widthValue', 'base').value;
+                updateElement(fontSizeElId, { size: { width: { value: { ...current, vwValue: num } } } });
+                const resolved = getEffectiveValue(fontSizeElId, 'widthValue', 'base').value;
+                document.getElementById('valueStage2' + cfg.key + 'FontSize').textContent = resolved.vwValue;
+                cssVars[cfg.fontVwVar] = resolved.vwValue;
+                applyActiveVars();
+                if (cfg.realFontVwId) {
+                    const realSlider = document.getElementById(cfg.realFontVwId);
+                    const realValueEl = document.getElementById(cfg.realFontVwId.replace(/^slider/, 'value'));
+                    if (realSlider) realSlider.value = resolved.vwValue;
+                    if (realValueEl) realValueEl.textContent = resolved.vwValue;
+                }
+            });
+
+            // Text Align
+            addRow(buildSelectRow({ id: 'selectStage2' + cfg.key + 'Align', label: '(Stage 2, engine-driven) Text Align:', options: [{ value: 'left', text: 'Left' }, { value: 'center', text: 'Center' }, { value: 'right', text: 'Right' }] }));
+            document.getElementById('selectStage2' + cfg.key + 'Align').value = cssVars[cfg.alignVar] || 'center';
+            document.getElementById('selectStage2' + cfg.key + 'Align').addEventListener('change', (e) => {
+                updateElement(elId, { position: { horizontal: { anchor: e.target.value } } });
+                const resolvedAnchor = getEffectiveValue(elId, 'anchorH', 'base').value;
+                cssVars[cfg.alignVar] = resolvedAnchor;
+                applyActiveVars();
+                const realSelect = document.getElementById(cfg.realAlignId);
+                if (realSelect) realSelect.value = resolvedAnchor;
+            });
+
+            // Vertical Align
+            addRow(buildSelectRow({ id: 'selectStage2' + cfg.key + 'Valign', label: '(Stage 2, engine-driven) Vertical Align:', options: [{ value: 'top', text: 'Top' }, { value: 'center', text: 'Center' }, { value: 'bottom', text: 'Bottom' }] }));
+            document.getElementById('selectStage2' + cfg.key + 'Valign').value = cssVars[cfg.valignVar] || 'top';
+            document.getElementById('selectStage2' + cfg.key + 'Valign').addEventListener('change', (e) => {
+                updateElement(elId, { position: { vertical: { anchor: e.target.value } } });
+                const resolvedAnchor = getEffectiveValue(elId, 'anchorV', 'base').value;
+                cssVars[cfg.valignVar] = resolvedAnchor;
+                applyActiveVars();
+                const realSelect = document.getElementById(cfg.realValignId);
+                if (realSelect) realSelect.value = resolvedAnchor;
+            });
+
+            // Edge Lock mirroring (both axes) - same reasoning as High
+            // Score's own block: listens to the REAL checkboxes, mirrors
+            // Clicko's own already-recomputed state, never reimplements the
+            // position-preserving math itself.
+            function mirrorEdgeLockToEngine(axis) {
+                const locked = axis === 'x' ? document.getElementById(cfg.realAlignLockId).checked : document.getElementById(cfg.realValignLockId).checked;
+                const align = cssVars[cfg.alignVar] || 'center';
+                const valign = cssVars[cfg.valignVar] || 'top';
+                if (axis === 'x') {
+                    const anchor = locked ? align : 'center';
+                    const unit = locked ? 'px' : 'vw';
+                    const num = Number(cssVars[cfg.xVar]) || 0;
+                    updateElement(elId, { position: { horizontal: { anchor, offset: num + unit } } });
+                    const r = getEffectiveValue(elId, 'offsetX', 'base').value;
+                    document.getElementById('valueStage2' + cfg.key + 'X').textContent = parseFloat(r);
+                } else {
+                    const anchor = locked ? valign : 'center';
+                    const unit = locked ? 'px' : 'vh';
+                    const num = Number(cssVars[cfg.yVar]) || 0;
+                    updateElement(elId, { position: { vertical: { anchor, offset: num + unit } } });
+                    const r = getEffectiveValue(elId, 'offsetY', 'base').value;
+                    document.getElementById('valueStage2' + cfg.key + 'Y').textContent = parseFloat(r);
+                }
+            }
+            document.getElementById(cfg.realAlignLockId).addEventListener('change', () => mirrorEdgeLockToEngine('x'));
+            document.getElementById(cfg.realValignLockId).addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+        }
+
+        registerStage2TextElement({
+            key: 'Start', groupName: 'Start/Try Again Button',
+            xVar: '--text-x-offset-vw', yVar: '--text-y-offset-vh',
+            fontPxVar: '--text-font-size-px', fontVwVar: '--text-font-size-vw', scaleVar: '--text-scale-with-browser',
+            alignVar: '--start-text-align', valignVar: '--start-text-valign',
+            alignLockVar: '--start-text-align-edge-lock', valignLockVar: '--start-text-valign-edge-lock',
+            realXId: 'sliderTextX', realYId: 'sliderTextY', realFontVwId: 'sliderTextFontSizeVw',
+            realAlignId: 'selectStartTextAlign', realValignId: 'selectStartTextValign',
+            realAlignLockId: 'checkboxStartTextAlignEdgeLock', realValignLockId: 'checkboxStartTextValignEdgeLock',
+        });
+
+        registerStage2TextElement({
+            key: 'RoundText', groupName: 'Round Text',
+            xVar: '--round-dock-x-offset-vw', yVar: '--round-dock-y-offset-vh',
+            fontPxVar: '--round-font-size-px', fontVwVar: '--round-font-size-vw', scaleVar: '--round-scale-with-browser',
+            alignVar: '--round-text-align', valignVar: '--round-text-valign',
+            alignLockVar: '--round-text-align-edge-lock', valignLockVar: '--round-text-valign-edge-lock',
+            realXId: 'sliderRoundDockX', realYId: 'sliderRoundDockY', realFontVwId: 'sliderRoundFontSizeVw',
+            realAlignId: 'selectRoundTextAlign', realValignId: 'selectRoundTextValign',
+            realAlignLockId: 'checkboxRoundTextAlignEdgeLock', realValignLockId: 'checkboxRoundTextValignEdgeLock',
+        });
+
+        registerStage2TextElement({
+            key: 'Speed', groupName: 'Speed Display (max ms between taps)',
+            xVar: '--speed-x-offset-vw', yVar: '--speed-y-offset-vh',
+            fontPxVar: '--speed-font-size-px', fontVwVar: '--speed-font-size-vw', scaleVar: '--speed-scale-with-browser',
+            alignVar: '--speed-text-align', valignVar: '--speed-text-valign',
+            alignLockVar: '--speed-text-align-edge-lock', valignLockVar: '--speed-text-valign-edge-lock',
+            realXId: 'sliderSpeedX', realYId: 'sliderSpeedY', realFontVwId: 'sliderSpeedFontSizeVw',
+            realAlignId: 'selectSpeedTextAlign', realValignId: 'selectSpeedTextValign',
+            realAlignLockId: 'checkboxSpeedTextAlignEdgeLock', realValignLockId: 'checkboxSpeedTextValignEdgeLock',
+        });
+
+        registerStage2TextElement({
+            key: 'MsPerClick', groupName: 'Ms/Click Display',
+            xVar: '--ms-per-click-x-offset-vw', yVar: '--ms-per-click-y-offset-vh',
+            fontPxVar: '--ms-per-click-font-size-px', fontVwVar: '--ms-per-click-font-size-vw', scaleVar: '--ms-per-click-scale-with-browser',
+            alignVar: '--ms-per-click-text-align', valignVar: '--ms-per-click-text-valign',
+            alignLockVar: '--ms-per-click-text-align-edge-lock', valignLockVar: '--ms-per-click-text-valign-edge-lock',
+            realXId: 'sliderMsPerClickX', realYId: 'sliderMsPerClickY', realFontVwId: 'sliderMsPerClickFontSizeVw',
+            realAlignId: 'selectMsPerClickTextAlign', realValignId: 'selectMsPerClickTextValign',
+            realAlignLockId: 'checkboxMsPerClickTextAlignEdgeLock', realValignLockId: 'checkboxMsPerClickTextValignEdgeLock',
+        });
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT, ROUND BREAKDOWN (2026-09-20) - FONT SIZE ONLY.
+         Round Breakdown is a dragged/resized PANEL (own width/height, own
+         JS-computed drag position via applyRoundBreakdownPosition(), 2-value
+         Align 'left'/'right' and Valign 'top'/'bottom' only, no 'center') -
+         genuinely a different position/size mechanism from every other
+         Stage 2 element so far, not the same "anchor + offset text" shape -
+         so its Width/Height/Align/Valign/Edge Lock are explicitly OUT OF
+         SCOPE for this pass, left completely untouched. Its 2 font-size
+         settings (Title/Data) DO fit the blended-length mechanism, but with
+         a genuinely different real formula than every other element's -
+         a single authored PX number with the "vw-equivalent" DERIVED from
+         it (pxValue / scaleRefPx * 100), not 2 independently authored
+         numbers - a 3rd real variant of Scale With Browser, ported here
+         by computing that same derived ratio before handing it to the
+         engine's blended-length shape.
+    ============================================================ -->
+    <script type="module">
+        import { createUIElement, getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+
+        const rbContent = findGroupContent('desktop', 'Round Breakdown', 'stage2RoundBreakdown', 'fontSize');
+        if (!rbContent) {
+            console.warn('[Stage 2 Round Breakdown] group not found - skipping.');
+        } else {
+            function registerRoundBreakdownFontSize(key, pxVar, realSliderId) {
+                const scaleRefPx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--round-breakdown-scale-ref-px')) || 1280;
+                const pxValue = Number(cssVars[pxVar]) || 0;
+                const blend = Number(cssVars['--round-breakdown-scale-with-browser']) || 0;
+                const elId = 'stage2RoundBreakdown' + key;
+                createUIElement({
+                    id: elId, role: 'text',
+                    layout: {
+                        position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                        size: { width: { mode: 'fixed', value: { pxValue, vwValue: pxValue / scaleRefPx * 100, blend, vwUnit: 'vmin' } } },
+                    },
+                });
+                const row = buildSliderRow({ id: 'sliderStage2RoundBreakdown' + key, label: '(Stage 2, engine-driven) ' + key + ' Font Size (px):', min: 8, max: 60, step: 1, value: pxValue });
+                row.style.borderTop = '1px dashed #5b9dff';
+                row.style.marginTop = '4px';
+                row.style.paddingTop = '4px';
+                rbContent.appendChild(row);
+                document.getElementById('sliderStage2RoundBreakdown' + key).addEventListener('input', (e) => {
+                    const num = parseFloat(e.target.value);
+                    const currentRef = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--round-breakdown-scale-ref-px')) || 1280;
+                    const current = getEffectiveValue(elId, 'widthValue', 'base').value;
+                    updateElement(elId, { size: { width: { value: { ...current, pxValue: num, vwValue: num / currentRef * 100 } } } });
+                    const resolved = getEffectiveValue(elId, 'widthValue', 'base').value;
+                    document.getElementById('valueStage2RoundBreakdown' + key).textContent = resolved.pxValue;
+                    cssVars[pxVar] = resolved.pxValue;
+                    applyActiveVars();
+                    const realSlider = document.getElementById(realSliderId);
+                    const realValueEl = document.getElementById(realSliderId.replace(/^slider/, 'value'));
+                    if (realSlider) realSlider.value = resolved.pxValue;
+                    if (realValueEl) realValueEl.textContent = resolved.pxValue;
+                });
+            }
+            registerRoundBreakdownFontSize('Title', '--round-breakdown-title-font-size-px', 'sliderRoundBreakdownTitleFontSize');
+            registerRoundBreakdownFontSize('Data', '--round-breakdown-data-font-size-px', 'sliderRoundBreakdownDataFontSize');
+        }
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT, TARGET COUNT DISPLAY (2026-09-20) - the most
+         structurally different element ported so far. 3 real DOM parts
+         (Prefix/Number/Suffix), NOT 3 independent plain-anchor elements:
+         - Number: plain anchor+offset, same shape as every other element.
+         - Suffix: BOTH axes anchored to Number's own live right/bottom edge
+           (relative mode) - the actual real-world showcase of v0.2.4's
+           per-axis gap fix (Stage 1 test #3 proved this exact relation
+           against real numbers: -21.6px X, -54.09px Y, 2 different
+           magnitudes, which a single scalar gap could never represent).
+         - Prefix: a genuine HYBRID this schema cannot express as ONE
+           element - X is independent (anchored to viewport center, same as
+           any plain offset), Y is relative to Number's bottom edge. Since
+           position.mode is one value per element, this is represented here
+           as 2 SEPARATE logical engine registrations (stage2TargetPrefixX
+           in anchor mode, stage2TargetPrefixY in relative mode) - neither
+           has a domNode, so nothing stops 2 logical elements backing one
+           real DOM node's 2 axes, but this is a real, disclosed limitation
+           worth reporting, not a clean 1:1 port.
+         Deliberately excluded: Text Align/Edge Lock - Target's own Edge
+         Lock checkbox exists in the markup but was explicitly excluded from
+         the position-preserving generalization (per the original Edge Lock
+         fix's own CHANGELOG entry, "Target... bespoke multi-element/multi-
+         offset position system this generic conversion isn't safe to apply
+         to blindly") and Suffix/Prefix-Y's real base is overridden by the
+         live-tracked edge anyway, making Edge Lock's normal meaning moot
+         for those axes. Target's own Target Count UI is hidden until a
+         Target-mode round is actually active (start the game, may take a
+         few rounds to land on Target mode) - the rows still register and
+         are testable via dispatched events regardless of visibility.
+    ============================================================ -->
+    <script type="module">
+        import { createUIElement, getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+
+        const targetContent = findGroupContent('desktop', 'Target Count Display', 'stage2Target', 'number');
+        if (!targetContent) {
+            console.warn('[Stage 2 Target] group not found - skipping.');
+        } else {
+            function addTargetRow(row) {
+                row.style.borderTop = '1px dashed #5b9dff';
+                row.style.marginTop = '4px';
+                row.style.paddingTop = '4px';
+                targetContent.appendChild(row);
+                return row;
+            }
+            function syncReal(realId, value) {
+                const el = document.getElementById(realId);
+                const valEl = document.getElementById(realId.replace(/^slider/, 'value'));
+                if (el) el.value = value;
+                if (valEl) valEl.textContent = value;
+            }
+
+            // ---- Number (plain anchor + offset, same shape as every
+            // other Stage 2 element) ----
+            const numXUnit = cssVars['--target-x-offset-unit-is-px'] ? 'px' : 'vw';
+            const numYUnit = cssVars['--target-y-offset-unit-is-px'] ? 'px' : 'vh';
+            const initNumX = Number(cssVars['--target-number-x-offset-vw']) || 0;
+            const initNumY = Number(cssVars['--target-number-y-offset-vh']) || 0;
+            createUIElement({
+                id: 'stage2TargetNumberX', role: 'text',
+                layout: { position: { mode: 'anchor', horizontal: { anchor: 'center', offset: initNumX + numXUnit }, vertical: { anchor: 'center', offset: initNumY + numYUnit } } },
+            });
+            addTargetRow(buildSliderRow({ id: 'sliderStage2TargetNumberX', label: '(Stage 2, engine-driven) Number X Offset:', min: -700, max: 700, step: 0.01, value: initNumX }));
+            document.getElementById('sliderStage2TargetNumberX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = cssVars['--target-x-offset-unit-is-px'] ? 'px' : 'vw';
+                updateElement('stage2TargetNumberX', { position: { horizontal: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2TargetNumberX', 'offsetX', 'base').value);
+                document.getElementById('valueStage2TargetNumberX').textContent = resolvedNum;
+                cssVars['--target-number-x-offset-vw'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderTargetNumberXOffset', resolvedNum);
+            });
+            addTargetRow(buildSliderRow({ id: 'sliderStage2TargetNumberY', label: '(Stage 2, engine-driven) Number Y Offset:', min: -700, max: 700, step: 0.01, value: initNumY }));
+            document.getElementById('sliderStage2TargetNumberY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = cssVars['--target-y-offset-unit-is-px'] ? 'px' : 'vh';
+                updateElement('stage2TargetNumberX', { position: { vertical: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2TargetNumberX', 'offsetY', 'base').value);
+                document.getElementById('valueStage2TargetNumberY').textContent = resolvedNum;
+                cssVars['--target-number-y-offset-vh'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderTargetNumberYOffset', resolvedNum);
+            });
+
+            function registerTargetFontSize(key, pxVar, vwVar, realId) {
+                const elId = 'stage2Target' + key + 'FontSize';
+                const pxValue = Number(cssVars[pxVar]) || 0;
+                const vwValue = Number(cssVars[vwVar]) || 0;
+                const blend = Number(cssVars['--target-scale-with-browser']) || 0;
+                createUIElement({
+                    id: elId, role: 'text',
+                    layout: {
+                        position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                        size: { width: { mode: 'fixed', value: { pxValue, vwValue, blend, vwUnit: 'vmin' } } },
+                    },
+                });
+                addTargetRow(buildSliderRow({ id: 'sliderStage2Target' + key + 'FontSize', label: '(Stage 2, engine-driven) ' + key + ' Font Size (vw):', min: 0, max: 60, step: 0.01, value: vwValue }));
+                document.getElementById('sliderStage2Target' + key + 'FontSize').addEventListener('input', (e) => {
+                    const num = parseFloat(e.target.value);
+                    const current = getEffectiveValue(elId, 'widthValue', 'base').value;
+                    updateElement(elId, { size: { width: { value: { ...current, vwValue: num } } } });
+                    const resolved = getEffectiveValue(elId, 'widthValue', 'base').value;
+                    document.getElementById('valueStage2Target' + key + 'FontSize').textContent = resolved.vwValue;
+                    cssVars[vwVar] = resolved.vwValue;
+                    applyActiveVars();
+                    syncReal(realId, resolved.vwValue);
+                });
+            }
+            registerTargetFontSize('Number', '--target-number-font-size-px', '--target-number-font-size-vw', 'sliderTargetNumberFontSizeVw');
+
+            // ---- Suffix (BOTH axes relative to Number's live edges -
+            // the real per-axis-gap showcase) ----
+            const initSuffixX = Number(cssVars['--target-suffix-x-offset-vw']) || 0;
+            const initSuffixY = Number(cssVars['--target-suffix-y-offset-vh']) || 0;
+            createUIElement({
+                id: 'stage2TargetSuffix', role: 'text',
+                layout: { position: { mode: 'relative', relativeTo: 'stage2TargetNumberX', myAnchor: 'top-left', targetAnchor: 'bottom-right', gap: { x: initSuffixX + 'px', y: initSuffixY + 'px' } } },
+            });
+            addTargetRow(buildSliderRow({ id: 'sliderStage2TargetSuffixX', label: '(Stage 2, engine-driven, relative-anchor) Suffix X Offset:', min: -700, max: 700, step: 0.01, value: initSuffixX }));
+            document.getElementById('sliderStage2TargetSuffixX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const current = getEffectiveValue('stage2TargetSuffix', 'gap', 'base').value;
+                updateElement('stage2TargetSuffix', { position: { gap: { ...(typeof current === 'object' ? current : {}), x: num + 'px' } } });
+                const resolvedGap = getEffectiveValue('stage2TargetSuffix', 'gap', 'base').value;
+                document.getElementById('valueStage2TargetSuffixX').textContent = parseFloat(resolvedGap.x);
+                cssVars['--target-suffix-x-offset-vw'] = parseFloat(resolvedGap.x);
+                applyActiveVars();
+                syncReal('sliderTargetSuffixXOffset', parseFloat(resolvedGap.x));
+            });
+            addTargetRow(buildSliderRow({ id: 'sliderStage2TargetSuffixY', label: '(Stage 2, engine-driven, relative-anchor) Suffix Y Offset:', min: -700, max: 700, step: 0.01, value: initSuffixY }));
+            document.getElementById('sliderStage2TargetSuffixY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const current = getEffectiveValue('stage2TargetSuffix', 'gap', 'base').value;
+                updateElement('stage2TargetSuffix', { position: { gap: { ...(typeof current === 'object' ? current : {}), y: num + 'px' } } });
+                const resolvedGap = getEffectiveValue('stage2TargetSuffix', 'gap', 'base').value;
+                document.getElementById('valueStage2TargetSuffixY').textContent = parseFloat(resolvedGap.y);
+                cssVars['--target-suffix-y-offset-vh'] = parseFloat(resolvedGap.y);
+                applyActiveVars();
+                syncReal('sliderTargetSuffixYOffset', parseFloat(resolvedGap.y));
+            });
+            registerTargetFontSize('Suffix', '--target-suffix-font-size-px', '--target-suffix-font-size-vw', 'sliderTargetSuffixFontSizeVw');
+
+            // ---- Prefix (HYBRID - X independent/anchor, Y relative to
+            // Number's bottom edge - 2 separate logical registrations,
+            // see this block's own header comment) ----
+            const initPrefixX = Number(cssVars['--target-prefix-x-offset-vw']) || 0;
+            const initPrefixY = Number(cssVars['--target-prefix-y-offset-vh']) || 0;
+            createUIElement({
+                id: 'stage2TargetPrefixX', role: 'text',
+                layout: { position: { mode: 'anchor', horizontal: { anchor: 'center', offset: initPrefixX + 'px' }, vertical: { anchor: 'top', offset: '0px' } } },
+            });
+            addTargetRow(buildSliderRow({ id: 'sliderStage2TargetPrefixX', label: '(Stage 2, engine-driven, anchor-mode) Prefix X Offset:', min: -700, max: 700, step: 0.01, value: initPrefixX }));
+            document.getElementById('sliderStage2TargetPrefixX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                updateElement('stage2TargetPrefixX', { position: { horizontal: { offset: num + 'px' } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2TargetPrefixX', 'offsetX', 'base').value);
+                document.getElementById('valueStage2TargetPrefixX').textContent = resolvedNum;
+                cssVars['--target-prefix-x-offset-vw'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderTargetPrefixXOffset', resolvedNum);
+            });
+            createUIElement({
+                id: 'stage2TargetPrefixY', role: 'text',
+                layout: { position: { mode: 'relative', relativeTo: 'stage2TargetNumberX', myAnchor: 'top-left', targetAnchor: 'bottom-left', gap: { y: initPrefixY + 'px' } } },
+            });
+            addTargetRow(buildSliderRow({ id: 'sliderStage2TargetPrefixY', label: '(Stage 2, engine-driven, relative-anchor) Prefix Y Offset:', min: -700, max: 700, step: 0.01, value: initPrefixY }));
+            document.getElementById('sliderStage2TargetPrefixY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                updateElement('stage2TargetPrefixY', { position: { gap: { y: num + 'px' } } });
+                const resolvedGap = getEffectiveValue('stage2TargetPrefixY', 'gap', 'base').value;
+                document.getElementById('valueStage2TargetPrefixY').textContent = parseFloat(resolvedGap.y);
+                cssVars['--target-prefix-y-offset-vh'] = parseFloat(resolvedGap.y);
+                applyActiveVars();
+                syncReal('sliderTargetPrefixYOffset', parseFloat(resolvedGap.y));
+            });
+            registerTargetFontSize('Prefix', '--target-prefix-font-size-px', '--target-prefix-font-size-vw', 'sliderTargetPrefixFontSizeVw');
+        }
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT - REAL INSPECTOR MOUNT (2026-09-20). Directly
+         answers "can I change position.mode (anchor/relative/fixed/
+         absolute) from the dev panel, without a Claude chat every time" -
+         yes, via the engine's own generic mountInspector(), not a hand-
+         rolled mode-switcher row. Lists every element registered by every
+         Stage 2 block above (listElements()) - pick one from the dropdown,
+         edit any field, or use its own "Mode" select (auto-rendered per
+         canonical group) to switch position.mode/size.<axis>.mode live.
+         NOTE: this Inspector edits the ENGINE's own stored config - it does
+         NOT automatically write back into Clicko's cssVars/game visuals
+         (no domNode is attached to any Stage 2 element, and value-writeback
+         was intentionally hand-wired per-row in every earlier Stage 2 block,
+         not generically). Use it to explore/verify the engine's real
+         behavior (including mode switching) - for a change to actually show
+         up in the game, still use the per-element rows already built, or
+         ask for a specific setting's writeback to be wired up the same way.
+         REVERSIBLE: delete this block, the matching <style> block above,
+         and the toggle button - nothing else references any of it.
+    ============================================================ -->
+    <div id="stage2InspectorPanel">
+        <h1>UI-ENGINE INSPECTOR (Stage 2)</h1>
+        <div id="stage2InspectorMount"></div>
+    </div>
+    <button id="stage2InspectorToggleBtn">Inspector</button>
+    <script type="module">
+        import { mountInspector } from './lib/ui-engine/inspector.mjs';
+        const panel = document.getElementById('stage2InspectorPanel');
+        const mount = document.getElementById('stage2InspectorMount');
+        let mounted = false;
+        document.getElementById('stage2InspectorToggleBtn').addEventListener('click', () => {
+            panel.classList.toggle('stage2-open');
+            if (panel.classList.contains('stage2-open') && !mounted) {
+                mountInspector(mount);
+                mounted = true;
+            }
+        });
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT, MAIN BUTTON (2026-09-20) - X/Y position (same
+         anchor+offset shape as every text element, but base is ALWAYS
+         'center' - Button has no align dropdown, no edge lock, confirmed
+         via its own real CSS: left: calc(50% + sign*offset*unit), base
+         never varies) - plus Diameter via the engine's `clamp` SIZE mode,
+         a genuinely different mechanism from blended-length: Button's real
+         formula is width: max(minDiameterPx, diameterVw-as-vmin), a floor
+         with no ceiling, not a blend - clamp(min, preferred, max) with an
+         effectively-infinite max reproduces max(min, preferred) exactly.
+         Explicitly excludes every other Main Button setting (lighting,
+         contrast, saturation, press timing) - non-layout, confirmed by
+         direct survey before this block was written, see chat/CHANGELOG.
+    ============================================================ -->
+    <script type="module">
+        import { createUIElement, getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+
+        const buttonContent = findGroupContent('desktop', 'Main Button', 'stage2Button', 'position');
+        if (!buttonContent) {
+            console.warn('[Stage 2 Button] group not found - skipping.');
+        } else {
+            function addButtonRow(row) {
+                row.style.borderTop = '1px dashed #5b9dff';
+                row.style.marginTop = '4px';
+                row.style.paddingTop = '4px';
+                buttonContent.appendChild(row);
+                return row;
+            }
+            function syncReal(realId, value) {
+                const el = document.getElementById(realId);
+                const valEl = document.getElementById(realId.replace(/^slider/, 'value'));
+                if (el) el.value = value;
+                if (valEl) valEl.textContent = value;
+            }
+
+            // ---- X/Y position ----
+            const initX = Number(cssVars['--button-x-offset-vw']) || 0;
+            const initY = Number(cssVars['--button-y-offset-vh']) || 0;
+            const xUnit = cssVars['--button-x-offset-unit-is-px'] ? 'px' : 'vw';
+            const yUnit = cssVars['--button-y-offset-unit-is-px'] ? 'px' : 'vh';
+            createUIElement({
+                id: 'stage2ButtonX', role: 'container',
+                layout: { position: { mode: 'anchor', horizontal: { anchor: 'center', offset: initX + xUnit }, vertical: { anchor: 'center', offset: initY + yUnit } } },
+            });
+            addButtonRow(buildSliderRow({ id: 'sliderStage2ButtonX', label: '(Stage 2, engine-driven) X Offset:', min: -50, max: 50, step: 0.01, value: initX }));
+            document.getElementById('sliderStage2ButtonX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = cssVars['--button-x-offset-unit-is-px'] ? 'px' : 'vw';
+                updateElement('stage2ButtonX', { position: { horizontal: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2ButtonX', 'offsetX', 'base').value);
+                document.getElementById('valueStage2ButtonX').textContent = resolvedNum;
+                cssVars['--button-x-offset-vw'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderButtonX', resolvedNum);
+            });
+            addButtonRow(buildSliderRow({ id: 'sliderStage2ButtonY', label: '(Stage 2, engine-driven) Y Offset:', min: -50, max: 50, step: 0.01, value: initY }));
+            document.getElementById('sliderStage2ButtonY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = cssVars['--button-y-offset-unit-is-px'] ? 'px' : 'vh';
+                updateElement('stage2ButtonX', { position: { vertical: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2ButtonX', 'offsetY', 'base').value);
+                document.getElementById('valueStage2ButtonY').textContent = resolvedNum;
+                cssVars['--button-y-offset-vh'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderButtonY', resolvedNum);
+            });
+
+            // ---- Diameter (clamp size mode: max(min, preferred), no ceiling) ----
+            const initDiameterVw = Number(cssVars['--button-diameter-vw']) || 0;
+            const initMinDiameterPx = Number(cssVars['--button-min-diameter-px']) || 0;
+            createUIElement({
+                id: 'stage2ButtonDiameter', role: 'container',
+                layout: {
+                    position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                    size: { width: { mode: 'clamp', min: initMinDiameterPx + 'px', preferred: initDiameterVw + 'vmin', max: '99999px' } },
+                },
+            });
+            addButtonRow(buildSliderRow({ id: 'sliderStage2ButtonDiameter', label: '(Stage 2, engine-driven) Diameter (vw):', min: 5, max: 60, step: 0.5, value: initDiameterVw }));
+            document.getElementById('sliderStage2ButtonDiameter').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                updateElement('stage2ButtonDiameter', { size: { width: { preferred: num + 'vmin' } } });
+                const resolved = getEffectiveValue('stage2ButtonDiameter', 'widthPreferred', 'base').value;
+                const resolvedNum = parseFloat(resolved);
+                document.getElementById('valueStage2ButtonDiameter').textContent = resolvedNum;
+                cssVars['--button-diameter-vw'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderButtonDiameter', resolvedNum);
+            });
+            addButtonRow(buildSliderRow({ id: 'sliderStage2ButtonMinDiameter', label: '(Stage 2, engine-driven) Min Diameter (px):', min: 0, max: 500, step: 5, value: initMinDiameterPx }));
+            document.getElementById('sliderStage2ButtonMinDiameter').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                updateElement('stage2ButtonDiameter', { size: { width: { min: num + 'px' } } });
+                const resolved = getEffectiveValue('stage2ButtonDiameter', 'widthMin', 'base').value;
+                const resolvedNum = parseFloat(resolved);
+                document.getElementById('valueStage2ButtonMinDiameter').textContent = resolvedNum;
+                cssVars['--button-min-diameter-px'] = resolvedNum;
+                applyActiveVars();
+                syncReal('sliderButtonMinDiameter', resolvedNum);
+            });
+        }
+    </script>
+
+    <!-- ============================================================
+         STAGE 2 EXPERIMENT, ROUND BREAKDOWN POSITION/SIZE (2026-09-20) -
+         extends the earlier Round Breakdown block (font size only) with its
+         X/Y position and Width/Height, per direct request that these DO
+         qualify (real left/top/width/height, just JS-computed for drag
+         support - see applyRoundBreakdownPosition(), read directly before
+         writing this). anchorH is 'right' only when align='right' AND
+         horizontal edge-lock is on (then left = innerWidth-width-offsetX,
+         mathematically identical to CSS `right: offsetX`) - otherwise
+         ALWAYS 'left' (Round Breakdown has no proportional/center base like
+         the text elements; it's a binary left-edge-or-right-edge panel).
+         Same mirrors-the-real-edge-lock-checkbox pattern as every other
+         Stage 2 element's Edge Lock. Writing a new value calls
+         applyRoundBreakdownPosition() (not applyActiveVars() alone) since
+         that's the function that actually reads these cssVars and sets the
+         panel's real inline left/top/width/height.
+    ============================================================ -->
+    <script type="module">
+        import { createUIElement, getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+
+        const rbPosContent = findGroupContent('desktop', 'Round Breakdown', 'stage2RoundBreakdownPos', 'position');
+        if (!rbPosContent) {
+            console.warn('[Stage 2 Round Breakdown position] group not found - skipping.');
+        } else {
+            function addRbRow(row) {
+                row.style.borderTop = '1px dashed #5b9dff';
+                row.style.marginTop = '4px';
+                row.style.paddingTop = '4px';
+                rbPosContent.appendChild(row);
+                return row;
+            }
+            function syncReal(realId, value) {
+                const el = document.getElementById(realId);
+                const valEl = document.getElementById(realId.replace(/^slider/, 'value'));
+                if (el) el.value = value;
+                if (valEl) valEl.textContent = value;
+            }
+            function reapply() {
+                if (typeof applyRoundBreakdownPosition === 'function') applyRoundBreakdownPosition();
+                applyActiveVars();
+            }
+
+            const rbAlignLocked = !!cssVars['--round-breakdown-align-edge-lock'];
+            const rbValignLocked = !!cssVars['--round-breakdown-valign-edge-lock'];
+            const rbAlign = cssVars['--round-breakdown-align'] || 'left';
+            const rbValign = cssVars['--round-breakdown-valign'] || 'top';
+            const initAnchorH = (rbAlign === 'right' && rbAlignLocked) ? 'right' : 'left';
+            const initAnchorV = (rbValign === 'bottom' && rbValignLocked) ? 'bottom' : 'top';
+            const initX = Number(cssVars['--round-breakdown-left-vw']) || 0;
+            const initY = Number(cssVars['--round-breakdown-top-vh']) || 0;
+            const xUnit = cssVars['--round-breakdown-x-offset-unit-is-px'] ? 'px' : 'vw';
+            const yUnit = cssVars['--round-breakdown-y-offset-unit-is-px'] ? 'px' : 'vh';
+
+            createUIElement({
+                id: 'stage2RoundBreakdownX', role: 'container',
+                layout: { position: { mode: 'anchor', horizontal: { anchor: initAnchorH, offset: initX + xUnit }, vertical: { anchor: initAnchorV, offset: initY + yUnit } } },
+            });
+            addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownX', label: '(Stage 2, engine-driven) X Offset:', min: 0, max: 100, step: 0.1, value: initX }));
+            document.getElementById('sliderStage2RoundBreakdownX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = cssVars['--round-breakdown-x-offset-unit-is-px'] ? 'px' : 'vw';
+                updateElement('stage2RoundBreakdownX', { position: { horizontal: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2RoundBreakdownX', 'offsetX', 'base').value);
+                document.getElementById('valueStage2RoundBreakdownX').textContent = resolvedNum;
+                cssVars['--round-breakdown-left-vw'] = resolvedNum;
+                reapply();
+                syncReal('sliderRoundBreakdownX', resolvedNum);
+            });
+            addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownY', label: '(Stage 2, engine-driven) Y Offset:', min: 0, max: 100, step: 0.1, value: initY }));
+            document.getElementById('sliderStage2RoundBreakdownY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const unit = cssVars['--round-breakdown-y-offset-unit-is-px'] ? 'px' : 'vh';
+                updateElement('stage2RoundBreakdownX', { position: { vertical: { offset: num + unit } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2RoundBreakdownX', 'offsetY', 'base').value);
+                document.getElementById('valueStage2RoundBreakdownY').textContent = resolvedNum;
+                cssVars['--round-breakdown-top-vh'] = resolvedNum;
+                reapply();
+                syncReal('sliderRoundBreakdownY', resolvedNum);
+            });
+
+            const initWidth = Number(cssVars['--round-breakdown-width-vw']) || 0;
+            const initHeight = Number(cssVars['--round-breakdown-height-vh']) || 0;
+            createUIElement({
+                id: 'stage2RoundBreakdownSize', role: 'container',
+                layout: {
+                    position: { mode: 'anchor', horizontal: { anchor: 'left' }, vertical: { anchor: 'top' } },
+                    size: { width: { mode: 'fixed', value: initWidth + 'vw' }, height: { mode: 'fixed', value: initHeight + 'vh' } },
+                },
+            });
+            addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownWidth', label: '(Stage 2, engine-driven) Width (vw):', min: 10, max: 100, step: 0.1, value: initWidth }));
+            document.getElementById('sliderStage2RoundBreakdownWidth').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                updateElement('stage2RoundBreakdownSize', { size: { width: { value: num + 'vw' } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2RoundBreakdownSize', 'widthValue', 'base').value);
+                document.getElementById('valueStage2RoundBreakdownWidth').textContent = resolvedNum;
+                cssVars['--round-breakdown-width-vw'] = resolvedNum;
+                reapply();
+                syncReal('sliderRoundBreakdownWidth', resolvedNum);
+            });
+            addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownHeight', label: '(Stage 2, engine-driven) Height (vh):', min: 10, max: 100, step: 0.1, value: initHeight }));
+            document.getElementById('sliderStage2RoundBreakdownHeight').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                updateElement('stage2RoundBreakdownSize', { size: { height: { value: num + 'vh' } } });
+                const resolvedNum = parseFloat(getEffectiveValue('stage2RoundBreakdownSize', 'heightValue', 'base').value);
+                document.getElementById('valueStage2RoundBreakdownHeight').textContent = resolvedNum;
+                cssVars['--round-breakdown-height-vh'] = resolvedNum;
+                reapply();
+                syncReal('sliderRoundBreakdownHeight', resolvedNum);
+            });
+
+            // Edge Lock mirroring (both axes) - same reasoning as every
+            // other Stage 2 element.
+            function mirrorEdgeLockToEngine(axis) {
+                const align = cssVars['--round-breakdown-align'] || 'left';
+                const valign = cssVars['--round-breakdown-valign'] || 'top';
+                if (axis === 'x') {
+                    const locked = document.getElementById('checkboxRoundBreakdownAlignEdgeLock').checked;
+                    const anchor = (align === 'right' && locked) ? 'right' : 'left';
+                    const unit = cssVars['--round-breakdown-x-offset-unit-is-px'] ? 'px' : 'vw';
+                    const num = Number(cssVars['--round-breakdown-left-vw']) || 0;
+                    updateElement('stage2RoundBreakdownX', { position: { horizontal: { anchor, offset: num + unit } } });
+                    document.getElementById('valueStage2RoundBreakdownX').textContent = parseFloat(getEffectiveValue('stage2RoundBreakdownX', 'offsetX', 'base').value);
+                } else {
+                    const locked = document.getElementById('checkboxRoundBreakdownValignEdgeLock').checked;
+                    const anchor = (valign === 'bottom' && locked) ? 'bottom' : 'top';
+                    const unit = cssVars['--round-breakdown-y-offset-unit-is-px'] ? 'px' : 'vh';
+                    const num = Number(cssVars['--round-breakdown-top-vh']) || 0;
+                    updateElement('stage2RoundBreakdownX', { position: { vertical: { anchor, offset: num + unit } } });
+                    document.getElementById('valueStage2RoundBreakdownY').textContent = parseFloat(getEffectiveValue('stage2RoundBreakdownX', 'offsetY', 'base').value);
+                }
+            }
+            document.getElementById('checkboxRoundBreakdownAlignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('x'));
+            document.getElementById('checkboxRoundBreakdownValignEdgeLock').addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+        }
     </script>
 </body>
 </html>

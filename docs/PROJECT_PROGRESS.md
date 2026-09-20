@@ -16,14 +16,36 @@ from there.
 
 ## Currently working on
 
-Nothing in progress. Development here proceeds as rapid, conversational
-iteration — no formal phase plan; features and bug reports arrive and get
-resolved within the same session. There are 2+ Claude sessions frequently
-active in this shared working tree at once (one has recently focused on
-dev-panel architecture/nesting, another on Target/Speed/Ms-per-click/High
-Score text behavior) — check `git status`/`git diff` on `index.html` before
-editing, and preserve any concurrent session's uncommitted work exactly (see
-CLAUDE.md §5).
+An experimental, **uncommitted** UI-Engine adoption trial sits in the working
+tree right now: a new `lib/ui-engine/` folder (all 9 real engine files, now
+including `inspector.mjs`/`adapter.mjs`/`canonicalSchema.mjs`/`presets.mjs`)
+plus a 1,008-line additive block at the end of `index.html`'s `<body>`.
+Covers: engine-driven dev-panel rows for every layout-relevant setting
+across 9 elements (High Score, Start/Try Again Button, Round Text, Speed
+Countdown Display, Ms/Click Display, Round Breakdown — font size AND
+position/size, Target Count Display, Main Button — X/Y + Diameter), plus
+the engine's own REAL Inspector mounted as a floating panel (toggle button,
+bottom-right) — lets you pick any of the 20 registered elements and change
+its `position.mode` (anchor/relative/fixed/absolute) live, including
+`relativeTo`/`myAnchor`/`targetAnchor` for relative-mode, without writing
+any code. See CHANGELOG's "Stage 2" entries for the full account of each
+piece, including 2 disclosed limitations (Target Prefix's hybrid
+representation; the Inspector edits the engine's own config but doesn't
+auto-write back into Clicko's cssVars — only the per-row Stage 2 controls
+do that). Non-layout styling (color, spacing, rotation, timing) and
+anything transform-based (Shadow, Click Burst) deliberately stay untouched
+— outside the engine's boundary or a mechanism it has no concept of.
+Fully reversible: `git checkout -- index.html` + delete `lib/ui-engine/`.
+Not wired into anything else — safe to ignore or remove.
+
+Otherwise nothing in progress. Development here proceeds as rapid,
+conversational iteration — no formal phase plan; features and bug reports
+arrive and get resolved within the same session. There are 2+ Claude
+sessions frequently active in this shared working tree at once (one has
+recently focused on dev-panel architecture/nesting, another on
+Target/Speed/Ms-per-click/High Score text behavior) — check
+`git status`/`git diff` on `index.html` before editing, and preserve any
+concurrent session's uncommitted work exactly (see CLAUDE.md §5).
 
 ## Recently completed
 
@@ -65,7 +87,52 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): 4 dev-panel fixes/features landed in one
+Most recently (2026-09-20): reached Stage 2 of a multi-session UI-Engine
+adoption evaluation (`J:\CLAUDE\PROJECTS\HTML UI ENGINE` — a standalone,
+application-agnostic layout-configuration engine, being built in a sibling
+project with the eventual goal of porting Clicko's own positioning/scaling
+system onto it). Earlier the same day: assessed porting difficulty (Clicko
+judged the best-positioned of 4 real projects the engine was validated
+against — its CSS-var-driven, sparse-per-device-override model is the
+closest match of any of them); found and reported 3 real gaps directly from
+Clicko's own live production code — Scale-With-Browser's px/vw blend,
+Edge-Lock's visual-position-preserving unit conversion, and relative-anchor
+mode's need for independent per-axis gap magnitudes (found via Target's real
+Prefix/Number/Suffix chain, live on a real round of the deployed game) — all
+3 confirmed fixed in the engine repo (v0.2.3/v0.2.4) via 3 "Stage 1"
+shadow-registration tests proving the engine's resolved values match
+Clicko's real rendered output to sub-pixel precision. This Stage 2 step was
+the first actual code touch to Clicko itself: an additive, fully reversible
+engine-driven dev-panel row for High Score's X offset (see "Currently
+working on" above and the CHANGELOG for the full account) — proves the
+engine can genuinely sit in a real dev-panel row's write path without
+touching any existing control. Deliberately left uncommitted, pending a
+decision on whether/how far to continue.
+
+Before that (2026-09-20): fixed the high score not updating (or
+flashing) until a run finally ended in a loss, even after beating a
+new high round mid-run - direct report with a worked example ("I'm on
+round one, I beat it, high score doesn't change... if I play round two
+and beat round two, the high score number should flash alongside the
+other numbers flashing... the high score number changes before round
+three even starts"). `checkHighScore()` was only ever called from
+`endGame()`'s LOSE branch, so a new high round left the display stale
+until the player eventually lost, several rounds later. Moved the call
+into the WIN branch - specifically inside its existing
+`setTimeout(..., gameState.resultDuration)` callback (the same one
+that advances `gameState.currentRound` and calls `showRoundText()`),
+not synchronously at the moment of winning, so its flash
+(`runHighScoreBlinkSequence()`, reusing the round number's own
+`--round-blink*-ms` timers) starts on the exact same tick as the round
+number's own flash instead of firing early and out of sync. The lose
+branch's own call stays as a harmless no-op safety net. Live-verified
+via direct `endGame(true, ...)` calls with instrumented timestamps,
+replicating the exact reported scenario (win round 1: 0→1 in sync with
+the round transition; win round 2 immediately after: 1→2 while
+`currentRound` had already advanced to 3) plus a regression check that
+a non-record loss doesn't re-flash. Committed and pushed (564c4cb).
+
+Before that (2026-09-20): 4 dev-panel fixes/features landed in one
 commit (d46c77f) - drag-reorder handles now call setPointerCapture()
 (fixes an intermittent "not-allowed cursor, drag doesn't register"
 report - without capture, a fast pointer move could leave the tiny
