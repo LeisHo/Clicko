@@ -42,10 +42,16 @@ Button, Round Text, Speed Countdown Display, Ms/Click Display, Round
 Breakdown — font size AND position/size, Target Count Display, Main
 Button — X/Y + Diameter), plus the engine's own REAL Inspector mounted as
 a floating panel (toggle button, bottom-right, resizable from all 4
-edges/corners, draggable by its header) — lets you pick any registered
-element and change its `position.mode` (anchor/relative/fixed/absolute)
-live, including `relativeTo`/`myAnchor`/`targetAnchor` for relative mode,
-without writing any code. Non-layout styling (color, spacing, rotation,
+edges/corners, draggable by its header) — pick any registered element and
+change its `position.mode` (anchor/relative/fixed/absolute) live,
+including `relativeTo`/`myAnchor`/`targetAnchor` for relative mode,
+without writing any code. **Element selection is a 2-level Object →
+Property cascade** (fixed 2026-09-20, replacing the original flat
+23-entry dropdown) — pick a real-world object (Target Number, Target
+Prefix, Main Button, etc.) then which of its properties (Position, Font
+Size, Size...) to edit; drives the vendored Inspector's own raw element
+select programmatically (value + dispatched `change`), never modifies
+`inspector.mjs` itself. Non-layout styling (color, spacing, rotation,
 timing) and anything transform-based (Shadow, Click Burst) deliberately
 stay untouched — outside the engine's boundary or a mechanism it has no
 concept of.
