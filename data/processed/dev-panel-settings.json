@@ -204,10 +204,10 @@
     "--result-text-valign": "center",
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
-    "--dev-panel-width-px": 470,
+    "--dev-panel-width-px": 668,
     "--dev-panel-left-px": 1244,
-    "--dev-panel-top-px": 219,
-    "--dev-panel-height-px": 420,
+    "--dev-panel-top-px": 84,
+    "--dev-panel-height-px": 869,
     "--round-breakdown-width-px": 589,
     "--round-breakdown-height-px": 470,
     "--round-breakdown-left-px": 35,
@@ -217,10 +217,24 @@
     "--round-breakdown-font-family": "Bungee",
     "--round-breakdown-outline-enabled": 0,
     "--round-breakdown-outline-thickness-px": 0,
+    "--round-breakdown-row-lines-enabled": 1,
     "--round-breakdown-title-font-size-px": 24,
     "--round-breakdown-title-bold": 1,
+    "--round-breakdown-title-letter-spacing-px": 0,
+    "--round-breakdown-title-line-height": 1.2,
     "--round-breakdown-data-font-size-px": 15,
     "--round-breakdown-data-bold": 0,
+    "--round-breakdown-data-letter-spacing-px": 0,
+    "--round-breakdown-data-line-height": 1.2,
+    "--round-breakdown-scale-with-browser": 0,
+    "--round-breakdown-align": "left",
+    "--round-breakdown-align-edge-lock": 0,
+    "--round-breakdown-valign": "top",
+    "--round-breakdown-valign-edge-lock": 0,
+    "--round-breakdown-autoscroll-enabled": 0,
+    "--round-breakdown-autoscroll-speed-px-per-sec": 30,
+    "--round-breakdown-autoscroll-pause-before-ms": 1500,
+    "--round-breakdown-autoscroll-pause-end-ms": 1500,
     "--target-line-height": 1.2,
     "--try-again-question-mark-mode": "flash",
     "--try-again-rotate-speed-ms": 5000,
@@ -248,7 +262,9 @@
     "--round-breakdown-outline-color": "#000000",
     "--round-breakdown-panel-color": "#ffffff",
     "--round-breakdown-title-color": "#000000",
-    "--round-breakdown-data-color": "#333333"
+    "--round-breakdown-data-color": "#333333",
+    "--round-breakdown-lost-title-color": "#cc0000",
+    "--round-breakdown-lost-data-color": "#cc0000"
   },
   "mobileCssVars": {
     "--button-diameter-vw": 99.5,
@@ -424,7 +440,11 @@
     "--round-breakdown-top-px": 190,
     "--round-breakdown-outline-thickness-px": 2,
     "--round-breakdown-title-font-size-px": 14,
+    "--round-breakdown-title-letter-spacing-px": 0,
+    "--round-breakdown-title-line-height": 1.2,
     "--round-breakdown-data-font-size-px": 13,
+    "--round-breakdown-data-letter-spacing-px": 0,
+    "--round-breakdown-data-line-height": 1.2,
     "--target-line-height": 0.5,
     "--target-font-size-px": 238.44,
     "--target-font-size-vw": 47.23,
@@ -655,10 +675,24 @@
     "--round-breakdown-font-family": "monospace",
     "--round-breakdown-outline-enabled": 0,
     "--round-breakdown-outline-thickness-px": 2,
+    "--round-breakdown-row-lines-enabled": 1,
     "--round-breakdown-title-font-size-px": 16,
     "--round-breakdown-title-bold": 1,
+    "--round-breakdown-title-letter-spacing-px": 0,
+    "--round-breakdown-title-line-height": 1.2,
     "--round-breakdown-data-font-size-px": 15,
     "--round-breakdown-data-bold": 0,
+    "--round-breakdown-data-letter-spacing-px": 0,
+    "--round-breakdown-data-line-height": 1.2,
+    "--round-breakdown-scale-with-browser": 0,
+    "--round-breakdown-align": "left",
+    "--round-breakdown-align-edge-lock": 0,
+    "--round-breakdown-valign": "top",
+    "--round-breakdown-valign-edge-lock": 0,
+    "--round-breakdown-autoscroll-enabled": 0,
+    "--round-breakdown-autoscroll-speed-px-per-sec": 30,
+    "--round-breakdown-autoscroll-pause-before-ms": 1500,
+    "--round-breakdown-autoscroll-pause-end-ms": 1500,
     "--target-line-height": 1.2,
     "--try-again-question-mark-mode": "flash",
     "--try-again-rotate-speed-ms": 5000,
@@ -686,7 +720,9 @@
     "--round-breakdown-outline-color": "#000000",
     "--round-breakdown-panel-color": "#ffffff",
     "--round-breakdown-title-color": "#333333",
-    "--round-breakdown-data-color": "#333333"
+    "--round-breakdown-data-color": "#333333",
+    "--round-breakdown-lost-title-color": "#cc0000",
+    "--round-breakdown-lost-data-color": "#cc0000"
   },
   "extrusionVars": {
     "font": "\"Micro 5\", monospace",
@@ -1211,7 +1247,6 @@
   },
   "sectionCollapseState": {
     "mobile:Saved Dev Settings": true,
-    "desktop:Round Breakdown": true,
     "desktop:Dev Panel": true,
     "desktop:New Group (13)": true,
     "desktop:New Group (12)": true,
@@ -1236,8 +1271,11 @@
     "desktop:Target Count Display": true,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
+    "desktop:Round Breakdown": false,
+    "desktop:New Group (19)": true,
+    "desktop:New Group (18)": false,
     "desktop:Background": true,
-    "desktop:New Group (7)": false,
+    "desktop:New Group (7)": true,
     "desktop:Win/Lose Text": true,
     "desktop:New Group (2)": true,
     "desktop:New Group": true,
@@ -1308,29 +1346,6 @@
   },
   "sectionOrder": {
     "desktopTabContent": [
-      {
-        "key": "desktop:Round Breakdown",
-        "rowKeys": [
-          "checkboxRoundBreakdownEnabled",
-          "sliderRoundBreakdownX",
-          "sliderRoundBreakdownY",
-          "sliderRoundBreakdownWidth",
-          "sliderRoundBreakdownHeight",
-          "checkboxRoundBreakdownResizerEnabled",
-          "selectRoundBreakdownFont",
-          "checkboxRoundBreakdownOutlineEnabled",
-          "sliderRoundBreakdownOutlineThickness",
-          "colorRoundBreakdownOutline",
-          "colorRoundBreakdownPanel",
-          "sliderRoundBreakdownTitleFontSize",
-          "checkboxRoundBreakdownTitleBold",
-          "colorRoundBreakdownTitle",
-          "sliderRoundBreakdownDataFontSize",
-          "checkboxRoundBreakdownDataBold",
-          "colorRoundBreakdownData"
-        ],
-        "subgroups": []
-      },
       {
         "key": "desktop:Dev Panel",
         "rowKeys": [],
@@ -1692,6 +1707,58 @@
               "selectMsPerClickTextValign"
             ],
             "subgroups": []
+          },
+          {
+            "key": "desktop:Round Breakdown",
+            "rowKeys": [
+              "checkboxRoundBreakdownScaleWithBrowser",
+              "selectRoundBreakdownAlign",
+              "checkboxRoundBreakdownAlignEdgeLock",
+              "selectRoundBreakdownValign",
+              "checkboxRoundBreakdownValignEdgeLock",
+              "checkboxRoundBreakdownRowLinesEnabled",
+              "checkboxRoundBreakdownAutoscrollEnabled",
+              "sliderRoundBreakdownAutoscrollSpeed",
+              "sliderRoundBreakdownAutoscrollPauseBefore",
+              "sliderRoundBreakdownAutoscrollPauseEnd",
+              "checkboxRoundBreakdownEnabled",
+              "sliderRoundBreakdownX",
+              "sliderRoundBreakdownY",
+              "sliderRoundBreakdownWidth",
+              "sliderRoundBreakdownHeight",
+              "checkboxRoundBreakdownResizerEnabled",
+              "selectRoundBreakdownFont",
+              "checkboxRoundBreakdownOutlineEnabled",
+              "sliderRoundBreakdownOutlineThickness",
+              "colorRoundBreakdownOutline",
+              "colorRoundBreakdownPanel"
+            ],
+            "subgroups": [
+              {
+                "key": "desktop:New Group (19)",
+                "rowKeys": [
+                  "colorRoundBreakdownData",
+                  "colorRoundBreakdownLostData",
+                  "checkboxRoundBreakdownDataBold",
+                  "sliderRoundBreakdownDataFontSize",
+                  "sliderRoundBreakdownDataLetterSpacing",
+                  "sliderRoundBreakdownDataLineHeight"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "desktop:New Group (18)",
+                "rowKeys": [
+                  "colorRoundBreakdownTitle",
+                  "colorRoundBreakdownLostTitle",
+                  "checkboxRoundBreakdownTitleBold",
+                  "sliderRoundBreakdownTitleFontSize",
+                  "sliderRoundBreakdownTitleLetterSpacing",
+                  "sliderRoundBreakdownTitleLineHeight"
+                ],
+                "subgroups": []
+              }
+            ]
           }
         ]
       },
@@ -1832,6 +1899,10 @@
       {
         "key": "mobile:Round Breakdown",
         "rowKeys": [
+          "sliderMobileRoundBreakdownTitleLetterSpacing",
+          "sliderMobileRoundBreakdownTitleLineHeight",
+          "sliderMobileRoundBreakdownDataLetterSpacing",
+          "sliderMobileRoundBreakdownDataLineHeight",
           "sliderMobileRoundBreakdownX",
           "sliderMobileRoundBreakdownY",
           "sliderMobileRoundBreakdownWidth",
@@ -2179,6 +2250,10 @@
       {
         "key": "landscape:Round Breakdown",
         "rowKeys": [
+          "sliderLandscapeRoundBreakdownTitleLetterSpacing",
+          "sliderLandscapeRoundBreakdownTitleLineHeight",
+          "sliderLandscapeRoundBreakdownDataLetterSpacing",
+          "sliderLandscapeRoundBreakdownDataLineHeight",
           "sliderLandscapeRoundBreakdownX",
           "sliderLandscapeRoundBreakdownY",
           "sliderLandscapeRoundBreakdownWidth",
@@ -3034,7 +3109,9 @@
     "mobile:Round Breakdown": null,
     "sliderMobileTargetPrefixLineHeight": null,
     "sliderMobileTargetNumberLineHeight": null,
-    "sliderMobileTargetSuffixLineHeight": null
+    "sliderMobileTargetSuffixLineHeight": null,
+    "desktop:New Group (18)": "ROUND BREAKDOWN - ROUND TITLE",
+    "desktop:New Group (19)": "ROUND BREAKDOWN - ROUND DATA"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -3074,7 +3151,9 @@
     "checkboxDevCapsTitleText",
     "checkboxMobileTextEditMode",
     "checkboxLandscapeTextEditMode",
-    "desktop:New Group (6)"
+    "desktop:New Group (6)",
+    "desktop:New Group (18)",
+    "desktop:New Group (19)"
   ],
   "lockedGroups": [
     "desktop:New Group (16)",
