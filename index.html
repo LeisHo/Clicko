@@ -904,9 +904,25 @@
             /* "Scale With Browser" checkbox blend (see updateScaleWithBrowser()'s
                own comment) - a plain 0/1 toggle multiplied into each term
                zeroes out whichever one isn't active, letting one CSS rule
-               express both a fixed-px AND a viewport-relative-vw mode
-               without JS having to swap the rule itself on every resize. */
-            font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * var(--cq-vw, 1vw));
+               express both a fixed-px AND a viewport-relative mode without
+               JS having to swap the rule itself on every resize. The
+               viewport-relative term uses 1vmin (2026-09-19, was 1vw via
+               the inert --cq-vw indirection - see this file's own comment
+               on why that indirection exists but resolves to a plain unit
+               either way) - per direct report ("For Text to scale with
+               browser... I want it to scale with both browser height and
+               width. Right now its just width"). 1vmin is 1% of whichever
+               viewport dimension is CURRENTLY SMALLER, so shrinking either
+               axis now shrinks the text - shrinking only the browser's
+               height (width unchanged) previously had zero effect on any
+               Scale With Browser text anywhere in the game, since 1vw only
+               ever tracks width. Applies to every element sharing this
+               exact formula shape (Start/Try Again button, the "?" mark,
+               Round Text, High Score, Target Prefix/Number/Suffix, Speed
+               Display, Ms/Click Display, Win/Lose text - 13 rules total,
+               all changed together) plus Round Breakdown's own separately-
+               built Title/Data font-size blend (own comment, same fix). */
+            font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * 1vmin);
             letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
             line-height: var(--text-line-height, 1.2);
             font-weight: 700;
@@ -955,7 +971,7 @@
             left: calc(var(--try-again-x-base, 50%) + var(--try-again-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--try-again-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--try-again-y-base, 50%) + var(--try-again-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-y-unit, var(--cq-vh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment above. */
-            font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * 1vmin);
             letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
             line-height: var(--try-again-text-line-height, 1.2);
             color: var(--try-again-fill-color);
@@ -1041,7 +1057,7 @@
             top: calc(var(--try-again-question-mark-parent-y-base, 50%) + var(--try-again-question-mark-parent-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-question-mark-parent-y-unit, var(--cq-vh, 1vh)) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
             text-align: var(--try-again-question-mark-text-align, center);
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * 1vmin);
             /* Explicit, not inherited - per direct report ("why did the
                font of the '?' change"). While this was a DOM child of
                #startButton, it inherited font-weight/font-family from
@@ -1162,7 +1178,7 @@
             top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--round-scale-with-browser, 0)) * var(--round-font-size-px) * 1px + var(--round-scale-with-browser, 0) * var(--round-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--round-scale-with-browser, 0)) * var(--round-font-size-px) * 1px + var(--round-scale-with-browser, 0) * var(--round-font-size-vw, 10) * 1vmin);
             letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
             line-height: var(--round-line-height, 1.2);
             font-weight: 700;
@@ -1236,7 +1252,7 @@
                fixed together: moved here (its real home) and given an
                actual "Rotation (Deg):" dev-panel slider. */
             transform: translate(-50%, var(--anchor-ty, -50%)) rotate(calc(var(--high-score-rotate-deg, 0) * 1deg));
-            font-size: calc((1 - var(--high-score-scale-with-browser, 0)) * var(--high-score-font-size-px) * 1px + var(--high-score-scale-with-browser, 0) * var(--high-score-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--high-score-scale-with-browser, 0)) * var(--high-score-font-size-px) * 1px + var(--high-score-scale-with-browser, 0) * var(--high-score-font-size-vw, 10) * 1vmin);
             letter-spacing: calc(var(--high-score-letter-spacing-px) * 1px);
             line-height: var(--high-score-line-height, 1.2);
             font-weight: 700;
@@ -1311,7 +1327,7 @@
             left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-win-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-win-y-unit, var(--cq-vh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * 1vmin);
             color: var(--result-win-fill-color);
             text-shadow: var(--result-win-shadow);
             letter-spacing: calc(var(--result-win-letter-spacing-px) * 1px);
@@ -1323,7 +1339,7 @@
             left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-lose-x-unit, var(--cq-vw, 1vw)));
             top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-lose-y-unit, var(--cq-vh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * 1vmin);
             color: var(--result-lose-fill-color);
             text-shadow: var(--result-lose-shadow);
             letter-spacing: calc(var(--result-lose-letter-spacing-px) * 1px);
@@ -1381,7 +1397,7 @@
                directly (see their own rules) instead of inheriting a
                shared one - kept only because removing it isn't part of
                this task and it's harmless to leave. */
-            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * 1vmin);
             font-weight: 700;
             font-family: var(--extrusion-font);
             color: var(--target-fill-color);
@@ -1468,7 +1484,7 @@
                same blended px/vw formula pattern used by every other
                element's Font Size, sharing ONE checkbox across all 3
                parts (not 3 independent ones). */
-            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-prefix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-prefix-font-size-vw, 11.72) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-prefix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-prefix-font-size-vw, 11.72) * 1vmin);
             letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
             /* Independent per part, same pattern as Font Size/Letter Spacing
                above - replaces the old shared --target-line-height (removed,
@@ -1491,7 +1507,7 @@
             text-box-edge: cap alphabetic;
         }
         #targetCountNumber {
-            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * 1vmin);
             letter-spacing: calc(var(--target-number-letter-spacing-px, 0) * 1px);
             line-height: var(--target-number-line-height, 1.2);
             text-shadow: var(--target-number-extrusion-shadow);
@@ -1504,7 +1520,7 @@
             text-box-edge: cap alphabetic;
         }
         #targetCountSuffix {
-            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-suffix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-suffix-font-size-vw, 11.72) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-suffix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-suffix-font-size-vw, 11.72) * 1vmin);
             letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
             line-height: var(--target-suffix-line-height, 1.2);
             text-shadow: var(--target-suffix-extrusion-shadow);
@@ -1542,7 +1558,7 @@
             top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--speed-scale-with-browser, 0)) * var(--speed-font-size-px) * 1px + var(--speed-scale-with-browser, 0) * var(--speed-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--speed-scale-with-browser, 0)) * var(--speed-font-size-px) * 1px + var(--speed-scale-with-browser, 0) * var(--speed-font-size-vw, 10) * 1vmin);
             letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
             line-height: var(--speed-line-height, 1.2);
             font-weight: 700;
@@ -1595,7 +1611,7 @@
             top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, var(--cq-vh, 1vh)));
             transform: translate(-50%, var(--anchor-ty, -50%));
             /* See .start-button's own "Scale With Browser" comment. */
-            font-size: calc((1 - var(--ms-per-click-scale-with-browser, 0)) * var(--ms-per-click-font-size-px) * 1px + var(--ms-per-click-scale-with-browser, 0) * var(--ms-per-click-font-size-vw, 10) * var(--cq-vw, 1vw));
+            font-size: calc((1 - var(--ms-per-click-scale-with-browser, 0)) * var(--ms-per-click-font-size-px) * 1px + var(--ms-per-click-scale-with-browser, 0) * var(--ms-per-click-font-size-vw, 10) * 1vmin);
             letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
             line-height: var(--ms-per-click-line-height, 1.2);
             font-weight: 700;
@@ -1966,7 +1982,7 @@
         .round-breakdown-row-title {
             font-weight: 400;
             /* See .round-breakdown-panel's own Scale With Browser comment. */
-            font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-title-font-size-px, 16) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-title-font-size-px, 16) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
+            font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-title-font-size-px, 16) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-title-font-size-px, 16) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vmin);
             color: var(--round-breakdown-title-color, #333);
             letter-spacing: calc(var(--round-breakdown-title-letter-spacing-px, 0) * 1px);
             line-height: var(--round-breakdown-title-line-height, 1.2);
@@ -2000,7 +2016,7 @@
            .round-breakdown-row-data class added in renderRoundBreakdown(). */
         .round-breakdown-row-data {
             /* See .round-breakdown-panel's own Scale With Browser comment. */
-            font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-data-font-size-px, 15) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-data-font-size-px, 15) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vw);
+            font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-data-font-size-px, 15) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-data-font-size-px, 15) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vmin);
             color: var(--round-breakdown-data-color, #333);
             letter-spacing: calc(var(--round-breakdown-data-letter-spacing-px, 0) * 1px);
             line-height: var(--round-breakdown-data-line-height, 1.2);
@@ -2887,6 +2903,110 @@
         .dev-group-lock-icon.locked:hover {
             opacity: 0.5;
         }
+
+        /* Undock (2026-09-20, ported from TEMPLATE_DEV_PANEL.html, where
+           it was built and verified first - direct request: "provide a
+           'undock' button that undocks that one setting group and allows
+           me to use it, visibly as a differetn panel. But when i click
+           the 'undock/dock' button again, it will dock back in its
+           previous position in the dev panel. I want the undocked panel
+           to be able to be resized and drag and moved same as the dev
+           panel", clarified: "say i click the undock icon for UI Text
+           settings group, the UI Text settings group will separate
+           outside of the dev panel, so i can adjust those settings
+           without having to scroll up and down in the dev panel. Then
+           when i click dock again, it will go back into the dev panel in
+           the order placement it previously was"). Same sibling-of-
+           .dev-section-title positioning as Lock above (never a child -
+           same rename-survival reasoning), sitting between Lock (right:8px)
+           and the cascade checkbox (right:52px) per direct layout spec:
+           "from the far left [of the title text] should be Lock/Unlock,
+           Dock/Undock, then the Show in Mobile/Landscape Checkbox" - see
+           toggleGroupUndock()'s own comment for the undock/dock mechanism. */
+        .dev-group-undock-btn {
+            position: absolute;
+            top: 5px;
+            right: 30px;
+            font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+            z-index: 1;
+            opacity: 0.75;
+        }
+        .dev-group-undock-btn:hover {
+            opacity: 1;
+        }
+        /* A group's title/content while it's living inside its own
+           floating panel instead of the main dev panel - a marker class,
+           not currently used for any visual change of its own. */
+        .dev-section.dev-group-undocked {
+            opacity: 0.97;
+        }
+        /* Floating panel a group's content lives in while undocked.
+           Mirrors .dev-panel's own visual chrome (background/border/font)
+           but with independent position/size, held as plain inline styles
+           (not the --dev-panel-*-px custom properties, which are specific
+           to the ONE main panel) since multiple groups can be undocked
+           into multiple independent floating panels at once. Session-only
+           by design - no persistence across reload (see
+           dockAllUndockedGroups()'s own comment) - so it deliberately does
+           NOT hook into the Save/Sync path the main panel's own position/
+           size does. */
+        .dev-undock-panel {
+            position: fixed;
+            background: var(--dev-panel-bg-color, #000);
+            color: #fff;
+            padding: 15px;
+            min-width: 160px;
+            min-height: 120px;
+            max-width: 92vw;
+            max-height: 92vh;
+            font-size: calc(var(--dev-setting-title-font-size-px, 12) * 1px);
+            z-index: 99999;
+            font-family: var(--dev-panel-font-family, monospace);
+            border-left: 2px solid var(--dev-accent-color, #0ff);
+            display: flex;
+            flex-direction: column;
+            resize: none;
+        }
+        .dev-undock-panel-header {
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            margin-bottom: 10px;
+            color: var(--dev-accent-color, #0ff);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            gap: 8px;
+        }
+        .dev-undock-panel-header.dragging {
+            cursor: grabbing;
+        }
+        .dev-undock-panel-dock-btn {
+            background: var(--dev-accent-color, #0ff);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 2px 8px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .dev-undock-panel-body {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            scrollbar-color: var(--dev-accent-color, #0ff) #000;
+            scrollbar-width: thin;
+        }
+        .dev-undock-panel-body::-webkit-scrollbar { width: 10px; }
+        .dev-undock-panel-body::-webkit-scrollbar-track { background: #000; }
+        .dev-undock-panel-body::-webkit-scrollbar-thumb { background: var(--dev-accent-color, #0ff); border-radius: 5px; }
 
         /* Group-level "Show in Mobile/Landscape" / "Independent from
            Desktop" cascade checkbox (2026-09-17) - a sibling of
@@ -8858,6 +8978,13 @@
         }
 
         function buildSettingsSnapshot() {
+            // Undock is session-only/never persisted (see dockAllUndockedGroups()'s
+            // own comment) - dock everything back first so nothing captured
+            // below is silently missing a group that currently lives inside
+            // a floating panel instead of its normal tab location. This one
+            // function is shared by Save/Copy/Undo-snapshot/Named Setting
+            // States, so this single call covers all of them.
+            dockAllUndockedGroups();
             return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
 
@@ -9828,6 +9955,7 @@
             section.appendChild(content);
             addGroupLockIcon(section);
             addGroupDragHandle(section);
+            section.appendChild(buildGroupUndockButton(section));
             return section;
         }
 
@@ -9865,6 +9993,169 @@
             section.appendChild(icon);
         }
 
+        // Undock/Dock (2026-09-20, ported from TEMPLATE_DEV_PANEL.html,
+        // where it was built and verified first - see .dev-group-undock-btn's
+        // own CSS comment for the full direct-request history). Session-
+        // only by design - no position/size/undocked-state persistence
+        // across reload/Save/Sync (see dockAllUndockedGroups()'s own
+        // comment) - undocking is a live viewing convenience, not a saved
+        // layout choice.
+        const undockedGroups = new Map(); // sectionEl -> { panel, parent, nextSibling, btn }
+        function buildGroupUndockButton(sectionEl) {
+            const btn = document.createElement('span');
+            btn.className = 'dev-group-undock-btn';
+            btn.textContent = '↗';
+            btn.title = 'Undock this group into its own floating panel';
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleGroupUndock(sectionEl, btn);
+            });
+            // Same reasoning as addGroupLockIcon()'s own pointerdown guard
+            // just above - this icon also overlaps the group-reorder drag
+            // handle's own hit area.
+            btn.addEventListener('pointerdown', (e) => e.stopPropagation());
+            return btn;
+        }
+        // Creates the floating panel a group's content moves into while
+        // undocked - own drag-to-move header + 8-handle resize (reusing
+        // setupPanelResizeHandle()'s now-generalized setLeftTop callback,
+        // see its own comment, plus the same .dev-panel-resize-edge/-corner
+        // CSS classes the main panel uses) - position/size held as plain
+        // inline styles, independent per undocked panel, never persisted.
+        function createUndockPanel(sectionEl, titleText) {
+            const rect = sectionEl.getBoundingClientRect();
+            const panel = document.createElement('div');
+            panel.className = 'dev-undock-panel';
+            panel.style.left = Math.round(rect.left) + 'px';
+            panel.style.top = Math.round(rect.top) + 'px';
+            panel.style.width = Math.max(240, Math.round(rect.width)) + 'px';
+            panel.style.height = Math.min(window.innerHeight - Math.round(rect.top) - 20, Math.max(160, Math.round(rect.height) + 60)) + 'px';
+
+            const header = document.createElement('div');
+            header.className = 'dev-undock-panel-header';
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = titleText;
+            const dockBtn = document.createElement('button');
+            dockBtn.className = 'dev-undock-panel-dock-btn';
+            dockBtn.textContent = 'DOCK';
+            dockBtn.title = 'Dock this group back into the dev panel';
+            dockBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const entry = undockedGroups.get(sectionEl);
+                if (entry) toggleGroupUndock(sectionEl, entry.btn);
+            });
+            header.appendChild(titleSpan);
+            header.appendChild(dockBtn);
+            panel.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'dev-undock-panel-body';
+            panel.appendChild(body);
+
+            ['edge-top', 'edge-bottom', 'edge-left', 'edge-right', 'corner-tl', 'corner-tr', 'corner-bl', 'corner-br'].forEach(cls => {
+                const handle = document.createElement('div');
+                handle.className = (cls.indexOf('edge') === 0 ? 'dev-panel-resize-edge ' : 'dev-panel-resize-corner ') + cls;
+                panel.appendChild(handle);
+            });
+            const setLeftTop = (key, value) => { panel.style[key] = value + 'px'; };
+            setupPanelResizeHandle(panel, panel.querySelector('.edge-top'), null, 'top', setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.edge-bottom'), null, 'bottom', setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.edge-left'), 'left', null, setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.edge-right'), 'right', null, setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.corner-tl'), 'left', 'top', setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.corner-tr'), 'right', 'top', setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.corner-bl'), 'left', 'bottom', setLeftTop);
+            setupPanelResizeHandle(panel, panel.querySelector('.corner-br'), 'right', 'bottom', setLeftTop);
+
+            // Drag-to-move via the header, same pattern as the main dev
+            // panel's own header drag handler, simplified (no mobile-edge-
+            // swipe-gesture clamping - that's specifically a concern for
+            // the ALWAYS-present main panel; an undocked panel is a
+            // transient, opt-in convenience).
+            let dragging = false;
+            let dragStart = { pointerX: 0, pointerY: 0, left: 0, top: 0 };
+            header.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('button')) return;
+                e.preventDefault();
+                const r = panel.getBoundingClientRect();
+                dragStart = { pointerX: e.clientX, pointerY: e.clientY, left: r.left, top: r.top };
+                dragging = true;
+                header.classList.add('dragging');
+                try { header.setPointerCapture(e.pointerId); } catch (err) {}
+            });
+            document.addEventListener('pointermove', (e) => {
+                if (!dragging) return;
+                if (e.buttons === 0) { endDrag(e); return; }
+                const panelRect = panel.getBoundingClientRect();
+                const dx = e.clientX - dragStart.pointerX;
+                const dy = e.clientY - dragStart.pointerY;
+                const newLeft = Math.max(0, Math.min(window.innerWidth - panelRect.width, dragStart.left + dx));
+                const newTop = Math.max(0, Math.min(window.innerHeight - panelRect.height, dragStart.top + dy));
+                panel.style.left = Math.round(newLeft) + 'px';
+                panel.style.top = Math.round(newTop) + 'px';
+            });
+            function endDrag(e) {
+                if (!dragging) return;
+                dragging = false;
+                header.classList.remove('dragging');
+                if (e && e.pointerId !== undefined && header.hasPointerCapture(e.pointerId)) header.releasePointerCapture(e.pointerId);
+            }
+            document.addEventListener('pointerup', endDrag);
+            document.addEventListener('pointercancel', endDrag);
+            header.addEventListener('lostpointercapture', endDrag);
+
+            document.body.appendChild(panel);
+            body.appendChild(sectionEl);
+            return panel;
+        }
+        // Toggles ONE group between docked (living in its normal place
+        // inside the main dev panel) and undocked (living in its own
+        // floating panel - createUndockPanel() above). Docking back uses
+        // the saved parent + nextSibling reference to restore the EXACT
+        // original position, same real-DOM-node-preservation technique
+        // this file's own Undo/Delete already use for byte-identical
+        // restoration (not a rebuild from captured data, which could drift).
+        function toggleGroupUndock(sectionEl, btn) {
+            const entry = undockedGroups.get(sectionEl);
+            if (entry) {
+                if (entry.nextSibling && entry.nextSibling.parentElement === entry.parent) {
+                    entry.parent.insertBefore(sectionEl, entry.nextSibling);
+                } else {
+                    entry.parent.appendChild(sectionEl);
+                }
+                entry.panel.remove();
+                undockedGroups.delete(sectionEl);
+                btn.textContent = '↗';
+                btn.title = 'Undock this group into its own floating panel';
+                sectionEl.classList.remove('dev-group-undocked');
+            } else {
+                const parent = sectionEl.parentElement;
+                const nextSibling = sectionEl.nextSibling;
+                const titleEl = sectionEl.querySelector(':scope > .dev-section-title');
+                const titleText = titleEl ? titleEl.textContent.replace(/^[▼▶]\s*/, '') : 'Group';
+                const panel = createUndockPanel(sectionEl, titleText);
+                undockedGroups.set(sectionEl, { panel, parent, nextSibling, btn });
+                btn.textContent = '↙';
+                btn.title = 'Dock this group back into the dev panel';
+                sectionEl.classList.add('dev-group-undocked');
+            }
+        }
+        // Docks every currently-undocked group back into place - called
+        // before any operation that captures/reads the panel's structure
+        // from its normal DOM location (Copy/Sync/Named Setting States/
+        // Undo snapshot), since an undocked group's .dev-section is no
+        // longer a descendant of its tab's #<tab>TabContent at all (it's
+        // inside a floating panel, appended to document.body) and would
+        // otherwise be silently invisible to captureSectionOrder()/
+        // buildSettingsSnapshot(). Keeps undocking a purely live/transient
+        // state, never a saved one.
+        function dockAllUndockedGroups() {
+            Array.from(undockedGroups.keys()).forEach(sectionEl => {
+                const entry = undockedGroups.get(sectionEl);
+                if (entry) toggleGroupUndock(sectionEl, entry.btn);
+            });
+        }
+
         // One-time pass over every group already in the DOM when the
         // panel is first built (createDevGroupElement() covers any group
         // added or recreated AFTER this point - see its own call to
@@ -9876,6 +10167,22 @@
                 const tabEl = document.getElementById(tabId);
                 if (!tabEl) return;
                 tabEl.querySelectorAll('.dev-section').forEach(addGroupLockIcon);
+            });
+        }
+        // Same static-group backfill as injectGroupLockIcons() above, for
+        // the Undock button instead - every group that predates this
+        // feature needs its button injected once, here; createDevGroupElement()
+        // above covers any group created AFTER this feature exists.
+        // Idempotent (skips a section that already has one) so it's safe
+        // to call again.
+        function injectGroupUndockButtons() {
+            ['desktopTabContent', 'mobileTabContent', 'landscapeTabContent'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                if (!tabEl) return;
+                tabEl.querySelectorAll('.dev-section').forEach(section => {
+                    if (section.querySelector(':scope > .dev-group-undock-btn')) return;
+                    section.appendChild(buildGroupUndockButton(section));
+                });
             });
         }
 
@@ -15201,7 +15508,18 @@
         // catches whatever size results and persists it, same as before -
         // only left/top need explicit persistence here, since those aren't
         // covered by that observer.
-        function setupPanelResizeHandle(panel, handle, xEdge, yEdge) {
+        // `setLeftTop(key, value)` (optional, 2026-09-20 - added for the
+        // Undock feature's own floating panels, see createUndockPanel())
+        // lets a caller other than the main dev panel persist a left/top
+        // change its OWN way - defaults to the original dev-panel-specific
+        // CSS-custom-property behavior when omitted, so every existing
+        // call site (the main panel's own 8 handles) is completely
+        // unaffected by this generalization.
+        function setupPanelResizeHandle(panel, handle, xEdge, yEdge, setLeftTop) {
+            setLeftTop = setLeftTop || ((key, value) => {
+                cssVars['--dev-panel-' + key + '-px'] = value;
+                document.documentElement.style.setProperty('--dev-panel-' + key + '-px', value);
+            });
             let dragging = false;
             let start = { pointerX: 0, pointerY: 0, left: 0, top: 0, width: 0, height: 0 };
 
@@ -15276,9 +15594,13 @@
                 panel.style.width = newWidth + 'px';
                 panel.style.height = newHeight + 'px';
                 if (xEdge === 'left') {
-                    cssVars['--dev-panel-left-px'] = Math.round(newLeft);
-                    document.documentElement.style.setProperty('--dev-panel-left-px', Math.round(newLeft));
-                    // NOT also panel.style.left - that direct inline write
+                    setLeftTop('left', Math.round(newLeft));
+                    // NOT also panel.style.left for the main dev panel case
+                    // (the DEFAULT setLeftTop above already avoids this;
+                    // the Undock panel's OWN setLeftTop deliberately DOES
+                    // set panel.style.left directly instead, since that
+                    // panel has no CSS-custom-property-driven position to
+                    // shadow in the first place) - that direct inline write
                     // permanently shadows the CSS rule (left: calc(var(
                     // --dev-panel-left-px) * 1px)) regardless of the custom
                     // property's value, which is exactly what broke the
@@ -15295,8 +15617,7 @@
                     // never needed for the resize itself to work.
                 }
                 if (yEdge === 'top') {
-                    cssVars['--dev-panel-top-px'] = Math.round(newTop);
-                    document.documentElement.style.setProperty('--dev-panel-top-px', Math.round(newTop));
+                    setLeftTop('top', Math.round(newTop));
                     // See the xEdge === 'left' branch's own comment just
                     // above - same bug, same fix, vertical axis.
                 }
@@ -18082,6 +18403,7 @@
             // at registration time, and everything here runs synchronously
             // before the panel is interactive either way.
             injectGroupLockIcons();
+            injectGroupUndockButtons();
             injectRowDeviceCheckboxes();
             refreshEmptyGroupVisibility('mobile');
             refreshEmptyGroupVisibility('landscape');

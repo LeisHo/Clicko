@@ -65,7 +65,30 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20, a different concurrent session): Scale With
+Most recently (2026-09-20): ported Lock + Undock/Dock + the 3-icon
+title-bar layout from TEMPLATE_DEV_PANEL.html into Clicko's own dev
+panel - Undock had only ever been built in the template (an earlier
+explicit scope choice), and a direct report ("i still dont see the
+docking icon") surfaced that gap. Every group's title bar now shows,
+right-to-left from the outer edge: Lock (already existed in Clicko,
+unmoved), Undock (new, right:30px), the "Show in Mobile/Landscape"
+checkbox (already existed, shifted from right:30px to right:52px to
+make room). Clicking Undock moves a group's entire content into its
+own floating, draggable, resizable panel (reusing a newly-generalized
+`setupPanelResizeHandle()`); clicking Dock restores it to its exact
+original tab/position via the same real-DOM-node-preservation technique
+Undo/Delete already use. Session-only by design (never persisted) -
+`buildSettingsSnapshot()` (the one function already shared by Save/
+Copy/Undo-snapshot/Named Setting States in this codebase) now docks
+everything back first, so nothing undocked is ever silently missing
+from a save. Live-verified end to end on the real "UI TEXT" group (a
+renamed custom group, internal sid "New Group (6)"). **Not committed/
+pushed yet** - awaiting explicit instruction.
+
+Before that (2026-09-20; the OTHER concurrent session's own note here
+originally read "a different concurrent session" - corrected now that
+the same session that made this change is the one continuing this
+doc): Scale With
 Browser text now scales with BOTH viewport width and height, not just
 width - every occurrence of this formula shape (13 in the main
 text-element CSS, plus 2 more in Round Breakdown's own separately-built
