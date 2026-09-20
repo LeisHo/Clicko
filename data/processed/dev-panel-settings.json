@@ -135,7 +135,7 @@
     "--gameplay-result-flash-with-round": 1,
     "--target-prefix-font-size-px": 141,
     "--target-prefix-font-size-vw": 8.81,
-    "--target-prefix-x-offset-vw": -13.52,
+    "--target-prefix-x-offset-vw": 40,
     "--target-prefix-y-offset-vh": 43.84,
     "--target-number-font-size-px": 386,
     "--target-number-font-size-vw": 32.9,
