@@ -106,9 +106,9 @@
     "--round-text-valign": "bottom",
     "--round-text-align-edge-lock": 1,
     "--round-text-valign-edge-lock": 1,
-    "--high-score-x-offset-vw": 42.42,
+    "--high-score-x-offset-vw": -0.58,
     "--high-score-x-offset-unit-is-px": 0,
-    "--high-score-y-offset-vh": 47.18,
+    "--high-score-y-offset-vh": 30.46,
     "--high-score-y-offset-unit-is-px": 0,
     "--high-score-font-size-px": 50,
     "--high-score-font-size-vw": 4,
@@ -135,7 +135,7 @@
     "--gameplay-result-flash-with-round": 1,
     "--target-prefix-font-size-px": 141,
     "--target-prefix-font-size-vw": 8.81,
-    "--target-prefix-x-offset-vw": 40,
+    "--target-prefix-x-offset-vw": 66.77,
     "--target-prefix-y-offset-vh": 43.84,
     "--target-number-font-size-px": 386,
     "--target-number-font-size-vw": 32.9,
@@ -1337,7 +1337,7 @@
     "desktop:New Group (6)": false,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
-    "desktop:High Score": true,
+    "desktop:High Score": false,
     "desktop:Start/Try Again Button": true,
     "desktop:Round Text": true,
     "desktop:Target Count Display": false,
@@ -13165,9 +13165,9 @@
     "stage2TargetPrefixX": {
       "position": {
         "mode": "relative",
-        "relativeTo": null,
-        "myAnchor": "top-center",
-        "targetAnchor": "bottom-center"
+        "relativeTo": "stage2TargetNumberX",
+        "myAnchor": "top-left",
+        "targetAnchor": "top-left"
       }
     }
   },
