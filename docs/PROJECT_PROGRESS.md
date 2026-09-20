@@ -112,8 +112,7 @@ size formula missed, live browser check showed zero new console
 errors and a real non-zero rendered button width ("500px" via
 getComputedStyle - a genuine positive signal, unlike several earlier
 checks this session that could only fall back to CSS.supports()-only
-verification). **Not committed/pushed yet** - awaiting explicit
-instruction.
+verification). Committed and pushed (561e5c5).
 
 Before that (2026-09-20): ported Lock + Undock/Dock + the 3-icon
 title-bar layout from TEMPLATE_DEV_PANEL.html into Clicko's own dev
