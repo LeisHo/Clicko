@@ -65,7 +65,23 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): fixed Round Breakdown's Auto Scroll visibly
+Most recently (2026-09-20, a different concurrent session): Scale With
+Browser text now scales with BOTH viewport width and height, not just
+width - every occurrence of this formula shape (13 in the main
+text-element CSS, plus 2 more in Round Breakdown's own separately-built
+version) had its viewport-relative term changed from `1vw` (via an
+inert legacy `--cq-vw` indirection) to `1vmin`, the standard CSS unit
+for "whichever dimension is currently smaller" - so shrinking the
+browser's height alone, not just its width, now correctly shrinks
+Scale-With-Browser text too. Could not verify the actual rendered pixel
+response to a real height-only resize in that session's own browser
+tool (a known 0x0-viewport-while-backgrounded environment limitation) -
+verified via CSS syntax validity and the formula's own math instead.
+**Not committed/pushed yet** - awaiting explicit instruction (this is a
+separate, still-uncommitted change sitting in the shared working tree,
+not something this entry set's own session touched or verified).
+
+Before that (2026-09-20): fixed Round Breakdown's Auto Scroll visibly
 pausing every time the Try Again "?" flashes - `tick()` was reading
 `track.scrollHeight` (a layout-forcing property) unconditionally on
 EVERY frame, and the "?" flash's own periodic visibility toggle lands
@@ -80,10 +96,10 @@ browser-testing tool (confirmed it throttles/batches `requestAnimationFrame`
 unpredictably while backgrounded) - verified correctness instead (still
 duplicates exactly once, cached height matches a fresh read, transform
 still progresses smoothly). Isolated into its own commit via a targeted
-patch + stash, since a concurrent session had its own in-progress,
-not-yet-pushed Scale-With-Browser edit sitting in the same file at the
-time - that edit was restored via stash pop, completely untouched.
-Committed and pushed.
+patch + stash, since the concurrent session above had its own
+in-progress, not-yet-pushed Scale-With-Browser edit sitting in the same
+file at the time - that edit was restored via stash pop, completely
+untouched. Committed and pushed.
 
 Before that (2026-09-19): fixed `findGroupContent()`'s direct-child-
 only group lookup, which silently broke the "Show in Mobile/Landscape"
