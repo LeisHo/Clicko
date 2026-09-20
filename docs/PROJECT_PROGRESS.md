@@ -65,7 +65,54 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): fixed a real, live overlap between the
+Most recently (2026-09-20): added Horizontal/Vertical Align + Edge
+Lock to the Main Button, matching every other positioned element - the
+button's whole assembly (base+button+shadow, one wrapper,
+`.button-assembly`) had never plugged into the shared
+`applyTextAlignAnchors()` system (hardcoded `left/top: 50% + offset`,
+no base/sign at all). Restructured its CSS to the standard base/sign/
+anchor-ty formula (composing correctly with the existing Max/Min
+Button Scale transform), registered it into the same align/valign/
+edge-lock-flag maps every other element uses, and added the 2 new
+Align/Valign dev-rows (fully generic markup, no custom JS) to all 3
+tabs' "Main Button" group - Mobile/Landscape's own copies of that
+group were previously empty static HTML. Live-verified via computed
+styles directly (not viewport-relative measurement, misleading here
+due to a scaled ancestor container): center/unlocked mode unchanged
+from before; Left+Edge-Lock and Bottom+Edge-Lock both produced exactly
+the expected base/sign/anchor-ty values. Isolated into its own commit
+via the same targeted-patch-against-a-stash technique as recent prior
+fixes - a 4th concurrent session's own in-progress work (a "fold
+selected items into a group" feature) was in the same file; verified
+zero overlap before committing, restored their work afterward
+untouched. Committed and pushed.
+
+Before that (2026-09-20): fixed a real duplicate "Mouse Log" group
+in the Debug group - direct report ("why do we have 2 mouse logs in
+the debug grup"). Root cause: Mouse Log is a real .dev-section, so
+once a Save/Sync captured it (indistinguishable to captureSection()
+from any other group), loadSettings()'s applySectionOrder() call -
+which runs BEFORE buildMouseLogWidget() in the same load, since that
+widget needs devTextOverrides already populated to resolve the
+"DEBUG" group by name - found no Mouse Log section in the DOM yet and
+recreated an empty shell of it via the generic missing-custom-group
+path, right before buildMouseLogWidget() appended a second, real one
+alongside it. Fixed with a targeted skip in placeSection()'s
+missing-section branch: a saved section named "Mouse Log" is never
+recreated there, since buildMouseLogWidget() is always the sole real
+creator moments later. Self-healing regardless of how many stale
+"Mouse Log" entries the already-saved settings.json's sectionOrder
+contains - no hand-edit needed. Checked buildClearHighScoreButton()
+(same dual-call-site pattern) for the same risk - it's a plain
+.dev-row, not a .dev-section, and row-restoration never creates a
+missing row from scratch, so it was never exposed to this. Verified:
+brace balance (2108/2108) and div-tag balance (322/322) both
+unchanged; live-verified via a real reload against the git-tracked
+settings file - exactly 1 "Mouse Log" title with its real
+checkbox/slider present (not an empty shell), zero new console
+errors. **Not committed/pushed yet** - awaiting explicit instruction.
+
+Before that (2026-09-20): fixed a real, live overlap between the
 "Show in Mobile/Landscape" checkbox and the new Undock button in every
 group's title bar - found while investigating the Auto Scroll fix
 below (that Undock feature was still another session's own in-progress

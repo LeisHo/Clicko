@@ -163,18 +163,34 @@
                smaller. */
             width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vmin));
             height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vmin));
-            left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
-            top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
-            /* scale() composed onto the same centering transform, not a
-               separate rule - percentage-based translate(-50%,-50%) resolves
-               against this element's own untransformed layout box regardless
-               of order, so the button/base/shadow-caster (all descendants,
-               see .shadow-caster's own nesting) scale uniformly around the
-               SAME centered anchor point set by left/top above, never
-               drifting off it as --button-user-scale changes live on resize.
-               See computeButtonUserScale() (JS) for Max/Min Button Scale. */
-            transform: translate(-50%, -50%) scale(var(--button-user-scale, 1));
+            /* Horizontal/Vertical Align + Edge Lock (dev-panel controls) -
+               per direct request. Same shared applyTextAlignAnchors()
+               system every other element (Target/Speed/Round Text/etc.)
+               already uses - --button-x/y-base/-sign are plain 50%/1
+               (this element's own inline style default, matching the
+               centered behavior before this feature existed) unless
+               Edge Lock is on, in which case they follow whichever edge
+               Align/Valign currently selects. See that function's own
+               comment for the full base/sign/unit reasoning. */
+            left: calc(var(--button-x-base, 50%) + var(--button-x-sign, 1) * var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
+            top: calc(var(--button-y-base, 50%) + var(--button-y-sign, 1) * var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
+            /* scale() composed onto the same anchor-driven translate, not a
+               separate rule - percentage-based translate() resolves
+               against this element's own untransformed layout box
+               regardless of order, so the button/base/shadow-caster (all
+               descendants, see .shadow-caster's own nesting) scale
+               uniformly around the SAME anchor point set by left/top
+               above, never drifting off it as --button-user-scale changes
+               live on resize. See computeButtonUserScale() (JS) for Max/
+               Min Button Scale. The X term (-50% default) is overridden
+               by .align-left/.align-right below, same convention as every
+               other aligned element; the Y term reads --anchor-ty (set by
+               applyTextAlignAnchors() from Vertical Align), not a 2nd
+               class pair, so both axes compose independently. */
+            transform: translate(-50%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1));
         }
+        .button-assembly.align-left { transform: translate(0%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1)); }
+        .button-assembly.align-right { transform: translate(-100%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1)); }
 
         /* Shadow caster - a duplicate of the base+button artwork, flattened to a
            solid dark silhouette and blurred, sitting behind both real layers
@@ -4495,6 +4511,31 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
+                <!-- Horizontal/Vertical Align + Edge Lock - per direct
+                     request. Same generic .dev-align-select/.dev-valign-
+                     select/.dev-edge-lock-checkbox markup + data-var
+                     convention every other aligned element uses (see e.g.
+                     High Score's own copy) - setupTextAlignSelects()/
+                     setupTextEdgeLockCheckboxes() wire these fully
+                     generically, no per-element JS needed. -->
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectButtonTextAlign" data-var="--button-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxButtonTextAlignEdgeLock" data-var="--button-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectButtonTextValign" data-var="--button-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxButtonTextValignEdgeLock" data-var="--button-text-valign-edge-lock">Edge Lock</label>
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">Blend Mode (Color):</span>
                     <select class="dev-select" id="selectButtonBlendMode">
@@ -5246,6 +5287,24 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectMobileButtonTextAlign" data-var="--button-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileButtonTextAlignEdgeLock" data-var="--button-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectMobileButtonTextValign" data-var="--button-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxMobileButtonTextValignEdgeLock" data-var="--button-text-valign-edge-lock">Edge Lock</label>
+                </div>
             </div>
         </div>
 
@@ -5685,6 +5744,24 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
+                <div class="dev-row">
+                    <span class="dev-label">Text Align:</span>
+                    <select class="dev-select dev-align-select" id="selectLandscapeButtonTextAlign" data-var="--button-text-align">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeButtonTextAlignEdgeLock" data-var="--button-text-align-edge-lock">Edge Lock</label>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Vertical Align:</span>
+                    <select class="dev-select dev-valign-select" id="selectLandscapeButtonTextValign" data-var="--button-text-valign">
+                        <option value="top">Top</option>
+                        <option value="center" selected>Center</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                    <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxLandscapeButtonTextValignEdgeLock" data-var="--button-text-valign-edge-lock">Edge Lock</label>
+                </div>
             </div>
         </div>
 
@@ -6401,6 +6478,13 @@
             '--button-x-offset-unit-is-px': 0,
             '--button-y-offset-vh': 6,
             '--button-y-offset-unit-is-px': 0,
+            // Horizontal/Vertical Align + Edge Lock (dev-panel controls) -
+            // defaults preserve the button's pre-existing always-centered
+            // behavior exactly (center/center, unlocked) until tuned.
+            '--button-text-align': 'center',
+            '--button-text-valign': 'center',
+            '--button-text-align-edge-lock': 0,
+            '--button-text-valign-edge-lock': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
             // Max/Min Button Scale - an extra multiplier on top of the
@@ -7563,6 +7647,10 @@
             '--button-x-offset-unit-is-px': 0,
             '--button-y-offset-vh': 9.37,
             '--button-y-offset-unit-is-px': 0,
+            '--button-text-align': 'center',
+            '--button-text-valign': 'center',
+            '--button-text-align-edge-lock': 0,
+            '--button-text-valign-edge-lock': 0,
             '--button-release-ms': 0,
             '--button-press-ms': 0,
             // Max/Min Button Scale, Mobile's own pair - see the Desktop
@@ -13858,6 +13946,16 @@
             '--speed-text-align': 'speedDisplay',
             '--ms-per-click-text-align': 'msPerClickDisplay',
             '--result-text-align': 'resultText',
+            // Main Button - per direct request ("provide a vertical and
+            // horizontal align UI as well as Edge Lock checkboxes").
+            // Named "-text-align" (not "-align") purely so it reuses the
+            // SAME generic xPrefix derivation (varName.replace('-text-
+            // align', '')) every other entry here relies on - the button
+            // isn't text, but keeping the naming convention identical
+            // avoids a special case in applyTextAlignAnchors() itself,
+            // same tradeoff --try-again-question-mark-text-align already
+            // made for a non-plain-text glyph.
+            '--button-text-align': 'buttonAssembly',
         };
         // Top/Center/Bottom - per explicit request ("provide another one
         // for top, center, and bottom so together I can get 'top-left'").
@@ -13877,6 +13975,7 @@
             '--speed-text-valign': 'speedDisplay',
             '--ms-per-click-text-valign': 'msPerClickDisplay',
             '--result-text-valign': 'resultText',
+            '--button-text-valign': 'buttonAssembly',
         };
         const VALIGN_TY = { top: '0%', center: '-50%', bottom: '-100%' };
         // NOTE: this project spent a long investigation (see CHANGELOG.txt,
@@ -13943,6 +14042,7 @@
             '--target': 'target',
             '--speed': 'speed',
             '--ms-per-click': 'ms-per-click',
+            '--button': 'button',
         };
         function applyTextAlignAnchors() {
             const activeCssVars = isMobileActive() ? getActiveMobileVars() : cssVars;
