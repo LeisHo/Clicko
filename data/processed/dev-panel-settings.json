@@ -206,12 +206,12 @@
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 668,
     "--dev-panel-left-px": 1244,
-    "--dev-panel-top-px": 84,
+    "--dev-panel-top-px": 69.609375,
     "--dev-panel-height-px": 869,
-    "--round-breakdown-width-px": 589,
+    "--round-breakdown-width-px": 565,
     "--round-breakdown-height-px": 470,
     "--round-breakdown-left-px": 35,
-    "--round-breakdown-top-px": 333,
+    "--round-breakdown-top-px": 303,
     "--round-breakdown-enabled": 1,
     "--round-breakdown-resizer-enabled": 1,
     "--round-breakdown-font-family": "Bungee",
@@ -1272,8 +1272,10 @@
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
     "desktop:Round Breakdown": false,
+    "desktop:New Group (21)": true,
+    "desktop:New Group (20)": true,
     "desktop:New Group (19)": true,
-    "desktop:New Group (18)": false,
+    "desktop:New Group (18)": true,
     "desktop:Background": true,
     "desktop:New Group (7)": true,
     "desktop:Win/Lose Text": true,
@@ -1711,29 +1713,41 @@
           {
             "key": "desktop:Round Breakdown",
             "rowKeys": [
+              "checkboxRoundBreakdownEnabled",
               "checkboxRoundBreakdownScaleWithBrowser",
               "selectRoundBreakdownAlign",
               "checkboxRoundBreakdownAlignEdgeLock",
               "selectRoundBreakdownValign",
               "checkboxRoundBreakdownValignEdgeLock",
-              "checkboxRoundBreakdownRowLinesEnabled",
-              "checkboxRoundBreakdownAutoscrollEnabled",
-              "sliderRoundBreakdownAutoscrollSpeed",
-              "sliderRoundBreakdownAutoscrollPauseBefore",
-              "sliderRoundBreakdownAutoscrollPauseEnd",
-              "checkboxRoundBreakdownEnabled",
               "sliderRoundBreakdownX",
               "sliderRoundBreakdownY",
               "sliderRoundBreakdownWidth",
               "sliderRoundBreakdownHeight",
+              "checkboxRoundBreakdownRowLinesEnabled",
               "checkboxRoundBreakdownResizerEnabled",
               "selectRoundBreakdownFont",
-              "checkboxRoundBreakdownOutlineEnabled",
-              "sliderRoundBreakdownOutlineThickness",
-              "colorRoundBreakdownOutline",
               "colorRoundBreakdownPanel"
             ],
             "subgroups": [
+              {
+                "key": "desktop:New Group (21)",
+                "rowKeys": [
+                  "checkboxRoundBreakdownAutoscrollEnabled",
+                  "sliderRoundBreakdownAutoscrollSpeed",
+                  "sliderRoundBreakdownAutoscrollPauseEnd",
+                  "sliderRoundBreakdownAutoscrollPauseBefore"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "desktop:New Group (20)",
+                "rowKeys": [
+                  "checkboxRoundBreakdownOutlineEnabled",
+                  "sliderRoundBreakdownOutlineThickness",
+                  "colorRoundBreakdownOutline"
+                ],
+                "subgroups": []
+              },
               {
                 "key": "desktop:New Group (19)",
                 "rowKeys": [
@@ -3111,7 +3125,9 @@
     "sliderMobileTargetNumberLineHeight": null,
     "sliderMobileTargetSuffixLineHeight": null,
     "desktop:New Group (18)": "ROUND BREAKDOWN - ROUND TITLE",
-    "desktop:New Group (19)": "ROUND BREAKDOWN - ROUND DATA"
+    "desktop:New Group (19)": "ROUND BREAKDOWN - ROUND DATA",
+    "desktop:New Group (20)": "ROUND BREAKDOWN OUTLINE",
+    "desktop:New Group (21)": "ROUND BREAKDOWN AUTOSCROLL"
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -3153,7 +3169,9 @@
     "checkboxLandscapeTextEditMode",
     "desktop:New Group (6)",
     "desktop:New Group (18)",
-    "desktop:New Group (19)"
+    "desktop:New Group (19)",
+    "desktop:New Group (20)",
+    "desktop:New Group (21)"
   ],
   "lockedGroups": [
     "desktop:New Group (16)",
