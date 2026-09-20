@@ -3457,6 +3457,10 @@
                   "key": "selectTargetTextValign"
                 },
                 {
+                  "type": "row",
+                  "key": "selectTargetTextAlign"
+                },
+                {
                   "type": "group",
                   "section": {
                     "key": "desktop:New Group (24)",
@@ -3608,10 +3612,6 @@
                     ],
                     "subgroups": []
                   }
-                },
-                {
-                  "type": "row",
-                  "key": "selectTargetTextAlign"
                 }
               ],
               "rowKeys": [
@@ -4627,6 +4627,10 @@
                 "key": "selectTargetTextValign"
               },
               {
+                "type": "row",
+                "key": "selectTargetTextAlign"
+              },
+              {
                 "type": "group",
                 "section": {
                   "key": "desktop:New Group (24)",
@@ -4778,10 +4782,6 @@
                   ],
                   "subgroups": []
                 }
-              },
-              {
-                "type": "row",
-                "key": "selectTargetTextAlign"
               }
             ],
             "rowKeys": [
