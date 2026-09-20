@@ -3585,6 +3585,13 @@
         #stage2InspectorHeader.dragging { cursor: grabbing; }
         #stage2InspectorPanel h1 { font-size: 13px; color: #0ff; margin: 0; }
         #stage2InspectorMount { flex: 1 1 auto; overflow-y: auto; padding: 0 10px 10px; }
+        #stage2ObjectPropertyPicker { flex: 0 0 auto; padding: 0 10px 6px; border-bottom: 1px solid #0ff4; margin-bottom: 4px; }
+        /* Hides the vendored Inspector's own raw "SELECT ELEMENT" row -
+           see #stage2ObjectPropertyPicker's own HTML comment for why this
+           is safe/stable across every re-render (buildElementSelect() is
+           deterministically render()'s 2nd appended child, confirmed by
+           reading inspector.mjs's own render() function directly). */
+        #stage2InspectorMount > div:nth-child(2) { display: none; }
         #stage2InspectorToggleBtn {
             position: fixed; bottom: 60px; right: 20px; z-index: 999999;
             background: #0ff; color: #000; border: none; border-radius: 4px;
@@ -20307,6 +20314,38 @@
         <div class="dev-panel-resize-corner corner-bl" id="stage2InspectorResizeBL"></div>
         <div class="dev-panel-resize-corner corner-br" id="stage2InspectorResizeBR"></div>
         <div id="stage2InspectorHeader"><h1>UI-ENGINE INSPECTOR (Stage 2)</h1></div>
+        <!-- Object/Property cascading picker (2026-09-20, direct request:
+             "I want the inspector ui's Select Element drop-down to only
+             show the object name, then a second drop-down for object
+             properties... So for example in the first drop-down I would
+             select Target number. Then the second I would select font
+             size or x or whatever"). Sits OUTSIDE #stage2InspectorMount
+             deliberately - inspector.mjs's own render() clears and
+             rebuilds that entire container's innerHTML on every single
+             change (confirmed earlier this session), so anything placed
+             inside it would be wiped out immediately. These 2 selects are
+             a friendlier layer ON TOP of the vendored file's own raw
+             element-select row (never modified - see this block's own
+             REVERSIBLE note above) - picking Object then Property just
+             programmatically sets that raw select's value and dispatches
+             a real 'change' event, the same technique already used
+             throughout this file's own Stage 2 test/writeback code. The
+             raw row itself is hidden via CSS (#stage2InspectorMount >
+             div:nth-child(2) - see the <style> block - buildElementSelect()
+             is deterministically inspector.mjs's 2nd appended child on
+             every render(), confirmed by reading its own render()
+             function, so this survives every re-render without needing
+             JS to re-hide it each time). -->
+        <div id="stage2ObjectPropertyPicker">
+            <div class="ui-inspector-row">
+                <span class="ui-inspector-label">OBJECT</span>
+                <select id="stage2ObjectSelect" class="ui-inspector-select"><option value="">—</option></select>
+            </div>
+            <div class="ui-inspector-row">
+                <span class="ui-inspector-label">PROPERTY</span>
+                <select id="stage2PropertySelect" class="ui-inspector-select"><option value="">—</option></select>
+            </div>
+        </div>
         <div id="stage2InspectorMount"></div>
     </div>
     <button id="stage2InspectorToggleBtn">Inspector</button>
@@ -20332,6 +20371,109 @@
                         mountInspector(mount);
                         mounted = true;
                     }
+                });
+
+                // ------------------------------------------------------------
+                // OBJECT/PROPERTY cascading picker (2026-09-20, direct
+                // request - see #stage2ObjectPropertyPicker's own HTML
+                // comment for the full mechanism). Groups the flat list of
+                // ~23 registered engine elements into their real-world
+                // "object" groupings, matching Clicko's own dev-panel
+                // group names/vocabulary rather than the raw engine ids.
+                // ------------------------------------------------------------
+                const STAGE2_ELEMENT_GROUPS = {
+                    'High Score': [
+                        { label: 'Position / Align', id: 'stage2HighScoreX' },
+                        { label: 'Font Size', id: 'stage2HighScoreFontSize' },
+                    ],
+                    'Start/Try Again Button': [
+                        { label: 'Position / Align', id: 'stage2StartX' },
+                        { label: 'Font Size', id: 'stage2StartFontSize' },
+                    ],
+                    'Round Text': [
+                        { label: 'Position / Align', id: 'stage2RoundTextX' },
+                        { label: 'Font Size', id: 'stage2RoundTextFontSize' },
+                    ],
+                    'Speed Display': [
+                        { label: 'Position / Align', id: 'stage2SpeedX' },
+                        { label: 'Font Size', id: 'stage2SpeedFontSize' },
+                    ],
+                    'Ms/Click Display': [
+                        { label: 'Position / Align', id: 'stage2MsPerClickX' },
+                        { label: 'Font Size', id: 'stage2MsPerClickFontSize' },
+                    ],
+                    'Round Breakdown': [
+                        { label: 'Position', id: 'stage2RoundBreakdownX' },
+                        { label: 'Size (Width/Height)', id: 'stage2RoundBreakdownSize' },
+                        { label: 'Title Font Size', id: 'stage2RoundBreakdownTitle' },
+                        { label: 'Data Font Size', id: 'stage2RoundBreakdownData' },
+                    ],
+                    'Target Number': [
+                        { label: 'Position', id: 'stage2TargetNumberX' },
+                        { label: 'Font Size', id: 'stage2TargetNumberFontSize' },
+                    ],
+                    // Prefix's X and Y are 2 separate logical engine
+                    // registrations (position.mode is single-valued per
+                    // element - X is always anchor-mode, Y defaults to
+                    // relative-mode and can be switched to anchor - see
+                    // this file's own earlier "big pass" comment block),
+                    // so they're 2 separate Property entries here rather
+                    // than one combined "Position".
+                    'Target Prefix': [
+                        { label: 'X Position', id: 'stage2TargetPrefixX' },
+                        { label: 'Y Position', id: 'stage2TargetPrefixY' },
+                        { label: 'Font Size', id: 'stage2TargetPrefixFontSize' },
+                    ],
+                    'Target Suffix': [
+                        { label: 'Position', id: 'stage2TargetSuffix' },
+                        { label: 'Font Size', id: 'stage2TargetSuffixFontSize' },
+                    ],
+                    'Main Button': [
+                        { label: 'Position', id: 'stage2ButtonX' },
+                        { label: 'Diameter', id: 'stage2ButtonDiameter' },
+                    ],
+                };
+                const objectSelect = document.getElementById('stage2ObjectSelect');
+                const propertySelect = document.getElementById('stage2PropertySelect');
+                Object.keys(STAGE2_ELEMENT_GROUPS).forEach((groupName) => {
+                    const opt = document.createElement('option');
+                    opt.value = groupName;
+                    opt.textContent = groupName;
+                    objectSelect.appendChild(opt);
+                });
+                // Drives the vendored Inspector's own raw (now CSS-hidden)
+                // "SELECT ELEMENT" row by setting its value and dispatching
+                // a real 'change' event - the exact same technique already
+                // used throughout this file's Stage 2 test/writeback code,
+                // never by touching inspector.mjs itself. Mounts the
+                // Inspector on first use if the toggle button was never
+                // clicked yet, so the Object/Property picker works even
+                // before the panel has otherwise been opened.
+                function stage2SetRawSelect(elementId) {
+                    if (!mounted) { mountInspector(mount); mounted = true; }
+                    const rawSelect = mount.querySelector('.ui-inspector-select');
+                    if (!rawSelect) return;
+                    rawSelect.value = elementId || '';
+                    rawSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                objectSelect.addEventListener('change', () => {
+                    const props = STAGE2_ELEMENT_GROUPS[objectSelect.value] || [];
+                    propertySelect.innerHTML = '<option value="">—</option>';
+                    props.forEach((prop) => {
+                        const opt = document.createElement('option');
+                        opt.value = prop.id;
+                        opt.textContent = prop.label;
+                        propertySelect.appendChild(opt);
+                    });
+                    if (props.length > 0) {
+                        propertySelect.value = props[0].id;
+                        stage2SetRawSelect(props[0].id);
+                    } else {
+                        stage2SetRawSelect('');
+                    }
+                });
+                propertySelect.addEventListener('change', () => {
+                    stage2SetRawSelect(propertySelect.value);
                 });
 
                 // ------------------------------------------------------------
