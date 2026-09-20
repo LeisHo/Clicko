@@ -16,68 +16,41 @@ from there.
 
 ## Currently working on
 
-**The Inspector panel is now resizable (all 4 edges/corners) and
-draggable** (reusing Clicko's own real panel-resize function), and its
-Save button now actually persists to Clicko's real save system instead of
-silently writing to a disconnected engine-only localStorage key — both per
-direct request, both committed and pushed. See CHANGELOG for detail.
+The UI-Engine adoption trial (Stage 1/2 evaluation) is **fully committed
+and pushed to `main`**: a `lib/ui-engine/` folder (all 9 real engine
+files, vendored/never modified) plus a large additive block at the end of
+`index.html`'s `<body>` covering engine-driven dev-panel rows for every
+layout-relevant setting across 9 elements (High Score, Start/Try Again
+Button, Round Text, Speed Countdown Display, Ms/Click Display, Round
+Breakdown — font size AND position/size, Target Count Display, Main
+Button — X/Y + Diameter), plus the engine's own REAL Inspector mounted as
+a floating panel (toggle button, bottom-right, resizable from all 4
+edges/corners, draggable by its header) — lets you pick any registered
+element and change its `position.mode` (anchor/relative/fixed/absolute)
+live, including `relativeTo`/`myAnchor`/`targetAnchor` for relative mode,
+without writing any code. Non-layout styling (color, spacing, rotation,
+timing) and anything transform-based (Shadow, Click Burst) deliberately
+stay untouched — outside the engine's boundary or a mechanism it has no
+concept of.
 
-**Three real bugs found and fixed today in this session's own UI-Engine
-Stage 2 work** (all committed and pushed — `7f16e5e` and the 2 commits
-after it):
-1. A critical, live production bug: real (non-dev) visitors could not play
-   the game at all — every tap threw inside `handleGameButtonPress()` (via
-   `spawnClickBurst()` reading a lazily-built dev-panel input as gameplay
-   source of truth). Fixed by moving `renderClickBurstTextInputControls()`
-   into the same eager/unconditional build path as the already-proven
-   `renderGameMechanicsControls()` fix. Also closed 2 related gaps found
-   alongside it: the Inspector panel/button were unconditionally visible to
-   every visitor (now gated behind `isDevAllowed`), and 3 places
-   null-referenced a lazily-built real checkbox without a guard.
-2. The Inspector-writeback sync (see below) was pushing every registered
-   element's stale, page-load-time engine state into Clicko's real cssVars
-   the instant the Inspector was opened — moving UI elements to "vastly
-   incorrect" locations with no edit made at all. Fixed by scoping the sync
-   to only the currently-selected element, and priming the engine from
-   current reality before ever pushing anything out.
+An edit made through the Inspector now round-trips correctly end to end:
+it writes into Clicko's real `cssVars` (a generic `MutationObserver`-based
+sync, no changes to the vendored `inspector.mjs`), the matching **real
+dev-panel control's own displayed value now updates too** (previously
+stale until a reload — fixed 2026-09-20), and the Inspector's own Save
+button both persists through Clicko's real git-backed save AND now shows
+a visible "Saved!" confirmation on click (previously silent when only the
+floating Inspector was open, which was the likely source of a "save
+doesn't work" report — investigated live and confirmed the save itself
+was always persisting and reloading correctly). Confirmed live that an
+anchor-only Inspector edit cannot move the object on screen today (no
+position-preserving math needed) — see CHANGELOG for the full
+investigation and the getBoundingClientRect() proof.
 
-See CHANGELOG for the full account of both.
-
-The UI-Engine adoption trial (Stage 1/2 evaluation) is now **committed and
-pushed to main** (commit `ac461e9`): a `lib/ui-engine/` folder (all 9 real
-engine files) plus a large additive block at the end of `index.html`'s
-`<body>` covering engine-driven dev-panel rows for every layout-relevant
-setting across 9 elements (High Score, Start/Try Again Button, Round Text,
-Speed Countdown Display, Ms/Click Display, Round Breakdown — font size AND
-position/size, Target Count Display, Main Button — X/Y + Diameter), plus
-the engine's own REAL Inspector mounted as a floating panel (toggle button,
-bottom-right) — lets you pick any registered element and change its
-`position.mode` (anchor/relative/fixed/absolute) live, including
-`relativeTo`/`myAnchor`/`targetAnchor` for relative mode, without writing
-any code.
-
-A follow-up, still **uncommitted**: the Inspector's own edits now write
-back into Clicko's real `cssVars` too (a `MutationObserver` on the
-Inspector's mount point + a ~26-entry mapping table, added without touching
-the vendored `inspector.mjs`) — confirmed via `buildSettingsSnapshot()`
-directly that a real Save would now persist an Inspector-made edit, closing
-the gap where those edits previously lived only in the engine's in-memory
-state and were silently lost on reload. One disclosed, deliberately-unfixed
-cosmetic gap remains: the slider/select widgets themselves don't refresh
-their displayed value when the edit came from the Inspector (data and the
-actual game visual are both correct; only the widget's own on-screen number
-is stale until next reload).
-
-See CHANGELOG's "Stage 2" entries for the full account of each piece,
-including a 3rd disclosed limitation (Target Prefix's hybrid
-representation — see CHANGELOG for detail). Non-layout styling (color,
-spacing, rotation, timing) and anything transform-based (Shadow, Click
-Burst) deliberately stay untouched — outside the engine's boundary or a
-mechanism it has no concept of. The committed portion is on `main`; the
-Inspector-writeback follow-up is reversible the same way:
-`git checkout -- index.html` (only reverts the uncommitted writeback block,
-since everything else is already committed).
-Not wired into anything else — safe to ignore or remove.
+One disclosed limitation remains: Target Prefix's hybrid X/Y
+representation (X independent/anchor-mode, Y relative-mode, split across 2
+logical engine registrations since `position.mode` is single-valued per
+element) — see CHANGELOG for detail.
 
 Otherwise nothing in progress. Development here proceeds as rapid,
 conversational iteration — no formal phase plan; features and bug reports
