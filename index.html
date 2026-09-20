@@ -9407,7 +9407,7 @@
 
         // Copy settings to clipboard
         function copySettings() {
-            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, stage2EngineOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
             const text = JSON.stringify(settings, null, 2);
             try {
                 navigator.clipboard.writeText(text).then(() => {
@@ -9494,7 +9494,7 @@
             // function is shared by Save/Copy/Undo-snapshot/Named Setting
             // States, so this single call covers all of them.
             dockAllUndockedGroups();
-            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, stage2EngineOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
 
         // Save settings - git-only (data/processed/dev-panel-settings.json
@@ -9979,6 +9979,7 @@
                     if (settings.devVisibility) devVisibility = settings.devVisibility;
                     if (settings.devIndependence) devIndependence = settings.devIndependence;
                     if (settings.devDeviceValues) devDeviceValues = settings.devDeviceValues;
+                    if (settings.stage2EngineOverrides) stage2EngineOverrides = settings.stage2EngineOverrides;
                     if (devPanelBuilt) { syncDynamicDeviceRows(); syncDeviceCheckboxesFromState(); refreshEmptyGroupVisibility('mobile'); refreshEmptyGroupVisibility('landscape'); injectGroupDeviceCheckboxes(); }
                     // Mouse Log's own resolveDebugGroupSid() needs
                     // devTextOverrides actually populated (just above) to
@@ -10194,7 +10195,7 @@
         // factored out, consistent with how this file already duplicates
         // it between those 2 existing functions.
         function captureCurrentSettingsSnapshot() {
-            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, stage2EngineOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
         }
         function saveNamedDevPanelState() {
             const name = prompt('Save current settings as:');
@@ -12807,6 +12808,26 @@
         let devVisibility = {}; // { [desktopId]: boolean } - see isDevRowVisible() for the real default when absent
         let devIndependence = { mobile: {}, landscape: {} }; // { [desktopId]: boolean } - see isDevRowIndependent() for the real default when absent
         let devDeviceValues = { mobile: {}, landscape: {} }; // { [desktopId]: lastIndependentValue } - retained even while hidden/non-independent
+
+        // { [stage2ElementId]: { position: {...}, size: {...} } } - a saved
+        // structural override for a UI-Engine Stage 2 element's position.mode
+        // (and size.mode, if present), captured by the Inspector-writeback
+        // module further down and restored (lazily, on next Inspector
+        // selection) by that same module. Direct report (2026-09-20): "i
+        // changed Position Mode for the Target Prefix X, saved, and on
+        // refresh its showing the old mode" - root cause, confirmed by
+        // reading the registration code: every Stage2 element's
+        // createUIElement({...}) call hardcodes its OWN position.mode at
+        // every page load (e.g. stage2TargetPrefixX always registers as
+        // mode:'anchor'), and Clicko's real save system had no concept of
+        // "position mode" at all - only cssVars-backed VALUE fields
+        // (offset/anchor/width/height/gap) were ever written back by the
+        // prior writeback fix, never the structural mode field itself. This
+        // is a plain classic-script `let` (same visibility pattern as
+        // cssVars/devVisibility above) so the writeback module can read the
+        // live binding, and applyLoadedSettings() below can wholesale-
+        // reassign it the same way it already does for devVisibility.
+        let stage2EngineOverrides = {};
 
         // Universal application (2026-09-17, direct request: "regardless of
         // existing situation, the checkboxes should exist... You simply
@@ -20495,7 +20516,7 @@
          "same cssVars key either way" reasoning already established.
     ============================================================ -->
     <script type="module">
-        import { getEffectiveValue, updateElement } from './lib/ui-engine/registry.mjs';
+        import { getEffectiveValue, updateElement, getElement, replaceLayoutNode } from './lib/ui-engine/registry.mjs';
         import { refreshInspector } from './lib/ui-engine/inspector.mjs';
 
         function parseFloatSafe(v) { const n = parseFloat(v); return Number.isNaN(n) ? undefined : n; }
@@ -20712,6 +20733,32 @@
                 // push branch, finds nothing actually changed (we just
                 // primed with the same value cssVars already had), and
                 // stops.
+                //
+                // STRUCTURAL restore (2026-09-20, direct report: "i
+                // changed Position Mode for the Target Prefix X, saved,
+                // and on refresh its showing the old mode") - runs BEFORE
+                // the per-field priming below, so any offsetX/anchorH/etc.
+                // priming that follows applies on top of the correct
+                // restored mode rather than the hardcoded page-load
+                // default. Uses replaceLayoutNode() (a wholesale node
+                // replace), not updateElement() (a deep merge) - matches
+                // the engine's own adapter.setPositionMode()/setSizeMode(),
+                // which use replaceLayoutNode() specifically because a
+                // mode switch needs a fresh skeleton, not old-mode fields
+                // merged with new-mode fields (see registry.mjs's own
+                // comment on replaceLayoutNode for the underlying bug this
+                // avoids).
+                const savedStructural = stage2EngineOverrides[selectedId];
+                if (savedStructural) {
+                    try {
+                        if (savedStructural.position) replaceLayoutNode(selectedId, ['position'], savedStructural.position);
+                        if (savedStructural.size) replaceLayoutNode(selectedId, ['size'], savedStructural.size);
+                    } catch (e) {
+                        // Saved override no longer valid for this element
+                        // (e.g. the registration itself changed shape since
+                        // the save) - skip, not fatal.
+                    }
+                }
                 relevantEntries.forEach(stage2PrimeEntry);
                 stage2LastPrimedId = selectedId;
                 refreshInspector();
@@ -20736,6 +20783,22 @@
                 }
             }
             if (anyChanged) applyActiveVars();
+
+            // STRUCTURAL capture - mirrors the restore above. Position mode
+            // (and size mode, if present) has no cssVar and no rendering
+            // consequence in Clicko, so it's captured independently of
+            // anyChanged/applyActiveVars() above - it only ever needs to
+            // reach stage2EngineOverrides, which Save/Copy/Named-States
+            // already include (buildSettingsSnapshot() etc.) and
+            // applyLoadedSettings() already restores on load/Undo.
+            const liveEl = getElement(selectedId);
+            if (liveEl && liveEl.layout) {
+                const liveStructural = { position: liveEl.layout.position, size: liveEl.layout.size };
+                const savedJson = JSON.stringify(stage2EngineOverrides[selectedId] || null);
+                if (JSON.stringify(liveStructural) !== savedJson) {
+                    stage2EngineOverrides[selectedId] = JSON.parse(JSON.stringify(liveStructural));
+                }
+            }
         }
 
         const stage2InspectorMountEl = document.getElementById('stage2InspectorMount');
