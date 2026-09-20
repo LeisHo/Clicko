@@ -17441,13 +17441,45 @@
                 applyGameplayResultColor('win');
 
                 setTimeout(() => {
+                    // High Score check moved here (2026-09-20 fix, and
+                    // corrected same-day to THIS exact point rather than
+                    // firing synchronously at the moment of winning) - a
+                    // new high score is now reflected (flashed + updated)
+                    // the instant the round that beats it is won, not only
+                    // once the run finally ends in a loss (previously
+                    // checkHighScore() was only called from the lose branch
+                    // below, so a new high round left the displayed high
+                    // score stale until the player eventually lost, by
+                    // which point they were already several rounds further
+                    // in). Called from inside THIS setTimeout specifically
+                    // - not synchronously right after the win above - so
+                    // its own flash (runHighScoreBlinkSequence(), which
+                    // reuses these same --round-blink*-ms timers) starts at
+                    // the exact same tick as showRoundText()'s own
+                    // runRoundBlinkSequence() just below, per direct
+                    // request ("the high score number should flash
+                    // alongside the other numbers flashing"). Firing it
+                    // synchronously at win time instead (an earlier version
+                    // of this fix did exactly that) would start the high
+                    // score's flash immediately while the round number's
+                    // own flash doesn't begin until gameState.resultDuration
+                    // later - not "alongside" at all, just an earlier,
+                    // separate flash. checkHighScore()'s --high-score-flash-
+                    // delay-ms slider still applies on top of this shared
+                    // start point for further manual offsetting.
+                    checkHighScore(gameState.lastRoundWon);
                     gameState.currentRound++;
                     showRoundText(gameState.currentRound);
                 }, gameState.resultDuration);
             } else {
                 setButtonHue('#dd3333');
-                // High Score check - a run only truly ends on a loss (a win
-                // just continues to gameState.currentRound + 1, see above).
+                // High Score check - safety-net call. The real trigger is
+                // now in the win branch above (2026-09-20 fix - see its own
+                // comment), firing the instant a new high round is beaten
+                // rather than waiting for the run to end. This call stays
+                // as a no-op fallback (round === highScore by the time a
+                // loss happens, so its `if` won't fire again) in case a run
+                // somehow ends without ever passing through the win branch.
                 // Corrected 2026-09-14 per direct correction ("Hgishcore
                 // should be the number of the round you had beat. not the
                 // round you lost at."): uses gameState.lastRoundWon (the
