@@ -1007,10 +1007,6 @@
             text-align: var(--try-again-text-align, center);
         }
 
-        .start-button.pressed {
-            transform: translate(-50%, calc(-50% + 3px));
-        }
-
         .start-button.hidden {
             display: none !important;
         }
@@ -17699,14 +17695,6 @@
             setShadowButtonPressed(false);
         }
 
-        function handleUIButtonPress() {
-            startButton.classList.add('pressed');
-        }
-
-        function handleUIButtonRelease() {
-            startButton.classList.remove('pressed');
-        }
-
         function endGame(won, reason) {
             gameState.isCountingTaps = false;
             gameState.canTap = false;
@@ -18098,17 +18086,21 @@
             showRoundText(gameState.currentRound);
         }
 
+        // Used to also toggle a .pressed class (a 3px downward shift on
+        // pointerdown, matching the Main Button's own press feel) via
+        // handleUIButtonPress()/handleUIButtonRelease() - removed per direct
+        // report ("the Start text moves down (like the button) when I click
+        // it. It shouldn't... the button animation shouldn't apply to the
+        // start text"). preventDefault() is still needed here regardless
+        // (suppresses text selection/double-tap-zoom on the button), so it
+        // stays even with the press-feedback class gone.
         startButton.addEventListener('pointerdown', (e) => {
             e.preventDefault();
-            handleUIButtonPress();
         });
         startButton.addEventListener('pointerup', (e) => {
             e.preventDefault();
-            handleUIButtonRelease();
             startGame();
         });
-        startButton.addEventListener('pointercancel', handleUIButtonRelease);
-        startButton.addEventListener('pointerleave', handleUIButtonRelease);
 
         // Dev panel is only reachable locally (file:// or localhost) or with ?dev=1 -
         // real players on a deployed URL never see it or its keyboard shortcut.
