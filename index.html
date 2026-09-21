@@ -19816,6 +19816,19 @@
             const hsValignLockEl = document.getElementById('checkboxHighScoreTextValignEdgeLock');
             if (hsAlignLockEl) hsAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
             if (hsValignLockEl) hsValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+
+            // Size - see registerStage2TextElement()'s own matching comment
+            // (added the same session, same reasoning) for why this is an
+            // honestly-inert `mode: 'content'` registration rather than a
+            // real writeback.
+            createUIElement({
+                id: 'stage2HighScoreSize', role: 'text',
+                group: 'High Score', propertyLabel: 'Size',
+                layout: {
+                    position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                    size: { width: { mode: 'content' }, height: { mode: 'content' } },
+                },
+            });
         }
     </script>
 
@@ -19995,6 +20008,36 @@
             const realValignLockEl = document.getElementById(cfg.realValignLockId);
             if (realAlignLockEl) realAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
             if (realValignLockEl) realValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
+
+            // Size (v0.2.6 engine re-vendor) - per direct request ("For all
+            // objects, I want X and Y and size properties to be available,
+            // even if they arent currently being used"). No real Clicko
+            // mechanism controls a plain text element's own box width/
+            // height independently of its Font Size (text elements here
+            // size to their own content, not an authored box) - registered
+            // as `mode: 'content'` (the engine's own "size to content"
+            // default, matching what every one of these elements already
+            // does visually) specifically so the property is discoverable
+            // and available, honestly inert rather than pretending a real
+            // writeback exists. Note this is NOT the same thing as X/Y
+            // being split into their own separate properties - the
+            // engine's anchor/fixed position modes require anchorH+anchorV+
+            // offsetX+offsetY together as one schema unit (MODE_SCHEMA),
+            // so a genuinely independent "X" or "Y" property isn't
+            // representable without a new engine capability; the existing
+            // "Position / Align" property already carries both X and Y
+            // together (confirmed live - offsetY renders and resolves
+            // correctly), and #4's conditional-visibility fix is what
+            // actually addressed the "Target Number is missing Y" report
+            // (a discoverability/decluttering issue, not a missing field).
+            createUIElement({
+                id: 'stage2' + cfg.key + 'Size', role: 'text',
+                group: cfg.stage2Group, propertyLabel: 'Size',
+                layout: {
+                    position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                    size: { width: { mode: 'content' }, height: { mode: 'content' } },
+                },
+            });
         }
 
         // 'Start' was previously labeled stage2Group: 'Start/Try Again
@@ -20374,6 +20417,24 @@
                 syncReal('sliderTargetPrefixYOffset', parseFloat(resolvedGap.y));
             });
             registerTargetFontSize('Prefix', '--target-prefix-font-size-px', '--target-prefix-font-size-vw', 'sliderTargetPrefixFontSizeVw', 'Target Prefix');
+
+            // Size - see registerStage2TextElement()'s own matching comment
+            // (added the same session, same reasoning) for why this is an
+            // honestly-inert `mode: 'content'` registration rather than a
+            // real writeback, made available on all 3 Target parts.
+            function registerTargetSize(key, groupName) {
+                createUIElement({
+                    id: 'stage2Target' + key + 'Size', role: 'text',
+                    group: groupName, propertyLabel: 'Size',
+                    layout: {
+                        position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
+                        size: { width: { mode: 'content' }, height: { mode: 'content' } },
+                    },
+                });
+            }
+            registerTargetSize('Number', 'Target Number');
+            registerTargetSize('Suffix', 'Target Suffix');
+            registerTargetSize('Prefix', 'Target Prefix');
         }
     </script>
 

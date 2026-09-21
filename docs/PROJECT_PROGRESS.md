@@ -151,7 +151,62 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): fixed the Start/Try Again text visibly
+Most recently (2026-09-21): UI-Engine Inspector - a genuinely new engine
+capability (size `match` mode: a size axis tracks another element's live
+rendered size via real DOM measurement + ResizeObserver, the size-axis
+equivalent of position's own `relative` mode), conditional section
+visibility (Position/Size-Width/Size-Height/Constraints only render when
+the object's own registration actually configured that section), and
+relativeTo becomes the same friendly Object/Property cascade the
+top-level picker already has - all 3 built and tested in the sibling
+`HTML UI ENGINE` project as v0.2.6 (alongside v0.2.4/v0.2.5, which had
+been built there but never committed - committed all 3 together as one
+coherent, 138-test-passing state), then re-vendored into `lib/ui-engine/`.
+Also gave every Clicko object a discoverable **Size** property (Round
+Breakdown/Main Button already had real ones; the other 11 get an
+honestly-inert `mode: 'content'` placeholder) - investigated true
+independent X/Y properties first and found the engine's position modes
+require both axes together as one schema unit, so that specific part
+isn't achievable without new engine architecture; addressed via the
+Size property (genuinely missing) instead of forcing a misleading X/Y
+split. Live-verified extensively: size `match` mode confirmed end-to-end
+with 2 real DOM elements (a lower text's width forced to exactly match
+an upper text's rendered width - 423.1125183105469px both, different
+content/font-size) plus live re-measurement via a real resize event
+(160.0625px -> 320.125px); relativeTo's cascade correctly pre-selects
+the right object/property for an existing registration; conditional
+visibility confirmed decluttering a Font-Size-only property view; all 13
+objects confirmed to show a Size property; zero new console errors.
+Committed and pushed to both `LeisHo/Clicko` and `LeisHo/UI-Engine`.
+
+Before that (2026-09-20): UI-Engine Inspector - split the combined
+"Start/Try Again" object into 2 real objects and added Win, Lose, and
+the "?" mark as their own objects, per direct report ("Start and Try
+again are grouped as 1 object... Win and Lose are missing... The '?'
+that appears along Try Again is missing as well"). The existing 'Start'
+registration was mislabeled `stage2Group: 'Start/Try Again Button'` but
+only ever wired Start's own cssVars - Try Again's fully independent set
+had simply never been registered, and Win/Lose/"?" had no registration
+at all. Renamed Start's entry to plain 'Start' and added 4 new
+`registerStage2TextElement()` calls reusing the same shared helper: Try
+Again (same shape as Start); the "?" mark (its own element/controls,
+oddly grouped under the dev-panel's legacy "Rotation Animation"
+section); Win and Lose (share one underlying `#resultText` element and
+one Align/Valign/Edge-Lock setting, but independent X/Y offset/Font
+Size - registered as 2 objects that intentionally point at the same
+shared align controls, matching their real behavior). Found and fixed
+a real local-testing blocker along the way: neither `python -m
+http.server` nor `dev-server.js` served `.mjs` with a JS-compatible
+MIME type, so the Inspector's own dynamic import failed outright under
+both - added `.mjs` to `dev-server.js`'s MIME map (left uncommitted,
+a separate untracked tooling file) to actually verify live rather than
+trusting syntax checks alone. Live-verified end to end: all 5 objects
+appear with correct property pickers; independent X-offset writeback
+confirmed for Win vs. Lose (changing one leaves the other untouched);
+Win's Align correctly writes through the shared `--result-text-align`
+var. Zero new console errors. Committed and pushed (8028cf5).
+
+Before that (2026-09-20): fixed the Start/Try Again text visibly
 shifting down 3px when clicked, mirroring the Main Button's own press
 animation - direct report ("the Start text moves down (like the
 button) when I click it. It shouldn't... the button animation
