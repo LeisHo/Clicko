@@ -19997,8 +19997,25 @@
             if (realValignLockEl) realValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
         }
 
+        // 'Start' was previously labeled stage2Group: 'Start/Try Again
+        // Button' even though it only ever wired Start's OWN vars
+        // (--start-text-*, --text-*) - Try Again has its own fully
+        // independent set (--try-again-text-*) and was never registered at
+        // all, so the Inspector showed one combined "Start/Try Again
+        // Button" object that only ever edited Start. Direct report: "Start
+        // and Try again are grouped as 1 object, they are 2 separate
+        // objects with their own properties." Renamed this one to plain
+        // 'Start' and added a real 'Try Again' registration below, using
+        // the same registerStage2TextElement() shape (Try Again's own
+        // position/align/valign/edge-lock/font-size CSS is structurally
+        // identical to Start's, just a fully separate set of cssVars/real
+        // dev-panel controls - see .start-button.try-again-state's own CSS
+        // comment). Both still target the SAME real dev-panel group
+        // ('Start/Try Again Button', via groupName) since that's genuinely
+        // one shared dev-panel section - only the Inspector's own object
+        // label (stage2Group) is split.
         registerStage2TextElement({
-            key: 'Start', groupName: 'Start/Try Again Button', stage2Group: 'Start/Try Again Button',
+            key: 'Start', groupName: 'Start/Try Again Button', stage2Group: 'Start',
             xVar: '--text-x-offset-vw', yVar: '--text-y-offset-vh',
             fontPxVar: '--text-font-size-px', fontVwVar: '--text-font-size-vw', scaleVar: '--text-scale-with-browser',
             alignVar: '--start-text-align', valignVar: '--start-text-valign',
@@ -20006,6 +20023,77 @@
             realXId: 'sliderTextX', realYId: 'sliderTextY', realFontVwId: 'sliderTextFontSizeVw',
             realAlignId: 'selectStartTextAlign', realValignId: 'selectStartTextValign',
             realAlignLockId: 'checkboxStartTextAlignEdgeLock', realValignLockId: 'checkboxStartTextValignEdgeLock',
+        });
+
+        registerStage2TextElement({
+            key: 'TryAgain', groupName: 'Start/Try Again Button', stage2Group: 'Try Again',
+            xVar: '--try-again-text-x-offset-vw', yVar: '--try-again-text-y-offset-vh',
+            fontPxVar: '--try-again-text-font-size-px', fontVwVar: '--try-again-text-font-size-vw', scaleVar: '--try-again-text-scale-with-browser',
+            alignVar: '--try-again-text-align', valignVar: '--try-again-text-valign',
+            alignLockVar: '--try-again-text-align-edge-lock', valignLockVar: '--try-again-text-valign-edge-lock',
+            realXId: 'sliderTryAgainTextX', realYId: 'sliderTryAgainTextY', realFontVwId: 'sliderTryAgainTextFontSizeVw',
+            realAlignId: 'selectTryAgainTextAlign', realValignId: 'selectTryAgainTextValign',
+            realAlignLockId: 'checkboxTryAgainTextAlignEdgeLock', realValignLockId: 'checkboxTryAgainTextValignEdgeLock',
+        });
+
+        // The "?" that flashes alongside Try Again - its own separate
+        // element (#startButtonFlashChar/startButtonFlashCharExtrusion),
+        // own dev-panel group (oddly named "Rotation Animation" - a legacy
+        // name from when this used to be a rotating animation instead of a
+        // flash, per that feature's own history), own full position/align/
+        // valign/edge-lock/font-size set (--try-again-question-mark-*).
+        // Direct report: "The '?' that appears along Try Again is missing
+        // as well." Its real Y offset formula stacks on top of Try Again's
+        // own Y position (see .start-button.try-again-state's own CSS
+        // "parent-y" terms) - irrelevant here, since this registration only
+        // mirrors the "?" mark's OWN offset var/slider, exactly like every
+        // other Stage 2 element mirrors its own slider without re-deriving
+        // Clicko's underlying position formula.
+        registerStage2TextElement({
+            key: 'TryAgainQuestionMark', groupName: 'Rotation Animation', stage2Group: 'Try Again "?"',
+            xVar: '--try-again-question-mark-x-offset-vw', yVar: '--try-again-question-mark-y-offset-vh',
+            fontPxVar: '--try-again-question-mark-font-size-px', fontVwVar: '--try-again-question-mark-font-size-vw', scaleVar: '--try-again-question-mark-scale-with-browser',
+            alignVar: '--try-again-question-mark-text-align', valignVar: '--try-again-question-mark-text-valign',
+            alignLockVar: '--try-again-question-mark-text-align-edge-lock', valignLockVar: '--try-again-question-mark-text-valign-edge-lock',
+            realXId: 'sliderTryAgainQuestionMarkX', realYId: 'sliderTryAgainQuestionMarkY', realFontVwId: 'sliderTryAgainQuestionMarkFontSizeVw',
+            realAlignId: 'selectTryAgainQuestionMarkTextAlign', realValignId: 'selectTryAgainQuestionMarkTextValign',
+            realAlignLockId: 'checkboxTryAgainQuestionMarkTextAlignEdgeLock', realValignLockId: 'checkboxTryAgainQuestionMarkTextValignEdgeLock',
+        });
+
+        // Win and Lose - direct report: "Win and Lose are missing. Those
+        // are 2 separate objects." Both render through the SAME shared
+        // #resultText element (a class toggle, .result-win/.result-lose,
+        // same "one shared DOM node, two CSS states" pattern as Start/Try
+        // Again sharing #startButton) and SHARE one Align/Valign/Edge-Lock
+        // setting (--result-text-align/-valign - Result "splits Win/Lose
+        // into 2 independent offset vars driven by one align var", per
+        // preserveVisualPositionOnLockToggle()'s own comment) - but each
+        // has its own independent X/Y offset and Font Size, so each still
+        // gets its own Stage 2 object/registration. Passing the same
+        // shared alignVar/valignVar/lock vars/real select+checkbox ids to
+        // both calls is intentional, not a copy-paste mistake - editing
+        // either object's Align/Valign in the Inspector correctly affects
+        // both Win and Lose, matching their real shared behavior.
+        registerStage2TextElement({
+            key: 'Win', groupName: 'Win/Lose Text', stage2Group: 'Win',
+            xVar: '--result-win-x-offset-vw', yVar: '--result-win-y-offset-vh',
+            fontPxVar: '--result-win-font-size-px', fontVwVar: '--result-win-font-size-vw', scaleVar: '--result-win-scale-with-browser',
+            alignVar: '--result-text-align', valignVar: '--result-text-valign',
+            alignLockVar: '--result-text-align-edge-lock', valignLockVar: '--result-text-valign-edge-lock',
+            realXId: 'sliderResultWinX', realYId: 'sliderResultWinY', realFontVwId: 'sliderResultWinFontSizeVw',
+            realAlignId: 'selectResultTextAlign', realValignId: 'selectResultTextValign',
+            realAlignLockId: 'checkboxResultTextAlignEdgeLock', realValignLockId: 'checkboxResultTextValignEdgeLock',
+        });
+
+        registerStage2TextElement({
+            key: 'Lose', groupName: 'Win/Lose Text', stage2Group: 'Lose',
+            xVar: '--result-lose-x-offset-vw', yVar: '--result-lose-y-offset-vh',
+            fontPxVar: '--result-lose-font-size-px', fontVwVar: '--result-lose-font-size-vw', scaleVar: '--result-lose-scale-with-browser',
+            alignVar: '--result-text-align', valignVar: '--result-text-valign',
+            alignLockVar: '--result-text-align-edge-lock', valignLockVar: '--result-text-valign-edge-lock',
+            realXId: 'sliderResultLoseX', realYId: 'sliderResultLoseY', realFontVwId: 'sliderResultLoseFontSizeVw',
+            realAlignId: 'selectResultTextAlign', realValignId: 'selectResultTextValign',
+            realAlignLockId: 'checkboxResultTextAlignEdgeLock', realValignLockId: 'checkboxResultTextValignEdgeLock',
         });
 
         registerStage2TextElement({
