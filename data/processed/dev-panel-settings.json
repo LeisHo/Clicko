@@ -7877,50 +7877,8 @@
             "type": "group",
             "section": {
               "key": "mobile:New Group (4)",
-              "items": [
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink1Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink1Show"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink2Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink2Show"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink3Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink3Show"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink4Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundPostBlinkHold"
-                }
-              ],
-              "rowKeys": [
-                "sliderMobileRoundBlink1Hide",
-                "sliderMobileRoundBlink1Show",
-                "sliderMobileRoundBlink2Hide",
-                "sliderMobileRoundBlink2Show",
-                "sliderMobileRoundBlink3Hide",
-                "sliderMobileRoundBlink3Show",
-                "sliderMobileRoundBlink4Hide",
-                "sliderMobileRoundPostBlinkHold"
-              ],
+              "items": [],
+              "rowKeys": [],
               "subgroups": []
             }
           },
@@ -7936,10 +7894,6 @@
                 {
                   "type": "row",
                   "key": "sliderMobileHighScoreRotate"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileHighScoreFlashDelay"
                 },
                 {
                   "type": "row",
@@ -7967,15 +7921,7 @@
                 },
                 {
                   "type": "row",
-                  "key": "colorMobileHighScoreExtrusionBorder"
-                },
-                {
-                  "type": "row",
                   "key": "sliderMobileHighScoreOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileHighScoreOverallBorder"
                 },
                 {
                   "type": "row",
@@ -7992,25 +7938,37 @@
                 {
                   "type": "row",
                   "key": "sliderMobileHighScoreY"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileHighScoreExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileHighScoreOverallBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileHighScoreFlashDelay"
                 }
               ],
               "rowKeys": [
                 "checkboxMobileHighScoreExtrusionScaleWithBrowser",
                 "sliderMobileHighScoreRotate",
-                "sliderMobileHighScoreFlashDelay",
                 "checkboxMobileHighScoreScaleWithBrowser",
                 "selectMobileHighScoreTextAlign",
                 "selectMobileHighScoreTextValign",
                 "sliderMobileHighScoreFontSize",
                 "sliderMobileHighScoreFontSizeVw",
                 "sliderMobileHighScoreExtrusionDepth",
-                "colorMobileHighScoreExtrusionBorder",
                 "sliderMobileHighScoreOverallBorderThickness",
-                "colorMobileHighScoreOverallBorder",
                 "sliderMobileHighScoreLetterSpacing",
                 "sliderMobileHighScoreLineHeight",
                 "sliderMobileHighScoreX",
-                "sliderMobileHighScoreY"
+                "sliderMobileHighScoreY",
+                "colorMobileHighScoreExtrusionBorder",
+                "colorMobileHighScoreOverallBorder",
+                "sliderMobileHighScoreFlashDelay"
               ],
               "subgroups": []
             }
@@ -8066,19 +8024,19 @@
                 },
                 {
                   "type": "row",
-                  "key": "colorMobileRoundExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileRoundOverallBorder"
-                },
-                {
-                  "type": "row",
                   "key": "sliderMobileTextX"
                 },
                 {
                   "type": "row",
                   "key": "sliderMobileTextY"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileRoundExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileRoundOverallBorder"
                 }
               ],
               "rowKeys": [
@@ -8093,10 +8051,10 @@
                 "sliderMobileTextLineHeight",
                 "selectMobileStartTextAlign",
                 "selectMobileStartTextValign",
-                "colorMobileRoundExtrusionBorder",
-                "colorMobileRoundOverallBorder",
                 "sliderMobileTextX",
-                "sliderMobileTextY"
+                "sliderMobileTextY",
+                "colorMobileRoundExtrusionBorder",
+                "colorMobileRoundOverallBorder"
               ],
               "subgroups": []
             }
@@ -8144,14 +8102,6 @@
                 },
                 {
                   "type": "row",
-                  "key": "colorMobileRoundDockExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileRoundDockOverallBorder"
-                },
-                {
-                  "type": "row",
                   "key": "sliderMobileRoundDockX"
                 },
                 {
@@ -8165,6 +8115,46 @@
                 {
                   "type": "row",
                   "key": "selectMobileRoundTextValign"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileRoundDockExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileRoundDockOverallBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink1Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink1Show"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink2Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink2Show"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink3Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink3Show"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink4Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundPostBlinkHold"
                 }
               ],
               "rowKeys": [
@@ -8177,12 +8167,20 @@
                 "sliderMobileRoundDockOverallBorderThickness",
                 "sliderMobileRoundLetterSpacing",
                 "sliderMobileRoundLineHeight",
-                "colorMobileRoundDockExtrusionBorder",
-                "colorMobileRoundDockOverallBorder",
                 "sliderMobileRoundDockX",
                 "sliderMobileRoundDockY",
                 "selectMobileRoundTextAlign",
-                "selectMobileRoundTextValign"
+                "selectMobileRoundTextValign",
+                "colorMobileRoundDockExtrusionBorder",
+                "colorMobileRoundDockOverallBorder",
+                "sliderMobileRoundBlink1Hide",
+                "sliderMobileRoundBlink1Show",
+                "sliderMobileRoundBlink2Hide",
+                "sliderMobileRoundBlink2Show",
+                "sliderMobileRoundBlink3Hide",
+                "sliderMobileRoundBlink3Show",
+                "sliderMobileRoundBlink4Hide",
+                "sliderMobileRoundPostBlinkHold"
               ],
               "subgroups": []
             }
@@ -8219,22 +8217,6 @@
                 {
                   "type": "row",
                   "key": "checkboxMobileTargetScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxMobileHideTargetPrefix"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxMobileHideTargetSuffix"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileTargetExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileTargetOverallBorder"
                 },
                 {
                   "type": "row",
@@ -8396,6 +8378,22 @@
                     ],
                     "subgroups": []
                   }
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileTargetExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileTargetOverallBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxMobileHideTargetPrefix"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxMobileHideTargetSuffix"
                 }
               ],
               "rowKeys": [
@@ -8406,12 +8404,12 @@
                 "checkboxMobileTargetNumberExtrusionScaleWithBrowser",
                 "checkboxMobileTargetSuffixExtrusionScaleWithBrowser",
                 "checkboxMobileTargetScaleWithBrowser",
-                "checkboxMobileHideTargetPrefix",
-                "checkboxMobileHideTargetSuffix",
+                "selectMobileTargetTextValign",
+                "selectMobileTargetTextAlign",
                 "colorMobileTargetExtrusionBorder",
                 "colorMobileTargetOverallBorder",
-                "selectMobileTargetTextValign",
-                "selectMobileTargetTextAlign"
+                "checkboxMobileHideTargetPrefix",
+                "checkboxMobileHideTargetSuffix"
               ],
               "subgroups": [
                 {
@@ -8604,14 +8602,6 @@
                 },
                 {
                   "type": "row",
-                  "key": "colorMobileSpeedExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileSpeedOverallBorder"
-                },
-                {
-                  "type": "row",
                   "key": "sliderMobileSpeedX"
                 },
                 {
@@ -8625,6 +8615,14 @@
                 {
                   "type": "row",
                   "key": "selectMobileSpeedTextValign"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileSpeedExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileSpeedOverallBorder"
                 }
               ],
               "rowKeys": [
@@ -8637,12 +8635,12 @@
                 "sliderMobileSpeedOverallBorderThickness",
                 "sliderMobileSpeedLetterSpacing",
                 "sliderMobileSpeedLineHeight",
-                "colorMobileSpeedExtrusionBorder",
-                "colorMobileSpeedOverallBorder",
                 "sliderMobileSpeedX",
                 "sliderMobileSpeedY",
                 "selectMobileSpeedTextAlign",
-                "selectMobileSpeedTextValign"
+                "selectMobileSpeedTextValign",
+                "colorMobileSpeedExtrusionBorder",
+                "colorMobileSpeedOverallBorder"
               ],
               "subgroups": []
             }
@@ -8694,14 +8692,6 @@
                 },
                 {
                   "type": "row",
-                  "key": "colorMobileMsPerClickExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileMsPerClickOverallBorder"
-                },
-                {
-                  "type": "row",
                   "key": "sliderMobileMsPerClickX"
                 },
                 {
@@ -8715,6 +8705,14 @@
                 {
                   "type": "row",
                   "key": "selectMobileMsPerClickTextValign"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileMsPerClickExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileMsPerClickOverallBorder"
                 }
               ],
               "rowKeys": [
@@ -8728,12 +8726,12 @@
                 "sliderMobileMsPerClickOverallBorderThickness",
                 "sliderMobileMsPerClickLetterSpacing",
                 "sliderMobileMsPerClickLineHeight",
-                "colorMobileMsPerClickExtrusionBorder",
-                "colorMobileMsPerClickOverallBorder",
                 "sliderMobileMsPerClickX",
                 "sliderMobileMsPerClickY",
                 "selectMobileMsPerClickTextAlign",
-                "selectMobileMsPerClickTextValign"
+                "selectMobileMsPerClickTextValign",
+                "colorMobileMsPerClickExtrusionBorder",
+                "colorMobileMsPerClickOverallBorder"
               ],
               "subgroups": []
             }
@@ -8908,50 +8906,8 @@
           },
           {
             "key": "mobile:New Group (4)",
-            "items": [
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink1Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink1Show"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink2Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink2Show"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink3Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink3Show"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink4Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundPostBlinkHold"
-              }
-            ],
-            "rowKeys": [
-              "sliderMobileRoundBlink1Hide",
-              "sliderMobileRoundBlink1Show",
-              "sliderMobileRoundBlink2Hide",
-              "sliderMobileRoundBlink2Show",
-              "sliderMobileRoundBlink3Hide",
-              "sliderMobileRoundBlink3Show",
-              "sliderMobileRoundBlink4Hide",
-              "sliderMobileRoundPostBlinkHold"
-            ],
+            "items": [],
+            "rowKeys": [],
             "subgroups": []
           },
           {
@@ -8964,10 +8920,6 @@
               {
                 "type": "row",
                 "key": "sliderMobileHighScoreRotate"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileHighScoreFlashDelay"
               },
               {
                 "type": "row",
@@ -8995,15 +8947,7 @@
               },
               {
                 "type": "row",
-                "key": "colorMobileHighScoreExtrusionBorder"
-              },
-              {
-                "type": "row",
                 "key": "sliderMobileHighScoreOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileHighScoreOverallBorder"
               },
               {
                 "type": "row",
@@ -9020,25 +8964,37 @@
               {
                 "type": "row",
                 "key": "sliderMobileHighScoreY"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileHighScoreExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileHighScoreOverallBorder"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileHighScoreFlashDelay"
               }
             ],
             "rowKeys": [
               "checkboxMobileHighScoreExtrusionScaleWithBrowser",
               "sliderMobileHighScoreRotate",
-              "sliderMobileHighScoreFlashDelay",
               "checkboxMobileHighScoreScaleWithBrowser",
               "selectMobileHighScoreTextAlign",
               "selectMobileHighScoreTextValign",
               "sliderMobileHighScoreFontSize",
               "sliderMobileHighScoreFontSizeVw",
               "sliderMobileHighScoreExtrusionDepth",
-              "colorMobileHighScoreExtrusionBorder",
               "sliderMobileHighScoreOverallBorderThickness",
-              "colorMobileHighScoreOverallBorder",
               "sliderMobileHighScoreLetterSpacing",
               "sliderMobileHighScoreLineHeight",
               "sliderMobileHighScoreX",
-              "sliderMobileHighScoreY"
+              "sliderMobileHighScoreY",
+              "colorMobileHighScoreExtrusionBorder",
+              "colorMobileHighScoreOverallBorder",
+              "sliderMobileHighScoreFlashDelay"
             ],
             "subgroups": []
           },
@@ -9091,19 +9047,19 @@
               },
               {
                 "type": "row",
-                "key": "colorMobileRoundExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileRoundOverallBorder"
-              },
-              {
-                "type": "row",
                 "key": "sliderMobileTextX"
               },
               {
                 "type": "row",
                 "key": "sliderMobileTextY"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileRoundExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileRoundOverallBorder"
               }
             ],
             "rowKeys": [
@@ -9118,10 +9074,10 @@
               "sliderMobileTextLineHeight",
               "selectMobileStartTextAlign",
               "selectMobileStartTextValign",
-              "colorMobileRoundExtrusionBorder",
-              "colorMobileRoundOverallBorder",
               "sliderMobileTextX",
-              "sliderMobileTextY"
+              "sliderMobileTextY",
+              "colorMobileRoundExtrusionBorder",
+              "colorMobileRoundOverallBorder"
             ],
             "subgroups": []
           },
@@ -9166,14 +9122,6 @@
               },
               {
                 "type": "row",
-                "key": "colorMobileRoundDockExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileRoundDockOverallBorder"
-              },
-              {
-                "type": "row",
                 "key": "sliderMobileRoundDockX"
               },
               {
@@ -9187,6 +9135,46 @@
               {
                 "type": "row",
                 "key": "selectMobileRoundTextValign"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileRoundDockExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileRoundDockOverallBorder"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink1Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink1Show"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink2Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink2Show"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink3Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink3Show"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink4Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundPostBlinkHold"
               }
             ],
             "rowKeys": [
@@ -9199,12 +9187,20 @@
               "sliderMobileRoundDockOverallBorderThickness",
               "sliderMobileRoundLetterSpacing",
               "sliderMobileRoundLineHeight",
-              "colorMobileRoundDockExtrusionBorder",
-              "colorMobileRoundDockOverallBorder",
               "sliderMobileRoundDockX",
               "sliderMobileRoundDockY",
               "selectMobileRoundTextAlign",
-              "selectMobileRoundTextValign"
+              "selectMobileRoundTextValign",
+              "colorMobileRoundDockExtrusionBorder",
+              "colorMobileRoundDockOverallBorder",
+              "sliderMobileRoundBlink1Hide",
+              "sliderMobileRoundBlink1Show",
+              "sliderMobileRoundBlink2Hide",
+              "sliderMobileRoundBlink2Show",
+              "sliderMobileRoundBlink3Hide",
+              "sliderMobileRoundBlink3Show",
+              "sliderMobileRoundBlink4Hide",
+              "sliderMobileRoundPostBlinkHold"
             ],
             "subgroups": []
           },
@@ -9238,22 +9234,6 @@
               {
                 "type": "row",
                 "key": "checkboxMobileTargetScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "checkboxMobileHideTargetPrefix"
-              },
-              {
-                "type": "row",
-                "key": "checkboxMobileHideTargetSuffix"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileTargetExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileTargetOverallBorder"
               },
               {
                 "type": "row",
@@ -9415,6 +9395,22 @@
                   ],
                   "subgroups": []
                 }
+              },
+              {
+                "type": "row",
+                "key": "colorMobileTargetExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileTargetOverallBorder"
+              },
+              {
+                "type": "row",
+                "key": "checkboxMobileHideTargetPrefix"
+              },
+              {
+                "type": "row",
+                "key": "checkboxMobileHideTargetSuffix"
               }
             ],
             "rowKeys": [
@@ -9425,12 +9421,12 @@
               "checkboxMobileTargetNumberExtrusionScaleWithBrowser",
               "checkboxMobileTargetSuffixExtrusionScaleWithBrowser",
               "checkboxMobileTargetScaleWithBrowser",
-              "checkboxMobileHideTargetPrefix",
-              "checkboxMobileHideTargetSuffix",
+              "selectMobileTargetTextValign",
+              "selectMobileTargetTextAlign",
               "colorMobileTargetExtrusionBorder",
               "colorMobileTargetOverallBorder",
-              "selectMobileTargetTextValign",
-              "selectMobileTargetTextAlign"
+              "checkboxMobileHideTargetPrefix",
+              "checkboxMobileHideTargetSuffix"
             ],
             "subgroups": [
               {
@@ -9620,14 +9616,6 @@
               },
               {
                 "type": "row",
-                "key": "colorMobileSpeedExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileSpeedOverallBorder"
-              },
-              {
-                "type": "row",
                 "key": "sliderMobileSpeedX"
               },
               {
@@ -9641,6 +9629,14 @@
               {
                 "type": "row",
                 "key": "selectMobileSpeedTextValign"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileSpeedExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileSpeedOverallBorder"
               }
             ],
             "rowKeys": [
@@ -9653,12 +9649,12 @@
               "sliderMobileSpeedOverallBorderThickness",
               "sliderMobileSpeedLetterSpacing",
               "sliderMobileSpeedLineHeight",
-              "colorMobileSpeedExtrusionBorder",
-              "colorMobileSpeedOverallBorder",
               "sliderMobileSpeedX",
               "sliderMobileSpeedY",
               "selectMobileSpeedTextAlign",
-              "selectMobileSpeedTextValign"
+              "selectMobileSpeedTextValign",
+              "colorMobileSpeedExtrusionBorder",
+              "colorMobileSpeedOverallBorder"
             ],
             "subgroups": []
           },
@@ -9707,14 +9703,6 @@
               },
               {
                 "type": "row",
-                "key": "colorMobileMsPerClickExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileMsPerClickOverallBorder"
-              },
-              {
-                "type": "row",
                 "key": "sliderMobileMsPerClickX"
               },
               {
@@ -9728,6 +9716,14 @@
               {
                 "type": "row",
                 "key": "selectMobileMsPerClickTextValign"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileMsPerClickExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileMsPerClickOverallBorder"
               }
             ],
             "rowKeys": [
@@ -9741,12 +9737,12 @@
               "sliderMobileMsPerClickOverallBorderThickness",
               "sliderMobileMsPerClickLetterSpacing",
               "sliderMobileMsPerClickLineHeight",
-              "colorMobileMsPerClickExtrusionBorder",
-              "colorMobileMsPerClickOverallBorder",
               "sliderMobileMsPerClickX",
               "sliderMobileMsPerClickY",
               "selectMobileMsPerClickTextAlign",
-              "selectMobileMsPerClickTextValign"
+              "selectMobileMsPerClickTextValign",
+              "colorMobileMsPerClickExtrusionBorder",
+              "colorMobileMsPerClickOverallBorder"
             ],
             "subgroups": []
           },
