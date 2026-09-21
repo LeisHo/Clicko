@@ -328,7 +328,7 @@
     "--shadow-elongation-angle": 76,
     "--shadow-rotate": 0,
     "--text-font-size-px": 133.54,
-    "--text-font-size-vw": 52.42,
+    "--text-font-size-vw": 16.17,
     "--text-scale-with-browser": 1,
     "--text-x-offset-vw": -8.3,
     "--text-x-offset-unit-is-px": 0,
@@ -13867,7 +13867,7 @@
       "sliderTextX": "-8.3",
       "sliderTextY": "-26.12",
       "colorRoundOverallBorder": "#1100ff",
-      "sliderTextFontSizeVw": "52.42"
+      "sliderTextFontSizeVw": "16.17"
     },
     "landscape": {}
   },
