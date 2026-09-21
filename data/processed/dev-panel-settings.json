@@ -227,7 +227,7 @@
     "--dev-panel-width-px": 532,
     "--dev-panel-left-px": 27,
     "--dev-panel-top-px": 50,
-    "--dev-panel-height-px": 707,
+    "--dev-panel-height-px": 671,
     "--round-breakdown-width-vw": 29.848,
     "--round-breakdown-height-vh": 60.938,
     "--round-breakdown-left-vw": 2.026,
@@ -328,7 +328,7 @@
     "--shadow-elongation-angle": 76,
     "--shadow-rotate": 0,
     "--text-font-size-px": 214.5,
-    "--text-font-size-vw": 38.67,
+    "--text-font-size-vw": 52.42,
     "--text-scale-with-browser": 1,
     "--text-x-offset-vw": -8.3,
     "--text-x-offset-unit-is-px": 0,
@@ -13866,7 +13866,8 @@
       "colorRoundExtrusionBorder": "#ffffff",
       "sliderTextX": "-8.3",
       "sliderTextY": "-26.12",
-      "colorRoundOverallBorder": "#1100ff"
+      "colorRoundOverallBorder": "#1100ff",
+      "sliderTextFontSizeVw": "52.42"
     },
     "landscape": {}
   },
