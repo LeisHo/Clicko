@@ -3591,13 +3591,6 @@
         #stage2InspectorHeader.dragging { cursor: grabbing; }
         #stage2InspectorPanel h1 { font-size: 13px; color: #0ff; margin: 0; }
         #stage2InspectorMount { flex: 1 1 auto; overflow-y: auto; padding: 0 10px 10px; }
-        #stage2ObjectPropertyPicker { flex: 0 0 auto; padding: 0 10px 6px; border-bottom: 1px solid #0ff4; margin-bottom: 4px; }
-        /* Hides the vendored Inspector's own raw "SELECT ELEMENT" row -
-           see #stage2ObjectPropertyPicker's own HTML comment for why this
-           is safe/stable across every re-render (buildElementSelect() is
-           deterministically render()'s 2nd appended child, confirmed by
-           reading inspector.mjs's own render() function directly). */
-        #stage2InspectorMount > div:nth-child(2) { display: none; }
         #stage2InspectorToggleBtn {
             position: fixed; bottom: 60px; right: 20px; z-index: 999999;
             background: #0ff; color: #000; border: none; border-radius: 4px;
@@ -19633,6 +19626,7 @@
             createUIElement({
                 id: 'stage2HighScoreX',
                 role: 'text',
+                group: 'High Score', propertyLabel: 'Position / Align',
                 layout: {
                     position: {
                         mode: 'anchor',
@@ -19650,6 +19644,7 @@
             createUIElement({
                 id: 'stage2HighScoreFontSize',
                 role: 'text',
+                group: 'High Score', propertyLabel: 'Font Size',
                 layout: {
                     // position.mode is unconditionally required by
                     // createUIElement() even for a size-only registration
@@ -19857,6 +19852,7 @@
             createUIElement({
                 id: elId,
                 role: 'text',
+                group: cfg.stage2Group, propertyLabel: 'Position / Align',
                 layout: {
                     position: {
                         mode: 'anchor',
@@ -19911,6 +19907,7 @@
             createUIElement({
                 id: fontSizeElId,
                 role: 'text',
+                group: cfg.stage2Group, propertyLabel: 'Font Size',
                 layout: {
                     position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
                     size: { width: { mode: 'fixed', value: {
@@ -20001,7 +19998,7 @@
         }
 
         registerStage2TextElement({
-            key: 'Start', groupName: 'Start/Try Again Button',
+            key: 'Start', groupName: 'Start/Try Again Button', stage2Group: 'Start/Try Again Button',
             xVar: '--text-x-offset-vw', yVar: '--text-y-offset-vh',
             fontPxVar: '--text-font-size-px', fontVwVar: '--text-font-size-vw', scaleVar: '--text-scale-with-browser',
             alignVar: '--start-text-align', valignVar: '--start-text-valign',
@@ -20012,7 +20009,7 @@
         });
 
         registerStage2TextElement({
-            key: 'RoundText', groupName: 'Round Text',
+            key: 'RoundText', groupName: 'Round Text', stage2Group: 'Round Text',
             xVar: '--round-dock-x-offset-vw', yVar: '--round-dock-y-offset-vh',
             fontPxVar: '--round-font-size-px', fontVwVar: '--round-font-size-vw', scaleVar: '--round-scale-with-browser',
             alignVar: '--round-text-align', valignVar: '--round-text-valign',
@@ -20023,7 +20020,7 @@
         });
 
         registerStage2TextElement({
-            key: 'Speed', groupName: 'Speed Display (max ms between taps)',
+            key: 'Speed', groupName: 'Speed Display (max ms between taps)', stage2Group: 'Speed Display',
             xVar: '--speed-x-offset-vw', yVar: '--speed-y-offset-vh',
             fontPxVar: '--speed-font-size-px', fontVwVar: '--speed-font-size-vw', scaleVar: '--speed-scale-with-browser',
             alignVar: '--speed-text-align', valignVar: '--speed-text-valign',
@@ -20034,7 +20031,7 @@
         });
 
         registerStage2TextElement({
-            key: 'MsPerClick', groupName: 'Ms/Click Display',
+            key: 'MsPerClick', groupName: 'Ms/Click Display', stage2Group: 'Ms/Click Display',
             xVar: '--ms-per-click-x-offset-vw', yVar: '--ms-per-click-y-offset-vh',
             fontPxVar: '--ms-per-click-font-size-px', fontVwVar: '--ms-per-click-font-size-vw', scaleVar: '--ms-per-click-scale-with-browser',
             alignVar: '--ms-per-click-text-align', valignVar: '--ms-per-click-text-valign',
@@ -20076,6 +20073,7 @@
                 const elId = 'stage2RoundBreakdown' + key;
                 createUIElement({
                     id: elId, role: 'text',
+                    group: 'Round Breakdown', propertyLabel: key + ' Font Size',
                     layout: {
                         position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
                         size: { width: { mode: 'fixed', value: { pxValue, vwValue: pxValue / scaleRefPx * 100, blend, vwUnit: 'vmin' } } },
@@ -20166,6 +20164,7 @@
             const initNumY = Number(cssVars['--target-number-y-offset-vh']) || 0;
             createUIElement({
                 id: 'stage2TargetNumberX', role: 'text',
+                group: 'Target Number', propertyLabel: 'Position',
                 layout: { position: { mode: 'anchor', horizontal: { anchor: 'center', offset: initNumX + numXUnit }, vertical: { anchor: 'center', offset: initNumY + numYUnit } } },
             });
             addTargetRow(buildSliderRow({ id: 'sliderStage2TargetNumberX', label: '(Stage 2, engine-driven) Number X Offset:', min: -700, max: 700, step: 0.01, value: initNumX }));
@@ -20191,13 +20190,14 @@
                 syncReal('sliderTargetNumberYOffset', resolvedNum);
             });
 
-            function registerTargetFontSize(key, pxVar, vwVar, realId) {
+            function registerTargetFontSize(key, pxVar, vwVar, realId, groupName) {
                 const elId = 'stage2Target' + key + 'FontSize';
                 const pxValue = Number(cssVars[pxVar]) || 0;
                 const vwValue = Number(cssVars[vwVar]) || 0;
                 const blend = Number(cssVars['--target-scale-with-browser']) || 0;
                 createUIElement({
                     id: elId, role: 'text',
+                    group: groupName, propertyLabel: 'Font Size',
                     layout: {
                         position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
                         size: { width: { mode: 'fixed', value: { pxValue, vwValue, blend, vwUnit: 'vmin' } } },
@@ -20215,7 +20215,7 @@
                     syncReal(realId, resolved.vwValue);
                 });
             }
-            registerTargetFontSize('Number', '--target-number-font-size-px', '--target-number-font-size-vw', 'sliderTargetNumberFontSizeVw');
+            registerTargetFontSize('Number', '--target-number-font-size-px', '--target-number-font-size-vw', 'sliderTargetNumberFontSizeVw', 'Target Number');
 
             // ---- Suffix (BOTH axes relative to Number's live edges -
             // the real per-axis-gap showcase) ----
@@ -20223,6 +20223,7 @@
             const initSuffixY = Number(cssVars['--target-suffix-y-offset-vh']) || 0;
             createUIElement({
                 id: 'stage2TargetSuffix', role: 'text',
+                group: 'Target Suffix', propertyLabel: 'Position',
                 layout: { position: { mode: 'relative', relativeTo: 'stage2TargetNumberX', myAnchor: 'top-left', targetAnchor: 'bottom-right', gap: { x: initSuffixX + 'px', y: initSuffixY + 'px' } } },
             });
             addTargetRow(buildSliderRow({ id: 'sliderStage2TargetSuffixX', label: '(Stage 2, engine-driven, relative-anchor) Suffix X Offset:', min: -700, max: 700, step: 0.01, value: initSuffixX }));
@@ -20247,7 +20248,7 @@
                 applyActiveVars();
                 syncReal('sliderTargetSuffixYOffset', parseFloat(resolvedGap.y));
             });
-            registerTargetFontSize('Suffix', '--target-suffix-font-size-px', '--target-suffix-font-size-vw', 'sliderTargetSuffixFontSizeVw');
+            registerTargetFontSize('Suffix', '--target-suffix-font-size-px', '--target-suffix-font-size-vw', 'sliderTargetSuffixFontSizeVw', 'Target Suffix');
 
             // ---- Prefix (HYBRID - X independent/anchor, Y relative to
             // Number's bottom edge - 2 separate logical registrations,
@@ -20256,6 +20257,7 @@
             const initPrefixY = Number(cssVars['--target-prefix-y-offset-vh']) || 0;
             createUIElement({
                 id: 'stage2TargetPrefixX', role: 'text',
+                group: 'Target Prefix', propertyLabel: 'X Position',
                 layout: { position: { mode: 'anchor', horizontal: { anchor: 'center', offset: initPrefixX + 'px' }, vertical: { anchor: 'top', offset: '0px' } } },
             });
             addTargetRow(buildSliderRow({ id: 'sliderStage2TargetPrefixX', label: '(Stage 2, engine-driven, anchor-mode) Prefix X Offset:', min: -700, max: 700, step: 0.01, value: initPrefixX }));
@@ -20270,6 +20272,7 @@
             });
             createUIElement({
                 id: 'stage2TargetPrefixY', role: 'text',
+                group: 'Target Prefix', propertyLabel: 'Y Position',
                 layout: { position: { mode: 'relative', relativeTo: 'stage2TargetNumberX', myAnchor: 'top-left', targetAnchor: 'bottom-left', gap: { y: initPrefixY + 'px' } } },
             });
             addTargetRow(buildSliderRow({ id: 'sliderStage2TargetPrefixY', label: '(Stage 2, engine-driven, relative-anchor) Prefix Y Offset:', min: -700, max: 700, step: 0.01, value: initPrefixY }));
@@ -20282,7 +20285,7 @@
                 applyActiveVars();
                 syncReal('sliderTargetPrefixYOffset', parseFloat(resolvedGap.y));
             });
-            registerTargetFontSize('Prefix', '--target-prefix-font-size-px', '--target-prefix-font-size-vw', 'sliderTargetPrefixFontSizeVw');
+            registerTargetFontSize('Prefix', '--target-prefix-font-size-px', '--target-prefix-font-size-vw', 'sliderTargetPrefixFontSizeVw', 'Target Prefix');
         }
     </script>
 
@@ -20316,38 +20319,17 @@
         <div class="dev-panel-resize-corner corner-bl" id="stage2InspectorResizeBL"></div>
         <div class="dev-panel-resize-corner corner-br" id="stage2InspectorResizeBR"></div>
         <div id="stage2InspectorHeader"><h1>UI-ENGINE INSPECTOR (Stage 2)</h1></div>
-        <!-- Object/Property cascading picker (2026-09-20, direct request:
-             "I want the inspector ui's Select Element drop-down to only
-             show the object name, then a second drop-down for object
-             properties... So for example in the first drop-down I would
-             select Target number. Then the second I would select font
-             size or x or whatever"). Sits OUTSIDE #stage2InspectorMount
-             deliberately - inspector.mjs's own render() clears and
-             rebuilds that entire container's innerHTML on every single
-             change (confirmed earlier this session), so anything placed
-             inside it would be wiped out immediately. These 2 selects are
-             a friendlier layer ON TOP of the vendored file's own raw
-             element-select row (never modified - see this block's own
-             REVERSIBLE note above) - picking Object then Property just
-             programmatically sets that raw select's value and dispatches
-             a real 'change' event, the same technique already used
-             throughout this file's own Stage 2 test/writeback code. The
-             raw row itself is hidden via CSS (#stage2InspectorMount >
-             div:nth-child(2) - see the <style> block - buildElementSelect()
-             is deterministically inspector.mjs's 2nd appended child on
-             every render(), confirmed by reading its own render()
-             function, so this survives every re-render without needing
-             JS to re-hide it each time). -->
-        <div id="stage2ObjectPropertyPicker">
-            <div class="ui-inspector-row">
-                <span class="ui-inspector-label">OBJECT</span>
-                <select id="stage2ObjectSelect" class="ui-inspector-select"><option value="">—</option></select>
-            </div>
-            <div class="ui-inspector-row">
-                <span class="ui-inspector-label">PROPERTY</span>
-                <select id="stage2PropertySelect" class="ui-inspector-select"><option value="">—</option></select>
-            </div>
-        </div>
+        <!-- Object/Property grouping (2026-09-20) is now NATIVE to the
+             vendored Inspector itself (ui-layout-engine v0.2.5's
+             group/propertyLabel registration metadata) - buildElementSelect()
+             renders the 2-level SELECT OBJECT / SELECT PROPERTY cascade
+             directly as part of #stage2InspectorMount's own content. The
+             earlier host-side stopgap (a 2nd pair of <select> elements
+             outside this mount point, driving the vendored raw select via a
+             synthetic 'change' event, plus a hand-maintained
+             STAGE2_ELEMENT_GROUPS lookup table) has been removed - every
+             createUIElement() call below now passes group/propertyLabel
+             directly instead. -->
         <div id="stage2InspectorMount"></div>
     </div>
     <button id="stage2InspectorToggleBtn">Inspector</button>
@@ -20373,109 +20355,6 @@
                         mountInspector(mount);
                         mounted = true;
                     }
-                });
-
-                // ------------------------------------------------------------
-                // OBJECT/PROPERTY cascading picker (2026-09-20, direct
-                // request - see #stage2ObjectPropertyPicker's own HTML
-                // comment for the full mechanism). Groups the flat list of
-                // ~23 registered engine elements into their real-world
-                // "object" groupings, matching Clicko's own dev-panel
-                // group names/vocabulary rather than the raw engine ids.
-                // ------------------------------------------------------------
-                const STAGE2_ELEMENT_GROUPS = {
-                    'High Score': [
-                        { label: 'Position / Align', id: 'stage2HighScoreX' },
-                        { label: 'Font Size', id: 'stage2HighScoreFontSize' },
-                    ],
-                    'Start/Try Again Button': [
-                        { label: 'Position / Align', id: 'stage2StartX' },
-                        { label: 'Font Size', id: 'stage2StartFontSize' },
-                    ],
-                    'Round Text': [
-                        { label: 'Position / Align', id: 'stage2RoundTextX' },
-                        { label: 'Font Size', id: 'stage2RoundTextFontSize' },
-                    ],
-                    'Speed Display': [
-                        { label: 'Position / Align', id: 'stage2SpeedX' },
-                        { label: 'Font Size', id: 'stage2SpeedFontSize' },
-                    ],
-                    'Ms/Click Display': [
-                        { label: 'Position / Align', id: 'stage2MsPerClickX' },
-                        { label: 'Font Size', id: 'stage2MsPerClickFontSize' },
-                    ],
-                    'Round Breakdown': [
-                        { label: 'Position', id: 'stage2RoundBreakdownX' },
-                        { label: 'Size (Width/Height)', id: 'stage2RoundBreakdownSize' },
-                        { label: 'Title Font Size', id: 'stage2RoundBreakdownTitle' },
-                        { label: 'Data Font Size', id: 'stage2RoundBreakdownData' },
-                    ],
-                    'Target Number': [
-                        { label: 'Position', id: 'stage2TargetNumberX' },
-                        { label: 'Font Size', id: 'stage2TargetNumberFontSize' },
-                    ],
-                    // Prefix's X and Y are 2 separate logical engine
-                    // registrations (position.mode is single-valued per
-                    // element - X is always anchor-mode, Y defaults to
-                    // relative-mode and can be switched to anchor - see
-                    // this file's own earlier "big pass" comment block),
-                    // so they're 2 separate Property entries here rather
-                    // than one combined "Position".
-                    'Target Prefix': [
-                        { label: 'X Position', id: 'stage2TargetPrefixX' },
-                        { label: 'Y Position', id: 'stage2TargetPrefixY' },
-                        { label: 'Font Size', id: 'stage2TargetPrefixFontSize' },
-                    ],
-                    'Target Suffix': [
-                        { label: 'Position', id: 'stage2TargetSuffix' },
-                        { label: 'Font Size', id: 'stage2TargetSuffixFontSize' },
-                    ],
-                    'Main Button': [
-                        { label: 'Position', id: 'stage2ButtonX' },
-                        { label: 'Diameter', id: 'stage2ButtonDiameter' },
-                    ],
-                };
-                const objectSelect = document.getElementById('stage2ObjectSelect');
-                const propertySelect = document.getElementById('stage2PropertySelect');
-                Object.keys(STAGE2_ELEMENT_GROUPS).forEach((groupName) => {
-                    const opt = document.createElement('option');
-                    opt.value = groupName;
-                    opt.textContent = groupName;
-                    objectSelect.appendChild(opt);
-                });
-                // Drives the vendored Inspector's own raw (now CSS-hidden)
-                // "SELECT ELEMENT" row by setting its value and dispatching
-                // a real 'change' event - the exact same technique already
-                // used throughout this file's Stage 2 test/writeback code,
-                // never by touching inspector.mjs itself. Mounts the
-                // Inspector on first use if the toggle button was never
-                // clicked yet, so the Object/Property picker works even
-                // before the panel has otherwise been opened.
-                function stage2SetRawSelect(elementId) {
-                    if (!mounted) { mountInspector(mount); mounted = true; }
-                    const rawSelect = mount.querySelector('.ui-inspector-select');
-                    if (!rawSelect) return;
-                    rawSelect.value = elementId || '';
-                    rawSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                objectSelect.addEventListener('change', () => {
-                    const props = STAGE2_ELEMENT_GROUPS[objectSelect.value] || [];
-                    propertySelect.innerHTML = '<option value="">—</option>';
-                    props.forEach((prop) => {
-                        const opt = document.createElement('option');
-                        opt.value = prop.id;
-                        opt.textContent = prop.label;
-                        propertySelect.appendChild(opt);
-                    });
-                    if (props.length > 0) {
-                        propertySelect.value = props[0].id;
-                        stage2SetRawSelect(props[0].id);
-                    } else {
-                        stage2SetRawSelect('');
-                    }
-                });
-                propertySelect.addEventListener('change', () => {
-                    stage2SetRawSelect(propertySelect.value);
                 });
 
                 // ------------------------------------------------------------
@@ -20632,6 +20511,7 @@
             const yUnit = cssVars['--button-y-offset-unit-is-px'] ? 'px' : 'vh';
             createUIElement({
                 id: 'stage2ButtonX', role: 'container',
+                group: 'Main Button', propertyLabel: 'Position',
                 layout: { position: { mode: 'anchor', horizontal: { anchor: 'center', offset: initX + xUnit }, vertical: { anchor: 'center', offset: initY + yUnit } } },
             });
             addButtonRow(buildSliderRow({ id: 'sliderStage2ButtonX', label: '(Stage 2, engine-driven) X Offset:', min: -50, max: 50, step: 0.01, value: initX }));
@@ -20662,6 +20542,7 @@
             const initMinDiameterPx = Number(cssVars['--button-min-diameter-px']) || 0;
             createUIElement({
                 id: 'stage2ButtonDiameter', role: 'container',
+                group: 'Main Button', propertyLabel: 'Diameter',
                 layout: {
                     position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
                     size: { width: { mode: 'clamp', min: initMinDiameterPx + 'px', preferred: initDiameterVw + 'vmin', max: '99999px' } },
@@ -20747,6 +20628,7 @@
 
             createUIElement({
                 id: 'stage2RoundBreakdownX', role: 'container',
+                group: 'Round Breakdown', propertyLabel: 'Position',
                 layout: { position: { mode: 'anchor', horizontal: { anchor: initAnchorH, offset: initX + xUnit }, vertical: { anchor: initAnchorV, offset: initY + yUnit } } },
             });
             addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownX', label: '(Stage 2, engine-driven) X Offset:', min: 0, max: 100, step: 0.1, value: initX }));
@@ -20776,6 +20658,7 @@
             const initHeight = Number(cssVars['--round-breakdown-height-vh']) || 0;
             createUIElement({
                 id: 'stage2RoundBreakdownSize', role: 'container',
+                group: 'Round Breakdown', propertyLabel: 'Size (Width/Height)',
                 layout: {
                     position: { mode: 'anchor', horizontal: { anchor: 'left' }, vertical: { anchor: 'top' } },
                     size: { width: { mode: 'fixed', value: initWidth + 'vw' }, height: { mode: 'fixed', value: initHeight + 'vh' } },

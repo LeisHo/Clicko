@@ -151,7 +151,30 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-20): reached Stage 2 of a multi-session UI-Engine
+Most recently (2026-09-20): fixed the Start/Try Again text visibly
+shifting down 3px when clicked, mirroring the Main Button's own press
+animation - direct report ("the Start text moves down (like the
+button) when I click it. It shouldn't... the button animation
+shouldn't apply to the start text"). `.start-button` (the actual
+`<button>` the "START"/"Try Again" text renders as) had its own
+separate `.pressed` CSS rule and `handleUIButtonPress()`/
+`handleUIButtonRelease()` handlers - a small, deliberately-built
+press-feedback effect on a completely different element/mechanism
+from the Main Button's own `.game-button.pressed`, not something
+inherited by accident. Removed the rule, both now-unused handler
+functions, and the `pointercancel`/`pointerleave` listeners that
+existed solely to call them; `pointerdown`/`pointerup`'s own
+`preventDefault()`/`startGame()` are untouched. Live-verified via a
+real dispatched pointer sequence: `startButton`'s computed `transform`
+is now identical before/during a press. Isolated into its own commit
+via a targeted `git apply --cached` of just the 3 relevant hunks - a
+concurrent session's own substantial, uncommitted UI-Engine work
+(`index.html` + `lib/ui-engine/*.mjs`) was sitting in the same file;
+verified the staged diff contained only my hunks before committing,
+leaving their work in the working tree untouched. Committed and
+pushed (afc965a).
+
+Before that (2026-09-20): reached Stage 2 of a multi-session UI-Engine
 adoption evaluation (`J:\CLAUDE\PROJECTS\HTML UI ENGINE` — a standalone,
 application-agnostic layout-configuration engine, being built in a sibling
 project with the eventual goal of porting Clicko's own positioning/scaling
