@@ -1,0 +1,10 @@
+# Local screen recordings / screenshots captured during testing - not
+# source content, and large enough (85MB+) that committing them would
+# permanently bloat git history for little benefit.
+datalog/
+
+# Claude Code local settings/state - machine-local, not meant to be
+# shared via git. .claude/launch.json (dev-server config) stays tracked.
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
