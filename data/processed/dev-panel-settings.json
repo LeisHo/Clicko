@@ -106,9 +106,9 @@
     "--round-text-valign": "bottom",
     "--round-text-align-edge-lock": 1,
     "--round-text-valign-edge-lock": 1,
-    "--high-score-x-offset-vw": -0.58,
+    "--high-score-x-offset-vw": 42.42,
     "--high-score-x-offset-unit-is-px": 0,
-    "--high-score-y-offset-vh": 30.46,
+    "--high-score-y-offset-vh": 47.18,
     "--high-score-y-offset-unit-is-px": 0,
     "--high-score-font-size-px": 50,
     "--high-score-font-size-vw": 4,
@@ -135,8 +135,9 @@
     "--gameplay-result-flash-with-round": 1,
     "--target-prefix-font-size-px": 141,
     "--target-prefix-font-size-vw": 8.81,
-    "--target-prefix-x-offset-vw": 66.77,
+    "--target-prefix-x-offset-vw": -72.34,
     "--target-prefix-y-offset-vh": 43.84,
+    "--target-prefix-y-anchor-offset-vh": 0,
     "--target-number-font-size-px": 386,
     "--target-number-font-size-vw": 32.9,
     "--target-number-x-offset-vw": 64,
@@ -145,6 +146,8 @@
     "--target-suffix-font-size-vw": 12.43,
     "--target-suffix-x-offset-vw": -21.6,
     "--target-suffix-y-offset-vh": -54.09,
+    "--target-suffix-x-anchor-offset-vw": 0,
+    "--target-suffix-y-anchor-offset-vh": 0,
     "--target-x-offset-unit-is-px": 0,
     "--target-y-offset-unit-is-px": 0,
     "--round-extrusion-scale-with-browser": 0,
@@ -222,8 +225,8 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 532,
-    "--dev-panel-left-px": 486,
-    "--dev-panel-top-px": 17,
+    "--dev-panel-left-px": 27,
+    "--dev-panel-top-px": 50,
     "--dev-panel-height-px": 707,
     "--round-breakdown-width-vw": 29.848,
     "--round-breakdown-height-vh": 60.938,
@@ -324,12 +327,12 @@
     "--shadow-elongation-intensity": 1.6,
     "--shadow-elongation-angle": 76,
     "--shadow-rotate": 0,
-    "--text-font-size-px": 199.17,
+    "--text-font-size-px": 214.5,
     "--text-font-size-vw": 38.67,
     "--text-scale-with-browser": 1,
-    "--text-x-offset-vw": 2,
+    "--text-x-offset-vw": -8.3,
     "--text-x-offset-unit-is-px": 0,
-    "--text-y-offset-vh": -2.87,
+    "--text-y-offset-vh": -26.12,
     "--text-y-offset-unit-is-px": 0,
     "--text-letter-spacing-px": -0.5,
     "--text-line-height": 1.3,
@@ -393,6 +396,7 @@
     "--target-prefix-font-size-vw": 13.15,
     "--target-prefix-x-offset-vw": 37.5,
     "--target-prefix-y-offset-vh": 39.85,
+    "--target-prefix-y-anchor-offset-vh": 0,
     "--target-prefix-letter-spacing-px": 2,
     "--target-number-font-size-px": 238.44,
     "--target-number-font-size-vw": 39,
@@ -403,6 +407,8 @@
     "--target-suffix-font-size-vw": 12.69,
     "--target-suffix-x-offset-vw": -11,
     "--target-suffix-y-offset-vh": -41.13,
+    "--target-suffix-x-anchor-offset-vw": 0,
+    "--target-suffix-y-anchor-offset-vh": 0,
     "--target-suffix-letter-spacing-px": 1.5,
     "--target-x-offset-unit-is-px": 0,
     "--target-y-offset-unit-is-px": 0,
@@ -642,6 +648,7 @@
     "--target-prefix-font-size-vw": 11.72,
     "--target-prefix-x-offset-vw": 49.2,
     "--target-prefix-y-offset-vh": 9.19,
+    "--target-prefix-y-anchor-offset-vh": 0,
     "--target-number-font-size-px": 500,
     "--target-number-font-size-vw": 39.06,
     "--target-number-x-offset-vw": 200.24,
@@ -650,6 +657,8 @@
     "--target-suffix-font-size-vw": 11.72,
     "--target-suffix-x-offset-vw": 324.34,
     "--target-suffix-y-offset-vh": 11.6,
+    "--target-suffix-x-anchor-offset-vw": 0,
+    "--target-suffix-y-anchor-offset-vh": 0,
     "--target-x-offset-unit-is-px": 0,
     "--target-y-offset-unit-is-px": 0,
     "--round-extrusion-scale-with-browser": 0,
@@ -860,9 +869,9 @@
     "fillColor": "#ffffff",
     "borderColor": "#000000",
     "roundDepth": 9,
-    "roundBorderColor": "#c41516",
+    "roundBorderColor": "#ffffff",
     "roundOverallBorderThickness": 9,
-    "roundOverallBorderColor": "#c41516",
+    "roundOverallBorderColor": "#1100ff",
     "tryAgainBorderColor": "#c41516",
     "tryAgainOverallBorderColor": "#c41516",
     "tryAgainDepth": 9,
@@ -1337,13 +1346,13 @@
     "desktop:New Group (6)": false,
     "desktop:8-Bit Text Style (Start/Try Again/Round/Win-Lose)": true,
     "desktop:New Group (4)": true,
-    "desktop:High Score": false,
+    "desktop:High Score": true,
     "desktop:Start/Try Again Button": true,
     "desktop:Round Text": true,
     "desktop:Target Count Display": false,
     "desktop:New Group (24)": true,
-    "desktop:New Group (22)": false,
-    "desktop:New Group (23)": true,
+    "desktop:New Group (22)": true,
+    "desktop:New Group (23)": false,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
     "desktop:Round Breakdown": true,
@@ -1377,11 +1386,14 @@
     "mobile:Click Burst": true,
     "mobile:New Group (6)": false,
     "mobile:8-Bit Text Style (Start/Try Again/Win-Lose)": true,
-    "mobile:New Group (4)": false,
+    "mobile:New Group (4)": true,
     "mobile:High Score": true,
-    "mobile:Start/Try Again Button": true,
+    "mobile:Start/Try Again Button": false,
     "mobile:Round Text": true,
     "mobile:Target Count Display": true,
+    "mobile:New Group (24)": false,
+    "mobile:New Group (22)": false,
+    "mobile:New Group (23)": false,
     "mobile:Speed Display (max ms between taps)": true,
     "mobile:Ms/Click Display": true,
     "mobile:Round Breakdown": false,
@@ -3495,6 +3507,26 @@
                 {
                   "type": "row",
                   "key": "selectStage2StartValign"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TryAgainX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TryAgainY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TryAgainFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2TryAgainAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2TryAgainValign"
                 }
               ],
               "rowKeys": [
@@ -3517,7 +3549,12 @@
                 "sliderStage2StartY",
                 "sliderStage2StartFontSize",
                 "selectStage2StartAlign",
-                "selectStage2StartValign"
+                "selectStage2StartValign",
+                "sliderStage2TryAgainX",
+                "sliderStage2TryAgainY",
+                "sliderStage2TryAgainFontSize",
+                "selectStage2TryAgainAlign",
+                "selectStage2TryAgainValign"
               ],
               "subgroups": []
             }
@@ -3638,6 +3675,18 @@
             "section": {
               "key": "desktop:Target Count Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "sliderTargetPrefixYAnchorOffset"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderTargetSuffixXAnchorOffset"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderTargetSuffixYAnchorOffset"
+                },
                 {
                   "type": "row",
                   "key": "checkboxTargetPrefixExtrusionScaleWithBrowser"
@@ -3869,6 +3918,9 @@
                 }
               ],
               "rowKeys": [
+                "sliderTargetPrefixYAnchorOffset",
+                "sliderTargetSuffixXAnchorOffset",
+                "sliderTargetSuffixYAnchorOffset",
                 "checkboxTargetPrefixExtrusionScaleWithBrowser",
                 "checkboxTargetNumberExtrusionScaleWithBrowser",
                 "checkboxTargetSuffixExtrusionScaleWithBrowser",
@@ -4916,6 +4968,26 @@
               {
                 "type": "row",
                 "key": "selectStage2StartValign"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TryAgainX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TryAgainY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TryAgainFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2TryAgainAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2TryAgainValign"
               }
             ],
             "rowKeys": [
@@ -4938,7 +5010,12 @@
               "sliderStage2StartY",
               "sliderStage2StartFontSize",
               "selectStage2StartAlign",
-              "selectStage2StartValign"
+              "selectStage2StartValign",
+              "sliderStage2TryAgainX",
+              "sliderStage2TryAgainY",
+              "sliderStage2TryAgainFontSize",
+              "selectStage2TryAgainAlign",
+              "selectStage2TryAgainValign"
             ],
             "subgroups": []
           },
@@ -5053,6 +5130,18 @@
           {
             "key": "desktop:Target Count Display",
             "items": [
+              {
+                "type": "row",
+                "key": "sliderTargetPrefixYAnchorOffset"
+              },
+              {
+                "type": "row",
+                "key": "sliderTargetSuffixXAnchorOffset"
+              },
+              {
+                "type": "row",
+                "key": "sliderTargetSuffixYAnchorOffset"
+              },
               {
                 "type": "row",
                 "key": "checkboxTargetPrefixExtrusionScaleWithBrowser"
@@ -5284,6 +5373,9 @@
               }
             ],
             "rowKeys": [
+              "sliderTargetPrefixYAnchorOffset",
+              "sliderTargetSuffixXAnchorOffset",
+              "sliderTargetSuffixYAnchorOffset",
               "checkboxTargetPrefixExtrusionScaleWithBrowser",
               "checkboxTargetNumberExtrusionScaleWithBrowser",
               "checkboxTargetSuffixExtrusionScaleWithBrowser",
@@ -6146,6 +6238,46 @@
                 {
                   "type": "row",
                   "key": "colorResultWinBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2WinX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2WinY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2WinFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2WinAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2WinValign"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2LoseX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2LoseY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2LoseFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2LoseAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2LoseValign"
                 }
               ],
               "rowKeys": [
@@ -6166,7 +6298,17 @@
                 "selectResultTextAlign",
                 "selectResultTextValign",
                 "colorResultWinFill",
-                "colorResultWinBorder"
+                "colorResultWinBorder",
+                "sliderStage2WinX",
+                "sliderStage2WinY",
+                "sliderStage2WinFontSize",
+                "selectStage2WinAlign",
+                "selectStage2WinValign",
+                "sliderStage2LoseX",
+                "sliderStage2LoseY",
+                "sliderStage2LoseFontSize",
+                "selectStage2LoseAlign",
+                "selectStage2LoseValign"
               ],
               "subgroups": []
             }
@@ -6368,6 +6510,26 @@
                 {
                   "type": "row",
                   "key": "sliderTryAgainQuestionMarkY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TryAgainQuestionMarkX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TryAgainQuestionMarkY"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderStage2TryAgainQuestionMarkFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2TryAgainQuestionMarkAlign"
+                },
+                {
+                  "type": "row",
+                  "key": "selectStage2TryAgainQuestionMarkValign"
                 }
               ],
               "rowKeys": [
@@ -6384,7 +6546,12 @@
                 "colorTryAgainQuestionMarkFill",
                 "colorTryAgainQuestionMarkOverallBorder",
                 "sliderTryAgainQuestionMarkX",
-                "sliderTryAgainQuestionMarkY"
+                "sliderTryAgainQuestionMarkY",
+                "sliderStage2TryAgainQuestionMarkX",
+                "sliderStage2TryAgainQuestionMarkY",
+                "sliderStage2TryAgainQuestionMarkFontSize",
+                "selectStage2TryAgainQuestionMarkAlign",
+                "selectStage2TryAgainQuestionMarkValign"
               ],
               "subgroups": []
             }
@@ -6466,6 +6633,46 @@
               {
                 "type": "row",
                 "key": "colorResultWinBorder"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2WinX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2WinY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2WinFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2WinAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2WinValign"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2LoseX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2LoseY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2LoseFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2LoseAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2LoseValign"
               }
             ],
             "rowKeys": [
@@ -6486,7 +6693,17 @@
               "selectResultTextAlign",
               "selectResultTextValign",
               "colorResultWinFill",
-              "colorResultWinBorder"
+              "colorResultWinBorder",
+              "sliderStage2WinX",
+              "sliderStage2WinY",
+              "sliderStage2WinFontSize",
+              "selectStage2WinAlign",
+              "selectStage2WinValign",
+              "sliderStage2LoseX",
+              "sliderStage2LoseY",
+              "sliderStage2LoseFontSize",
+              "selectStage2LoseAlign",
+              "selectStage2LoseValign"
             ],
             "subgroups": []
           },
@@ -6679,6 +6896,26 @@
               {
                 "type": "row",
                 "key": "sliderTryAgainQuestionMarkY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TryAgainQuestionMarkX"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TryAgainQuestionMarkY"
+              },
+              {
+                "type": "row",
+                "key": "sliderStage2TryAgainQuestionMarkFontSize"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2TryAgainQuestionMarkAlign"
+              },
+              {
+                "type": "row",
+                "key": "selectStage2TryAgainQuestionMarkValign"
               }
             ],
             "rowKeys": [
@@ -6695,7 +6932,12 @@
               "colorTryAgainQuestionMarkFill",
               "colorTryAgainQuestionMarkOverallBorder",
               "sliderTryAgainQuestionMarkX",
-              "sliderTryAgainQuestionMarkY"
+              "sliderTryAgainQuestionMarkY",
+              "sliderStage2TryAgainQuestionMarkX",
+              "sliderStage2TryAgainQuestionMarkY",
+              "sliderStage2TryAgainQuestionMarkFontSize",
+              "selectStage2TryAgainQuestionMarkAlign",
+              "selectStage2TryAgainQuestionMarkValign"
             ],
             "subgroups": []
           }
@@ -7635,8 +7877,50 @@
             "type": "group",
             "section": {
               "key": "mobile:New Group (4)",
-              "items": [],
-              "rowKeys": [],
+              "items": [
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink1Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink1Show"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink2Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink2Show"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink3Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink3Show"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundBlink4Hide"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileRoundPostBlinkHold"
+                }
+              ],
+              "rowKeys": [
+                "sliderMobileRoundBlink1Hide",
+                "sliderMobileRoundBlink1Show",
+                "sliderMobileRoundBlink2Hide",
+                "sliderMobileRoundBlink2Show",
+                "sliderMobileRoundBlink3Hide",
+                "sliderMobileRoundBlink3Show",
+                "sliderMobileRoundBlink4Hide",
+                "sliderMobileRoundPostBlinkHold"
+              ],
               "subgroups": []
             }
           },
@@ -7652,6 +7936,10 @@
                 {
                   "type": "row",
                   "key": "sliderMobileHighScoreRotate"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileHighScoreFlashDelay"
                 },
                 {
                   "type": "row",
@@ -7679,7 +7967,15 @@
                 },
                 {
                   "type": "row",
+                  "key": "colorMobileHighScoreExtrusionBorder"
+                },
+                {
+                  "type": "row",
                   "key": "sliderMobileHighScoreOverallBorderThickness"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileHighScoreOverallBorder"
                 },
                 {
                   "type": "row",
@@ -7696,37 +7992,25 @@
                 {
                   "type": "row",
                   "key": "sliderMobileHighScoreY"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileHighScoreExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileHighScoreOverallBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileHighScoreFlashDelay"
                 }
               ],
               "rowKeys": [
                 "checkboxMobileHighScoreExtrusionScaleWithBrowser",
                 "sliderMobileHighScoreRotate",
+                "sliderMobileHighScoreFlashDelay",
                 "checkboxMobileHighScoreScaleWithBrowser",
                 "selectMobileHighScoreTextAlign",
                 "selectMobileHighScoreTextValign",
                 "sliderMobileHighScoreFontSize",
                 "sliderMobileHighScoreFontSizeVw",
                 "sliderMobileHighScoreExtrusionDepth",
+                "colorMobileHighScoreExtrusionBorder",
                 "sliderMobileHighScoreOverallBorderThickness",
+                "colorMobileHighScoreOverallBorder",
                 "sliderMobileHighScoreLetterSpacing",
                 "sliderMobileHighScoreLineHeight",
                 "sliderMobileHighScoreX",
-                "sliderMobileHighScoreY",
-                "colorMobileHighScoreExtrusionBorder",
-                "colorMobileHighScoreOverallBorder",
-                "sliderMobileHighScoreFlashDelay"
+                "sliderMobileHighScoreY"
               ],
               "subgroups": []
             }
@@ -7782,19 +8066,19 @@
                 },
                 {
                   "type": "row",
-                  "key": "sliderMobileTextX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTextY"
-                },
-                {
-                  "type": "row",
                   "key": "colorMobileRoundExtrusionBorder"
                 },
                 {
                   "type": "row",
                   "key": "colorMobileRoundOverallBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileTextX"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileTextY"
                 }
               ],
               "rowKeys": [
@@ -7809,10 +8093,10 @@
                 "sliderMobileTextLineHeight",
                 "selectMobileStartTextAlign",
                 "selectMobileStartTextValign",
-                "sliderMobileTextX",
-                "sliderMobileTextY",
                 "colorMobileRoundExtrusionBorder",
-                "colorMobileRoundOverallBorder"
+                "colorMobileRoundOverallBorder",
+                "sliderMobileTextX",
+                "sliderMobileTextY"
               ],
               "subgroups": []
             }
@@ -7860,6 +8144,14 @@
                 },
                 {
                   "type": "row",
+                  "key": "colorMobileRoundDockExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileRoundDockOverallBorder"
+                },
+                {
+                  "type": "row",
                   "key": "sliderMobileRoundDockX"
                 },
                 {
@@ -7873,46 +8165,6 @@
                 {
                   "type": "row",
                   "key": "selectMobileRoundTextValign"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileRoundDockExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileRoundDockOverallBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink1Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink1Show"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink2Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink2Show"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink3Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink3Show"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundBlink4Hide"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileRoundPostBlinkHold"
                 }
               ],
               "rowKeys": [
@@ -7925,20 +8177,12 @@
                 "sliderMobileRoundDockOverallBorderThickness",
                 "sliderMobileRoundLetterSpacing",
                 "sliderMobileRoundLineHeight",
+                "colorMobileRoundDockExtrusionBorder",
+                "colorMobileRoundDockOverallBorder",
                 "sliderMobileRoundDockX",
                 "sliderMobileRoundDockY",
                 "selectMobileRoundTextAlign",
-                "selectMobileRoundTextValign",
-                "colorMobileRoundDockExtrusionBorder",
-                "colorMobileRoundDockOverallBorder",
-                "sliderMobileRoundBlink1Hide",
-                "sliderMobileRoundBlink1Show",
-                "sliderMobileRoundBlink2Hide",
-                "sliderMobileRoundBlink2Show",
-                "sliderMobileRoundBlink3Hide",
-                "sliderMobileRoundBlink3Show",
-                "sliderMobileRoundBlink4Hide",
-                "sliderMobileRoundPostBlinkHold"
+                "selectMobileRoundTextValign"
               ],
               "subgroups": []
             }
@@ -7948,6 +8192,18 @@
             "section": {
               "key": "mobile:Target Count Display",
               "items": [
+                {
+                  "type": "row",
+                  "key": "sliderMobileTargetPrefixYAnchorOffset"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileTargetSuffixXAnchorOffset"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderMobileTargetSuffixYAnchorOffset"
+                },
                 {
                   "type": "row",
                   "key": "checkboxMobileTargetPrefixExtrusionScaleWithBrowser"
@@ -7962,111 +8218,15 @@
                 },
                 {
                   "type": "row",
-                  "key": "sliderMobileTargetPrefixLineHeight"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberLineHeight"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixLineHeight"
-                },
-                {
-                  "type": "row",
                   "key": "checkboxMobileTargetScaleWithBrowser"
                 },
                 {
                   "type": "row",
-                  "key": "sliderMobileTargetPrefixFontSizeVw"
+                  "key": "checkboxMobileHideTargetPrefix"
                 },
                 {
                   "type": "row",
-                  "key": "sliderMobileTargetPrefixFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetPrefixExtrusionDepth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetPrefixOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetPrefixLetterSpacing"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetPrefixXOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetPrefixYOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberFontSizeVw"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberExtrusionDepth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberLetterSpacing"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberXOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetNumberYOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixFontSizeVw"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixExtrusionDepth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixOverallBorderThickness"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixLetterSpacing"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixFontSize"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixXOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderMobileTargetSuffixYOffset"
-                },
-                {
-                  "type": "row",
-                  "key": "selectMobileTargetTextAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "selectMobileTargetTextValign"
+                  "key": "checkboxMobileHideTargetSuffix"
                 },
                 {
                   "type": "row",
@@ -8078,50 +8238,327 @@
                 },
                 {
                   "type": "row",
-                  "key": "checkboxMobileHideTargetPrefix"
+                  "key": "selectMobileTargetTextValign"
                 },
                 {
                   "type": "row",
-                  "key": "checkboxMobileHideTargetSuffix"
+                  "key": "selectMobileTargetTextAlign"
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "mobile:New Group (24)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberLineHeight"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberFontSizeVw"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberExtrusionDepth"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberOverallBorderThickness"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberXOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetNumberYOffset"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderMobileTargetNumberLineHeight",
+                      "sliderMobileTargetNumberFontSizeVw",
+                      "sliderMobileTargetNumberFontSize",
+                      "sliderMobileTargetNumberExtrusionDepth",
+                      "sliderMobileTargetNumberOverallBorderThickness",
+                      "sliderMobileTargetNumberLetterSpacing",
+                      "sliderMobileTargetNumberXOffset",
+                      "sliderMobileTargetNumberYOffset"
+                    ],
+                    "subgroups": []
+                  }
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "mobile:New Group (22)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixFontSizeVw"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixExtrusionDepth"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixOverallBorderThickness"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixLineHeight"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixXOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetPrefixYOffset"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderMobileTargetPrefixFontSize",
+                      "sliderMobileTargetPrefixFontSizeVw",
+                      "sliderMobileTargetPrefixExtrusionDepth",
+                      "sliderMobileTargetPrefixOverallBorderThickness",
+                      "sliderMobileTargetPrefixLetterSpacing",
+                      "sliderMobileTargetPrefixLineHeight",
+                      "sliderMobileTargetPrefixXOffset",
+                      "sliderMobileTargetPrefixYOffset"
+                    ],
+                    "subgroups": []
+                  }
+                },
+                {
+                  "type": "group",
+                  "section": {
+                    "key": "mobile:New Group (23)",
+                    "items": [
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixYOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixXOffset"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixFontSize"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixFontSizeVw"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixOverallBorderThickness"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixExtrusionDepth"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixLetterSpacing"
+                      },
+                      {
+                        "type": "row",
+                        "key": "sliderMobileTargetSuffixLineHeight"
+                      }
+                    ],
+                    "rowKeys": [
+                      "sliderMobileTargetSuffixYOffset",
+                      "sliderMobileTargetSuffixXOffset",
+                      "sliderMobileTargetSuffixFontSize",
+                      "sliderMobileTargetSuffixFontSizeVw",
+                      "sliderMobileTargetSuffixOverallBorderThickness",
+                      "sliderMobileTargetSuffixExtrusionDepth",
+                      "sliderMobileTargetSuffixLetterSpacing",
+                      "sliderMobileTargetSuffixLineHeight"
+                    ],
+                    "subgroups": []
+                  }
                 }
               ],
               "rowKeys": [
+                "sliderMobileTargetPrefixYAnchorOffset",
+                "sliderMobileTargetSuffixXAnchorOffset",
+                "sliderMobileTargetSuffixYAnchorOffset",
                 "checkboxMobileTargetPrefixExtrusionScaleWithBrowser",
                 "checkboxMobileTargetNumberExtrusionScaleWithBrowser",
                 "checkboxMobileTargetSuffixExtrusionScaleWithBrowser",
-                "sliderMobileTargetPrefixLineHeight",
-                "sliderMobileTargetNumberLineHeight",
-                "sliderMobileTargetSuffixLineHeight",
                 "checkboxMobileTargetScaleWithBrowser",
-                "sliderMobileTargetPrefixFontSizeVw",
-                "sliderMobileTargetPrefixFontSize",
-                "sliderMobileTargetPrefixExtrusionDepth",
-                "sliderMobileTargetPrefixOverallBorderThickness",
-                "sliderMobileTargetPrefixLetterSpacing",
-                "sliderMobileTargetPrefixXOffset",
-                "sliderMobileTargetPrefixYOffset",
-                "sliderMobileTargetNumberFontSizeVw",
-                "sliderMobileTargetNumberFontSize",
-                "sliderMobileTargetNumberExtrusionDepth",
-                "sliderMobileTargetNumberOverallBorderThickness",
-                "sliderMobileTargetNumberLetterSpacing",
-                "sliderMobileTargetNumberXOffset",
-                "sliderMobileTargetNumberYOffset",
-                "sliderMobileTargetSuffixFontSizeVw",
-                "sliderMobileTargetSuffixExtrusionDepth",
-                "sliderMobileTargetSuffixOverallBorderThickness",
-                "sliderMobileTargetSuffixLetterSpacing",
-                "sliderMobileTargetSuffixFontSize",
-                "sliderMobileTargetSuffixXOffset",
-                "sliderMobileTargetSuffixYOffset",
-                "selectMobileTargetTextAlign",
-                "selectMobileTargetTextValign",
+                "checkboxMobileHideTargetPrefix",
+                "checkboxMobileHideTargetSuffix",
                 "colorMobileTargetExtrusionBorder",
                 "colorMobileTargetOverallBorder",
-                "checkboxMobileHideTargetPrefix",
-                "checkboxMobileHideTargetSuffix"
+                "selectMobileTargetTextValign",
+                "selectMobileTargetTextAlign"
               ],
-              "subgroups": []
+              "subgroups": [
+                {
+                  "key": "mobile:New Group (24)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberLineHeight"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberYOffset"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileTargetNumberLineHeight",
+                    "sliderMobileTargetNumberFontSizeVw",
+                    "sliderMobileTargetNumberFontSize",
+                    "sliderMobileTargetNumberExtrusionDepth",
+                    "sliderMobileTargetNumberOverallBorderThickness",
+                    "sliderMobileTargetNumberLetterSpacing",
+                    "sliderMobileTargetNumberXOffset",
+                    "sliderMobileTargetNumberYOffset"
+                  ],
+                  "subgroups": []
+                },
+                {
+                  "key": "mobile:New Group (22)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixLineHeight"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixYOffset"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileTargetPrefixFontSize",
+                    "sliderMobileTargetPrefixFontSizeVw",
+                    "sliderMobileTargetPrefixExtrusionDepth",
+                    "sliderMobileTargetPrefixOverallBorderThickness",
+                    "sliderMobileTargetPrefixLetterSpacing",
+                    "sliderMobileTargetPrefixLineHeight",
+                    "sliderMobileTargetPrefixXOffset",
+                    "sliderMobileTargetPrefixYOffset"
+                  ],
+                  "subgroups": []
+                },
+                {
+                  "key": "mobile:New Group (23)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixYOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileTargetSuffixYOffset",
+                    "sliderMobileTargetSuffixXOffset",
+                    "sliderMobileTargetSuffixFontSize",
+                    "sliderMobileTargetSuffixFontSizeVw",
+                    "sliderMobileTargetSuffixOverallBorderThickness",
+                    "sliderMobileTargetSuffixExtrusionDepth",
+                    "sliderMobileTargetSuffixLetterSpacing",
+                    "sliderMobileTargetSuffixLineHeight"
+                  ],
+                  "subgroups": []
+                }
+              ]
             }
           },
           {
@@ -8167,6 +8604,14 @@
                 },
                 {
                   "type": "row",
+                  "key": "colorMobileSpeedExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileSpeedOverallBorder"
+                },
+                {
+                  "type": "row",
                   "key": "sliderMobileSpeedX"
                 },
                 {
@@ -8180,14 +8625,6 @@
                 {
                   "type": "row",
                   "key": "selectMobileSpeedTextValign"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileSpeedExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileSpeedOverallBorder"
                 }
               ],
               "rowKeys": [
@@ -8200,12 +8637,12 @@
                 "sliderMobileSpeedOverallBorderThickness",
                 "sliderMobileSpeedLetterSpacing",
                 "sliderMobileSpeedLineHeight",
+                "colorMobileSpeedExtrusionBorder",
+                "colorMobileSpeedOverallBorder",
                 "sliderMobileSpeedX",
                 "sliderMobileSpeedY",
                 "selectMobileSpeedTextAlign",
-                "selectMobileSpeedTextValign",
-                "colorMobileSpeedExtrusionBorder",
-                "colorMobileSpeedOverallBorder"
+                "selectMobileSpeedTextValign"
               ],
               "subgroups": []
             }
@@ -8257,6 +8694,14 @@
                 },
                 {
                   "type": "row",
+                  "key": "colorMobileMsPerClickExtrusionBorder"
+                },
+                {
+                  "type": "row",
+                  "key": "colorMobileMsPerClickOverallBorder"
+                },
+                {
+                  "type": "row",
                   "key": "sliderMobileMsPerClickX"
                 },
                 {
@@ -8270,14 +8715,6 @@
                 {
                   "type": "row",
                   "key": "selectMobileMsPerClickTextValign"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileMsPerClickExtrusionBorder"
-                },
-                {
-                  "type": "row",
-                  "key": "colorMobileMsPerClickOverallBorder"
                 }
               ],
               "rowKeys": [
@@ -8291,12 +8728,12 @@
                 "sliderMobileMsPerClickOverallBorderThickness",
                 "sliderMobileMsPerClickLetterSpacing",
                 "sliderMobileMsPerClickLineHeight",
+                "colorMobileMsPerClickExtrusionBorder",
+                "colorMobileMsPerClickOverallBorder",
                 "sliderMobileMsPerClickX",
                 "sliderMobileMsPerClickY",
                 "selectMobileMsPerClickTextAlign",
-                "selectMobileMsPerClickTextValign",
-                "colorMobileMsPerClickExtrusionBorder",
-                "colorMobileMsPerClickOverallBorder"
+                "selectMobileMsPerClickTextValign"
               ],
               "subgroups": []
             }
@@ -8471,8 +8908,50 @@
           },
           {
             "key": "mobile:New Group (4)",
-            "items": [],
-            "rowKeys": [],
+            "items": [
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink1Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink1Show"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink2Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink2Show"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink3Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink3Show"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundBlink4Hide"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileRoundPostBlinkHold"
+              }
+            ],
+            "rowKeys": [
+              "sliderMobileRoundBlink1Hide",
+              "sliderMobileRoundBlink1Show",
+              "sliderMobileRoundBlink2Hide",
+              "sliderMobileRoundBlink2Show",
+              "sliderMobileRoundBlink3Hide",
+              "sliderMobileRoundBlink3Show",
+              "sliderMobileRoundBlink4Hide",
+              "sliderMobileRoundPostBlinkHold"
+            ],
             "subgroups": []
           },
           {
@@ -8485,6 +8964,10 @@
               {
                 "type": "row",
                 "key": "sliderMobileHighScoreRotate"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileHighScoreFlashDelay"
               },
               {
                 "type": "row",
@@ -8512,7 +8995,15 @@
               },
               {
                 "type": "row",
+                "key": "colorMobileHighScoreExtrusionBorder"
+              },
+              {
+                "type": "row",
                 "key": "sliderMobileHighScoreOverallBorderThickness"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileHighScoreOverallBorder"
               },
               {
                 "type": "row",
@@ -8529,37 +9020,25 @@
               {
                 "type": "row",
                 "key": "sliderMobileHighScoreY"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileHighScoreExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileHighScoreOverallBorder"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileHighScoreFlashDelay"
               }
             ],
             "rowKeys": [
               "checkboxMobileHighScoreExtrusionScaleWithBrowser",
               "sliderMobileHighScoreRotate",
+              "sliderMobileHighScoreFlashDelay",
               "checkboxMobileHighScoreScaleWithBrowser",
               "selectMobileHighScoreTextAlign",
               "selectMobileHighScoreTextValign",
               "sliderMobileHighScoreFontSize",
               "sliderMobileHighScoreFontSizeVw",
               "sliderMobileHighScoreExtrusionDepth",
+              "colorMobileHighScoreExtrusionBorder",
               "sliderMobileHighScoreOverallBorderThickness",
+              "colorMobileHighScoreOverallBorder",
               "sliderMobileHighScoreLetterSpacing",
               "sliderMobileHighScoreLineHeight",
               "sliderMobileHighScoreX",
-              "sliderMobileHighScoreY",
-              "colorMobileHighScoreExtrusionBorder",
-              "colorMobileHighScoreOverallBorder",
-              "sliderMobileHighScoreFlashDelay"
+              "sliderMobileHighScoreY"
             ],
             "subgroups": []
           },
@@ -8612,19 +9091,19 @@
               },
               {
                 "type": "row",
-                "key": "sliderMobileTextX"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTextY"
-              },
-              {
-                "type": "row",
                 "key": "colorMobileRoundExtrusionBorder"
               },
               {
                 "type": "row",
                 "key": "colorMobileRoundOverallBorder"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileTextX"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileTextY"
               }
             ],
             "rowKeys": [
@@ -8639,10 +9118,10 @@
               "sliderMobileTextLineHeight",
               "selectMobileStartTextAlign",
               "selectMobileStartTextValign",
-              "sliderMobileTextX",
-              "sliderMobileTextY",
               "colorMobileRoundExtrusionBorder",
-              "colorMobileRoundOverallBorder"
+              "colorMobileRoundOverallBorder",
+              "sliderMobileTextX",
+              "sliderMobileTextY"
             ],
             "subgroups": []
           },
@@ -8687,6 +9166,14 @@
               },
               {
                 "type": "row",
+                "key": "colorMobileRoundDockExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileRoundDockOverallBorder"
+              },
+              {
+                "type": "row",
                 "key": "sliderMobileRoundDockX"
               },
               {
@@ -8700,46 +9187,6 @@
               {
                 "type": "row",
                 "key": "selectMobileRoundTextValign"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileRoundDockExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileRoundDockOverallBorder"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink1Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink1Show"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink2Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink2Show"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink3Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink3Show"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundBlink4Hide"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileRoundPostBlinkHold"
               }
             ],
             "rowKeys": [
@@ -8752,26 +9199,30 @@
               "sliderMobileRoundDockOverallBorderThickness",
               "sliderMobileRoundLetterSpacing",
               "sliderMobileRoundLineHeight",
+              "colorMobileRoundDockExtrusionBorder",
+              "colorMobileRoundDockOverallBorder",
               "sliderMobileRoundDockX",
               "sliderMobileRoundDockY",
               "selectMobileRoundTextAlign",
-              "selectMobileRoundTextValign",
-              "colorMobileRoundDockExtrusionBorder",
-              "colorMobileRoundDockOverallBorder",
-              "sliderMobileRoundBlink1Hide",
-              "sliderMobileRoundBlink1Show",
-              "sliderMobileRoundBlink2Hide",
-              "sliderMobileRoundBlink2Show",
-              "sliderMobileRoundBlink3Hide",
-              "sliderMobileRoundBlink3Show",
-              "sliderMobileRoundBlink4Hide",
-              "sliderMobileRoundPostBlinkHold"
+              "selectMobileRoundTextValign"
             ],
             "subgroups": []
           },
           {
             "key": "mobile:Target Count Display",
             "items": [
+              {
+                "type": "row",
+                "key": "sliderMobileTargetPrefixYAnchorOffset"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileTargetSuffixXAnchorOffset"
+              },
+              {
+                "type": "row",
+                "key": "sliderMobileTargetSuffixYAnchorOffset"
+              },
               {
                 "type": "row",
                 "key": "checkboxMobileTargetPrefixExtrusionScaleWithBrowser"
@@ -8786,111 +9237,15 @@
               },
               {
                 "type": "row",
-                "key": "sliderMobileTargetPrefixLineHeight"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberLineHeight"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixLineHeight"
-              },
-              {
-                "type": "row",
                 "key": "checkboxMobileTargetScaleWithBrowser"
               },
               {
                 "type": "row",
-                "key": "sliderMobileTargetPrefixFontSizeVw"
+                "key": "checkboxMobileHideTargetPrefix"
               },
               {
                 "type": "row",
-                "key": "sliderMobileTargetPrefixFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetPrefixExtrusionDepth"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetPrefixOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetPrefixLetterSpacing"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetPrefixXOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetPrefixYOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberFontSizeVw"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberExtrusionDepth"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberLetterSpacing"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberXOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetNumberYOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixFontSizeVw"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixExtrusionDepth"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixOverallBorderThickness"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixLetterSpacing"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixFontSize"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixXOffset"
-              },
-              {
-                "type": "row",
-                "key": "sliderMobileTargetSuffixYOffset"
-              },
-              {
-                "type": "row",
-                "key": "selectMobileTargetTextAlign"
-              },
-              {
-                "type": "row",
-                "key": "selectMobileTargetTextValign"
+                "key": "checkboxMobileHideTargetSuffix"
               },
               {
                 "type": "row",
@@ -8902,50 +9257,327 @@
               },
               {
                 "type": "row",
-                "key": "checkboxMobileHideTargetPrefix"
+                "key": "selectMobileTargetTextValign"
               },
               {
                 "type": "row",
-                "key": "checkboxMobileHideTargetSuffix"
+                "key": "selectMobileTargetTextAlign"
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "mobile:New Group (24)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberLineHeight"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetNumberYOffset"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileTargetNumberLineHeight",
+                    "sliderMobileTargetNumberFontSizeVw",
+                    "sliderMobileTargetNumberFontSize",
+                    "sliderMobileTargetNumberExtrusionDepth",
+                    "sliderMobileTargetNumberOverallBorderThickness",
+                    "sliderMobileTargetNumberLetterSpacing",
+                    "sliderMobileTargetNumberXOffset",
+                    "sliderMobileTargetNumberYOffset"
+                  ],
+                  "subgroups": []
+                }
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "mobile:New Group (22)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixLineHeight"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetPrefixYOffset"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileTargetPrefixFontSize",
+                    "sliderMobileTargetPrefixFontSizeVw",
+                    "sliderMobileTargetPrefixExtrusionDepth",
+                    "sliderMobileTargetPrefixOverallBorderThickness",
+                    "sliderMobileTargetPrefixLetterSpacing",
+                    "sliderMobileTargetPrefixLineHeight",
+                    "sliderMobileTargetPrefixXOffset",
+                    "sliderMobileTargetPrefixYOffset"
+                  ],
+                  "subgroups": []
+                }
+              },
+              {
+                "type": "group",
+                "section": {
+                  "key": "mobile:New Group (23)",
+                  "items": [
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixYOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixXOffset"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixFontSize"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixFontSizeVw"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixOverallBorderThickness"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixExtrusionDepth"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixLetterSpacing"
+                    },
+                    {
+                      "type": "row",
+                      "key": "sliderMobileTargetSuffixLineHeight"
+                    }
+                  ],
+                  "rowKeys": [
+                    "sliderMobileTargetSuffixYOffset",
+                    "sliderMobileTargetSuffixXOffset",
+                    "sliderMobileTargetSuffixFontSize",
+                    "sliderMobileTargetSuffixFontSizeVw",
+                    "sliderMobileTargetSuffixOverallBorderThickness",
+                    "sliderMobileTargetSuffixExtrusionDepth",
+                    "sliderMobileTargetSuffixLetterSpacing",
+                    "sliderMobileTargetSuffixLineHeight"
+                  ],
+                  "subgroups": []
+                }
               }
             ],
             "rowKeys": [
+              "sliderMobileTargetPrefixYAnchorOffset",
+              "sliderMobileTargetSuffixXAnchorOffset",
+              "sliderMobileTargetSuffixYAnchorOffset",
               "checkboxMobileTargetPrefixExtrusionScaleWithBrowser",
               "checkboxMobileTargetNumberExtrusionScaleWithBrowser",
               "checkboxMobileTargetSuffixExtrusionScaleWithBrowser",
-              "sliderMobileTargetPrefixLineHeight",
-              "sliderMobileTargetNumberLineHeight",
-              "sliderMobileTargetSuffixLineHeight",
               "checkboxMobileTargetScaleWithBrowser",
-              "sliderMobileTargetPrefixFontSizeVw",
-              "sliderMobileTargetPrefixFontSize",
-              "sliderMobileTargetPrefixExtrusionDepth",
-              "sliderMobileTargetPrefixOverallBorderThickness",
-              "sliderMobileTargetPrefixLetterSpacing",
-              "sliderMobileTargetPrefixXOffset",
-              "sliderMobileTargetPrefixYOffset",
-              "sliderMobileTargetNumberFontSizeVw",
-              "sliderMobileTargetNumberFontSize",
-              "sliderMobileTargetNumberExtrusionDepth",
-              "sliderMobileTargetNumberOverallBorderThickness",
-              "sliderMobileTargetNumberLetterSpacing",
-              "sliderMobileTargetNumberXOffset",
-              "sliderMobileTargetNumberYOffset",
-              "sliderMobileTargetSuffixFontSizeVw",
-              "sliderMobileTargetSuffixExtrusionDepth",
-              "sliderMobileTargetSuffixOverallBorderThickness",
-              "sliderMobileTargetSuffixLetterSpacing",
-              "sliderMobileTargetSuffixFontSize",
-              "sliderMobileTargetSuffixXOffset",
-              "sliderMobileTargetSuffixYOffset",
-              "selectMobileTargetTextAlign",
-              "selectMobileTargetTextValign",
+              "checkboxMobileHideTargetPrefix",
+              "checkboxMobileHideTargetSuffix",
               "colorMobileTargetExtrusionBorder",
               "colorMobileTargetOverallBorder",
-              "checkboxMobileHideTargetPrefix",
-              "checkboxMobileHideTargetSuffix"
+              "selectMobileTargetTextValign",
+              "selectMobileTargetTextAlign"
             ],
-            "subgroups": []
+            "subgroups": [
+              {
+                "key": "mobile:New Group (24)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberLineHeight"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberFontSizeVw"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberExtrusionDepth"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberOverallBorderThickness"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberXOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetNumberYOffset"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderMobileTargetNumberLineHeight",
+                  "sliderMobileTargetNumberFontSizeVw",
+                  "sliderMobileTargetNumberFontSize",
+                  "sliderMobileTargetNumberExtrusionDepth",
+                  "sliderMobileTargetNumberOverallBorderThickness",
+                  "sliderMobileTargetNumberLetterSpacing",
+                  "sliderMobileTargetNumberXOffset",
+                  "sliderMobileTargetNumberYOffset"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (22)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixFontSizeVw"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixExtrusionDepth"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixOverallBorderThickness"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixLineHeight"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixXOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetPrefixYOffset"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderMobileTargetPrefixFontSize",
+                  "sliderMobileTargetPrefixFontSizeVw",
+                  "sliderMobileTargetPrefixExtrusionDepth",
+                  "sliderMobileTargetPrefixOverallBorderThickness",
+                  "sliderMobileTargetPrefixLetterSpacing",
+                  "sliderMobileTargetPrefixLineHeight",
+                  "sliderMobileTargetPrefixXOffset",
+                  "sliderMobileTargetPrefixYOffset"
+                ],
+                "subgroups": []
+              },
+              {
+                "key": "mobile:New Group (23)",
+                "items": [
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixYOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixXOffset"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixFontSize"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixFontSizeVw"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixOverallBorderThickness"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixExtrusionDepth"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixLetterSpacing"
+                  },
+                  {
+                    "type": "row",
+                    "key": "sliderMobileTargetSuffixLineHeight"
+                  }
+                ],
+                "rowKeys": [
+                  "sliderMobileTargetSuffixYOffset",
+                  "sliderMobileTargetSuffixXOffset",
+                  "sliderMobileTargetSuffixFontSize",
+                  "sliderMobileTargetSuffixFontSizeVw",
+                  "sliderMobileTargetSuffixOverallBorderThickness",
+                  "sliderMobileTargetSuffixExtrusionDepth",
+                  "sliderMobileTargetSuffixLetterSpacing",
+                  "sliderMobileTargetSuffixLineHeight"
+                ],
+                "subgroups": []
+              }
+            ]
           },
           {
             "key": "mobile:Speed Display (max ms between taps)",
@@ -8988,6 +9620,14 @@
               },
               {
                 "type": "row",
+                "key": "colorMobileSpeedExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileSpeedOverallBorder"
+              },
+              {
+                "type": "row",
                 "key": "sliderMobileSpeedX"
               },
               {
@@ -9001,14 +9641,6 @@
               {
                 "type": "row",
                 "key": "selectMobileSpeedTextValign"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileSpeedExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileSpeedOverallBorder"
               }
             ],
             "rowKeys": [
@@ -9021,12 +9653,12 @@
               "sliderMobileSpeedOverallBorderThickness",
               "sliderMobileSpeedLetterSpacing",
               "sliderMobileSpeedLineHeight",
+              "colorMobileSpeedExtrusionBorder",
+              "colorMobileSpeedOverallBorder",
               "sliderMobileSpeedX",
               "sliderMobileSpeedY",
               "selectMobileSpeedTextAlign",
-              "selectMobileSpeedTextValign",
-              "colorMobileSpeedExtrusionBorder",
-              "colorMobileSpeedOverallBorder"
+              "selectMobileSpeedTextValign"
             ],
             "subgroups": []
           },
@@ -9075,6 +9707,14 @@
               },
               {
                 "type": "row",
+                "key": "colorMobileMsPerClickExtrusionBorder"
+              },
+              {
+                "type": "row",
+                "key": "colorMobileMsPerClickOverallBorder"
+              },
+              {
+                "type": "row",
                 "key": "sliderMobileMsPerClickX"
               },
               {
@@ -9088,14 +9728,6 @@
               {
                 "type": "row",
                 "key": "selectMobileMsPerClickTextValign"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileMsPerClickExtrusionBorder"
-              },
-              {
-                "type": "row",
-                "key": "colorMobileMsPerClickOverallBorder"
               }
             ],
             "rowKeys": [
@@ -9109,12 +9741,12 @@
               "sliderMobileMsPerClickOverallBorderThickness",
               "sliderMobileMsPerClickLetterSpacing",
               "sliderMobileMsPerClickLineHeight",
+              "colorMobileMsPerClickExtrusionBorder",
+              "colorMobileMsPerClickOverallBorder",
               "sliderMobileMsPerClickX",
               "sliderMobileMsPerClickY",
               "selectMobileMsPerClickTextAlign",
-              "selectMobileMsPerClickTextValign",
-              "colorMobileMsPerClickExtrusionBorder",
-              "colorMobileMsPerClickOverallBorder"
+              "selectMobileMsPerClickTextValign"
             ],
             "subgroups": []
           },
@@ -10915,6 +11547,18 @@
               "items": [
                 {
                   "type": "row",
+                  "key": "sliderLandscapeTargetPrefixYAnchorOffset"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderLandscapeTargetSuffixXAnchorOffset"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderLandscapeTargetSuffixYAnchorOffset"
+                },
+                {
+                  "type": "row",
                   "key": "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser"
                 },
                 {
@@ -11051,6 +11695,9 @@
                 }
               ],
               "rowKeys": [
+                "sliderLandscapeTargetPrefixYAnchorOffset",
+                "sliderLandscapeTargetSuffixXAnchorOffset",
+                "sliderLandscapeTargetSuffixYAnchorOffset",
                 "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser",
                 "checkboxLandscapeTargetNumberExtrusionScaleWithBrowser",
                 "checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser",
@@ -11574,6 +12221,18 @@
             "items": [
               {
                 "type": "row",
+                "key": "sliderLandscapeTargetPrefixYAnchorOffset"
+              },
+              {
+                "type": "row",
+                "key": "sliderLandscapeTargetSuffixXAnchorOffset"
+              },
+              {
+                "type": "row",
+                "key": "sliderLandscapeTargetSuffixYAnchorOffset"
+              },
+              {
+                "type": "row",
                 "key": "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser"
               },
               {
@@ -11710,6 +12369,9 @@
               }
             ],
             "rowKeys": [
+              "sliderLandscapeTargetPrefixYAnchorOffset",
+              "sliderLandscapeTargetSuffixXAnchorOffset",
+              "sliderLandscapeTargetSuffixYAnchorOffset",
               "checkboxLandscapeTargetPrefixExtrusionScaleWithBrowser",
               "checkboxLandscapeTargetNumberExtrusionScaleWithBrowser",
               "checkboxLandscapeTargetSuffixExtrusionScaleWithBrowser",
@@ -12943,7 +13605,7 @@
     "sliderMobileRoundBreakdownTitleFontSize": null,
     "sliderMobileRoundBreakdownDataFontSize": null,
     "mobile:Round Breakdown": null,
-    "sliderMobileTargetPrefixLineHeight": null,
+    "sliderMobileTargetPrefixLineHeight": "\"CLICK\" Line Spacing:",
     "sliderMobileTargetNumberLineHeight": null,
     "sliderMobileTargetSuffixLineHeight": null,
     "desktop:New Group (18)": "ROUND BREAKDOWN - ROUND TITLE",
@@ -12960,7 +13622,49 @@
     "sliderTargetPrefixLineHeight": "\"CLICK\" Line Spacing:",
     "desktop:New Group (22)": "\"CLICK\"",
     "desktop:New Group (23)": "\"X\"",
-    "desktop:New Group (24)": "TARGET NUMBER"
+    "desktop:New Group (24)": "TARGET NUMBER",
+    "selectMobileButtonTextAlign": null,
+    "selectMobileButtonTextValign": null,
+    "sliderMobileRoundBlink1Hide": null,
+    "sliderMobileRoundBlink1Show": null,
+    "sliderMobileRoundBlink2Hide": null,
+    "sliderMobileRoundBlink2Show": null,
+    "sliderMobileRoundBlink3Hide": null,
+    "sliderMobileRoundBlink3Show": null,
+    "sliderMobileRoundBlink4Hide": null,
+    "sliderMobileRoundPostBlinkHold": null,
+    "checkboxMobileHighScoreExtrusionScaleWithBrowser": null,
+    "sliderMobileHighScoreFlashDelay": null,
+    "colorMobileHighScoreExtrusionBorder": null,
+    "colorMobileHighScoreOverallBorder": null,
+    "checkboxMobileRoundExtrusionScaleWithBrowser": null,
+    "checkboxMobileTryAgainExtrusionScaleWithBrowser": null,
+    "colorMobileRoundExtrusionBorder": "START Text Color:",
+    "colorMobileRoundOverallBorder": "START Border Color:",
+    "checkboxMobileRoundDockExtrusionScaleWithBrowser": null,
+    "colorMobileRoundDockExtrusionBorder": null,
+    "colorMobileRoundDockOverallBorder": null,
+    "sliderMobileTargetPrefixYAnchorOffset": null,
+    "sliderMobileTargetSuffixXAnchorOffset": null,
+    "sliderMobileTargetSuffixYAnchorOffset": null,
+    "checkboxMobileTargetPrefixExtrusionScaleWithBrowser": null,
+    "checkboxMobileTargetNumberExtrusionScaleWithBrowser": null,
+    "checkboxMobileTargetSuffixExtrusionScaleWithBrowser": null,
+    "checkboxMobileHideTargetPrefix": null,
+    "checkboxMobileHideTargetSuffix": null,
+    "colorMobileTargetExtrusionBorder": null,
+    "colorMobileTargetOverallBorder": null,
+    "mobile:New Group (24)": "TARGET NUMBER",
+    "mobile:New Group (22)": "\"CLICK\"",
+    "mobile:New Group (23)": "\"X\"",
+    "checkboxMobileSpeedExtrusionScaleWithBrowser": null,
+    "colorMobileSpeedExtrusionBorder": null,
+    "colorMobileSpeedOverallBorder": null,
+    "checkboxMobileMsPerClickExtrusionScaleWithBrowser": null,
+    "colorMobileMsPerClickExtrusionBorder": null,
+    "colorMobileMsPerClickOverallBorder": null,
+    "checkboxMobileResultExtrusionScaleWithBrowser": null,
+    "checkboxMobileTryAgainQuestionMarkExtrusionScaleWithBrowser": null
   },
   "devTextOverridesManual": [
     "mobile:Speed Display (max ms between taps)",
@@ -13157,20 +13861,16 @@
       "sliderMsPerClickNumberXOffset": "-19",
       "sliderRoundBreakdownHeight": "10",
       "sliderRoundBreakdownWidth": "100",
-      "sliderRoundBreakdownDataLetterSpacing": "1"
+      "sliderRoundBreakdownDataLetterSpacing": "1",
+      "sliderTextFontSize": "214.5",
+      "colorRoundExtrusionBorder": "#ffffff",
+      "sliderTextX": "-8.3",
+      "sliderTextY": "-26.12",
+      "colorRoundOverallBorder": "#1100ff"
     },
     "landscape": {}
   },
-  "stage2EngineOverrides": {
-    "stage2TargetPrefixX": {
-      "position": {
-        "mode": "relative",
-        "relativeTo": "stage2TargetNumberX",
-        "myAnchor": "top-left",
-        "targetAnchor": "top-left"
-      }
-    }
-  },
+  "stage2EngineOverrides": {},
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
   "buttonWinColor": "#27b942",
