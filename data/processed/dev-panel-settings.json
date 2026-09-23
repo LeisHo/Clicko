@@ -231,7 +231,7 @@
     "--round-breakdown-width-vw": 29.529,
     "--round-breakdown-height-vh": 53.38,
     "--round-breakdown-left-vw": 2.859,
-    "--round-breakdown-top-vh": 34.19,
+    "--round-breakdown-top-vh": 35.6,
     "--round-breakdown-x-offset-unit-is-px": 0,
     "--round-breakdown-y-offset-unit-is-px": 0,
     "--round-breakdown-enabled": 1,
@@ -1355,17 +1355,17 @@
     "desktop:New Group (23)": false,
     "desktop:Speed Display (max ms between taps)": true,
     "desktop:Ms/Click Display": true,
-    "desktop:Round Breakdown": true,
+    "desktop:Round Breakdown": false,
     "desktop:New Group (20)": true,
     "desktop:New Group (21)": true,
     "desktop:New Group (18)": false,
     "desktop:New Group (19)": false,
     "desktop:Background": true,
-    "desktop:New Group (7)": false,
+    "desktop:New Group (7)": true,
     "desktop:Win/Lose Text": true,
     "desktop:New Group (2)": true,
     "desktop:New Group": true,
-    "desktop:Rotation Animation": false,
+    "desktop:Rotation Animation": true,
     "desktop:Game Mechanics": true,
     "desktop:New Group (17)": true,
     "desktop:Mouse Log": false,
@@ -4312,389 +4312,6 @@
               ],
               "subgroups": []
             }
-          },
-          {
-            "type": "group",
-            "section": {
-              "key": "desktop:Round Breakdown",
-              "items": [
-                {
-                  "type": "row",
-                  "key": "sliderRoundBreakdownPanelOpacity"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxRoundBreakdownEnabled"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxRoundBreakdownScaleWithBrowser"
-                },
-                {
-                  "type": "row",
-                  "key": "selectRoundBreakdownAlign"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxRoundBreakdownAlignEdgeLock"
-                },
-                {
-                  "type": "row",
-                  "key": "selectRoundBreakdownValign"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxRoundBreakdownValignEdgeLock"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderRoundBreakdownX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderRoundBreakdownY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderRoundBreakdownWidth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderRoundBreakdownHeight"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxRoundBreakdownRowLinesEnabled"
-                },
-                {
-                  "type": "row",
-                  "key": "checkboxRoundBreakdownResizerEnabled"
-                },
-                {
-                  "type": "row",
-                  "key": "selectRoundBreakdownFont"
-                },
-                {
-                  "type": "row",
-                  "key": "colorRoundBreakdownPanel"
-                },
-                {
-                  "type": "group",
-                  "section": {
-                    "key": "desktop:New Group (20)",
-                    "items": [
-                      {
-                        "type": "row",
-                        "key": "checkboxRoundBreakdownOutlineEnabled"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownOutlineThickness"
-                      },
-                      {
-                        "type": "row",
-                        "key": "colorRoundBreakdownOutline"
-                      }
-                    ],
-                    "rowKeys": [
-                      "checkboxRoundBreakdownOutlineEnabled",
-                      "sliderRoundBreakdownOutlineThickness",
-                      "colorRoundBreakdownOutline"
-                    ],
-                    "subgroups": []
-                  }
-                },
-                {
-                  "type": "group",
-                  "section": {
-                    "key": "desktop:New Group (21)",
-                    "items": [
-                      {
-                        "type": "row",
-                        "key": "checkboxRoundBreakdownAutoscrollEnabled"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownAutoscrollSpeed"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownAutoscrollPauseEnd"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownAutoscrollPauseBefore"
-                      }
-                    ],
-                    "rowKeys": [
-                      "checkboxRoundBreakdownAutoscrollEnabled",
-                      "sliderRoundBreakdownAutoscrollSpeed",
-                      "sliderRoundBreakdownAutoscrollPauseEnd",
-                      "sliderRoundBreakdownAutoscrollPauseBefore"
-                    ],
-                    "subgroups": []
-                  }
-                },
-                {
-                  "type": "group",
-                  "section": {
-                    "key": "desktop:New Group (18)",
-                    "items": [
-                      {
-                        "type": "row",
-                        "key": "colorRoundBreakdownTitle"
-                      },
-                      {
-                        "type": "row",
-                        "key": "colorRoundBreakdownLostTitle"
-                      },
-                      {
-                        "type": "row",
-                        "key": "checkboxRoundBreakdownTitleBold"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownTitleFontSize"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownTitleLetterSpacing"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownTitleLineHeight"
-                      }
-                    ],
-                    "rowKeys": [
-                      "colorRoundBreakdownTitle",
-                      "colorRoundBreakdownLostTitle",
-                      "checkboxRoundBreakdownTitleBold",
-                      "sliderRoundBreakdownTitleFontSize",
-                      "sliderRoundBreakdownTitleLetterSpacing",
-                      "sliderRoundBreakdownTitleLineHeight"
-                    ],
-                    "subgroups": []
-                  }
-                },
-                {
-                  "type": "group",
-                  "section": {
-                    "key": "desktop:New Group (19)",
-                    "items": [
-                      {
-                        "type": "row",
-                        "key": "colorRoundBreakdownData"
-                      },
-                      {
-                        "type": "row",
-                        "key": "colorRoundBreakdownLostData"
-                      },
-                      {
-                        "type": "row",
-                        "key": "checkboxRoundBreakdownDataBold"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownDataFontSize"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownDataLetterSpacing"
-                      },
-                      {
-                        "type": "row",
-                        "key": "sliderRoundBreakdownDataLineHeight"
-                      }
-                    ],
-                    "rowKeys": [
-                      "colorRoundBreakdownData",
-                      "colorRoundBreakdownLostData",
-                      "checkboxRoundBreakdownDataBold",
-                      "sliderRoundBreakdownDataFontSize",
-                      "sliderRoundBreakdownDataLetterSpacing",
-                      "sliderRoundBreakdownDataLineHeight"
-                    ],
-                    "subgroups": []
-                  }
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownTitle"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownData"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownX"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownY"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownWidth"
-                },
-                {
-                  "type": "row",
-                  "key": "sliderStage2RoundBreakdownHeight"
-                }
-              ],
-              "rowKeys": [
-                "sliderRoundBreakdownPanelOpacity",
-                "checkboxRoundBreakdownEnabled",
-                "checkboxRoundBreakdownScaleWithBrowser",
-                "selectRoundBreakdownAlign",
-                "checkboxRoundBreakdownAlignEdgeLock",
-                "selectRoundBreakdownValign",
-                "checkboxRoundBreakdownValignEdgeLock",
-                "sliderRoundBreakdownX",
-                "sliderRoundBreakdownY",
-                "sliderRoundBreakdownWidth",
-                "sliderRoundBreakdownHeight",
-                "checkboxRoundBreakdownRowLinesEnabled",
-                "checkboxRoundBreakdownResizerEnabled",
-                "selectRoundBreakdownFont",
-                "colorRoundBreakdownPanel",
-                "sliderStage2RoundBreakdownTitle",
-                "sliderStage2RoundBreakdownData",
-                "sliderStage2RoundBreakdownX",
-                "sliderStage2RoundBreakdownY",
-                "sliderStage2RoundBreakdownWidth",
-                "sliderStage2RoundBreakdownHeight"
-              ],
-              "subgroups": [
-                {
-                  "key": "desktop:New Group (20)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownOutlineEnabled"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownOutlineThickness"
-                    },
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownOutline"
-                    }
-                  ],
-                  "rowKeys": [
-                    "checkboxRoundBreakdownOutlineEnabled",
-                    "sliderRoundBreakdownOutlineThickness",
-                    "colorRoundBreakdownOutline"
-                  ],
-                  "subgroups": []
-                },
-                {
-                  "key": "desktop:New Group (21)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownAutoscrollEnabled"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownAutoscrollSpeed"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownAutoscrollPauseEnd"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownAutoscrollPauseBefore"
-                    }
-                  ],
-                  "rowKeys": [
-                    "checkboxRoundBreakdownAutoscrollEnabled",
-                    "sliderRoundBreakdownAutoscrollSpeed",
-                    "sliderRoundBreakdownAutoscrollPauseEnd",
-                    "sliderRoundBreakdownAutoscrollPauseBefore"
-                  ],
-                  "subgroups": []
-                },
-                {
-                  "key": "desktop:New Group (18)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownTitle"
-                    },
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownLostTitle"
-                    },
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownTitleBold"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownTitleFontSize"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownTitleLetterSpacing"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownTitleLineHeight"
-                    }
-                  ],
-                  "rowKeys": [
-                    "colorRoundBreakdownTitle",
-                    "colorRoundBreakdownLostTitle",
-                    "checkboxRoundBreakdownTitleBold",
-                    "sliderRoundBreakdownTitleFontSize",
-                    "sliderRoundBreakdownTitleLetterSpacing",
-                    "sliderRoundBreakdownTitleLineHeight"
-                  ],
-                  "subgroups": []
-                },
-                {
-                  "key": "desktop:New Group (19)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownData"
-                    },
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownLostData"
-                    },
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownDataBold"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownDataFontSize"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownDataLetterSpacing"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownDataLineHeight"
-                    }
-                  ],
-                  "rowKeys": [
-                    "colorRoundBreakdownData",
-                    "colorRoundBreakdownLostData",
-                    "checkboxRoundBreakdownDataBold",
-                    "sliderRoundBreakdownDataFontSize",
-                    "sliderRoundBreakdownDataLetterSpacing",
-                    "sliderRoundBreakdownDataLineHeight"
-                  ],
-                  "subgroups": []
-                }
-              ]
-            }
           }
         ],
         "rowKeys": [],
@@ -5760,386 +5377,386 @@
               "selectStage2MsPerClickValign"
             ],
             "subgroups": []
+          }
+        ]
+      },
+      {
+        "key": "desktop:Round Breakdown",
+        "items": [
+          {
+            "type": "row",
+            "key": "sliderRoundBreakdownPanelOpacity"
           },
           {
-            "key": "desktop:Round Breakdown",
+            "type": "row",
+            "key": "checkboxRoundBreakdownEnabled"
+          },
+          {
+            "type": "row",
+            "key": "checkboxRoundBreakdownScaleWithBrowser"
+          },
+          {
+            "type": "row",
+            "key": "selectRoundBreakdownAlign"
+          },
+          {
+            "type": "row",
+            "key": "checkboxRoundBreakdownAlignEdgeLock"
+          },
+          {
+            "type": "row",
+            "key": "selectRoundBreakdownValign"
+          },
+          {
+            "type": "row",
+            "key": "checkboxRoundBreakdownValignEdgeLock"
+          },
+          {
+            "type": "row",
+            "key": "sliderRoundBreakdownX"
+          },
+          {
+            "type": "row",
+            "key": "sliderRoundBreakdownY"
+          },
+          {
+            "type": "row",
+            "key": "sliderRoundBreakdownWidth"
+          },
+          {
+            "type": "row",
+            "key": "sliderRoundBreakdownHeight"
+          },
+          {
+            "type": "row",
+            "key": "checkboxRoundBreakdownRowLinesEnabled"
+          },
+          {
+            "type": "row",
+            "key": "checkboxRoundBreakdownResizerEnabled"
+          },
+          {
+            "type": "row",
+            "key": "selectRoundBreakdownFont"
+          },
+          {
+            "type": "row",
+            "key": "colorRoundBreakdownPanel"
+          },
+          {
+            "type": "group",
+            "section": {
+              "key": "desktop:New Group (20)",
+              "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxRoundBreakdownOutlineEnabled"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownOutlineThickness"
+                },
+                {
+                  "type": "row",
+                  "key": "colorRoundBreakdownOutline"
+                }
+              ],
+              "rowKeys": [
+                "checkboxRoundBreakdownOutlineEnabled",
+                "sliderRoundBreakdownOutlineThickness",
+                "colorRoundBreakdownOutline"
+              ],
+              "subgroups": []
+            }
+          },
+          {
+            "type": "group",
+            "section": {
+              "key": "desktop:New Group (21)",
+              "items": [
+                {
+                  "type": "row",
+                  "key": "checkboxRoundBreakdownAutoscrollEnabled"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownAutoscrollSpeed"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownAutoscrollPauseEnd"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownAutoscrollPauseBefore"
+                }
+              ],
+              "rowKeys": [
+                "checkboxRoundBreakdownAutoscrollEnabled",
+                "sliderRoundBreakdownAutoscrollSpeed",
+                "sliderRoundBreakdownAutoscrollPauseEnd",
+                "sliderRoundBreakdownAutoscrollPauseBefore"
+              ],
+              "subgroups": []
+            }
+          },
+          {
+            "type": "group",
+            "section": {
+              "key": "desktop:New Group (18)",
+              "items": [
+                {
+                  "type": "row",
+                  "key": "colorRoundBreakdownTitle"
+                },
+                {
+                  "type": "row",
+                  "key": "colorRoundBreakdownLostTitle"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxRoundBreakdownTitleBold"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownTitleFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownTitleLetterSpacing"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownTitleLineHeight"
+                }
+              ],
+              "rowKeys": [
+                "colorRoundBreakdownTitle",
+                "colorRoundBreakdownLostTitle",
+                "checkboxRoundBreakdownTitleBold",
+                "sliderRoundBreakdownTitleFontSize",
+                "sliderRoundBreakdownTitleLetterSpacing",
+                "sliderRoundBreakdownTitleLineHeight"
+              ],
+              "subgroups": []
+            }
+          },
+          {
+            "type": "group",
+            "section": {
+              "key": "desktop:New Group (19)",
+              "items": [
+                {
+                  "type": "row",
+                  "key": "colorRoundBreakdownData"
+                },
+                {
+                  "type": "row",
+                  "key": "colorRoundBreakdownLostData"
+                },
+                {
+                  "type": "row",
+                  "key": "checkboxRoundBreakdownDataBold"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownDataFontSize"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownDataLetterSpacing"
+                },
+                {
+                  "type": "row",
+                  "key": "sliderRoundBreakdownDataLineHeight"
+                }
+              ],
+              "rowKeys": [
+                "colorRoundBreakdownData",
+                "colorRoundBreakdownLostData",
+                "checkboxRoundBreakdownDataBold",
+                "sliderRoundBreakdownDataFontSize",
+                "sliderRoundBreakdownDataLetterSpacing",
+                "sliderRoundBreakdownDataLineHeight"
+              ],
+              "subgroups": []
+            }
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownTitle"
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownData"
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownX"
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownY"
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownWidth"
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownHeight"
+          }
+        ],
+        "rowKeys": [
+          "sliderRoundBreakdownPanelOpacity",
+          "checkboxRoundBreakdownEnabled",
+          "checkboxRoundBreakdownScaleWithBrowser",
+          "selectRoundBreakdownAlign",
+          "checkboxRoundBreakdownAlignEdgeLock",
+          "selectRoundBreakdownValign",
+          "checkboxRoundBreakdownValignEdgeLock",
+          "sliderRoundBreakdownX",
+          "sliderRoundBreakdownY",
+          "sliderRoundBreakdownWidth",
+          "sliderRoundBreakdownHeight",
+          "checkboxRoundBreakdownRowLinesEnabled",
+          "checkboxRoundBreakdownResizerEnabled",
+          "selectRoundBreakdownFont",
+          "colorRoundBreakdownPanel",
+          "sliderStage2RoundBreakdownTitle",
+          "sliderStage2RoundBreakdownData",
+          "sliderStage2RoundBreakdownX",
+          "sliderStage2RoundBreakdownY",
+          "sliderStage2RoundBreakdownWidth",
+          "sliderStage2RoundBreakdownHeight"
+        ],
+        "subgroups": [
+          {
+            "key": "desktop:New Group (20)",
             "items": [
               {
                 "type": "row",
-                "key": "sliderRoundBreakdownPanelOpacity"
+                "key": "checkboxRoundBreakdownOutlineEnabled"
               },
               {
                 "type": "row",
-                "key": "checkboxRoundBreakdownEnabled"
+                "key": "sliderRoundBreakdownOutlineThickness"
               },
               {
                 "type": "row",
-                "key": "checkboxRoundBreakdownScaleWithBrowser"
-              },
-              {
-                "type": "row",
-                "key": "selectRoundBreakdownAlign"
-              },
-              {
-                "type": "row",
-                "key": "checkboxRoundBreakdownAlignEdgeLock"
-              },
-              {
-                "type": "row",
-                "key": "selectRoundBreakdownValign"
-              },
-              {
-                "type": "row",
-                "key": "checkboxRoundBreakdownValignEdgeLock"
-              },
-              {
-                "type": "row",
-                "key": "sliderRoundBreakdownX"
-              },
-              {
-                "type": "row",
-                "key": "sliderRoundBreakdownY"
-              },
-              {
-                "type": "row",
-                "key": "sliderRoundBreakdownWidth"
-              },
-              {
-                "type": "row",
-                "key": "sliderRoundBreakdownHeight"
-              },
-              {
-                "type": "row",
-                "key": "checkboxRoundBreakdownRowLinesEnabled"
-              },
-              {
-                "type": "row",
-                "key": "checkboxRoundBreakdownResizerEnabled"
-              },
-              {
-                "type": "row",
-                "key": "selectRoundBreakdownFont"
-              },
-              {
-                "type": "row",
-                "key": "colorRoundBreakdownPanel"
-              },
-              {
-                "type": "group",
-                "section": {
-                  "key": "desktop:New Group (20)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownOutlineEnabled"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownOutlineThickness"
-                    },
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownOutline"
-                    }
-                  ],
-                  "rowKeys": [
-                    "checkboxRoundBreakdownOutlineEnabled",
-                    "sliderRoundBreakdownOutlineThickness",
-                    "colorRoundBreakdownOutline"
-                  ],
-                  "subgroups": []
-                }
-              },
-              {
-                "type": "group",
-                "section": {
-                  "key": "desktop:New Group (21)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownAutoscrollEnabled"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownAutoscrollSpeed"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownAutoscrollPauseEnd"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownAutoscrollPauseBefore"
-                    }
-                  ],
-                  "rowKeys": [
-                    "checkboxRoundBreakdownAutoscrollEnabled",
-                    "sliderRoundBreakdownAutoscrollSpeed",
-                    "sliderRoundBreakdownAutoscrollPauseEnd",
-                    "sliderRoundBreakdownAutoscrollPauseBefore"
-                  ],
-                  "subgroups": []
-                }
-              },
-              {
-                "type": "group",
-                "section": {
-                  "key": "desktop:New Group (18)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownTitle"
-                    },
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownLostTitle"
-                    },
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownTitleBold"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownTitleFontSize"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownTitleLetterSpacing"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownTitleLineHeight"
-                    }
-                  ],
-                  "rowKeys": [
-                    "colorRoundBreakdownTitle",
-                    "colorRoundBreakdownLostTitle",
-                    "checkboxRoundBreakdownTitleBold",
-                    "sliderRoundBreakdownTitleFontSize",
-                    "sliderRoundBreakdownTitleLetterSpacing",
-                    "sliderRoundBreakdownTitleLineHeight"
-                  ],
-                  "subgroups": []
-                }
-              },
-              {
-                "type": "group",
-                "section": {
-                  "key": "desktop:New Group (19)",
-                  "items": [
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownData"
-                    },
-                    {
-                      "type": "row",
-                      "key": "colorRoundBreakdownLostData"
-                    },
-                    {
-                      "type": "row",
-                      "key": "checkboxRoundBreakdownDataBold"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownDataFontSize"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownDataLetterSpacing"
-                    },
-                    {
-                      "type": "row",
-                      "key": "sliderRoundBreakdownDataLineHeight"
-                    }
-                  ],
-                  "rowKeys": [
-                    "colorRoundBreakdownData",
-                    "colorRoundBreakdownLostData",
-                    "checkboxRoundBreakdownDataBold",
-                    "sliderRoundBreakdownDataFontSize",
-                    "sliderRoundBreakdownDataLetterSpacing",
-                    "sliderRoundBreakdownDataLineHeight"
-                  ],
-                  "subgroups": []
-                }
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownTitle"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownData"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownX"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownY"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownWidth"
-              },
-              {
-                "type": "row",
-                "key": "sliderStage2RoundBreakdownHeight"
+                "key": "colorRoundBreakdownOutline"
               }
             ],
             "rowKeys": [
-              "sliderRoundBreakdownPanelOpacity",
-              "checkboxRoundBreakdownEnabled",
-              "checkboxRoundBreakdownScaleWithBrowser",
-              "selectRoundBreakdownAlign",
-              "checkboxRoundBreakdownAlignEdgeLock",
-              "selectRoundBreakdownValign",
-              "checkboxRoundBreakdownValignEdgeLock",
-              "sliderRoundBreakdownX",
-              "sliderRoundBreakdownY",
-              "sliderRoundBreakdownWidth",
-              "sliderRoundBreakdownHeight",
-              "checkboxRoundBreakdownRowLinesEnabled",
-              "checkboxRoundBreakdownResizerEnabled",
-              "selectRoundBreakdownFont",
-              "colorRoundBreakdownPanel",
-              "sliderStage2RoundBreakdownTitle",
-              "sliderStage2RoundBreakdownData",
-              "sliderStage2RoundBreakdownX",
-              "sliderStage2RoundBreakdownY",
-              "sliderStage2RoundBreakdownWidth",
-              "sliderStage2RoundBreakdownHeight"
+              "checkboxRoundBreakdownOutlineEnabled",
+              "sliderRoundBreakdownOutlineThickness",
+              "colorRoundBreakdownOutline"
             ],
-            "subgroups": [
+            "subgroups": []
+          },
+          {
+            "key": "desktop:New Group (21)",
+            "items": [
               {
-                "key": "desktop:New Group (20)",
-                "items": [
-                  {
-                    "type": "row",
-                    "key": "checkboxRoundBreakdownOutlineEnabled"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownOutlineThickness"
-                  },
-                  {
-                    "type": "row",
-                    "key": "colorRoundBreakdownOutline"
-                  }
-                ],
-                "rowKeys": [
-                  "checkboxRoundBreakdownOutlineEnabled",
-                  "sliderRoundBreakdownOutlineThickness",
-                  "colorRoundBreakdownOutline"
-                ],
-                "subgroups": []
+                "type": "row",
+                "key": "checkboxRoundBreakdownAutoscrollEnabled"
               },
               {
-                "key": "desktop:New Group (21)",
-                "items": [
-                  {
-                    "type": "row",
-                    "key": "checkboxRoundBreakdownAutoscrollEnabled"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownAutoscrollSpeed"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownAutoscrollPauseEnd"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownAutoscrollPauseBefore"
-                  }
-                ],
-                "rowKeys": [
-                  "checkboxRoundBreakdownAutoscrollEnabled",
-                  "sliderRoundBreakdownAutoscrollSpeed",
-                  "sliderRoundBreakdownAutoscrollPauseEnd",
-                  "sliderRoundBreakdownAutoscrollPauseBefore"
-                ],
-                "subgroups": []
+                "type": "row",
+                "key": "sliderRoundBreakdownAutoscrollSpeed"
               },
               {
-                "key": "desktop:New Group (18)",
-                "items": [
-                  {
-                    "type": "row",
-                    "key": "colorRoundBreakdownTitle"
-                  },
-                  {
-                    "type": "row",
-                    "key": "colorRoundBreakdownLostTitle"
-                  },
-                  {
-                    "type": "row",
-                    "key": "checkboxRoundBreakdownTitleBold"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownTitleFontSize"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownTitleLetterSpacing"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownTitleLineHeight"
-                  }
-                ],
-                "rowKeys": [
-                  "colorRoundBreakdownTitle",
-                  "colorRoundBreakdownLostTitle",
-                  "checkboxRoundBreakdownTitleBold",
-                  "sliderRoundBreakdownTitleFontSize",
-                  "sliderRoundBreakdownTitleLetterSpacing",
-                  "sliderRoundBreakdownTitleLineHeight"
-                ],
-                "subgroups": []
+                "type": "row",
+                "key": "sliderRoundBreakdownAutoscrollPauseEnd"
               },
               {
-                "key": "desktop:New Group (19)",
-                "items": [
-                  {
-                    "type": "row",
-                    "key": "colorRoundBreakdownData"
-                  },
-                  {
-                    "type": "row",
-                    "key": "colorRoundBreakdownLostData"
-                  },
-                  {
-                    "type": "row",
-                    "key": "checkboxRoundBreakdownDataBold"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownDataFontSize"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownDataLetterSpacing"
-                  },
-                  {
-                    "type": "row",
-                    "key": "sliderRoundBreakdownDataLineHeight"
-                  }
-                ],
-                "rowKeys": [
-                  "colorRoundBreakdownData",
-                  "colorRoundBreakdownLostData",
-                  "checkboxRoundBreakdownDataBold",
-                  "sliderRoundBreakdownDataFontSize",
-                  "sliderRoundBreakdownDataLetterSpacing",
-                  "sliderRoundBreakdownDataLineHeight"
-                ],
-                "subgroups": []
+                "type": "row",
+                "key": "sliderRoundBreakdownAutoscrollPauseBefore"
               }
-            ]
+            ],
+            "rowKeys": [
+              "checkboxRoundBreakdownAutoscrollEnabled",
+              "sliderRoundBreakdownAutoscrollSpeed",
+              "sliderRoundBreakdownAutoscrollPauseEnd",
+              "sliderRoundBreakdownAutoscrollPauseBefore"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "desktop:New Group (18)",
+            "items": [
+              {
+                "type": "row",
+                "key": "colorRoundBreakdownTitle"
+              },
+              {
+                "type": "row",
+                "key": "colorRoundBreakdownLostTitle"
+              },
+              {
+                "type": "row",
+                "key": "checkboxRoundBreakdownTitleBold"
+              },
+              {
+                "type": "row",
+                "key": "sliderRoundBreakdownTitleFontSize"
+              },
+              {
+                "type": "row",
+                "key": "sliderRoundBreakdownTitleLetterSpacing"
+              },
+              {
+                "type": "row",
+                "key": "sliderRoundBreakdownTitleLineHeight"
+              }
+            ],
+            "rowKeys": [
+              "colorRoundBreakdownTitle",
+              "colorRoundBreakdownLostTitle",
+              "checkboxRoundBreakdownTitleBold",
+              "sliderRoundBreakdownTitleFontSize",
+              "sliderRoundBreakdownTitleLetterSpacing",
+              "sliderRoundBreakdownTitleLineHeight"
+            ],
+            "subgroups": []
+          },
+          {
+            "key": "desktop:New Group (19)",
+            "items": [
+              {
+                "type": "row",
+                "key": "colorRoundBreakdownData"
+              },
+              {
+                "type": "row",
+                "key": "colorRoundBreakdownLostData"
+              },
+              {
+                "type": "row",
+                "key": "checkboxRoundBreakdownDataBold"
+              },
+              {
+                "type": "row",
+                "key": "sliderRoundBreakdownDataFontSize"
+              },
+              {
+                "type": "row",
+                "key": "sliderRoundBreakdownDataLetterSpacing"
+              },
+              {
+                "type": "row",
+                "key": "sliderRoundBreakdownDataLineHeight"
+              }
+            ],
+            "rowKeys": [
+              "colorRoundBreakdownData",
+              "colorRoundBreakdownLostData",
+              "checkboxRoundBreakdownDataBold",
+              "sliderRoundBreakdownDataFontSize",
+              "sliderRoundBreakdownDataLetterSpacing",
+              "sliderRoundBreakdownDataLineHeight"
+            ],
+            "subgroups": []
           }
         ]
       },
