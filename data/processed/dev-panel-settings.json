@@ -257,7 +257,7 @@
     "--round-breakdown-autoscroll-speed-px-per-sec": 30,
     "--round-breakdown-autoscroll-pause-before-ms": 1500,
     "--round-breakdown-autoscroll-pause-end-ms": 1500,
-    "--round-breakdown-panel-opacity": 0,
+    "--round-breakdown-panel-opacity": 0.94,
     "--round-breakdown-width-px": 564,
     "--round-breakdown-height-px": 511,
     "--round-breakdown-left-px": 35,
