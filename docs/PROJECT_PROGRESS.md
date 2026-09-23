@@ -151,7 +151,38 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-23): fixed UI-Engine Inspector edits silently
+Most recently (2026-09-23): fixed Round Breakdown rendering fully
+invisible (`--round-breakdown-panel-opacity` was saved as `0` - direct
+report "I cant see my round breakdown right now") - checked the real
+live settings (loadSettings() always fetches from GitHub's Contents API
+directly, even on localhost, not the local file - a local edit alone
+has no visible effect until pushed), confirmed position/size were
+otherwise normal and no engine-override leakage from earlier testing,
+restored opacity to its documented default (0.94), pushed, and visually
+confirmed via a simulated loss (screenshot: Round Breakdown correctly
+showing round stats). Also added real relative-mode support for Round
+Breakdown's Position - direct follow-up ("When i change the anchor
+settings to relative, i still want the xy offset sliders to choose the
+gap"). Unlike Target Suffix/Prefix (pure-CSS var-reference switching),
+Round Breakdown's real positioning was plain JS anchor math with no
+relative-to-another-element concept at all, so this needed genuinely
+new logic: resolves the Inspector's user-chosen `relativeTo` target to
+its real DOM element, computes position from that target's live rect
+plus a real gap, and 2 new real "Gap X/Y (px)" sliders show only in
+relative mode (existing Offset sliders hide together, matching the same
+simplification already established for Target - mode/gap have real
+effect, the specific anchor-point choice is hardcoded to one reasonable
+relationship). Found and reset a stale pre-existing `relativeTo` (Target
+Prefix's Y element, only rendered during Target-mode rounds) that
+produced a degenerate (0,0) position for the common non-Target-round
+loss case - left in its original, correct anchor-mode state instead.
+Live-verified end to end with a sensible always-visible target (High
+Score): exact pixel match on initial relative placement and on a live
+60px gap-slider change; degenerate zero-rect case confirmed to behave
+predictably. Zero new console errors. Committed and pushed (c002536,
+824d818).
+
+Before that (2026-09-23): fixed UI-Engine Inspector edits silently
 never persisting, or reflecting into the real dev-panel sliders - direct
 report ("i changed a property [Round Breakdown Position]... on refresh
 the data is not saved", then "when i save a ui inspector setting, that
