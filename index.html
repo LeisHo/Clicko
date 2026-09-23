@@ -21191,9 +21191,51 @@
             }
         }
 
+        // 2026-09-23 fix, direct report: "i changed a property [Round
+        // Breakdown Position]... on refresh the data is not saved", plus
+        // the immediate-slider-reflection expectation restated directly
+        // ("when i save a ui inspector setting, that should be reflected
+        // by the dev panel settings immediatly"). Root cause: both sync
+        // functions below located "the currently selected element" via
+        // `document.querySelector('.ui-inspector-select')` - the FIRST
+        // element matching that class in the whole mount. Since v0.2.5's
+        // Object/Property cascade (2026-09-20) - now UNIVERSAL as of
+        // today's session, every registered element has a group - the
+        // FIRST such select is always the "SELECT OBJECT" dropdown, whose
+        // value is a `"group:<name>"` token, never a real element id. This
+        // silently broke BOTH sync directions for every grouped element:
+        // `STAGE2_SYNC_MAP.filter(e => e.id === selectedId)` never matched
+        // a `"group:X"` string, so both functions returned early on every
+        // single call, unconditionally, for as long as grouping has
+        // existed. Confirmed live before this fix: switching Round
+        // Breakdown's Position to relative mode via the Inspector produced
+        // real, confirmed DOM mutations (12 recorded by a diagnostic
+        // MutationObserver) - proving the observer itself fires correctly
+        // - yet `stage2EngineOverrides['stage2RoundBreakdownX']` stayed
+        // `undefined` throughout, and `document.querySelector(
+        // '.ui-inspector-select').value` read `"group:Round Breakdown"` at
+        // the exact moment of failure. Fixed by resolving the real element
+        // id from the SPECIFIC picker row (identified by its own "SELECT
+        // OBJECT"/"SELECT ELEMENT" label, not row position) and its LAST
+        // select - the Property select when grouped (already a real
+        // element id by construction), or the lone Object/Element select
+        // when not grouped (also already a real element id).
+        function stage2GetSelectedElementId() {
+            const mount = document.getElementById('stage2InspectorMount');
+            if (!mount) return '';
+            const rows = mount.querySelectorAll(':scope > .ui-inspector-row');
+            for (const row of rows) {
+                const label = row.querySelector('.ui-inspector-label');
+                if (label && (label.textContent === 'SELECT OBJECT' || label.textContent === 'SELECT ELEMENT')) {
+                    const selects = row.querySelectorAll('select.ui-inspector-select');
+                    return selects.length ? selects[selects.length - 1].value : '';
+                }
+            }
+            return '';
+        }
+
         function stage2SyncEngineToClicko() {
-            const selectEl = document.querySelector('.ui-inspector-select');
-            const selectedId = selectEl ? selectEl.value : '';
+            const selectedId = stage2GetSelectedElementId();
             if (!selectedId) { stage2LastPrimedId = null; return; } // nothing selected - never sync anything
 
             const relevantEntries = STAGE2_SYNC_MAP.filter((e) => e.id === selectedId);
@@ -21321,8 +21363,7 @@
         // selected" prime branch above), so there's nothing to keep
         // continuously in sync for those.
         function stage2SyncClickoToEngine() {
-            const selectEl = document.querySelector('.ui-inspector-select');
-            const selectedId = selectEl ? selectEl.value : '';
+            const selectedId = stage2GetSelectedElementId();
             if (!selectedId || selectedId !== stage2LastPrimedId) return; // nothing selected, or not primed yet - the existing prime-on-select branch already covers this case
             const relevantEntries = STAGE2_SYNC_MAP.filter((e) => e.id === selectedId);
             if (relevantEntries.length === 0) return;
