@@ -151,7 +151,32 @@ Ms/Click Display's suffix can now have an independently-tunable 2nd line
 gap (for its 3-line mobile layout); Target Count's "Scale With Browser"
 checkbox (blends each part's own px/vw font-size pair).
 
-Most recently (2026-09-21): UI-Engine Inspector - a genuinely new engine
+Most recently (2026-09-23): fixed UI-Engine Inspector edits silently
+never persisting, or reflecting into the real dev-panel sliders - direct
+report ("i changed a property [Round Breakdown Position]... on refresh
+the data is not saved", then "when i save a ui inspector setting, that
+should be reflected by the dev panel settings immediatly"). Both halves
+of the Inspector<->Clicko sync located "the currently selected element"
+via `document.querySelector('.ui-inspector-select')` - the FIRST element
+with that class, which since the Object/Property cascade went universal
+is always the "SELECT OBJECT" dropdown (a `"group:X"` token, never a
+real element id) - so both sync functions silently no-op'd on every call
+for as long as grouping has existed. Confirmed live before fixing: real
+DOM mutations were firing (a diagnostic MutationObserver recorded 12),
+proving the observer worked, while `stage2EngineOverrides` stayed
+`undefined` throughout - isolating the bug to element-id resolution
+specifically. Fixed with `stage2GetSelectedElementId()`, reading the
+correct picker row by its own label and taking its LAST select. Live-
+verified end to end: reproduced the exact reported scenario (Round
+Breakdown -> relative mode, relativeTo Target Prefix), confirmed capture
+into `stage2EngineOverrides`, and confirmed it survives a simulated
+reload (engine element reset to its hardcoded default, then correctly
+re-restored on reselection); separately confirmed a plain value edit
+now immediately updates the real slider (`sliderRoundBreakdownX`: 2.9
+-> 15) and `cssVars`, matching the exact behavior requested. Zero new
+console errors. Committed and pushed (bd9c054).
+
+Before that (2026-09-21): UI-Engine Inspector - a genuinely new engine
 capability (size `match` mode: a size axis tracks another element's live
 rendered size via real DOM measurement + ResizeObserver, the size-axis
 equivalent of position's own `relative` mode), conditional section
