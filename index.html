@@ -16912,8 +16912,81 @@
         // this logic in one place alongside the drag/resize code it has to
         // cooperate with was simpler and less error-prone than splitting it
         // across CSS and JS.
+        // Maps a Stage 2 engine element id back to the real DOM element it
+        // represents, for Round Breakdown's own relative-mode rendering
+        // below (relativeTo is user-chosen via the Inspector - could be
+        // ANY registered object, unlike Target Suffix/Prefix's fixed,
+        // hardcoded relationship to Target Number specifically). Covers
+        // every object currently offered by the Inspector's own Object
+        // picker; a ResultText id maps to the shared #resultText element
+        // (Win and Lose both render through it), TryAgain to the shared
+        // #startButton (a class-toggled state, not a separate element).
+        function stage2ResolveRelativeToDomElement(elementId) {
+            const map = {
+                stage2HighScoreX: 'highScoreText',
+                stage2StartX: 'startButton', stage2TryAgainX: 'startButton',
+                stage2TryAgainQuestionMarkX: 'startButtonFlashChar',
+                stage2WinX: 'resultText', stage2LoseX: 'resultText',
+                stage2RoundTextX: 'gameText',
+                stage2SpeedX: 'speedDisplay', stage2MsPerClickX: 'msPerClickDisplay',
+                stage2TargetNumberX: 'targetCountNumber',
+                stage2TargetSuffix: 'targetCountSuffix',
+                stage2TargetPrefixX: 'targetCountPrefix', stage2TargetPrefixY: 'targetCountPrefix',
+                stage2ButtonX: 'buttonAssembly',
+            };
+            const domId = map[elementId];
+            return domId ? document.getElementById(domId) : null;
+        }
+        // Round Breakdown relative-mode positioning (2026-09-23) - direct
+        // follow-up: "When i change the anchor settings to relative, i
+        // still want the xy offset sliders to choose the gap." Unlike
+        // Target Suffix/Prefix (a pure-CSS var-reference switch - see
+        // updateTargetAnchoredPositions()'s own comment), Round Breakdown's
+        // position was ALWAYS plain JS-computed anchor math with no concept
+        // of "relative to another element" at all, so this needed genuinely
+        // new logic, not just wiring. Same simplification this codebase
+        // already established for Target Suffix/Prefix: MODE and GAP have
+        // real effect; the specific myAnchor/targetAnchor 9-point choice
+        // does not (updateTargetAnchoredPositions() reads only .mode from
+        // stage2EngineOverrides, never myAnchor/targetAnchor either) -
+        // hardcoded here to top-left-of-panel relative to bottom-left-of-
+        // target, matching the exact relationship the user's own earlier
+        // Inspector exploration already used. Re-measured on every call to
+        // applyRoundBreakdownPosition() (window resize, and every real
+        // slider/Inspector edit via reapply()) - does NOT independently
+        // watch the target element for a resize caused by some OTHER,
+        // unrelated control (e.g. live-editing the target's own font size
+        // via its own real slider) the way updateTargetAnchoredPositions()'s
+        // dedicated ResizeObserver does; a disclosed v1 simplification,
+        // not a full dependency-tracking system - good enough for the
+        // common case (choosing the relation, then tuning gap) but a
+        // genuinely independent resize of the target won't re-trigger this
+        // until the next window resize or Round Breakdown edit.
+        function stage2ApplyRoundBreakdownRelativePosition(saved) {
+            const relPos = saved.position;
+            const targetEl = stage2ResolveRelativeToDomElement(relPos.relativeTo);
+            if (!targetEl || !roundBreakdownPanel.offsetParent) return false;
+            const containerRect = roundBreakdownPanel.offsetParent.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+            const gap = (relPos.gap && typeof relPos.gap === 'object') ? relPos.gap : {};
+            const gapXPx = parseFloat(gap.x) || 0;
+            const gapYPx = parseFloat(gap.y) || 0;
+            const left = (targetRect.left - containerRect.left) + gapXPx;
+            const top = (targetRect.bottom - containerRect.top) + gapYPx;
+            roundBreakdownPanel.style.left = left + 'px';
+            roundBreakdownPanel.style.top = top + 'px';
+            return true;
+        }
         function applyRoundBreakdownPosition() {
             if (!roundBreakdownPanel || isDraggingBreakdown) return;
+            const savedRb = (typeof stage2EngineOverrides !== 'undefined') ? stage2EngineOverrides['stage2RoundBreakdownX'] : null;
+            if (savedRb && savedRb.position && savedRb.position.mode === 'relative') {
+                if (stage2ApplyRoundBreakdownRelativePosition(savedRb)) return;
+                // relativeTo target not resolvable (e.g. not yet rendered,
+                // or an id that no longer exists) - fall through to the
+                // normal anchor-mode formula below rather than leaving the
+                // panel at a stale or undefined position.
+            }
             // Align/Valign/Edge Lock: shared, always cssVars (see
             // endBreakdownDrag()'s identical fix/comment - a real bug found
             // via live testing on a narrow/Mobile-active viewport: reading
@@ -20803,6 +20876,50 @@
                 syncReal('sliderRoundBreakdownY', resolvedNum);
             });
 
+            // Gap X/Y (2026-09-23) - real relative-mode counterpart to the
+            // X/Y Offset sliders above, per direct request: "When i change
+            // the anchor settings to relative, i still want the xy offset
+            // sliders to choose the gap." Shown instead of the plain
+            // Offset sliders whenever the Inspector's own Mode is switched
+            // to 'relative' (STAGE2_MODE_ROW_MAP's own relative entry,
+            // added in the sync module below) - same toggle mechanism
+            // Target Suffix/Prefix-Y already use for their own anchor-vs-
+            // relative slider pairs. Writes directly into
+            // stage2EngineOverrides (the actual source stage2ApplyRound
+            // BreakdownRelativePosition() reads, see its own comment) as
+            // well as the live engine element (updateElement) so the
+            // Inspector's own displayed gap value stays correct if
+            // reselected - no separate cssVar needed since
+            // stage2EngineOverrides is already included in Save/Sync.
+            function currentRbGap() {
+                const saved = stage2EngineOverrides['stage2RoundBreakdownX'];
+                const gap = (saved && saved.position && typeof saved.position.gap === 'object') ? saved.position.gap : {};
+                return { x: parseFloat(gap.x) || 0, y: parseFloat(gap.y) || 0 };
+            }
+            const initGap = currentRbGap();
+            addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownGapX', label: '(Stage 2, engine-driven, relative-mode) Gap X (px):', min: -500, max: 500, step: 1, value: initGap.x }));
+            document.getElementById('sliderStage2RoundBreakdownGapX').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const saved = stage2EngineOverrides['stage2RoundBreakdownX'] || { position: { mode: 'relative' } };
+                const gap = (saved.position.gap && typeof saved.position.gap === 'object') ? saved.position.gap : {};
+                saved.position.gap = { ...gap, x: num + 'px' };
+                stage2EngineOverrides['stage2RoundBreakdownX'] = saved;
+                try { updateElement('stage2RoundBreakdownX', { position: { gap: saved.position.gap } }); } catch (err) {}
+                document.getElementById('valueStage2RoundBreakdownGapX').textContent = num;
+                reapply();
+            });
+            addRbRow(buildSliderRow({ id: 'sliderStage2RoundBreakdownGapY', label: '(Stage 2, engine-driven, relative-mode) Gap Y (px):', min: -500, max: 500, step: 1, value: initGap.y }));
+            document.getElementById('sliderStage2RoundBreakdownGapY').addEventListener('input', (e) => {
+                const num = parseFloat(e.target.value);
+                const saved = stage2EngineOverrides['stage2RoundBreakdownX'] || { position: { mode: 'relative' } };
+                const gap = (saved.position.gap && typeof saved.position.gap === 'object') ? saved.position.gap : {};
+                saved.position.gap = { ...gap, y: num + 'px' };
+                stage2EngineOverrides['stage2RoundBreakdownX'] = saved;
+                try { updateElement('stage2RoundBreakdownX', { position: { gap: saved.position.gap } }); } catch (err) {}
+                document.getElementById('valueStage2RoundBreakdownGapY').textContent = num;
+                reapply();
+            });
+
             const initWidth = Number(cssVars['--round-breakdown-width-vw']) || 0;
             const initHeight = Number(cssVars['--round-breakdown-height-vh']) || 0;
             createUIElement({
@@ -21058,7 +21175,19 @@
             stage2RoundTextX: { anchor: ['sliderRoundDockX', 'sliderRoundDockY'] },
             stage2SpeedX: { anchor: ['sliderSpeedX', 'sliderSpeedY'] },
             stage2MsPerClickX: { anchor: ['sliderMsPerClickX', 'sliderMsPerClickY'] },
-            stage2RoundBreakdownX: { anchor: ['sliderRoundBreakdownX', 'sliderRoundBreakdownY'] },
+            // 2026-09-23: relative entry added - Round Breakdown's own
+            // Gap X/Y sliders (see applyRoundBreakdownPosition()'s own
+            // relative-mode comment) - both the classic real sliders AND
+            // the "Stage 2, engine-driven" X/Y Offset duplicates are
+            // meaningless in relative mode (offsetX/offsetY don't exist on
+            // a relative-mode element - see STAGE2_SYNC_MAP's own try/
+            // catch skip for these 2 fields), so both now hide together
+            // under 'anchor', matching the Gap sliders' own 'relative'
+            // visibility exactly inverted.
+            stage2RoundBreakdownX: {
+                anchor: ['sliderRoundBreakdownX', 'sliderRoundBreakdownY', 'sliderStage2RoundBreakdownX', 'sliderStage2RoundBreakdownY'],
+                relative: ['sliderStage2RoundBreakdownGapX', 'sliderStage2RoundBreakdownGapY'],
+            },
             stage2TargetNumberX: { anchor: ['sliderTargetNumberXOffset', 'sliderTargetNumberYOffset'] },
             stage2ButtonX: { anchor: ['sliderButtonX', 'sliderButtonY'] },
             stage2TargetSuffix: { anchor: ['sliderTargetSuffixXAnchorOffset', 'sliderTargetSuffixYAnchorOffset'], relative: ['sliderTargetSuffixXOffset', 'sliderTargetSuffixYOffset'] },
