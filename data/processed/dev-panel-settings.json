@@ -225,13 +225,13 @@
     "--result-text-align-edge-lock": 1,
     "--result-text-valign-edge-lock": 1,
     "--dev-panel-width-px": 532,
-    "--dev-panel-left-px": 891,
-    "--dev-panel-top-px": 40,
+    "--dev-panel-left-px": 890,
+    "--dev-panel-top-px": 232,
     "--dev-panel-height-px": 519,
     "--round-breakdown-width-vw": 29.529,
-    "--round-breakdown-height-vh": 53.356,
-    "--round-breakdown-left-vw": 2.859,
-    "--round-breakdown-top-vh": 35.6,
+    "--round-breakdown-height-vh": 53.355,
+    "--round-breakdown-left-vw": 51.3,
+    "--round-breakdown-top-vh": 38.2,
     "--round-breakdown-x-offset-unit-is-px": 0,
     "--round-breakdown-y-offset-unit-is-px": 0,
     "--round-breakdown-enabled": 1,
@@ -13077,7 +13077,38 @@
     },
     "landscape": {}
   },
-  "stage2EngineOverrides": {},
+  "stage2EngineOverrides": {
+    "stage2RoundBreakdownTitle": {
+      "position": {
+        "mode": "anchor",
+        "horizontal": {
+          "anchor": "center"
+        },
+        "vertical": {
+          "anchor": "top"
+        }
+      },
+      "size": {
+        "width": {
+          "mode": "fixed",
+          "value": {
+            "pxValue": 35,
+            "vwValue": 1.25,
+            "blend": 0,
+            "vwUnit": "vmin"
+          }
+        }
+      }
+    },
+    "stage2RoundBreakdownX": {
+      "position": {
+        "mode": "relative",
+        "relativeTo": "stage2TargetPrefixY",
+        "myAnchor": "top-left",
+        "targetAnchor": "bottom-left"
+      }
+    }
+  },
   "baseColor": "#fe6c6c",
   "buttonColor": "#fe6c6c",
   "buttonWinColor": "#27b942",
