@@ -228,8 +228,8 @@
     "--dev-panel-left-px": 890,
     "--dev-panel-top-px": 232,
     "--dev-panel-height-px": 519,
-    "--round-breakdown-width-vw": 29.529,
-    "--round-breakdown-height-vh": 53.355,
+    "--round-breakdown-width-vw": 29.633,
+    "--round-breakdown-height-vh": 52.507,
     "--round-breakdown-left-vw": 51.3,
     "--round-breakdown-top-vh": 38.2,
     "--round-breakdown-x-offset-unit-is-px": 0,
@@ -5385,6 +5385,14 @@
         "items": [
           {
             "type": "row",
+            "key": "sliderStage2RoundBreakdownGapX"
+          },
+          {
+            "type": "row",
+            "key": "sliderStage2RoundBreakdownGapY"
+          },
+          {
+            "type": "row",
             "key": "sliderRoundBreakdownPanelOpacity"
           },
           {
@@ -5608,6 +5616,8 @@
           }
         ],
         "rowKeys": [
+          "sliderStage2RoundBreakdownGapX",
+          "sliderStage2RoundBreakdownGapY",
           "sliderRoundBreakdownPanelOpacity",
           "checkboxRoundBreakdownEnabled",
           "checkboxRoundBreakdownScaleWithBrowser",
@@ -13105,7 +13115,11 @@
         "mode": "relative",
         "relativeTo": "stage2TargetPrefixY",
         "myAnchor": "top-left",
-        "targetAnchor": "bottom-left"
+        "targetAnchor": "bottom-left",
+        "gap": {
+          "y": "43px",
+          "x": "-10px"
+        }
       }
     }
   },
