@@ -2646,6 +2646,73 @@
             outline-offset: -2px;
         }
 
+        /* ============================================================
+           Hotkey UI (2026-09-30) - bind 1-2 letter key combos to
+           checkbox/button/slider controls. Badge shows next to each
+           hotkeyed control; inline edit textbox for assigning (click-
+           to-assign or double-click-to-edit an existing badge).
+           Sequence Window (Ms) slider controls the timeout for 2-char
+           sequences (type 2 chars within X milliseconds).
+           ============================================================ */
+        .dev-hotkey-badge {
+            display: inline-block;
+            color: var(--dev-accent-color);
+            font-weight: bold;
+            font-size: 11px;
+            padding: 2px 4px;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
+        .dev-hotkey-input {
+            width: 28px;
+            flex-shrink: 0;
+            margin-right: 4px;
+        }
+
+        /* Slider Hotkey Mode HUD - a small readout left of the floating DEV
+           toggle button (bottom-right corner), shown only while a slider
+           hotkey is actively armed for arrow-key adjustment. */
+        .dev-hotkey-hud {
+            position: fixed;
+            bottom: 12px;
+            right: 70px;
+            background: var(--dev-button-color, #3a3a4a);
+            color: var(--dev-panel-button-text-color, #000);
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .dev-hotkey-hud .dev-hotkey-hud-label { font-weight: bold; color: var(--dev-accent-color); }
+
+        /* Modal input for header button hotkey assignment (floating overlay) */
+        .dev-hotkey-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--dev-button-color, #3a3a4a);
+            border: 2px solid var(--dev-accent-color);
+            border-radius: 4px;
+            padding: 12px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .dev-hotkey-modal input {
+            background: var(--dev-panel-background, #f5f5f5);
+            color: var(--dev-panel-button-text-color, #000);
+            border: 1px solid var(--dev-accent-color);
+            padding: 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            width: 200px;
+        }
+        .dev-hotkey-modal input:focus {
+            outline: 2px solid var(--dev-accent-color);
+            outline-offset: 1px;
+        }
+
         /* Groups Collapse + Hide together at the top-right of the header -
            per explicit request (previously 3 flex children under
            justify-content:space-between spread Collapse into the middle of
@@ -2653,6 +2720,25 @@
         .dev-header-buttons {
             display: flex;
             gap: 4px;
+        }
+        /* 2 button sub-containers, ported 2026-09-28 from
+           TEMPLATE_DEV_PANEL.html's own header reorg (Copy/Reset folded
+           into the header, the old standalone .dev-buttons row removed).
+           They sit side by side on desktop, in DOM order (secondary then
+           primary - Edit Text...Redo, then Copy...Close), reading as ONE
+           continuous left-to-right sequence. */
+        .dev-header-buttons-secondary, .dev-header-buttons-primary {
+            display: flex;
+            gap: 4px;
+        }
+        @media (max-width: 767px) {
+            /* Same DOM order, flipped top-to-bottom instead of left-to-
+               right: primary (2nd in DOM) renders ON TOP, secondary (1st
+               in DOM) renders BELOW - top row: Copy/Reset/Sync/Collapse/
+               Hide; bottom row: the other 6 - without reordering the DOM
+               or duplicating any button. */
+            .dev-header-buttons { flex-direction: column-reverse; align-items: stretch; gap: 4px; }
+            .dev-header-buttons-secondary, .dev-header-buttons-primary { flex-wrap: wrap; justify-content: flex-end; }
         }
 
         .dev-collapse-btn {
@@ -2963,6 +3049,26 @@
             user-select: none;
             z-index: 1;
             opacity: 0.75;
+        }
+        /* Toggleable Settings Group checkbox, ported 2026-09-28 from
+           TEMPLATE_DEV_PANEL.html's makeDevGroupToggleable() - a plain
+           SIBLING of .dev-section-title (appended to .dev-section itself,
+           matching addGroupLockIcon()'s own convention), not a child of
+           the title - Clicko's title rewrite (toggleSection()/rename) is
+           a raw textContent replacement, so anything meant to survive it
+           lives outside the title's own text flow, the same reason the
+           lock icon/undock button/device checkbox are siblings too.
+           Positioned left of the existing right:8px/30px/52px icon
+           column. */
+        .dev-group-toggle-checkbox {
+            position: absolute;
+            top: 6px;
+            right: 76px;
+            cursor: pointer;
+            z-index: 1;
+        }
+        .dev-section-group-disabled > .dev-section-content {
+            display: none !important;
         }
         .dev-group-lock-icon:hover {
             opacity: 1;
@@ -3414,6 +3520,24 @@
         }
         .dev-value-editable:hover {
             outline: 1px solid var(--dev-accent-color);
+        }
+        /* Editable slider min/max bound labels, ported 2026-09-28 from
+           TEMPLATE_DEV_PANEL.html - the 2 small labels at each end of a
+           slider's track (see makeDevSliderBoundsEditable() in the
+           script), click-to-type just like the value readout above but
+           targeting the slider's own min/max instead of its current value. */
+        .dev-slider-bound {
+            font-size: 9px;
+            opacity: 0.6;
+            flex-shrink: 0;
+            color: var(--dev-value-text-color);
+        }
+        .dev-slider-bound-editable {
+            cursor: text;
+        }
+        .dev-slider-bound-editable:hover {
+            outline: 1px solid var(--dev-accent-color);
+            opacity: 1;
         }
         .dev-value-edit-input {
             width: 52px;
@@ -4414,61 +4538,89 @@
             <div class="dev-panel-title">
                 DEV PANEL
             </div>
+            <!-- Reorganized 2026-09-28, ported from TEMPLATE_DEV_PANEL.html's
+                 own header reorg: Copy/Reset (previously the standalone
+                 .dev-buttons row below, now REMOVED entirely) folded in
+                 here alongside Sync/Undo/Redo/etc, right-to-left order:
+                 Close, Minimize, Sync, Reset, Copy, Redo, Undo, Collapse
+                 All, Delete, Add Group, Edit Text. Split into 2 sub-
+                 containers (secondary = "Edit Text...Redo", primary =
+                 "Copy...Close") so mobile can stack them into 2 rows via a
+                 single flex-direction:column-reverse media-query rule (see
+                 .dev-header-buttons' own CSS) without reordering the DOM or
+                 duplicating any button. -->
             <div class="dev-header-buttons">
-                <!-- Text Edit Mode/Add Group/Collapse All - ported from
-                     TEMPLATE_DEV_PANEL.html (2026-09-16), replacing the old
-                     standalone Text Edit Mode checkbox and the 3 per-tab
-                     "+ Add Group" buttons below - see setupDevHeaderIconButtons()
-                     for the wiring, and CLAUDE.md Section 12e for the full
-                     right-click-arm mechanism. -->
-                <button class="dev-header-icon-btn" id="devTextEditModeBtn" title="Toggle Label Rename Mode">✎</button>
-                <button class="dev-header-icon-btn" id="devAddGroupBtn" title="Add Group (right-click: select settings/groups to fold in)">+</button>
-                <!-- Delete Group/Setting (2026-09-17) - per direct request
-                     ("I will click it, it highlights like the add group
-                     right click, then i will click a group to delete"),
-                     extended per direct follow-up ("Delete button should
-                     also allow me to delete single settings"). A plain
-                     click arms it (no left/right distinction needed here,
-                     unlike Add Group - Delete has no other click behavior
-                     to stay compatible with); the next click on any group
-                     OR individual setting deletes it (a group takes
-                     everything inside it with it). Refuses a locked group
-                     or anything inside one, and the 2 mandatory built-in
-                     groups (Dev Panel/Debug) or their own settings - see
-                     findDevDeleteProtectionReason(). See
-                     setupDevHeaderIconButtons() for the wiring. -->
-                <button class="dev-header-icon-btn" id="devDeleteGroupBtn" title="Delete Group/Setting (click, then click a group or setting to delete it)">🗑</button>
-                <!-- Undo (2026-09-17) - per direct request ("It will undo
-                     any dev panel changes be it reordering, setting input
-                     change, renaming, group nesting, anything. And allow
-                     me to undo infinitely until the last save click").
-                     Session-only (per direct clarification: "the undo only
-                     remembers changes within that browser session. so if i
-                     refresh, the undo wont do anything... it rememebrs all
-                     changes from that moment, until i click save, then it
-                     starts new again") - an in-memory stack, never
-                     persisted, cleared on Save. Ctrl+Z also triggers it -
-                     see setupDevPanelUndo(). -->
-                <button class="dev-header-icon-btn" id="devUndoBtn" title="Undo (Ctrl+Z) - undoes any dev panel change back to the last Save">↶</button>
-                <button class="dev-header-icon-btn" id="devCollapseAllBtn" title="Collapse All Groups">⊟</button>
-                <!-- Sync (Save), also in the header - per direct request
-                     ("add a Sync (save) button on the dev panel top label as
-                     well. Both buttns will exist"), so it's reachable without
-                     scrolling back up to the .dev-buttons row below (the same
-                     motivation as the header's own sticky+z-index fix just
-                     above). Calls the SAME saveSettings() the original SYNC
-                     button already does - not a separate/duplicate save path,
-                     just a 2nd entry point to it. -->
-                <button class="dev-header-icon-btn" id="devHeaderSyncBtn" onclick="saveSettings()" title="Sync (Save)">💾</button>
-                <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
-                <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
+                <div class="dev-header-buttons-secondary">
+                    <!-- Text Edit Mode/Add Group/Collapse All - ported from
+                         TEMPLATE_DEV_PANEL.html (2026-09-16), replacing the old
+                         standalone Text Edit Mode checkbox and the 3 per-tab
+                         "+ Add Group" buttons below - see setupDevHeaderIconButtons()
+                         for the wiring, and CLAUDE.md Section 12e for the full
+                         right-click-arm mechanism. -->
+                    <button class="dev-header-icon-btn" id="devTextEditModeBtn" title="Toggle Label Rename Mode">✎</button>
+                    <button class="dev-header-icon-btn" id="devAddGroupBtn" title="Add Group (right-click: select settings/groups to fold in)">+</button>
+                    <!-- Delete Group/Setting (2026-09-17) - per direct request
+                         ("I will click it, it highlights like the add group
+                         right click, then i will click a group to delete"),
+                         extended per direct follow-up ("Delete button should
+                         also allow me to delete single settings"). A plain
+                         click arms it (no left/right distinction needed here,
+                         unlike Add Group - Delete has no other click behavior
+                         to stay compatible with); the next click on any group
+                         OR individual setting deletes it (a group takes
+                         everything inside it with it). Refuses a locked group
+                         or anything inside one, and the 2 mandatory built-in
+                         groups (Dev Panel/Debug) or their own settings - see
+                         findDevDeleteProtectionReason(). See
+                         setupDevHeaderIconButtons() for the wiring. -->
+                    <button class="dev-header-icon-btn" id="devDeleteGroupBtn" title="Delete Group/Setting (click, then click a group or setting to delete it)">🗑</button>
+                    <button class="dev-header-icon-btn" id="devCollapseAllBtn" title="Collapse All Groups">⊟</button>
+                    <!-- Set Hotkey (2026-09-30) - per direct request: bind a
+                         1-2 letter SEQUENTIAL key combo (typed in order, not held
+                         simultaneously) to a checkbox/button/slider. Desktop only
+                         (never shown/armed/listened-for on a touch device). Mutual
+                         exclusion with Add Group / Delete Group (2 conflicting
+                         "what does the next click mean" modes can't both be armed).
+                         See setupSetHotkeyButton() and setupHotkeyAssignmentCapture()
+                         for the wiring. -->
+                    <button class="dev-header-icon-btn" id="devSetHotkeyBtn" title="Set Hotkey (click, then click a control to bind a 1-2 letter key combo to it)">🔑</button>
+                    <!-- Undo (2026-09-17) - per direct request ("It will undo
+                         any dev panel changes be it reordering, setting input
+                         change, renaming, group nesting, anything. And allow
+                         me to undo infinitely until the last save click").
+                         Session-only (per direct clarification: "the undo only
+                         remembers changes within that browser session. so if i
+                         refresh, the undo wont do anything... it rememebrs all
+                         changes from that moment, until i click save, then it
+                         starts new again") - an in-memory stack, never
+                         persisted, cleared on Save. Ctrl+Z also triggers it -
+                         see setupDevPanelUndo(). -->
+                    <button class="dev-header-icon-btn" id="devUndoBtn" title="Undo (Ctrl+Z) - undoes any dev panel change back to the last Save">↶</button>
+                    <!-- Redo, direct request 2026-09-28 (ported from
+                         TEMPLATE_DEV_PANEL.html's own port-back of this
+                         mechanism) - Ctrl+Shift+Z / Ctrl+Y also trigger it,
+                         see setupDevPanelUndo(). -->
+                    <button class="dev-header-icon-btn" id="devRedoBtn" title="Redo (Ctrl+Shift+Z / Ctrl+Y)">↷</button>
+                </div>
+                <div class="dev-header-buttons-primary">
+                    <!-- Copy/Reset, relocated 2026-09-28 from the old
+                         standalone .dev-buttons row (now removed) into the
+                         header itself - same copySettings()/resetDevSettings()
+                         functions, just a 2nd/new entry point. -->
+                    <button class="dev-header-icon-btn" id="devHeaderCopyBtn" onclick="copySettings()" title="Copy Settings">📋</button>
+                    <button class="dev-header-icon-btn" id="devHeaderResetBtn" onclick="resetDevSettings()" title="Reset">↺</button>
+                    <!-- Sync (Save), also in the header - per direct request
+                         ("add a Sync (save) button on the dev panel top label as
+                         well. Both buttns will exist"), so it's reachable without
+                         scrolling back up to the settings list. Calls the SAME
+                         saveSettings() the original SYNC button already did -
+                         not a separate/duplicate save path, just a 2nd entry
+                         point to it. -->
+                    <button class="dev-header-icon-btn" id="devHeaderSyncBtn" onclick="saveSettings()" title="Sync (Save)">💾</button>
+                    <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
+                    <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
+                </div>
             </div>
-        </div>
-
-        <div class="dev-buttons">
-            <button onclick="copySettings()">COPY</button>
-            <button onclick="resetDevSettings()">RESET</button>
-            <button onclick="saveSettings()">SYNC</button>
             <span id="saveSyncStatus" class="dev-save-sync-status"></span>
         </div>
 
@@ -4507,6 +4659,7 @@
                     <button onclick="useNamedDevPanelState()">USE</button>
                     <button onclick="deleteNamedDevPanelState()">DELETE</button>
                     <button onclick="setNamedDevPanelStateAsDefault()">SET DEFAULT</button>
+                    <button onclick="exportDevPanelSettings()">EXPORT</button>
                 </div>
             </div>
         </div>
@@ -9552,6 +9705,20 @@
             window.prompt('Clipboard access unavailable. Copy manually:', text);
         }
 
+        function exportDevPanelSettings() {
+            const settings = { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, stage2EngineOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            const text = JSON.stringify(settings, null, 2);
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dev-panel-settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         // Shared anti-abuse token for /api/save-settings (CLAUDE.md Section
         // 12l) - NOT a real secret (it ships in this public page's source,
         // same as every other client-side value here), just enough to keep
@@ -9622,7 +9789,7 @@
             // function is shared by Save/Copy/Undo-snapshot/Named Setting
             // States, so this single call covers all of them.
             dockAllUndockedGroups();
-            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, stage2EngineOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value };
+            return { cssVars, colorVars, mobileCssVars, mobileColorVars, landscapeCssVars, landscapeColorVars, extrusionVars, mobileExtrusionVars, landscapeExtrusionVars, gameMechanics: captureGameMechanics(), devPanelStyle, mobileDevPanelStyle, landscapeDevPanelStyle, textOverrides, mobileTextOverrides, landscapeTextOverrides, textEditWrapWidths, clickBurstFrameVars, mobileClickBurstFrameVars, landscapeClickBurstFrameVars, clickBurstTextInputs, mobileClickBurstTextInputs, landscapeClickBurstTextInputs, sectionCollapseState: captureSectionCollapseState(), sectionOrder: captureSectionOrder(), devTextOverrides, devTextOverridesManual: Array.from(devTextOverridesManual), lockedGroups: Array.from(lockedGroups), devVisibility, devIndependence, devDeviceValues, stage2EngineOverrides, baseColor: document.getElementById('colorBase').value, buttonColor: document.getElementById('colorButton').value, buttonWinColor: document.getElementById('colorButtonWin').value, buttonLoseColor: document.getElementById('colorButtonLose').value, devHotkeys };
         }
 
         // Save settings - git-only (data/processed/dev-panel-settings.json
@@ -10310,6 +10477,11 @@
                         if (cbRbAutoscroll) cbRbAutoscroll.checked = rbAutoscroll;
                         roundBreakdownPanel.classList.toggle('rb-autoscroll-on', rbAutoscroll);
                     }
+                    // Restore hotkeys and re-render all badges
+                    if (settings.devHotkeys) {
+                        devHotkeys = structuredClone(settings.devHotkeys);
+                        renderAllHotkeyBadges();
+                    }
                 } catch(e) {
                     // Now logs the real error (2026-09-20) - the generic
                     // "Failed to parse saved settings" message alone made
@@ -10691,6 +10863,59 @@
             // click on the icon would also arm a group-drag underneath it.
             icon.addEventListener('pointerdown', (e) => e.stopPropagation());
             section.appendChild(icon);
+        }
+
+        // Toggleable Settings Group - ported 2026-09-28 from
+        // TEMPLATE_DEV_PANEL.html's own makeDevGroupToggleable(). A group
+        // whose own title bar carries a checkbox controlling the WHOLE
+        // group's on/off state - when off, the group's entire content
+        // area (including any nested subgroups, at any depth) is hidden
+        // as ONE unit via display:none on .dev-section-content, so
+        // nothing inside ever renders, including an otherwise-empty
+        // subgroup shell.
+        //
+        // Usage: register the toggle as a NORMAL checkbox control first
+        // (so it rides Copy/Save/Reset/Undo exactly like any other
+        // setting, no special-casing needed there), THEN call this to
+        // relocate its real, already-wired <input> into the group's own
+        // title bar:
+        //   registerDevControlArray([{ tab: 'desktop', group: 'My Group', id: 'myGroupEnabled', type: 'checkbox', label: 'Enabled', value: true }])
+        //   makeDevGroupToggleable('desktop', 'My Group', 'myGroupEnabled')
+        // A host reads that same checkbox's value like any other
+        // registered checkbox control to decide whether to actually
+        // apply that group's settings - this function only owns the
+        // UI/visibility side, not the "applied" half.
+        //
+        // UNLIKE the template, this checkbox is appended as a SIBLING of
+        // .dev-section-title (into .dev-section itself, matching
+        // addGroupLockIcon()'s own convention just above) rather than as
+        // a child of the title - Clicko has no withPreservedTitleCheckbox()
+        // equivalent (its title rewrite in toggleSection()/rename is a
+        // raw textContent replacement), so anything meant to survive that
+        // rewrite has to live outside the title's own text flow, same as
+        // the lock icon/undock button/device checkbox already do.
+        function makeDevGroupToggleable(tab, groupSid, ctrlId) {
+            const titleEl = document.querySelector('#' + tab + 'TabContent > .dev-section > .dev-section-title[data-sid="' + groupSid.replace(/"/g, '\\"') + '"]');
+            const cb = document.getElementById(ctrlId);
+            if (!titleEl || !cb || cb.type !== 'checkbox') { console.warn('makeDevGroupToggleable: group or checkbox control not found', groupSid, ctrlId); return; }
+            const section = titleEl.closest('.dev-section');
+            const originalRow = cb.closest('.dev-row');
+
+            cb.classList.add('dev-group-toggle-checkbox');
+            cb.title = 'Enable/disable this whole group';
+            cb.addEventListener('click', e => e.stopPropagation()); // don't also collapse/expand the group via the title's own onclick
+            // Matches addGroupLockIcon()'s own drag-guard just above - the
+            // checkbox visually overlaps the title bar (the group-reorder
+            // drag HANDLE), so without this a click here would also arm a
+            // group-drag underneath it.
+            cb.addEventListener('pointerdown', e => e.stopPropagation());
+            section.appendChild(cb);
+            if (originalRow) originalRow.remove(); // the control's own default row is now redundant - the checkbox lives in the title bar instead
+
+            function applyState() { section.classList.toggle('dev-section-group-disabled', !cb.checked); }
+            cb.addEventListener('change', applyState);
+            cb.addEventListener('input', applyState); // covers whichever event a Reset/Undo/Load restore dispatches
+            applyState();
         }
 
         // Undock/Dock (2026-09-20, ported from TEMPLATE_DEV_PANEL.html,
@@ -11306,6 +11531,443 @@
             }, true);
         }
 
+        // ================================================================
+        // SET HOTKEY FEATURE -- added 2026-09-30, direct request: bind a
+        // 1-2 letter SEQUENTIAL key combo (typed in order, not held
+        // simultaneously) to a checkbox/button/slider. Desktop only (never
+        // shown/armed/listened-for on a touch device -- "Do not show
+        // hotkeys on mobile").
+        // ================================================================
+        const devHotkeyIsTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+        let devHotkeys = {}; // { [keySequence]: { id, type: 'checkbox'|'button'|'slider' } }
+        let devSetHotkeyArmed = false;
+        // Which element/control types are eligible -- explicitly excludes
+        // dropdowns (<select>), curve editors and color pickers (neither is
+        // a plain checkbox/range/button element so both are naturally
+        // excluded below without a special case), group-label buttons
+        // (expand/undock/lock, all live inside .dev-section-title), the row/
+        // group drag-handle (a <span>, not a button, also naturally
+        // excluded), and item-selector/list-picker rows (.dev-list-picker).
+        function getHotkeyEligibleTarget(e) {
+            if (e.target.closest('.dev-section-title')) return null;
+            if (e.target.closest('.dev-list-picker')) return null;
+            if (e.target.closest('.dev-header-buttons')) return null;
+            if (e.target.closest('.dev-slider-bound-editable')) return null;
+            if (e.target.closest('.dev-hotkey-badge') || e.target.closest('.dev-hotkey-input')) return null;
+            const checkbox = e.target.closest('input[type="checkbox"]');
+            if (checkbox && checkbox.closest('.dev-row')) return { el: checkbox, type: 'checkbox' };
+            const slider = e.target.closest('input[type="range"]');
+            if (slider && slider.closest('.dev-row')) return { el: slider, type: 'slider' };
+            const button = e.target.closest('button');
+            if (button && button.closest('.dev-row, .dev-buttons')) return { el: button, type: 'button' };
+            return null;
+        }
+        function disarmSetHotkey() {
+            devSetHotkeyArmed = false;
+            const btn = document.getElementById('devSetHotkeyBtn');
+            if (btn) btn.classList.remove('armed');
+        }
+        function setupSetHotkeyButton() {
+            const btn = document.getElementById('devSetHotkeyBtn');
+            if (!btn) return;
+            if (devHotkeyIsTouchDevice) { btn.style.display = 'none'; return; }
+            btn.addEventListener('click', () => {
+                if (devSetHotkeyArmed) {
+                    disarmSetHotkey();
+                } else {
+                    disarmDevGroupSelection();
+                    disarmDevDeleteGroup();
+                    devSetHotkeyArmed = true;
+                    btn.classList.add('armed');
+                }
+            });
+        }
+        function insertHotkeyElementIntoRow(row, el, targetEl) {
+            const handle = row.querySelector(':scope > .dev-row-drag-handle');
+            if (handle) { row.insertBefore(el, handle); return; }
+            if (targetEl && targetEl.parentNode === row) { row.insertBefore(el, targetEl); return; }
+            row.insertBefore(el, row.firstChild || null);
+        }
+        function findExistingHotkeyKeyForControl(controlId) {
+            for (const [key, entry] of Object.entries(devHotkeys)) { if (entry.id === controlId) return key; }
+            return null;
+        }
+        function renderHotkeyBadgeForRow(row, controlId, controlType) {
+            const existingEl = row.querySelector(':scope > [data-hotkey-target="' + controlId + '"]');
+            if (existingEl) existingEl.remove();
+            const key = findExistingHotkeyKeyForControl(controlId);
+            if (!key) return;
+            const badge = document.createElement('span');
+            badge.className = 'dev-hotkey-badge';
+            badge.dataset.hotkeyTarget = controlId;
+            badge.textContent = key;
+            badge.title = 'Double-click to edit, double-right-click to delete';
+            let lastContextmenuAt = 0;
+            badge.addEventListener('dblclick', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                startHotkeyEdit(row, controlId, controlType, key);
+            });
+            badge.addEventListener('contextmenu', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                const now = performance.now();
+                if (now - lastContextmenuAt < getHotkeySequenceWindowMs()) {
+                    pushDevPanelUndoSnapshot(); devRedoStack = [];
+                    delete devHotkeys[key];
+                    renderHotkeyBadgeForRow(row, controlId, controlType);
+                    refreshHotkeysListSubgroup();
+                }
+                lastContextmenuAt = now;
+            });
+            insertHotkeyElementIntoRow(row, badge, document.getElementById(controlId));
+        }
+        function startHotkeyEdit(row, controlId, controlType, existingKey) {
+            const existingEl = row.querySelector(':scope > [data-hotkey-target="' + controlId + '"]');
+            if (existingEl) existingEl.remove();
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'dev-hotkey-input';
+            input.dataset.hotkeyTarget = controlId;
+            input.maxLength = 2;
+            if (existingKey) input.value = existingKey;
+            insertHotkeyElementIntoRow(row, input, document.getElementById(controlId));
+            input.focus(); input.select();
+            let settled = false;
+            function commit() {
+                if (settled) return; settled = true;
+                const typed = input.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 2);
+                input.remove();
+                if (typed) {
+                    pushDevPanelUndoSnapshot(); devRedoStack = [];
+                    if (existingKey && existingKey !== typed) delete devHotkeys[existingKey];
+                    devHotkeys[typed] = { id: controlId, type: controlType };
+                } else if (existingKey) {
+                    pushDevPanelUndoSnapshot(); devRedoStack = [];
+                    delete devHotkeys[existingKey];
+                }
+                renderHotkeyBadgeForRow(row, controlId, controlType);
+                refreshHotkeysListSubgroup();
+            }
+            function cancel() {
+                if (settled) return; settled = true;
+                input.remove();
+                renderHotkeyBadgeForRow(row, controlId, controlType);
+            }
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+                else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+            });
+            input.addEventListener('click', (ev) => ev.stopPropagation());
+        }
+        function startHotkeyEditForHeaderBtn(buttonEl, existingKey) {
+            // Floating modal for header button hotkey assignment
+            let modal = document.getElementById('devHotkeyModalInput');
+            if (modal) modal.remove();
+            modal = document.createElement('div');
+            modal.id = 'devHotkeyModalInput';
+            modal.className = 'dev-hotkey-modal';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Type hotkey (e.g., s, ctrl+s, shift+d)';
+            input.maxLength = 20;
+            if (existingKey) input.value = existingKey;
+            modal.appendChild(input);
+            document.body.appendChild(modal);
+            input.focus(); input.select();
+            let settled = false;
+            function commit() {
+                if (settled) return; settled = true;
+                const typed = input.value.trim().toLowerCase().replace(/[^a-z0-9+]/g, '');
+                modal.remove();
+                if (typed) {
+                    pushDevPanelUndoSnapshot(); devRedoStack = [];
+                    if (existingKey && existingKey !== typed) delete devHotkeys[existingKey];
+                    devHotkeys[typed] = { id: buttonEl.id, type: 'button' };
+                } else if (existingKey) {
+                    pushDevPanelUndoSnapshot(); devRedoStack = [];
+                    delete devHotkeys[existingKey];
+                }
+                refreshHotkeysListSubgroup();
+            }
+            function cancel() {
+                if (settled) return; settled = true;
+                modal.remove();
+            }
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+                else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+            });
+        }
+        function setupHotkeyAssignmentCapture() {
+            if (devHotkeyIsTouchDevice) return;
+            devPanel.addEventListener('click', (e) => {
+                if (!devSetHotkeyArmed) return;
+                if (e.target.closest('#devSetHotkeyBtn')) return;
+                const eligible = getHotkeyEligibleTarget(e);
+                if (!eligible) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const row = eligible.el.closest('.dev-row, .dev-buttons');
+                if (!row) return;
+                if (!eligible.el.id) { console.warn('Set Hotkey: target has no id, cannot bind'); return; }
+                startHotkeyEdit(row, eligible.el.id, eligible.type, findExistingHotkeyKeyForControl(eligible.el.id));
+            }, true);
+            // Header button hotkey assignment (icon buttons, collapse, hide)
+            devPanel.addEventListener('click', (e) => {
+                if (!devSetHotkeyArmed) return;
+                if (e.target.closest('#devSetHotkeyBtn')) return;
+                const headerBtn = e.target.closest('.dev-header-icon-btn, .dev-collapse-btn, .dev-hide-btn');
+                if (!headerBtn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (!headerBtn.id) { console.warn('Set Hotkey: header button has no id, cannot bind'); return; }
+                startHotkeyEditForHeaderBtn(headerBtn, findExistingHotkeyKeyForControl(headerBtn.id));
+            }, true);
+            document.addEventListener('click', (e) => {
+                if (devPanel.contains(e.target)) return;
+                if (devSetHotkeyArmed) disarmSetHotkey();
+            }, true);
+        }
+        function renderAllHotkeyBadges() {
+            if (devHotkeyIsTouchDevice) return;
+            const seenIds = new Set();
+            Object.values(devHotkeys).forEach((entry) => seenIds.add(entry.id));
+            document.querySelectorAll('.dev-hotkey-badge, .dev-hotkey-input').forEach((el) => {
+                if (el.dataset.hotkeyTarget) seenIds.add(el.dataset.hotkeyTarget);
+            });
+            seenIds.forEach((id) => {
+                if (!id) return;
+                const el = document.getElementById(id);
+                const row = el && el.closest('.dev-row, .dev-buttons');
+                if (!row) return;
+                const type = el.type === 'checkbox' ? 'checkbox' : el.type === 'range' ? 'slider' : 'button';
+                renderHotkeyBadgeForRow(row, id, type);
+            });
+            refreshHotkeysListSubgroup();
+        }
+
+        // ================================================================
+        // Key-sequence detection engine -- keys typed IN ORDER within a
+        // configurable window (default 500ms), not held simultaneously.
+        // ================================================================
+        function getHotkeySequenceWindowMs() {
+            const el = document.getElementById('sliderDevHotkeySequenceWindow');
+            return el ? parseFloat(el.value) || 500 : 500;
+        }
+        let hotkeyKeyBuffer = '';
+        let hotkeyBufferTimer = null;
+        function resetHotkeyBuffer() {
+            hotkeyKeyBuffer = '';
+            if (hotkeyBufferTimer) { clearTimeout(hotkeyBufferTimer); hotkeyBufferTimer = null; }
+        }
+        function isTypingIntoAnInput(e) {
+            const t = e.target;
+            return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+        }
+        function processHotkeyBuffer() {
+            const exact = devHotkeys[hotkeyKeyBuffer];
+            const hasLongerPossibleMatch = hotkeyKeyBuffer.length === 1 && Object.keys(devHotkeys).some((k) => k.length === 2 && k.startsWith(hotkeyKeyBuffer));
+            if (hasLongerPossibleMatch) {
+                clearTimeout(hotkeyBufferTimer);
+                hotkeyBufferTimer = setTimeout(() => {
+                    if (devHotkeys[hotkeyKeyBuffer]) triggerHotkey(devHotkeys[hotkeyKeyBuffer]);
+                    resetHotkeyBuffer();
+                }, getHotkeySequenceWindowMs());
+                return;
+            }
+            if (exact) triggerHotkey(exact);
+            resetHotkeyBuffer();
+        }
+        function triggerHotkey(entry) {
+            const el = document.getElementById(entry.id);
+            if (!el) return;
+            if (entry.type === 'checkbox') {
+                pushDevPanelUndoSnapshot(); devRedoStack = [];
+                el.checked = !el.checked;
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            } else if (entry.type === 'button') {
+                pushDevPanelUndoSnapshot(); devRedoStack = [];
+                el.click();
+                if (typeof window.requestRender === 'function') window.requestRender();
+            } else if (entry.type === 'slider') {
+                enterSliderHotkeyMode(el);
+            }
+        }
+        function buildModifierKeyCombo(e) {
+            // Build modifier+key string for immediate lookup, e.g., "ctrl+s", "shift+d", "alt+c"
+            // Normalize: always lowercase, exclude metaKey (cmd) since it conflicts with OS
+            const mods = [];
+            if (e.ctrlKey || e.metaKey) mods.push('ctrl'); // Treat Cmd as Ctrl on Mac
+            if (e.shiftKey) mods.push('shift');
+            if (e.altKey) mods.push('alt');
+            if (mods.length === 0) return null; // No modifiers pressed
+            const key = e.key.toLowerCase();
+            // Only alphanumeric + common symbols (-, +, =, etc.) are valid
+            if (!/^[a-z0-9\-+=\[\]\\;:'",.<>/?]$/i.test(key)) return null;
+            return mods.join('+') + '+' + key;
+        }
+        function setupHotkeySequenceListener() {
+            if (devHotkeyIsTouchDevice) return;
+            document.addEventListener('keydown', (e) => {
+                if (activeSliderHotkey) { handleSliderHotkeyModeKey(e); return; }
+                if (isTypingIntoAnInput(e)) return;
+                // Modifier+key combos trigger immediately (not buffered)
+                const modCombo = buildModifierKeyCombo(e);
+                if (modCombo) {
+                    e.preventDefault();
+                    if (devHotkeys[modCombo]) {
+                        triggerHotkey(devHotkeys[modCombo]);
+                    }
+                    return;
+                }
+                // Single alphanumeric keys are buffered (existing behavior)
+                if (!/^[a-z0-9]$/i.test(e.key)) return;
+                hotkeyKeyBuffer += e.key.toLowerCase();
+                if (hotkeyKeyBuffer.length > 2) hotkeyKeyBuffer = hotkeyKeyBuffer.slice(-2);
+                processHotkeyBuffer();
+            });
+        }
+
+        // ================================================================
+        // Slider Hotkey Mode -- triggering a slider's hotkey doesn't change
+        // anything immediately; it arms arrow-key adjustment instead, shown
+        // via a small HUD next to the floating DEV toggle button.
+        // ================================================================
+        let activeSliderHotkey = null; // { el, baseStep, multiplier }
+        function getSliderHotkeyHud() {
+            let hud = document.getElementById('devHotkeyHud');
+            if (!hud) {
+                hud = document.createElement('div');
+                hud.id = 'devHotkeyHud';
+                hud.className = 'dev-hotkey-hud';
+                hud.style.display = 'none';
+                document.body.appendChild(hud);
+            }
+            return hud;
+        }
+        function updateSliderHotkeyHud() {
+            if (!activeSliderHotkey) return;
+            const { el, baseStep, multiplier } = activeSliderHotkey;
+            const label = el.closest('.dev-row')?.querySelector('.dev-label')?.textContent || el.id;
+            const hud = getSliderHotkeyHud();
+            hud.innerHTML = '<span class="dev-hotkey-hud-label">' + label + '</span> = ' + el.value + ' (step ' + (baseStep * multiplier) + ')';
+            hud.style.display = 'block';
+        }
+        function enterSliderHotkeyMode(el) {
+            pushDevPanelUndoSnapshot(); devRedoStack = [];
+            activeSliderHotkey = { el, baseStep: parseFloat(el.step) || 1, multiplier: 1 };
+            updateSliderHotkeyHud();
+        }
+        function exitSliderHotkeyMode() {
+            activeSliderHotkey = null;
+            const hud = document.getElementById('devHotkeyHud');
+            if (hud) hud.style.display = 'none';
+        }
+        function handleSliderHotkeyModeKey(e) {
+            if (!activeSliderHotkey) return;
+            const { el, baseStep, multiplier } = activeSliderHotkey;
+            if (e.key === 'Escape') { e.preventDefault(); exitSliderHotkeyMode(); return; }
+            if (e.key === '+' || e.key === '=') { e.preventDefault(); activeSliderHotkey.multiplier *= 10; updateSliderHotkeyHud(); return; }
+            if (e.key === '-' || e.key === '_') { e.preventDefault(); activeSliderHotkey.multiplier = Math.max(0.001, activeSliderHotkey.multiplier / 10); updateSliderHotkeyHud(); return; }
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const step = baseStep * multiplier * (e.key === 'ArrowUp' ? 1 : -1);
+                const min = parseFloat(el.min), max = parseFloat(el.max);
+                let val = (parseFloat(el.value) || 0) + step;
+                if (!isNaN(min)) val = Math.max(min, val);
+                if (!isNaN(max)) val = Math.min(max, val);
+                el.value = val;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                updateSliderHotkeyHud();
+            }
+        }
+        function setupSliderHotkeyModeExitWatcher() {
+            if (devHotkeyIsTouchDevice) return;
+            ['input', 'change', 'click'].forEach((evtName) => {
+                document.addEventListener(evtName, (e) => {
+                    if (!activeSliderHotkey) return;
+                    if (e.target === activeSliderHotkey.el) return;
+                    if (e.target.closest && e.target.closest('#devHotkeyHud')) return;
+                    exitSliderHotkeyMode();
+                }, true);
+            });
+        }
+
+        // ================================================================
+        // "Hotkeys" subgroup, inside the built-in "Dev Panel" group -- lists
+        // every current hotkey/function pair, with the same double-click-
+        // edit / double-right-click-delete interaction as an inline badge,
+        // plus the Sequence Window (Ms) timing slider.
+        // ================================================================
+        function ensureHotkeysSubgroup() {
+            if (devHotkeyIsTouchDevice) return null;
+            const devPanelSec = Array.from(document.querySelectorAll('#desktopTabContent > .dev-section')).find((s) => {
+                const t = s.querySelector(':scope > .dev-section-title');
+                return t && (t.dataset.sid || t.textContent.replace(/^[▼▶]\s*/, '')) === 'Dev Panel';
+            });
+            if (!devPanelSec) return null;
+            const content = devPanelSec.querySelector(':scope > .dev-section-content');
+            let existing = content.querySelector(':scope > .dev-section[data-sid="Hotkeys"]');
+            if (existing) return existing;
+            const g = createDevGroupElement('Hotkeys', 'desktop');
+            content.appendChild(g);
+            const gc = g.querySelector(':scope > .dev-section-content');
+            const sliderRow = buildUniformControlRow({ id: 'sliderDevHotkeySequenceWindow', label: 'Hotkey Sequence Window (Ms)', type: 'slider', min: 100, max: 2000, step: 'any', value: 500, skipDeviceCheckbox: true });
+            gc.appendChild(sliderRow);
+            const listContainer = document.createElement('div');
+            listContainer.id = 'devHotkeysListContainer';
+            gc.appendChild(listContainer);
+            return g;
+        }
+        function refreshHotkeysListSubgroup() {
+            if (devHotkeyIsTouchDevice) return;
+            const container = document.getElementById('devHotkeysListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            const entries = Object.entries(devHotkeys);
+            if (!entries.length) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'font-size:10px; color:#888; padding:2px 0;';
+                empty.textContent = 'No hotkeys set yet.';
+                container.appendChild(empty);
+                return;
+            }
+            entries.forEach(([key, entry]) => {
+                const el = document.getElementById(entry.id);
+                const targetContainer = el ? el.closest('.dev-row, .dev-buttons') : null;
+                const label = targetContainer?.querySelector('.dev-label')?.textContent || entry.id;
+                const row = document.createElement('div');
+                row.className = 'dev-row';
+                row.style.cssText = 'display:flex; align-items:center; gap:6px;';
+                const badge = document.createElement('span');
+                badge.className = 'dev-hotkey-badge';
+                badge.textContent = key;
+                badge.title = 'Double-click to edit, double-right-click to delete';
+                let lastContextmenuAt = 0;
+                badge.addEventListener('dblclick', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    if (targetContainer) startHotkeyEdit(targetContainer, entry.id, entry.type, key);
+                });
+                badge.addEventListener('contextmenu', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const now = performance.now();
+                    if (now - lastContextmenuAt < getHotkeySequenceWindowMs()) {
+                        pushDevPanelUndoSnapshot(); devRedoStack = [];
+                        delete devHotkeys[key];
+                        if (targetContainer) renderHotkeyBadgeForRow(targetContainer, entry.id, entry.type);
+                        refreshHotkeysListSubgroup();
+                    }
+                    lastContextmenuAt = now;
+                });
+                const labelSpan = document.createElement('span');
+                labelSpan.textContent = label;
+                row.appendChild(badge);
+                row.appendChild(labelSpan);
+                container.appendChild(row);
+            });
+        }
+
         // Infinite undo (2026-09-17) - per direct request ("Add... an undo
         // button. It will undo any dev panel changes be it reordering,
         // setting input change, renaming, group nesting, anything. And
@@ -11352,6 +12014,27 @@
         // gate only pushes on the drag's own initial pointerdown.
         let devUndoStack = [];
         let devUndoGestureActive = false;
+        // Extension point for state Undo can't see on its own (ported
+        // 2026-09-28 from TEMPLATE_DEV_PANEL.html's own generalization of
+        // this exact mechanism). buildSettingsSnapshot() already includes
+        // stage2EngineOverrides directly, so Clicko's own concrete gap
+        // isn't missing snapshot DATA - it's that the pointerdown-gated
+        // push below is scoped to `devPanel`'s own DOM, and the UI-Engine
+        // Inspector (#stage2InspectorPanel) is a separate, sibling
+        // top-level element, never nested inside devPanel - so dragging an
+        // element via the Inspector never triggered a pre-change snapshot
+        // push at all (see setupDevPanelUndo()'s own extended listener
+        // below, which closes that specific gap). These 2 extension points
+        // are kept anyway, at template parity, for any FUTURE state that
+        // truly lives outside buildSettingsSnapshot()'s own JSON structure.
+        let devUndoCaptureExtra = null;
+        let devUndoApplyExtra = null;
+        // Save/Load's own equivalent of the pair above - same reasoning,
+        // different pipeline (template parity; unused for now since
+        // stage2EngineOverrides is already inside buildSettingsSnapshot()
+        // and saveSettings() already captures it that way).
+        let devSaveCaptureExtra = null;
+        let devSaveApplyExtra = null;
         function pushDevPanelUndoSnapshot() {
             // Deep-cloned (JSON round-trip - every field buildSettingsSnapshot()
             // returns is already plain JSON-safe data, per its own
@@ -11365,8 +12048,13 @@
             // snapshot already on the stack silently changed underneath
             // Undo the moment ANY later edit touched the same underlying
             // state object, since they were never actually 2 separate
-            // objects to begin with.
-            devUndoStack.push({ kind: 'snapshot', data: JSON.parse(JSON.stringify(buildSettingsSnapshot())) });
+            // objects to begin with. Same reasoning applies to `extra`.
+            const extra = devUndoCaptureExtra ? devUndoCaptureExtra() : undefined;
+            devUndoStack.push({
+                kind: 'snapshot',
+                data: JSON.parse(JSON.stringify(buildSettingsSnapshot())),
+                extra: extra !== undefined ? JSON.parse(JSON.stringify(extra)) : undefined
+            });
         }
         // A SEPARATE undo-entry kind, specifically for deleting a group or
         // setting (pushDevDeleteUndoEntry(), called from setupDevDeleteGroup()'s
@@ -11390,18 +12078,52 @@
         // contents, at any nesting depth) or a single setting row alike.
         function pushDevDeleteUndoEntry(node, parent, nextSibling) {
             devUndoStack.push({ kind: 'delete', node, parent, nextSibling });
+            devRedoStack = []; // a genuine new edit invalidates any pending redo history
         }
+        // Redo - direct request 2026-09-28, ported from
+        // TEMPLATE_DEV_PANEL.html's own generalization of this exact
+        // mechanism (which was itself originally ported FROM Clicko's
+        // undo stack before Redo was added on top). A separate LIFO
+        // stack, populated only by undoDevPanelChange()/redoDevPanelChange()
+        // themselves (never by a real edit directly - setupDevPanelUndo()'s
+        // own pointerdown listener clears it instead). For a 'delete'
+        // entry, undo and redo are exact mirror images of the same
+        // {node, parent, nextSibling} descriptor - reusing the SAME object
+        // for both directions is correct by construction, since
+        // re-inserting then re-removing the same node at the same anchor
+        // point is a well-defined, reversible pair of DOM operations.
+        let devRedoStack = [];
         function undoDevPanelChange() {
             if (!devUndoStack.length) return;
             const entry = devUndoStack.pop();
             if (entry.kind === 'delete') {
+                devRedoStack.push(entry); // redoing = deleting this same node again
                 if (entry.nextSibling && entry.nextSibling.parentNode === entry.parent) {
                     entry.parent.insertBefore(entry.node, entry.nextSibling);
                 } else {
                     entry.parent.appendChild(entry.node);
                 }
             } else {
+                const extra = devUndoCaptureExtra ? devUndoCaptureExtra() : undefined;
+                devRedoStack.push({
+                    kind: 'snapshot',
+                    data: JSON.parse(JSON.stringify(buildSettingsSnapshot())),
+                    extra: extra !== undefined ? JSON.parse(JSON.stringify(extra)) : undefined
+                });
                 applySettingsSnapshotLive(entry.data);
+                if (entry.extra !== undefined && devUndoApplyExtra) devUndoApplyExtra(entry.extra);
+            }
+        }
+        function redoDevPanelChange() {
+            if (!devRedoStack.length) return;
+            const entry = devRedoStack.pop();
+            if (entry.kind === 'delete') {
+                devUndoStack.push(entry); // undoing the redo = re-inserting it again
+                entry.node.remove();
+            } else {
+                pushDevPanelUndoSnapshot();
+                applySettingsSnapshotLive(entry.data);
+                if (entry.extra !== undefined && devUndoApplyExtra) devUndoApplyExtra(entry.extra);
             }
         }
         // How long a "gesture" is allowed to hold the undo-push gate open
@@ -11423,45 +12145,62 @@
             devUndoGestureActive = false;
             if (devUndoGestureTimer) { clearTimeout(devUndoGestureTimer); devUndoGestureTimer = null; }
         }
+        // Shared pointerdown gesture handler, extracted 2026-09-28 so it
+        // can be attached to BOTH devPanel AND #stage2InspectorPanel - the
+        // UI-Engine Inspector is a separate, sibling top-level element
+        // (never nested inside devPanel), so dragging an element's
+        // position/size via the Inspector never triggered a pre-change
+        // undo snapshot at all until this extension (stage2EngineOverrides
+        // was already captured correctly inside buildSettingsSnapshot()
+        // once a push DID happen - the gap was purely the push TRIGGER's
+        // scope, not missing snapshot data).
+        function handleDevUndoGesturePointerdown(e) {
+            if (devUndoGestureActive) return;
+            // While Delete Group/Setting is armed, the very next click
+            // either deletes something (which pushes its own precise
+            // pushDevDeleteUndoEntry() instead - see that function's
+            // comment for why a plain snapshot can't undo a deletion)
+            // or is refused/disarms with no mutation at all - a plain
+            // value snapshot here would be a dead, unpoppable-to-any-
+            // useful-state entry either way, so skip it.
+            if (devDeleteGroupArmed) return;
+            // THE root cause of a real, confirmed "Undo does literally
+            // nothing" report (2026-09-17): the Undo button is itself
+            // inside devPanel, so clicking it ALSO fires this same
+            // capturing pointerdown listener - without this guard, a
+            // click on Undo would push a snapshot of the CURRENT
+            // (already-changed) state, then its own 'click' handler
+            // immediately pops that SAME just-pushed entry, restoring
+            // the current state onto itself - a complete no-op that
+            // leaves the user's real prior change buried, untouched,
+            // one slot deeper on the stack (confirmed live: after one
+            // real edit + one real Undo click, devUndoStack.length was
+            // 1, not the correct 0). Every one of THIS session's own
+            // earlier tests used undoBtn.click() (the JS method) to
+            // trigger Undo, which - as already independently
+            // discovered once this session for a checkbox - does NOT
+            // fire pointerdown/mousedown at all, only 'click' directly,
+            // which is exactly why this never showed up in testing
+            // despite extensive verification; only a REAL mouse click
+            // (or a synthetic pointerdown+click pair) exposes it.
+            // Redo button needs the exact same self-push guard as Undo,
+            // for the identical reason (it's also inside devPanel).
+            if (e.target.closest('#devUndoBtn') || e.target.closest('#devRedoBtn')) return;
+            devUndoGestureActive = true;
+            pushDevPanelUndoSnapshot();
+            // A genuine new edit invalidates any pending redo history -
+            // standard undo/redo semantics, direct request 2026-09-28.
+            devRedoStack = [];
+            // Belt-and-suspenders reset, on top of the real pointerup/
+            // pointercancel/focus listeners below - if NONE of those
+            // ever fire for some reason this hasn't been discovered
+            // yet, the gate still can't stay stuck forever.
+            devUndoGestureTimer = setTimeout(resetDevUndoGesture, DEV_UNDO_GESTURE_TIMEOUT_MS);
+        }
         function setupDevPanelUndo() {
-            devPanel.addEventListener('pointerdown', (e) => {
-                if (devUndoGestureActive) return;
-                // While Delete Group/Setting is armed, the very next click
-                // either deletes something (which pushes its own precise
-                // pushDevDeleteUndoEntry() instead - see that function's
-                // comment for why a plain snapshot can't undo a deletion)
-                // or is refused/disarms with no mutation at all - a plain
-                // value snapshot here would be a dead, unpoppable-to-any-
-                // useful-state entry either way, so skip it.
-                if (devDeleteGroupArmed) return;
-                // THE root cause of a real, confirmed "Undo does literally
-                // nothing" report (2026-09-17): the Undo button is itself
-                // inside devPanel, so clicking it ALSO fires this same
-                // capturing pointerdown listener - without this guard, a
-                // click on Undo would push a snapshot of the CURRENT
-                // (already-changed) state, then its own 'click' handler
-                // immediately pops that SAME just-pushed entry, restoring
-                // the current state onto itself - a complete no-op that
-                // leaves the user's real prior change buried, untouched,
-                // one slot deeper on the stack (confirmed live: after one
-                // real edit + one real Undo click, devUndoStack.length was
-                // 1, not the correct 0). Every one of THIS session's own
-                // earlier tests used undoBtn.click() (the JS method) to
-                // trigger Undo, which - as already independently
-                // discovered once this session for a checkbox - does NOT
-                // fire pointerdown/mousedown at all, only 'click' directly,
-                // which is exactly why this never showed up in testing
-                // despite extensive verification; only a REAL mouse click
-                // (or a synthetic pointerdown+click pair) exposes it.
-                if (e.target.closest('#devUndoBtn')) return;
-                devUndoGestureActive = true;
-                pushDevPanelUndoSnapshot();
-                // Belt-and-suspenders reset, on top of the real pointerup/
-                // pointercancel/focus listeners below - if NONE of those
-                // ever fire for some reason this hasn't been discovered
-                // yet, the gate still can't stay stuck forever.
-                devUndoGestureTimer = setTimeout(resetDevUndoGesture, DEV_UNDO_GESTURE_TIMEOUT_MS);
-            }, true);
+            devPanel.addEventListener('pointerdown', handleDevUndoGesturePointerdown, true);
+            const inspectorPanel = document.getElementById('stage2InspectorPanel');
+            if (inspectorPanel) inspectorPanel.addEventListener('pointerdown', handleDevUndoGesturePointerdown, true);
             document.addEventListener('pointerup', resetDevUndoGesture, true);
             document.addEventListener('pointercancel', resetDevUndoGesture, true);
             // Catches the native-picker-eats-pointerup case directly - the
@@ -11472,25 +12211,31 @@
             window.addEventListener('focus', resetDevUndoGesture);
             const undoBtn = document.getElementById('devUndoBtn');
             if (undoBtn) undoBtn.addEventListener('click', undoDevPanelChange);
+            const redoBtn = document.getElementById('devRedoBtn');
+            if (redoBtn) redoBtn.addEventListener('click', redoDevPanelChange);
             // Ctrl+Z - standard undo shortcut, matching the D/R single-key
-            // shortcuts this panel already has (Hide/Reset). Ignored while
-            // focus is in a genuine text-input context (a rename textarea,
-            // the search box) so it doesn't fight the browser/OS's own
-            // native text-field undo.
+            // shortcuts this panel already has (Hide/Reset). Ctrl+Shift+Z
+            // and Ctrl+Y (the 2 most common cross-platform Redo shortcuts)
+            // added 2026-09-28. Ignored while focus is in a genuine
+            // text-input context (a rename textarea, the search box) so it
+            // doesn't fight the browser/OS's own native text-field undo/redo.
             document.addEventListener('keydown', (e) => {
-                if (!(e.key === 'z' || e.key === 'Z') || !(e.ctrlKey || e.metaKey)) return;
+                if (!(e.key === 'z' || e.key === 'Z' || e.key === 'y' || e.key === 'Y') || !(e.ctrlKey || e.metaKey)) return;
                 const tag = document.activeElement ? document.activeElement.tagName : '';
                 if (tag === 'TEXTAREA' || (tag === 'INPUT' && document.activeElement.type === 'text')) return;
                 e.preventDefault();
-                undoDevPanelChange();
+                const isRedo = (e.key === 'y' || e.key === 'Y') || ((e.key === 'z' || e.key === 'Z') && e.shiftKey);
+                if (isRedo) redoDevPanelChange(); else undoDevPanelChange();
             });
         }
-        // Clears the undo stack - called from saveSettings() itself (per
-        // the request's own explicit "until i click save, then it starts
-        // new again"), so a Save draws a hard line under everything before
-        // it; nothing before a Save is ever undoable after it.
+        // Clears the undo AND redo stacks - called from saveSettings()
+        // itself (per the request's own explicit "until i click save, then
+        // it starts new again"), so a Save draws a hard line under
+        // everything before it; nothing before a Save is ever undoable OR
+        // redoable after it.
         function clearDevPanelUndoStack() {
             devUndoStack = [];
+            devRedoStack = [];
         }
 
         // Ctrl+F-style search for group/setting names, ported from
@@ -12864,6 +13609,17 @@
             label.className = 'dev-label';
             label.textContent = ctrl.label;
             row.appendChild(label);
+            // Editable min/max bound labels at each end of the track,
+            // ported 2026-09-28 from TEMPLATE_DEV_PANEL.html - same
+            // click-to-type interaction as the value readout below
+            // (makeDevSliderBoundsEditable()), but targets the slider's
+            // own min/max instead of its current value.
+            const minLabel = document.createElement('span');
+            minLabel.className = 'dev-slider-bound dev-slider-bound-editable';
+            minLabel.dataset.sliderId = ctrl.id;
+            minLabel.dataset.bound = 'min';
+            minLabel.textContent = ctrl.min;
+            row.appendChild(minLabel);
             const input = document.createElement('input');
             input.type = 'range';
             input.className = 'dev-slider';
@@ -12873,6 +13629,12 @@
             input.step = ctrl.step;
             input.value = ctrl.value;
             row.appendChild(input);
+            const maxLabel = document.createElement('span');
+            maxLabel.className = 'dev-slider-bound dev-slider-bound-editable';
+            maxLabel.dataset.sliderId = ctrl.id;
+            maxLabel.dataset.bound = 'max';
+            maxLabel.textContent = ctrl.max;
+            row.appendChild(maxLabel);
             const value = document.createElement('span');
             value.className = 'dev-value';
             value.id = ctrl.id.replace(/^slider/, 'value');
@@ -15679,7 +16441,19 @@
         // this single check satisfies BOTH halves of the request at once,
         // since a drag that never starts can neither reorder in place nor
         // be dropped into a different group.
-        let lockedGroups = new Set();
+        // Dev Panel and Debug start locked by default on every tab, ported
+        // 2026-09-28 from TEMPLATE_DEV_PANEL.html - these 2 are Clicko's
+        // own mandatory built-in groups (CLAUDE.md 12i/12i-1), so locking
+        // them out of the box protects them from an accidental drag/delete
+        // the same way findDevDeleteProtectionReason() already refuses to
+        // delete them outright. A project (or a fresh visitor with no
+        // saved settings yet) can still unlock either via its own lock
+        // icon if it genuinely wants to reorganize them; loadSettings()'s
+        // own `if (settings.lockedGroups) lockedGroups = ...` still
+        // overrides this default the instant real saved data resolves.
+        let lockedGroups = new Set(
+            ['desktop', 'mobile', 'landscape'].flatMap(tab => [tab + ':Dev Panel', tab + ':Debug'])
+        );
         // no override is stored yet. Derived from the DOM itself (there are
         // 26 section titles + ~300 setting labels - hand-listing every
         // default the way TEXT_OVERRIDE_DEFAULTS does for the ~8 game-text
@@ -16262,6 +17036,69 @@
                 // The click that opened this input would otherwise also
                 // bubble to the document-level listener above and could
                 // re-trigger this same handler on the same element.
+                input.addEventListener('click', (ev) => ev.stopPropagation());
+            });
+        }
+
+        // Click-to-type a slider's own MIN or MAX bound (as opposed to its
+        // current value, above) - the 2 small labels at each end of the
+        // track, ported 2026-09-28 from TEMPLATE_DEV_PANEL.html. Parallel
+        // structure to makeDevValuesEditable() but keyed by
+        // data-slider-id/data-bound rather than an id-prefix swap, since a
+        // bound label isn't itself "the value" of anything with its own id.
+        function makeDevSliderBoundsEditable() {
+            document.addEventListener('click', (e) => {
+                const boundEl = e.target.closest('.dev-slider-bound-editable');
+                if (!boundEl || boundEl.querySelector('input')) return;
+                const slider = document.getElementById(boundEl.dataset.sliderId);
+                if (!slider) return;
+                const kind = boundEl.dataset.bound;
+                const originalText = boundEl.textContent;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'dev-value-edit-input';
+                input.step = slider.step || 'any';
+                input.value = kind === 'min' ? slider.min : slider.max;
+                boundEl.textContent = '';
+                boundEl.appendChild(input);
+                input.focus();
+                input.select();
+
+                let settled = false;
+                function commit() {
+                    if (settled) return;
+                    settled = true;
+                    let val = parseFloat(input.value);
+                    if (isNaN(val)) val = parseFloat(kind === 'min' ? slider.min : slider.max);
+                    if (kind === 'min') slider.min = String(val); else slider.max = String(val);
+                    // Clamp the current value into the new range, same as
+                    // a direct value-edit's own overshoot handling - and
+                    // re-apply through applySliderValue() (Clicko's own
+                    // "commit a slider value to game state" function,
+                    // rather than the template's generic 'input' event
+                    // dispatch) only when the value actually changed.
+                    const curVal = parseFloat(slider.value);
+                    const newMin = parseFloat(slider.min), newMax = parseFloat(slider.max);
+                    let clampedVal = curVal;
+                    if (curVal < newMin) clampedVal = newMin;
+                    if (curVal > newMax) clampedVal = newMax;
+                    input.remove();
+                    boundEl.textContent = val;
+                    if (clampedVal !== curVal) {
+                        slider.value = clampedVal;
+                        applySliderValue(slider, clampedVal);
+                    }
+                }
+                function cancel() {
+                    if (settled) return;
+                    settled = true;
+                    boundEl.textContent = originalText;
+                }
+                input.addEventListener('blur', () => preserveDevPanelScroll(commit));
+                input.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+                    else if (ev.key === 'Escape') cancel();
+                });
                 input.addEventListener('click', (ev) => ev.stopPropagation());
             });
         }
@@ -19550,11 +20387,16 @@
             injectGroupDragHandles();
             injectRowDragHandles();
             makeDevValuesEditable();
+            makeDevSliderBoundsEditable();
             // Captures every dev-panel label/title's TRUE original text into
             // devTextOriginals (devTextOverrides is still empty the first
             // time this runs pre-settings-load) and applies any restored
             // override on top - safe/idempotent if called again later.
             applyDevTextOverrides();
+            // Hotkey system initialization - render all badges and create
+            // the Hotkeys subgroup inside Dev Panel.
+            renderAllHotkeyBadges();
+            ensureHotkeysSubgroup();
             devPanelBuilt = true;
         }
         // .dev-panel is visible by default for any dev-allowed visitor,
@@ -19578,6 +20420,11 @@
         setupDevGroupSelection();
         // Delete Group - same "always on" reasoning as the header buttons.
         setupDevDeleteGroup();
+        // Set Hotkey - same "always on" reasoning (desktop-only, hidden on touch).
+        setupSetHotkeyButton();
+        setupHotkeyAssignmentCapture();
+        setupHotkeySequenceListener();
+        setupSliderHotkeyModeExitWatcher();
         // Undo - same "always on" reasoning (Ctrl+Z must work regardless
         // of whether the panel's own lazy controls are built yet).
         setupDevPanelUndo();
