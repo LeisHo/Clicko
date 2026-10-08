@@ -7887,60 +7887,6 @@
             return parts.length ? parts.join(', ') : 'none';
         }
 
-        // X-compensated variants for the Rotation Animation's extrusion
-        // layer ONLY (#startButtonFlashCharExtrusion) - per direct report
-        // ("when the glyph is rotated more than 45 degrees, the extrusion
-        // starts looking too thick. it should be a constant thickness").
-        // Root cause: CSS transform applies to an element's text-shadow
-        // along with its glyph, so scaleX(extrusionScaleX) - meant to
-        // foreshorten the GLYPH's own outline as it "rotates" - ALSO
-        // squishes every shadow offset above on the X axis only (Y offsets
-        // are untouched by scaleX), so the diagonal depth trail steepens
-        // and the border ring's horizontal offsets collapse toward center
-        // while its vertical offsets stay full-size - both read as
-        // "thicker" as the angle increases toward edge-on (scaleX -> 0).
-        // Pre-dividing every X offset by the SAME scaleX that will be
-        // applied to the element cancels that squish out exactly, so the
-        // rendered depth/border keeps a constant on-screen thickness
-        // regardless of rotation angle. Only used here - the 5 other
-        // extruded text elements never get scaleX-transformed, so their
-        // shadows stay built by the plain (unscaled) functions above.
-        function buildExtrusionShadowXComp(depthPx, borderColor, xScale) {
-            const steps = Math.round(depthPx);
-            if (steps <= 0) return 'none';
-            const layers = [];
-            for (let i = 1; i <= steps; i++) {
-                layers.push(`${(i / xScale).toFixed(3)}px ${i}px 0 ${borderColor}`);
-            }
-            return layers.join(', ');
-        }
-        function buildBorderRingShadowXComp(depthPx, thicknessPx, borderColor, xScale) {
-            const steps = Math.round(depthPx);
-            const thickness = Math.round(thicknessPx);
-            if (thickness <= 0) return '';
-            const directions = [
-                [thickness, 0], [-thickness, 0], [0, thickness], [0, -thickness],
-                [thickness, thickness], [thickness, -thickness], [-thickness, thickness], [-thickness, -thickness],
-            ];
-            const layers = [];
-            for (let i = 0; i <= steps; i++) {
-                for (const [dx, dy] of directions) {
-                    layers.push(`${((i + dx) / xScale).toFixed(3)}px ${i + dy}px 0 ${borderColor}`);
-                }
-            }
-            return layers.join(', ');
-        }
-        function buildCombinedShadowXComp(depthPx, extrusionColor, thicknessPx, ringColor, enabled, xScale) {
-            const parts = [];
-            if (enabled) {
-                const ring = buildBorderRingShadowXComp(depthPx, thicknessPx, ringColor, xScale);
-                if (ring) parts.push(ring);
-            }
-            const extrusion = buildExtrusionShadowXComp(depthPx, extrusionColor, xScale);
-            if (extrusion !== 'none') parts.push(extrusion);
-            return parts.length ? parts.join(', ') : 'none';
-        }
-
         // Pushes the ACTIVE (desktop or mobile) extrusion vars onto the DOM
         // as CSS custom properties - font is always read from the desktop
         // extrusionVars object specifically (it's the one single/shared
@@ -8506,14 +8452,8 @@
         function getActiveMobileExtrusionVars() {
             return isLandscapeActive() ? landscapeExtrusionVars : mobileExtrusionVars;
         }
-        function getActiveMobileColorVars() {
-            return isLandscapeActive() ? landscapeColorVars : mobileColorVars;
-        }
         function getActiveMobileTextOverrides() {
             return isLandscapeActive() ? landscapeTextOverrides : mobileTextOverrides;
-        }
-        function getActiveMobileClickBurstFrameVars() {
-            return isLandscapeActive() ? landscapeClickBurstFrameVars : mobileClickBurstFrameVars;
         }
 
         // Resolves one of the 5 mobile "spatial/motion" cssVar values
