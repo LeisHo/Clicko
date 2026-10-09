@@ -3857,18 +3857,23 @@ const MOBILE_UNIFORM_CONTROLS = [
     { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownDataLetterSpacing', type: 'slider', label: 'Round Data Letter Spacing (px):', min: -10, max: 20, step: 0.5, value: 0 },
     { group: 'Round Breakdown', id: 'sliderMobileRoundBreakdownDataLineHeight', type: 'slider', label: 'Round Data Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
 ];
-function renderMobileUniformControls() {
-    MOBILE_UNIFORM_CONTROLS.forEach(ctrl => {
-        const content = findGroupContent('mobile', ctrl.group, 'renderMobileUniformControls', ctrl.id);
+// Shared renderer for the Mobile and Landscape static rows; `callerName` is only the diagnostic
+// label findGroupContent() reports when a group is missing.
+function renderDeviceUniformControls(tab, controls, callerName) {
+    controls.forEach(ctrl => {
+        const content = findGroupContent(tab, ctrl.group, callerName, ctrl.id);
         if (!content) return;
         const row = buildUniformControlRow(ctrl);
         // "Independent from Desktop" checkbox on static rows too. Every id here maps back via
         // resolveDevControlId(), so desktopId is never null.
         const { desktopId } = resolveDevControlId(ctrl.id);
         const controlEl = row.querySelector('[id]');
-        row.appendChild(buildIndependenceCheckbox('mobile', desktopId, controlEl));
+        row.appendChild(buildIndependenceCheckbox(tab, desktopId, controlEl));
         content.appendChild(row);
     });
+}
+function renderMobileUniformControls() {
+    renderDeviceUniformControls('mobile', MOBILE_UNIFORM_CONTROLS, 'renderMobileUniformControls');
 }
 
 // Landscape tab's uniform controls - same pattern as Mobile's.
@@ -3981,16 +3986,7 @@ const LANDSCAPE_UNIFORM_CONTROLS = [
     { group: 'Round Breakdown', id: 'sliderLandscapeRoundBreakdownDataLineHeight', type: 'slider', label: 'Round Data Line Spacing:', min: 0.5, max: 3, step: 0.05, value: 1.2 },
 ];
 function renderLandscapeUniformControls() {
-    LANDSCAPE_UNIFORM_CONTROLS.forEach(ctrl => {
-        const content = findGroupContent('landscape', ctrl.group, 'renderLandscapeUniformControls', ctrl.id);
-        if (!content) return;
-        const row = buildUniformControlRow(ctrl);
-        // "Independent from Desktop" checkbox - see renderMobileUniformControls().
-        const { desktopId } = resolveDevControlId(ctrl.id);
-        const controlEl = row.querySelector('[id]');
-        row.appendChild(buildIndependenceCheckbox('landscape', desktopId, controlEl));
-        content.appendChild(row);
-    });
+    renderDeviceUniformControls('landscape', LANDSCAPE_UNIFORM_CONTROLS, 'renderLandscapeUniformControls');
 }
 
 // Compound X/Y-offset rows (slider + px/vw-unit checkbox), all 3 tabs in one array tagged by `tab`.

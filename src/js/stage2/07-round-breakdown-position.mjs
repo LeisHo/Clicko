@@ -1,5 +1,6 @@
 
 import { createUIElement, getEffectiveValue, updateElement } from '../../../lib/ui-engine/registry.mjs';
+import { syncReal } from './shared.mjs';
 
 const rbPosContent = findGroupContent('desktop', 'Round Breakdown', 'stage2RoundBreakdownPos', 'position');
 if (!rbPosContent) {
@@ -11,12 +12,6 @@ if (!rbPosContent) {
         row.style.paddingTop = '4px';
         rbPosContent.appendChild(row);
         return row;
-    }
-    function syncReal(realId, value) {
-        const el = document.getElementById(realId);
-        const valEl = document.getElementById(realId.replace(/^slider/, 'value'));
-        if (el) el.value = value;
-        if (valEl) valEl.textContent = value;
     }
     function reapply() {
         if (typeof applyRoundBreakdownPosition === 'function') applyRoundBreakdownPosition();

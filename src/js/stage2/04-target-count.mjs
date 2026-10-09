@@ -1,5 +1,6 @@
 
 import { createUIElement, getEffectiveValue, updateElement } from '../../../lib/ui-engine/registry.mjs';
+import { syncReal } from './shared.mjs';
 
 const targetContent = findGroupContent('desktop', 'Target Count Display', 'stage2Target', 'number');
 if (!targetContent) {
@@ -11,12 +12,6 @@ if (!targetContent) {
         row.style.paddingTop = '4px';
         targetContent.appendChild(row);
         return row;
-    }
-    function syncReal(realId, value) {
-        const el = document.getElementById(realId);
-        const valEl = document.getElementById(realId.replace(/^slider/, 'value'));
-        if (el) el.value = value;
-        if (valEl) valEl.textContent = value;
     }
 
     // ---- Number (plain anchor + offset) ----
