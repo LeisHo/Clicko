@@ -15,8 +15,8 @@ things stand.
 tuning dev-panel sliders and saving settings (Sync → `data/processed/
 dev-panel-settings.json`).
 
-**Code layout was just refactored (branch `refactor`, not yet merged to
-`main`).** Behavior is unchanged — proven, not assumed (see "How the refactor
+**Code layout was just refactored (merged to `main` and deployed live
+2026-10-08, after a checked Vercel preview).** Behavior is unchanged — proven, not assumed (see "How the refactor
 was verified" below). What changed:
 
 - `index.html` is now markup only (~300 KB, was 1.6 MB). Code lives in `src/`:
@@ -58,9 +58,7 @@ was verified" below). What changed:
 
 ## What's next
 
-1. **Check the Vercel preview of the `refactor` branch** (desktop + phone),
-   then merge `refactor` → `main` to deploy.
-2. Keep tuning via the dev panel as needed.
+1. Keep tuning via the dev panel as needed.
 
 Older backlog items, possibly stale (carried over, not confirmed wanted):
 re-tune Target Text Prefix/Suffix offsets after the 2026-09-19 anchor change;
