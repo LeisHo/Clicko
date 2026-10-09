@@ -54,7 +54,7 @@ expected until this is set up:
 2. **`DEV_PANEL_SAVE_SECRET`** — an anti-abuse shared token (not a real
    secret — it also lives in the page's own client-side source, same as
    any other value there). Set it to `PkrbMti03M6xm3FEThYXa8gGW_08BOGj`
-   (the value already embedded in `index.html`'s `DEV_PANEL_SAVE_SECRET`
+   (the value already embedded in `src/js/04-core.js`'s `DEV_PANEL_SAVE_SECRET`
    constant) — or change both to a new value together if you'd rather
    generate your own.
 
@@ -65,4 +65,11 @@ already match this repo.
 
 ## Key Files
 
-List important entry points and key files.
+- `index.html` — page markup (entry point)
+- `src/css/main.css` — styles
+- `src/js/01-07-*.js` — game + dev panel (classic scripts, load order matters)
+- `src/js/stage2/*.mjs` — UI Layout Engine Inspector integration
+- `lib/ui-engine/` — vendored UI Layout Engine
+- `api/save-settings.js` — Vercel function behind the dev panel's Sync
+- `data/processed/dev-panel-settings.json` — saved dev-panel settings (overrides the JS defaults at runtime)
+- `scripts/refactor-harness/` — behavior-equivalence tooling from the 2026-10-08 refactor (see `docs/PROJECT_PROGRESS.md`)

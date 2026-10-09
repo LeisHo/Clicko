@@ -3,8 +3,9 @@
 ## Overview
 
 Clicko is a browser-based tapping/reflex game: hit a big central button exactly
-the required number of times before a shrinking time window runs out. Built as
-a single self-contained HTML file, deployed to Vercel at clicko-one.vercel.app.
+the required number of times before a shrinking time window runs out. Plain
+static HTML/CSS/JS (no build step), deployed to Vercel at clicko-one.vercel.app.
+Feature-complete as of 2026-10-08; ongoing work is dev-panel tuning only.
 
 ## Scope
 
@@ -28,7 +29,7 @@ directly.
 
 ## Deliverables
 
-- `index.html` — the entire game (structure, styling, and logic in one file).
+- `index.html` + `src/` — the game: markup in `index.html`, styles in `src/css/main.css`, logic in `src/js/` (see `docs/CODE_SUMMARY.md`).
 - `data/BUTTON/` — button artwork (SVG base/dome layers, pressed states) and the `CLICK/frames/` pre-rendered click-burst frame sets.
 - `docs/CHANGELOG.txt` — append-only, newest-first log of every shipped change and the reasoning behind it.
 
@@ -39,8 +40,8 @@ No formal milestones — this is driven by an ongoing, iterative session-by-sess
 ## Technical Approach
 
 Vanilla HTML/CSS/JS, no framework or build tool. Nearly all visual tuning is
-exposed as CSS custom properties (`cssVars`/`mobileCssVars` in the inline
-`<script>`), driven live by the dev panel's sliders/color pickers/selects and
+exposed as CSS custom properties (`cssVars`/`mobileCssVars` in
+`src/js/02-device-vars.js`), driven live by the dev panel's sliders/color pickers/selects and
 applied via `applyActiveVars()`, which switches between the desktop and
 mobile variable sets based on `MOBILE_MEDIA_QUERY` (`max-width: 767px`). A
 setting is only device-split when it's genuinely device-specific (spatial
