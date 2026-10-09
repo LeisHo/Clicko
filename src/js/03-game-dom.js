@@ -2,8 +2,7 @@
 // Game state
 const gameState = {
     currentRound: 0,
-    // The highest round actually WON so far this run - see
-    // checkHighScore()'s call site in endGame()'s lose branch.
+    // Highest round actually WON this run (see endGame()'s lose branch / checkHighScore()).
     lastRoundWon: 0,
     targetCount: 0,
     currentTapCount: 0,
@@ -12,66 +11,33 @@ const gameState = {
     isCountingTaps: false,
     maxTimeMs: 500,
     speedDecrease: 75,
-    // Multiplier applied to speedDecrease, compounded per round
-    // (effectiveDecrease = speedDecrease * decayMultiplier^(round-1))
-    // - per explicit request that the speed-limit increase gets
-    // SMALLER at higher rounds. 1 = no decay (every round drops
-    // maxTimeMs by the same flat speedDecrease, the previous
-    // behavior), less than 1 makes each round's drop shrink
-    // relative to the one before it.
+    // Per-round compounding multiplier on speedDecrease:
+    // effectiveDecrease = speedDecrease * decay^(round-1). 1 = no decay; <1 shrinks each drop.
     speedDecreaseDecay: 0.75,
-    // +/- tolerance (%) applied as a fresh random jitter to the
-    // EFFECTIVE per-round decay value (not compounded into future
-    // rounds' base) - per explicit request: "10" means each
-    // round's decay can randomly land anywhere from -10% to +10%
-    // of what it would otherwise be, re-rolled every round. 0 (the
-    // default) means no jitter at all - exactly the previous
-    // deterministic behavior.
+    // +/- % random jitter on each round's EFFECTIVE decay, re-rolled per round (not compounded
+    // into later rounds). 0 = deterministic.
     speedDecreaseDecayTolerance: 5,
-    // Rounds the computed speed time to the nearest multiple of this
-    // value each round (e.g. 10 -> nearest 10ms), applied before the
-    // 100ms floor. 1 (the default) is a no-op - exact prior behavior.
+    // Round computed speed time to nearest multiple of this (ms), before the 100ms floor. 1 = no-op.
     speedTimeRounding: 1,
     countdownRoundingIncrement: 1,
     resultDuration: 1000,
-    // Minimum possible target count on Round 1, and how much that
-    // minimum rises per round (targetFloor = targetFloorBase +
-    // (currentRound-1) * targetFloorIncreasePerRound) - per
-    // explicit request for a round-scaling floor. Increase
-    // defaults to 0 (no scaling), reproducing the previous flat
-    // "always +2" behavior exactly until tuned.
+    // Round-scaling min target count: targetFloorBase + (round-1) * targetFloorIncreasePerRound.
     targetFloorBase: 2,
     targetFloorIncreasePerRound: 0,
-    // Maximum possible target count on Round 1, and how much that
-    // maximum rises per round - same shape as targetFloorBase/
-    // targetFloorIncreasePerRound above, per explicit request. 30/0
-    // defaults reproduce the previous fixed "floor+29" range (2 to
-    // 30 at round 1) exactly until tuned.
+    // Round-scaling max target count, same shape as the floor above.
     targetCeilingBase: 30,
     targetCeilingIncreasePerRound: 0,
     checkTimeoutId: null,
-    // The Speed display now shows a live countdown instead of a
-    // static number - per explicit request. roundTotalTimeMs (the
-    // countdown's starting value = maxTimeMs * targetCount) is
-    // computed once per round in showTargetAndSpeed(); the actual
-    // countdown only starts on the round's first accepted tap (see
-    // startRoundCountdown()), not before. countdownRafId tracks the
-    // requestAnimationFrame loop that redraws the remaining time
-    // every frame - see stopRoundCountdown() for where both this
-    // and checkTimeoutId get torn down together.
+    // Live Speed countdown: roundTotalTimeMs (= maxTimeMs * targetCount) is computed per round in
+    // showTargetAndSpeed(); the countdown only starts on the round's first accepted tap
+    // (startRoundCountdown()). countdownRafId is its rAF redraw loop. stopRoundCountdown() tears
+    // down this, checkTimeoutId and perClickTimeoutId together.
     roundTotalTimeMs: 0,
     countdownStartTime: null,
     countdownRafId: null,
-    // Per-click ceiling's own ACTIVE timer - per direct follow-up
-    // report ("if i dont click again for a duration longer than
-    // the Ms/Click number I dont lose... the lose screen should
-    // trigger the moment the time has passed"). The reactive gap
-    // check added earlier only fires when a NEW tap arrives late -
-    // it can never catch "no further tap ever comes" since there's
-    // no event to react to. This is a real setTimeout, (re)armed on
-    // every accepted tap via armPerClickTimeout(), that fires the
-    // loss on its own if silence outlasts maxTimeMs - see
-    // stopRoundCountdown() for where it's torn down.
+    // Active per-click timeout, re-armed on every accepted tap (armPerClickTimeout()). Needed
+    // because the late-tap gap check can't catch "no further tap ever comes" - this fires the
+    // loss on its own once silence outlasts maxTimeMs.
     perClickTimeoutId: null,
 };
 
@@ -81,12 +47,7 @@ const gameState = {
 let roundHistory = [];
 let currentRoundTaps = [];
 let roundStartTime = 0;
-// The "Try again?" button's flashing "?" - see startTryAgainFlash()/
-// stopTryAgainFlash(). Corrected 2026-09-14 per direct request
-// ("Flashing is the default and only option now. The previous ?
-// rotating animation is now defunct."): flash (hide/show) is now
-// the only mode - the rotate mode and its own state
-// (tryAgainRotateRafId/StartTime/ShadowLastUpdate) are removed.
+// Timer for the "Try again?" button's flashing "?" - see startTryAgainFlash()/stopTryAgainFlash().
 let tryAgainFlashTimeoutId = null;
 
 // Messages
@@ -110,18 +71,10 @@ const shadowButtonPaths = Array.from(
 const shadowButtonNormalDs = shadowButtonPaths.map(p => p.getAttribute('d'));
 const shadowButtonPressedDs = shadowButtonPaths.map(p => p.getAttribute('data-pressed-d'));
 function setShadowButtonPressed(pressed) {
-    // Rewriting 19 `d` attributes inside a filtered (brightness+blur)
-    // element forces the browser to re-rasterize and re-filter the
-    // whole shadow layer - this session's own desktop investigation
-    // already identified that blur-filter recompute as the dominant
-    // per-tap rendering cost, and mobile GPUs are meaningfully slower
-    // at exactly this operation than desktop ones. Skip the shape
-    // swap on mobile entirely - the shadow still moves/scales via the
-    // (cheap, compositor-only) transform on .shadow-caster-button-
-    // layer.pressed, it just keeps its resting silhouette instead of
-    // also reshaping. Trades a small shape-fidelity detail for
-    // removing the dominant per-tap cost on the platform where it
-    // lands hardest.
+    // Skip the shape swap on mobile: rewriting the `d` attributes inside the filtered
+    // (brightness+blur) layer forces a costly re-rasterize/re-filter, the dominant per-tap cost
+    // on slower mobile GPUs. The cheap transform on .shadow-caster-button-layer.pressed still
+    // moves/scales the shadow.
     if (isMobileActive()) return;
     const ds = pressed ? shadowButtonPressedDs : shadowButtonNormalDs;
     for (let i = 0; i < shadowButtonPaths.length; i++) {
@@ -134,23 +87,14 @@ const gameTextLabel = document.getElementById('gameTextLabel');
 const gameTextNumber = document.getElementById('gameTextNumber');
 const resultText = document.getElementById('resultText');
 const targetCount = document.getElementById('targetCount');
-// Prefix/Number/Suffix children - see their own HTML comment,
-// same "cache the children, every render call site sets them
-// individually" pattern as speedDisplayNumber/Suffix below.
+// Prefix/Number/Suffix children, cached; render call sites set each one individually.
 const targetCountPrefix = document.getElementById('targetCountPrefix');
 const targetCountNumber = document.getElementById('targetCountNumber');
 const targetCountSuffix = document.getElementById('targetCountSuffix');
-// Measures the Number's own rendered box and pushes its bottom/right
-// edges (in the SAME px coordinate space #targetCountPrefix/Suffix's
-// own `left`/`top` already resolve in, i.e. relative to their real
-// offsetParent - NOT raw viewport coordinates, which would be wrong
-// if that offsetParent isn't positioned at the viewport origin) as
-// live CSS custom properties on #targetCount, so the Prefix/Suffix
-// CSS rules above can anchor directly to them. Per direct request:
-// Prefix's Y anchored to the Number's bottom edge; Suffix's X/Y
-// anchored to the Number's right/bottom edges. Set on #targetCount
-// (not :root) so they inherit down to the 3 children the same way
-// --target-x-base/-y-base already do.
+// Publishes the Number's bottom/right edges as CSS custom properties on #targetCount so the
+// Prefix (Y) and Suffix (X/Y) CSS rules can anchor to them. Coordinates are relative to the
+// children's offsetParent (the space their own left/top resolve in), NOT the viewport. Set on
+// #targetCount (not :root) so they inherit to the 3 children.
 function updateTargetAnchoredPositions() {
     if (!targetCountNumber || !targetCountPrefix) return;
     const containerEl = targetCountPrefix.offsetParent;
@@ -160,22 +104,10 @@ function updateTargetAnchoredPositions() {
     targetCount.style.setProperty('--target-number-bottom-px', (numberRect.bottom - containerRect.top) + 'px');
     targetCount.style.setProperty('--target-number-right-px', (numberRect.right - containerRect.left) + 'px');
 
-    // Per-element mode-driven top-base/y-offset-active properties
-    // (2026-09-20, see #targetCountPrefix/#targetCountSuffix's own
-    // CSS comments for the full mechanism) - each one is set to a
-    // var() REFERENCE STRING (not a computed number), so CSS still
-    // does the actual arithmetic; this function only ever decides
-    // WHICH variable applies, based on stage2EngineOverrides
-    // (read directly, not the live engine - correct even before
-    // the Inspector has ever primed this specific element this
-    // session, since stage2EngineOverrides is the same object
-    // applyLoadedSettings() already restores on load/Undo).
-    // Defaults to 'relative' when nothing is saved yet, matching
-    // both elements' ORIGINAL pre-2026-09-20 behavior exactly -
-    // so a fresh deploy with no stage2EngineOverrides entry for
-    // either element is a visual no-op. Prefix's X is NOT branched
-    // here - see #targetCountPrefix's own CSS comment for why
-    // (it's never had a second mode; only Y does).
+    // Choose WHICH var() reference each element's top-base/offset uses, based on its saved
+    // stage2EngineOverrides position mode (read directly so it's correct before the Inspector
+    // has primed the element). Values are var() strings so CSS still does the arithmetic.
+    // Default 'relative' = original behavior. Prefix X is never branched (only Y has 2 modes).
     if (targetCountPrefix) {
         const prefixSaved = (typeof stage2EngineOverrides !== 'undefined') ? stage2EngineOverrides['stage2TargetPrefixY'] : null;
         const prefixMode = (prefixSaved && prefixSaved.position && prefixSaved.position.mode) ? prefixSaved.position.mode : 'relative';

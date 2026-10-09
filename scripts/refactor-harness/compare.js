@@ -53,8 +53,10 @@ const sa = byName(a), sb = byName(b);
 for (const name of new Set([...Object.keys(sa), ...Object.keys(sb)])) {
     const x = sa[name], y = sb[name];
     if (!x || !y) { say(`snap ${name}: missing on one side`); continue; }
+    // HTML comment nodes inside captured markup don't render; ignore them.
+    const strip = (v) => (typeof v === 'string' ? v.replace(/<!--[\s\S]*?-->/g, '') : v);
     for (const f of ['rootStyle', 'rootClass', 'bodyClass', 'devPanel', 'gameText']) {
-        if (x[f] !== y[f]) say(`snap ${name}.${f}: ${firstStrDiff(x[f], y[f])}`);
+        if (strip(x[f]) !== strip(y[f])) say(`snap ${name}.${f}: ${firstStrDiff(strip(x[f]), strip(y[f]))}`);
     }
     const n = cmpObj(`snap ${name}.elements`, x.elements, y.elements);
     if (n) console.log(`  (${n} element signatures differ in ${name})`);

@@ -1,14 +1,7 @@
 
-// Gated the same way as the rest of the dev tooling (isDevAllowed,
-// ~line 28: file:/data:/localhost/127.0.0.1/?dev=1 only) - per
-// direct report, the toggle button and panel were being created
-// completely UNCONDITIONALLY for every real visitor, a real bug
-// (every other Stage 2 addition happens to no-op safely for a
-// normal visitor since findGroupContent() only finds anything once
-// the dev panel itself has been built, which is itself already
-// gated - this standalone floating panel had no such protection).
-// A normal visitor gets neither the button nor the panel in the DOM
-// at all, not just a hidden one.
+// Mounts the engine's floating Inspector panel (toggle, Save hook, resize, drag). Gated on
+// isDevAllowed: unlike the other Stage 2 modules (which no-op via findGroupContent()), this
+// standalone panel needs its own gate; non-dev visitors get the button/panel removed from the DOM.
 if (typeof isDevAllowed !== 'undefined' && isDevAllowed) {
     import('../../../lib/ui-engine/inspector.mjs').then(({ mountInspector, refreshInspector }) => {
         const panel = document.getElementById('stage2InspectorPanel');
@@ -22,42 +15,16 @@ if (typeof isDevAllowed !== 'undefined' && isDevAllowed) {
             }
         });
 
-        // ------------------------------------------------------------
-        // BUG FIX (2026-09-20, direct report: "the ui engine save
-        // button doesnt work"). The Inspector's own Copy/Save/Reset
-        // toolbar (inspector.mjs's buildToolbar()) calls the ENGINE's
-        // own saveLayoutConfig()/resetLayoutConfig() - a completely
-        // separate localStorage key ('uiLayoutEngineConfig'),
-        // disconnected from Clicko's real save system entirely. It
-        // doesn't throw, it just has zero visible effect on anything
-        // the player or Clicko's real Save/Sync button cares about -
-        // clicking it "does nothing" from the user's actual
-        // perspective, matching the report. Since inspector.mjs
-        // rebuilds this button from scratch on every render (a
-        // directly-attached extra listener would be destroyed every
-        // time), delegated via a capture-phase click listener on the
-        // stable mount point instead - checks the click target is
-        // specifically the Save button (by its own text + class,
-        // the only way to identify it without touching the vendored
-        // file), and ALSO calls Clicko's REAL saveSettings() so an
-        // Inspector-made edit (now correctly written into cssVars by
-        // the writeback fix above) actually gets persisted through
-        // the same git-synced Save/Sync path every other control
-        // already uses. The engine's own localStorage save still
-        // happens too (harmless, left alone) - this only ADDS the
-        // real persistence on top of it.
+        // The Inspector's own Save only writes the engine's separate localStorage key, so also
+        // call Clicko's real saveSettings() (git-synced Save/Sync). inspector.mjs rebuilds the
+        // button every render, so delegate via a capture listener on the stable mount and
+        // identify the button by class + text (no edits to the vendored file).
         mount.addEventListener('click', (e) => {
             const btn = e.target.closest('.ui-inspector-button');
             if (btn && btn.textContent.trim() === 'Save' && typeof saveSettings === 'function') {
                 saveSettings();
-                // Visible confirmation on THIS button directly (2026-09-20)
-                // - flashDevHeaderSyncStatus() above already flashes the
-                // real dev panel's own header Sync button, but that's
-                // invisible if the regular panel is collapsed/closed
-                // while only the Inspector is open - which made a
-                // successful save look like nothing happened (confirmed
-                // via live reload test: the save/persist/load-back cycle
-                // was actually working correctly the whole time).
+                // Confirm on this button too: the dev panel's Sync flash is invisible when only
+                // the Inspector is open.
                 const original = btn.textContent;
                 btn.textContent = 'Saved!';
                 btn.disabled = true;
@@ -65,18 +32,8 @@ if (typeof isDevAllowed !== 'undefined' && isDevAllowed) {
             }
         }, true);
 
-        // ------------------------------------------------------------
-        // FEATURE (2026-09-20, direct request: "allow me to resize
-        // and drag to move this ui inspector") - reuses Clicko's own
-        // real setupPanelResizeHandle() function (already proven,
-        // already handles min/max clamping, pointer-capture, mobile
-        // touch-action edge cases) with a custom setLeftTop writing
-        // directly to this panel's own inline style (this panel has
-        // no cssVars-backed position the way the real dev panel
-        // does, so the direct-inline-style branch that function's
-        // own comment already anticipates for "a different panel"
-        // is exactly the right fit here - not a new mechanism).
-        // ------------------------------------------------------------
+        // Resize reuses Clicko's setupPanelResizeHandle() with a setLeftTop that writes inline
+        // style, since this panel has no cssVars-backed position.
         function stage2SetLeftTop(key, value) {
             panel.style[key] = value + 'px';
         }
@@ -89,12 +46,8 @@ if (typeof isDevAllowed !== 'undefined' && isDevAllowed) {
         setupPanelResizeHandle(panel, document.getElementById('stage2InspectorResizeBL'), 'left', 'bottom', stage2SetLeftTop);
         setupPanelResizeHandle(panel, document.getElementById('stage2InspectorResizeBR'), 'right', 'bottom', stage2SetLeftTop);
 
-        // Drag-to-move via the header - same pointer-capture/clamp-
-        // to-viewport pattern as Clicko's own devPanelHeader drag,
-        // hand-written here (simpler than devPanel's own version,
-        // which is entangled with cssVars/--dev-panel-*-px) rather
-        // than reused directly, since this panel positions itself
-        // via plain inline style, not custom properties.
+        // Header drag-to-move: same pointer-capture/viewport-clamp pattern as the dev panel's
+        // drag, hand-written because that one is tied to --dev-panel-*-px cssVars.
         const header = document.getElementById('stage2InspectorHeader');
         let dragging = false;
         let dragStart = { x: 0, y: 0, left: 0, top: 0 };

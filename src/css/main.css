@@ -10,16 +10,9 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    /* Suppresses the browser's own pull-to-refresh/rubber-band
-       gesture - per direct report that dev-panel drags on mobile
-       (both resizing and moving) cut out after a small amount of
-       movement, most reproducible dragging the TOP edge, exactly
-       where that native gesture engages. This operates at the
-       browser-chrome level, above the DOM, so an individual
-       element's own touch-action:none (already present on the
-       panel's drag/resize handles) doesn't fully rule it out on
-       every mobile browser - body already has overflow:hidden, but
-       that's a different property and doesn't cover this. */
+    /* Suppresses the browser's own pull-to-refresh/rubber-band gesture, which
+       otherwise interrupts dev-panel drags on mobile (esp. the top edge).
+       Element-level touch-action:none alone doesn't stop it everywhere. */
     overscroll-behavior: none;
 }
 
@@ -41,285 +34,100 @@ body {
     align-items: center;
     perspective: 1200px;
 }
-/* SUPERSEDED (was a portrait-lock: rotate .game-container 90deg on a
-   real touchscreen phone in landscape, so it always LOOKED portrait
-   regardless of physical orientation). Per direct follow-up, this
-   was replaced with a genuine third "Landscape" device profile
-   instead - the game now actually reflows for landscape (its own
-   cssVars/dev-panel tab, real unrotated rendering) rather than
-   faking portrait. See getActiveDeviceProfile() (JS) for the 3-way
-   desktop/mobile/landscape split that replaced this.
-   var(--cq-vw, 1vw)/var(--cq-vh, 1vh) still appear throughout the
-   button/text CSS below in place of a plain 1vw/1vh literal - this
-   was this mechanism's other half (CSS Container Query units so
-   sizing could resolve against a rotated/swapped box instead of the
-   true viewport). Left in place as an inert no-op (nothing defines
-   --cq-vw/--cq-vh anymore, so every var() falls back to plain
-   1vw/1vh, identical to never having had this indirection) rather
-   than reverting ~20 call sites back to a literal unit for no
-   functional gain - reactivating a letterboxed-portrait fallback
-   later would need only this comment's old CSS block back, not a
-   re-conversion of the button/text rules. */
-/* Hides the whole game behind a plain --bg-color screen (already correct
-   from the very first paint - see cssVars['--bg-color']'s own hardcoded
-   default) until the real saved settings (colors, font sizes, Thin
-   Base, etc.) have actually been fetched and applied - per direct
-   report, without this the page paints with hardcoded JS defaults
-   first (smaller text, red/untinted button) for as long as the
-   settings fetch takes (a previously-documented, deliberate trade-off
-   of going git-only - see loadSettings()'s own comment), then visibly
-   snaps to the real look once it resolves. visibility (not display)
-   so layout-dependent setup code that runs before the reveal
-   (resolvePositionSentinels(), spawnClickBurst() geometry, etc.) still
-   sees real, non-zero rects while hidden. Removed once the async
-   settings-load IIFE completes, success or failure alike.
-   MUST also hit every descendant with !important - visibility,
-   unlike display, is only an inherited default: any descendant with
-   its OWN explicit visibility (e.g. .btn-normal-svg/.base-regular-
-   svg's unconditional `visibility: visible`, used throughout this
-   file for the regular/thin and normal/pressed SVG-swap convention)
-   overrides an ancestor's hidden value on its own, normal-specificity
-   terms - confirmed live: the red default button/base was still
-   visible through this rule before !important was added, exactly
-   because of that override. */
+/* var(--cq-vw, 1vw)/var(--cq-vh, 1vh) below are leftovers of a removed
+   portrait-lock (superseded by the Landscape device profile). Nothing
+   defines --cq-vw/--cq-vh anymore, so they always fall back to 1vw/1vh. */
+/* Hides the game until saved settings are fetched and applied, avoiding a
+   flash of hardcoded defaults. visibility (not display) so pre-reveal
+   layout code still sees real rects. Removed once settings load finishes.
+   !important on descendants is required: children with their own explicit
+   visibility:visible (the SVG-swap convention) would otherwise show through. */
 .game-container.settings-loading,
 .game-container.settings-loading * {
     visibility: hidden !important;
 }
 
-/* Button assembly - positions the base/button SVGs together as one unit. Both
-   SVGs share the same 589.79x605.11 viewBox from the source artwork, so
-   stacking them at inset:0 inside this wrapper preserves their native alignment.
-   Layer order back to front: base (frontmost, its artwork already bakes in its
-   own ground-contact shading), button (backmost, tucked under it), shadow
-   caster (behind both). No separate white occluder layer is needed - base's
-   own artwork fully covers the button's excess geometry now. */
+/* Button assembly - base/button SVGs share the same 589.79x605.11 viewBox,
+   so stacking at inset:0 keeps native alignment. Back to front: shadow
+   caster, button, base (frontmost; its artwork covers the button's excess). */
 .button-assembly {
     position: absolute;
-    /* max(), not just the vw calc - the button is purely vw-sized, so
-       on a narrow browser window (still well above the mobile
-       breakpoint, so mobileCssVars doesn't kick in) it shrinks along
-       with the window and can end up looking too small. max() picks
-       whichever is larger: the normal vw-proportional size, or a
-       fixed-px floor - the button now never renders smaller than
-       that floor, while still scaling up normally on wider windows.
-       --button-min-diameter-px defaults low enough (below the
-       desktop button's normal rendered size at any typical width)
-       that it has no effect until the window actually gets narrow. */
-    /* Button diameter (and everything below that's proportional to
-       it - shadow position/scale, press-offset) now uses 1vmin
-       instead of var(--cq-vw, 1vw) (2026-09-20, direct follow-up:
-       "everything that scales with browser should scale with both
-       browser height and width. not just text") - previously the
-       button only ever responded to viewport WIDTH, same gap the
-       earlier Scale-With-Browser text fix closed for font-size.
-       Width and height both derive from this SAME term (height is
-       just width * a fixed 1.02598 ratio), so switching the one
-       shared unit keeps the button's own aspect ratio exact while
-       making the whole button respond to whichever dimension is
-       smaller. */
+    /* max() gives a fixed-px floor so the vw/vmin-sized button can't get too
+       small on narrow (non-mobile) windows. Default floor is low enough to
+       have no effect at typical widths. */
+    /* 1vmin (not vw) so the button scales with whichever viewport dimension
+       is smaller. Height derives from the same term (x1.02598), keeping
+       the aspect ratio exact. */
     width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vmin));
     height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vmin));
-    /* Horizontal/Vertical Align + Edge Lock (dev-panel controls) -
-       per direct request. Same shared applyTextAlignAnchors()
-       system every other element (Target/Speed/Round Text/etc.)
-       already uses - --button-x/y-base/-sign are plain 50%/1
-       (this element's own inline style default, matching the
-       centered behavior before this feature existed) unless
-       Edge Lock is on, in which case they follow whichever edge
-       Align/Valign currently selects. See that function's own
-       comment for the full base/sign/unit reasoning. */
+    /* Align + Edge Lock: same applyTextAlignAnchors() system as text elements.
+       --button-x/y-base/-sign default to 50%/1 (centered) unless Edge Lock
+       is on. See that function for the base/sign/unit reasoning. */
     left: calc(var(--button-x-base, 50%) + var(--button-x-sign, 1) * var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--button-y-base, 50%) + var(--button-y-sign, 1) * var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
-    /* scale() composed onto the same anchor-driven translate, not a
-       separate rule - percentage-based translate() resolves
-       against this element's own untransformed layout box
-       regardless of order, so the button/base/shadow-caster (all
-       descendants, see .shadow-caster's own nesting) scale
-       uniformly around the SAME anchor point set by left/top
-       above, never drifting off it as --button-user-scale changes
-       live on resize. See computeButtonUserScale() (JS) for Max/
-       Min Button Scale. The X term (-50% default) is overridden
-       by .align-left/.align-right below, same convention as every
-       other aligned element; the Y term reads --anchor-ty (set by
-       applyTextAlignAnchors() from Vertical Align), not a 2nd
-       class pair, so both axes compose independently. */
+    /* scale() composed onto the anchor translate so the whole assembly scales
+       around the left/top anchor point. X term overridden by .align-left/
+       .align-right; Y term reads --anchor-ty (from Vertical Align). See
+       computeButtonUserScale() (JS) for Max/Min Button Scale. */
     transform: translate(-50%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1));
 }
 .button-assembly.align-left { transform: translate(0%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1)); }
 .button-assembly.align-right { transform: translate(-100%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1)); }
 
-/* Shadow caster - a duplicate of the base+button artwork, flattened to a
-   solid dark silhouette and blurred, sitting behind both real layers
-   (z-index 0, below the button's z-index 1). CSS drop-shadow() has no
-   spread/size parameter (only x, y, blur), so a genuine "make the shadow
-   bigger/smaller" control needs an actual scaled duplicate rather than a
-   filter on the real artwork - transform: scale() here really does resize
-   the shadow's footprint, independent of blur softness or its X/Y position.
-   The duplicate's ids/classes are all prefixed (shadowButtonSvgRoot,
-   shbtn-cls-*, shbase-cls-*, shbtn-clippath) so it can't collide with the
-   real artwork's ids or accidentally match the real layers' interactive
-   CSS selectors (.game-button svg * etc.) - it's inert, pointer-events:none
-   top to bottom, and never receives clicks. */
+/* Shadow caster - a duplicate of the base+button artwork flattened to a
+   gray silhouette, behind both real layers (z-index 0). drop-shadow() has
+   no spread parameter, so a resizable shadow needs a scaled duplicate.
+   Its ids/classes are prefixed (shadowButtonSvgRoot, shbtn-cls-*, shbase-
+   cls-*, shbtn-clippath) to avoid colliding with the real artwork's ids or
+   selectors; it's pointer-events:none throughout. */
 .shadow-caster {
     position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    /* No opacity here anymore - see .shadow-caster-layer's filter
-       for why. A group opacity here means every overlap between
-       THIS shadow and any OTHER independently-opacity'd shadow
-       layer (e.g. a click-burst shadow) compounds into a visibly
-       darker patch instead of reading as one flat shade - reported
-       directly ("the intersecting areas are darker than the
-       shadows, all shadows should be the same gray without any
-       transparencies"). Fully opaque + a filter that already
-       PRODUCES gray pixels (not black-then-faded-via-opacity) means
-       any two shadows overlapping just occlude each other at the
-       same color, never blend/darken. */
-    /* brightness(0)+blur() used to live HERE, on the parent - meaning
-       EVERY tap (button-shadow's class toggle) forced the browser to
-       reflatten+reblur the ENTIRE group, base-shadow included, even
-       though base-shadow's own content never changes. A CSS filter on
-       a parent operates on the composited result of its whole
-       subtree, so there's no way for the browser to cache
-       base-shadow's part of that separately while it lives here.
-       Moved to each individual .shadow-caster-layer instead (below) -
-       now base-shadow's filtered output only ever needs to be
-       computed once (its inputs are provably static - no transform
-       override, no class ever toggles on it), and only
-       button-shadow's own, independent, smaller filter needs to
-       redo work on tap. Visually equivalent: both layers are already
-       solid black with the same blur radius, so filtering them
-       individually then compositing looks effectively identical to
-       filtering the pre-composited union, aside from a negligible
-       difference exactly at their shared seam. */
+    /* No opacity here: group opacity makes overlapping shadows (e.g. click-
+       burst shadows) compound into darker patches. The layer filter
+       produces opaque gray directly instead. */
+    /* The filter lives on each .shadow-caster-layer, not this parent: a parent
+       filter re-filters the whole subtree on every tap, while per-layer
+       filters let the static base-shadow's output be cached. */
 }
-/* Base and button each get their OWN transform (instead of one shared
-   transform on the .shadow-caster wrapper) so only the button's shadow
-   can shift on press - the base doesn't move in real life either, so
-   its shadow shouldn't. Both layers apply the exact same skew/stretch/
-   rotate/scale/offset "look" so they read as a single unified shadow
-   when at rest (perfectly overlapping, same as the base and button
-   layers use the exact same viewBox and are drawn to align natively);
-   only .shadow-caster-button-layer.pressed adds anything extra.
+/* Base and button shadows get separate transforms so only the button's
+   shadow shifts on press. Both share the same skew/stretch/rotate/scale/
+   offset so they read as one shadow at rest.
 
-   No transition here (deliberately - an earlier version had one, but
-   it added a second independently-animating, blur-filtered layer to
-   every tap, compounding with the real button's own transition and
-   making rapid taps feel laggy/dropped). The class swap is instant,
-   matching how the SVG's own normal/pressed swap is instant.
+   No transition: a second blur-filtered animating layer made rapid taps
+   feel laggy. The class swap is instant, like the SVG normal/pressed swap.
 
-   Skew + a non-uniform Y scale (Stretch) approximate a shadow cast by a
-   low/moving light source - a raking light both shears the silhouette
-   (skewX) and elongates it along the cast direction (the extra scaleY,
-   applied after the uniform Shadow Size scale) the way a real shadow
-   stretches out as the light source drops toward the horizon. Rotate
-   sits BEFORE scale/skewX/scaleY in this list, not after - CSS
-   transforms compose right-to-left (the rightmost function applies
-   first, to the original shape), so listing rotate last would spin the
-   original circular shape and THEN re-apply skew/stretch in a fixed
-   screen-space direction, not "rotate the already-skewed/stretched
-   shadow" as intended. With rotate here, scale/skewX/scaleY build the
-   distorted shape first (innermost), and rotate spins that already-
-   distorted result as a whole (outer). */
+   Skew + extra scaleY approximate a low light source. Order matters: CSS
+   transforms apply right-to-left, so rotate is listed before scale/skewX/
+   scaleY to spin the already-distorted shape. */
 .shadow-caster-layer {
     position: absolute;
     inset: 0;
-    /* --shadow-x/y-offset used to be applied as flat, fixed px
-       (`* 1px`) - completely disconnected from the button's own
-       size, which is entirely vw-driven (.button-assembly's width/
-       height, above). Per direct report ("the shadows arent
-       anchored the button base... when i resize browser, the
-       shadow should transform the same as the base") - confirmed
-       live that resizing the browser resizes the button (vw-based)
-       while the shadow's own offset stayed frozen at its tuned px
-       value, visibly drifting out of alignment. Fixed using the
-       SAME established pattern already used elsewhere in this file
-       for exactly this kind of value (see .game-button's own
-       translateY, which scales var(--button-height-offset-px) by
-       var(--button-diameter-vw)/100 the same way) - multiplying by
-       the button's own diameter setting and expressing the result
-       in real vw keeps this offset proportional to the button's
-       actual rendered size on any resize, live, via pure CSS (no
-       JS/resize-listener involved). Existing stored default values
-       rescaled to preserve today's exact rendered offset - see
-       cssVars'/mobileCssVars' own comments on these keys. */
+    /* Offsets are multiplied by --button-diameter-vw/100 and expressed in vw so
+       the shadow stays anchored to the (viewport-scaled) button on resize -
+       same pattern as .game-button's translateY. */
     transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vmin), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vmin)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
-    /* brightness(0) flattens the artwork to solid black (alpha
-       unchanged - the silhouette shape stays fully opaque wherever
-       the source art itself was opaque); invert(0.5) then partially
-       inverts that black toward white, landing at solid mid-gray -
-       filter functions apply left-to-right, so this order matters.
-       This produces the shadow's gray color directly, with no
-       opacity/transparency anywhere, so it can never compound-
-       darken when it overlaps another equally-opaque gray shadow
-       (a click-burst shadow, for instance) - see .shadow-caster's
-       own comment for the reasoning this replaces. */
+    /* brightness(0) flattens to opaque black, then invert(0.5) lifts it to
+       mid-gray (filters apply left-to-right, so order matters). Opaque gray
+       means overlapping shadows never compound-darken. */
     filter: brightness(0) invert(0.5) blur(calc(var(--shadow-blur) * 1px));
 }
-/* Paint order matters here: in the REAL artwork, .base-svg-layer
-   (z-index 4) sits ON TOP of .game-button (z-index 1) - the base's
-   own opaque geometry physically covers the seam between the two
-   pieces, which is exactly why the real assembly never shows a gap
-   there regardless of skew/rotation (nothing is ever applied to the
-   real artwork anyway) or button motion. The shadow duplicates were
-   in the OPPOSITE paint order (base-shadow painted first/underneath,
-   button-shadow painted second/on top, following plain DOM order)
-   - meaning nothing was covering that seam in the shadow, so any
-   native sub-pixel gap between the base and button artwork's own
-   boundaries (invisible in the real, untransformed rendering) got
-   stretched into a visible line once skewX/scaleY/rotate warped it.
-   Fixed by giving base-shadow a higher z-index so it paints on top
-   of button-shadow, reproducing the real artwork's own occlusion
-   relationship - this holds regardless of skew/stretch/rotation
-   (a paint-order relationship, not a coordinate-matching one) and
-   regardless of whether button-shadow moves on press.
-
-   That closed the hairline-scale gap, but a separate, larger
-   press-triggered notch remained (confirmed via screen recording) -
-   the press motion, warped through the shared skew/stretch/rotate
-   chain, displaces button-shadow's edge further than base-shadow's
-   unmodified margin covers at that spot.
-
-   Two attempts at closing it BOTH targeted base-shadow directly and
-   both had real, confirmed problems: an feMorphology (dilate)
-   filter was geometrically correct but expensive enough to cause a
-   real per-tap lag regression (base-shadow shares a filtered
-   ancestor - .shadow-caster's brightness+blur - with button-shadow,
-   which DOES change every tap, so the whole filter chain got swept
-   into that per-tap recompute). Replacing it with a scale() on
-   base-shadow fixed the lag but grew base-shadow SYMMETRICALLY
-   around its own center in every direction - not just toward the
-   notch, but also upward/outward everywhere else, which visibly
-   shifted the whole shadow (the user correctly caught this: "the
-   base shadow has now shifted downwards"). Base-shadow is static in
-   real life and must never visibly change at all, at rest or
-   pressed - growing IT, in any direction, was never actually the
-   right move once you think about which layer the problem
-   actually belongs to.
-
-   Fixed by reverting base-shadow to byte-identical-with-the-shared-
-   transform (no growth, no override - exactly as it always was)
-   and instead growing the PRESSED button-shadow's own silhouette
-   instead (see .shadow-caster-button-layer.pressed below) - that
-   layer is ALREADY expected to look different only while pressed,
-   so growing it specifically (never touching its resting state,
-   never touching base-shadow at all) closes the same notch from
-   the moving side without perturbing anything that was already
-   correct. */
+/* Paint order: base-shadow gets a higher z-index than button-shadow to
+   mirror the real artwork (base z:4 covers the button z:1 seam). Without
+   it, sub-pixel seams between the pieces get stretched into visible lines
+   by skew/stretch/rotate.
+   The larger press-time notch is closed by growing the PRESSED button-
+   shadow (see .shadow-caster-button-layer.pressed), never base-shadow:
+   base-shadow must look identical at rest and pressed (growing it shifted
+   the whole shadow; an feMorphology dilate caused per-tap lag). */
 .shadow-caster-base-layer {
     z-index: 1;
 }
-/* Thin Base's shadow now follows the same shape as the visible
-   artwork - per explicit request ("when I select the checkbox for
-   Thin Base the shadow should update accordingly"). A second full
-   shadow-caster subtree (not the in-place path-swap technique
-   .shadow-caster-button-layer uses for press/release) - that
-   technique exists specifically to avoid re-filtering on every
-   single tap; Thin Base is a rare, deliberate toggle, not a hot
-   per-click path, so the extra subtree's one-time re-filter cost on
-   toggle is a non-issue here. */
+/* Thin Base uses a second full shadow-caster subtree rather than the
+   in-place path-swap used for press/release - that trick avoids per-tap
+   re-filtering, which doesn't matter for a rare toggle. */
 .shadow-caster-thin-base-layer {
     position: absolute;
     inset: 0;
@@ -329,15 +137,8 @@ body {
 .button-assembly.thin-base .shadow-caster-thin-base-layer { visibility: visible; }
 .shadow-caster-button-layer {
     z-index: 0;
-    /* Hints the browser to promote this element to its own GPU
-       compositor layer ahead of time, since it's the one element
-       that genuinely changes (transform + filter recompute) on
-       every single tap. Cheap, standard, zero visual risk - but
-       likely a marginal win at best: it can reduce "first tap after
-       idle" layer-promotion cost, not the recurring per-tap
-       blur-filter pixel cost itself, which scales with the
-       shadow's actual rendered size and is the more likely
-       dominant remaining cost on constrained hardware. */
+    /* Pre-promotes this per-tap-changing element to its own compositor layer.
+       Cheap; mainly helps first-tap-after-idle, not the per-tap blur cost. */
     will-change: transform, filter;
 }
 .shadow-caster-layer svg {
@@ -347,142 +148,59 @@ body {
     height: 100%;
     display: block;
 }
-/* Bridges hairline-scale internal seams between adjacent paths in
-   the shadow's own duplicated artwork - reported as "hairline
-   outlines within the shadow" and confirmed via an offscreen-canvas
-   alpha-channel scan of the actual rendered SVGs: hundreds (button)
-   to thousands (base) of partial-alpha gap pixels sit between
-   adjacent path edges, invisible in the real colored artwork (where
-   adjacent similar-toned fills mask a sub-pixel gap) but exposed
-   once .shadow-caster-layer's filter flattens everything to one
-   flat gray. Per explicit request to fix this WITHOUT using
-   --shadow-blur (the user doesn't want a blurred shadow). Stroke
-   COLOR is irrelevant here - it gets flattened to the same gray as
-   the fill regardless of what's set - only the WIDTH matters, as a
-   small outward dilation of each path that bridges the gap next to
-   it. Scoped to just the shadow's own SVG copies (this selector),
-   never touching .base-svg-layer/.game-button's real, visible
-   paths, so the actual colored artwork is completely unaffected.
-   2 SVG units (viewBox is ~590 wide) took base's gap-pixel count
-   from 7721 to 0 and button's from 615 to 9 (99%+) in direct
-   measurement - negligible growth (~0.34% of the shape's own
-   width) applied locally to each path's own edge, not a uniform
-   scale() from a shared center, so unlike an earlier-tried
-   base-shadow scale() fix (see the z-index comment above) this
-   can't visibly shift the shadow's position. */
+/* Shadow-only stroke dilation that bridges sub-pixel gaps between adjacent
+   paths, which become visible hairlines once the filter flattens everything
+   to one gray (fixes it without --shadow-blur). Only width matters; color
+   is flattened anyway. Scoped to the shadow copies so the real artwork is
+   untouched. 2 units (viewBox ~590 wide) removed ~99%+ of gap pixels and,
+   being per-path, doesn't shift the shadow the way a scale() would. */
 .shadow-caster-layer svg path {
     stroke: #000;
     stroke-width: 2;
 }
-/* The button-shadow layer mirrors the real .game-button's own press
-   motion exactly: translates down by --button-press-intensity-px
-   (same diameter-relative formula) AND swaps to the hand-drawn
-   BUTTONPRESSED.svg silhouette, the same way .game-button swaps
-   .btn-normal-svg/.btn-pressed-svg - but NOT via a second SVG
-   element. An earlier version kept two full SVG subtrees
-   (#shadowButtonSvgRoot + #shadowButtonPressedSvgRoot) and toggled
-   visibility between them. That worked, but single clicks still had
-   a felt delay and rapid clicking got visibly worse - because
-   button-shadow has its OWN filter (brightness+blur, see above),
-   and swapping which of two full 19-path/clip-path SVGs is visible
-   means the browser has to freshly rasterize-and-filter whichever
-   one just became visible, TWICE per press/release cycle (once
-   showing pressed, once showing normal again) - real work. Even
-   after moving the filter off the shared parent (previous entry),
-   this per-toggle "new subtree, needs a fresh filter pass" cost was
-   still there and scaled with how fast the cycles repeated.
+/* Button-shadow mirrors the real button's press: translates down by
+   --button-press-intensity-px and swaps to the BUTTONPRESSED silhouette.
+   The swap rewrites each <path>'s `d` in place from its data-pressed-d
+   attribute (see setShadowButtonPressed()), using a single svg - toggling
+   between two full filtered SVG subtrees caused per-tap lag. All 19 paths
+   carry data-pressed-d (index-matched to BUTTON.svg) for a uniform swap.
 
-   Fixed by keeping a SINGLE svg (#shadowButtonSvgRoot) and swapping
-   each <path>'s `d` attribute in place instead (see
-   setShadowButtonPressed() in the script below) - the browser is
-   already tracking this element and its filter; changing a path's
-   geometry is a much smaller incremental update than swapping which
-   of two entire subtrees is being rasterized. Each <path> below
-   carries its own pressed-state geometry in a `data-pressed-d`
-   attribute (script-generated from BUTTONPRESSED.svg, index-matched
-   to BUTTON.svg's own path order - 14 of the 19 are identical
-   between normal/pressed, but all 19 carry a data-pressed-d for a
-   uniform, no-special-casing swap).
+   KNOWN TRADE-OFF: moving button-shadow independently of base-shadow opens
+   a gap at their seam; the `* 1.06` scale below closes that notch.
 
-   KNOWN TRADE-OFF, not a bug: because base-shadow and button-shadow
-   meet at a snug, tight-fitting seam (the same seam the real base's
-   opaque geometry always hides in the non-shadow assembly), moving
-   the button-shadow's silhouette independently of the base-shadow's
-   - by any amount, via any mechanism - opens a real gap somewhere
-   along that seam. The `* 1.06` on scale() below closes the
-   resulting notch (moved here rather than onto base-shadow, since
-   base-shadow must stay visually identical at rest and pressed -
-   see the z-index rule above for why growing it was reverted).
-
-   Deliberately NOT given a --button-release-ms-driven transition of
-   its own, even though the real button now optionally has one
-   (see .game-button) - this layer already has its own brightness+
-   blur filter (see .shadow-caster-layer), and a transitioning
-   filtered element re-filters on every intermediate animation
-   frame, not just once at the end. That's exactly the mechanism
-   the "No transition here" note on .shadow-caster-layer above
-   already documents as a real, confirmed regression from an
-   earlier version. Instant stays the safer default regardless of
-   what the button's own release speed is set to; a slightly
-   out-of-sync shadow during an eased release is a minor cosmetic
-   cost next to reintroducing a known filter-driven lag source. */
+   Deliberately no release transition: a transitioning filtered element
+   re-filters every frame (a confirmed lag regression). A slightly out-of-
+   sync shadow during an eased release is the accepted cost. */
 .shadow-caster-button-layer.pressed {
     transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vmin), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vmin)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vmin));
 }
 
-/* Background fill - sits BEHIND both the base and button layers, purely
-   to cover any gap that might show through between them, especially
-   while pressed. Static, same inset:0 box as base-svg-layer (moves/
-   scales with it, since neither has its own transform - only
-   game-button moves on press) - not part of the shadow-caster group
-   at all, so it casts no shadow of its own.
-   z-index:1, same as game-button - NOT 0.5: z-index only accepts
-   integers per spec, a fractional value is invalid and silently
-   ignored (falls back to the initial "auto"), confirmed happening
-   here via getComputedStyle before this was caught. With an equal
-   z-index, elements stack by DOM order instead (later paints on
-   top) - this layer is inserted BEFORE game-button in the markup,
-   so game-button still correctly paints over it, while shadow-
-   caster's z-index:0 keeps this layer above the shadow. */
-/* feFlood's flood-color IS part of the CSS-stylable filter-
-   primitive subset (unlike feFuncR/G/B's slope/intercept - see
-   applyLightLevels()) - lets Base/Button Color drive each filter's
-   own tint straight through ordinary CSS custom property
-   assignment. */
+/* Background fill behind base and button, covering any gap between them
+   (esp. while pressed). Static; casts no shadow.
+   z-index:1, not 0.5 - z-index must be an integer (fractional values are
+   ignored). Equal z-index with game-button means DOM order decides; this
+   layer comes first in markup, so game-button paints over it. */
+/* feFlood's flood-color is CSS-stylable (unlike feFuncR/G/B's slope/
+   intercept - see applyLightLevels()), so Base/Button Color tint the
+   filter via a plain custom property. */
 .base-tint-flood {
     flood-color: var(--base-tint-color, #eb2027);
 }
 .button-tint-flood {
     flood-color: var(--button-tint-color, #eb2027);
 }
-/* Win/Lose button tint - per explicit request. Redefines the SAME
-   --button-tint-color custom property (consumed by .button-tint-
-   flood above) scoped to .game-container's descendants only,
-   whenever resultText currently carries .result-win/.result-lose -
-   normal CSS cascade/inheritance means this correctly overrides
-   setButtonHue()'s :root-level inline-style value for anything
-   inside .game-container, no specificity fight involved (it's a
-   different, more specific element redefining the property, not
-   competing for the same element). :has() means this stays correct
-   regardless of which of the several existing code paths toggles
-   resultText's win/lose class - no game-logic JS needed at all. */
+/* Win/Lose button tint: redefines --button-tint-color inside .game-container
+   while resultText has .result-win/.result-lose. Inheritance overrides
+   setButtonHue()'s :root value with no specificity fight, and :has() keeps
+   it correct regardless of which code path toggles the class. */
 .game-container:has(#resultText.result-win) {
     --button-tint-color: var(--button-win-tint-color, #22dd44);
 }
 .game-container:has(#resultText.result-lose) {
     --button-tint-color: var(--button-lose-tint-color, #dd2222);
 }
-/* Extends the exact same mechanism to the base layer - per direct
-   request ("provide a checkbox that allows me to turn on the base
-   changing color with the button on a win or lose"). Reuses the
-   SAME --button-win/-lose-tint-color pickers (not a separate Base-
-   specific pair) - "with the button" means the same color, not an
-   independently-tunable one. Gated behind the
-   .base-follows-result-color class (toggled by
-   checkboxBaseFollowsResultColor, see its own HTML comment) since
-   unlike the button, the base normally keeps its own static
-   colorBase tint regardless of gameplay result - this is opt-in,
-   not the default. */
+/* Same mechanism for the base, reusing the button's win/lose colors.
+   Opt-in via .base-follows-result-color (checkboxBaseFollowsResultColor). */
 .game-container.base-follows-result-color:has(#resultText.result-win) {
     --base-tint-color: var(--button-win-tint-color, #22dd44);
 }
@@ -497,11 +215,9 @@ body {
     z-index: 1;
     pointer-events: none;
 }
-/* Regular vs Thin (BUTTONBASEBACKING_THIN.svg) - per explicit
-   request, same visibility-toggle shape as .btn-normal-svg/
-   .btn-pressed-svg's normal/pressed swap (see there for why
-   visibility, not display). Both variants stack via absolute
-   positioning within the shared .basebg-svg-layer box. */
+/* Regular vs Thin (BUTTONBASEBACKING_THIN.svg) - same visibility-toggle
+   approach as .btn-normal-svg/.btn-pressed-svg. Both stack absolutely
+   within .basebg-svg-layer. */
 .basebg-regular-svg, .basebg-thin-svg {
     position: absolute;
     inset: 0;
@@ -515,26 +231,15 @@ body {
     width: 100%;
     height: 100%;
     display: block;
-    /* Grayscale + adjustable levels + multiply-tint - see
-       #baseGrayscaleTint's own comment for why this replaced
-       hue-rotate (which could never reach white/gray from the red
-       source artwork). */
+    /* Grayscale + adjustable levels + multiply-tint (see #baseGrayscaleTint);
+       hue-rotate couldn't reach white/gray from the red source art. */
     filter: url(#baseGrayscaleTint);
 }
 
-/* User-provided WHITE.svg (data/BUTTON/WHITE.svg), placed per
-   explicit request "under all the other svgs, but on top of the
-   shadows, so it will obscure any shadow" - z-index:0, tied with
-   .shadow-caster's own z-index:0, but its DOM position (see the
-   HTML) comes AFTER .shadow-caster's closing tag, so equal-z-index
-   DOM-order stacking (same trick .basebg-svg-layer's own comment
-   above already documents) paints it on top of the shadow while
-   everything else (basebg z:1, game-button z:1, base z:4) still
-   paints on top of THIS layer. No hue-rotate filter, unlike
-   .basebg-svg-layer/.base-svg-layer/.game-button - this is
-   deliberately always plain white regardless of the button/base
-   color pickers, since its job is just to opaquely block the
-   shadow layer beneath it. */
+/* WHITE.svg: sits under all artwork but above the shadow, to obscure it.
+   z-index:0 ties with .shadow-caster, but it comes later in DOM order so it
+   paints on top; everything else (z:1+) paints over it. Always plain white
+   (no tint filter) since it only blocks the shadow. */
 .whitebg-svg-layer {
     position: absolute;
     inset: 0;
@@ -577,30 +282,16 @@ body {
     filter: url(#baseGrayscaleTint);
 }
 
-/* Per direct request - 4 dev-panel checkboxes to independently hide
-   each of the button assembly's 4 own visual layers (Hide Button/
-   Hide Base/Hide Backing SVG/Hide White SVG, see
-   #checkboxHideButton and its 3 siblings). display:none (not
-   visibility:hidden) - fully removes each from layout/hit-testing,
-   not just paint, since #gameButton itself is one of the 4 and
-   hiding it should also stop it from intercepting clicks. */
+/* Dev-panel Hide Button/Base/Backing SVG/White SVG checkboxes. display:none
+   (not visibility) so a hidden #gameButton also stops intercepting clicks. */
 .button-assembly.hide-button #gameButton { display: none; }
 .button-assembly.hide-base .base-svg-layer { display: none; }
 .button-assembly.hide-backing-svg .basebg-svg-layer { display: none; }
 .button-assembly.hide-white-svg .whitebg-svg-layer { display: none; }
 
-/* Button - backmost layer, tucked under the base; shifts up/down via height
-   offset and press intensity.
-
-   Both offset values are PERCENT OF THE BUTTON'S OWN DIAMETER, not raw
-   pixels - the button's on-screen size is vw-relative (scales with
-   viewport width), so a fixed-px offset stays the same absolute size
-   while the button itself shrinks on a narrow phone screen, making the
-   gap between button and base look proportionally huge (and pushing them
-   visibly apart) on mobile even when it looked fine on a wide desktop
-   viewport. Expressing the offset as a fraction of --button-diameter-vw
-   keeps the same visual relationship (how far the button sits recessed
-   relative to its own size) at every screen width. */
+/* Button - backmost layer, under the base; shifts via height offset and
+   press intensity. Both offsets are PERCENT OF THE BUTTON'S DIAMETER (not
+   px), so the button/base relationship stays proportional at any width. */
 .game-button {
     position: absolute;
     inset: 0;
@@ -617,21 +308,11 @@ body {
     touch-action: manipulation;
     outline: none;
     transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vmin));
-    /* No static transition rule here - press/release each need their own
-       independent duration (--button-press-ms/--button-release-ms, both
-       dev-panel sliders), which a single CSS rule can't express since a
-       transition applies the same way in both directions. Instead,
-       handleGameButtonPress()/handleGameButtonRelease() set this
-       element's `transition` inline, directly and completely, right
-       before toggling .pressed each time - a real (>0ms) duration gets
-       `transform <ms>ms ease-out`; a genuinely zero duration gets
-       `none` (not a 0ms transition) so it's never subject to the real
-       tradeoff a non-zero duration accepts: under rapid tapping, a
-       still-easing transition can be mid-flight when the next press/
-       release fires, and a 0ms transition can apparently still inherit
-       that unsettled state rather than applying atomically - a real,
-       reproduced bug, not a hypothetical. See both handlers' own
-       comments for the instant-path detail. */
+    /* No static transition: press/release need independent durations.
+       handleGameButtonPress()/Release() set `transition` inline before
+       toggling .pressed - `transform <ms>ms ease-out`, or `none` for zero
+       (a 0ms transition could inherit an unsettled mid-flight state under
+       rapid taps - a reproduced bug). */
     /* Only the SVG's actual painted pixels are clickable, not this element's
        full rectangular box - the child svg below opts back into hit-testing
        and browsers only hit-test an SVG's visible painted area by default. */
@@ -649,26 +330,17 @@ body {
     /* The svg root itself stays non-interactive (its own box is the full
        rectangle) - only its actual painted shapes below opt back in. */
     pointer-events: none;
-    /* The shared drop-shadow lives on .button-assembly (see its own comment) -
-       this filter only handles this layer's own recolor. Grayscale +
-       levels + overlay-tint (see #buttonGrayscaleTint), same
-       pipeline as the base/backing layers - replaces hue-rotate,
-       which stopped doing anything useful once the source artwork
-       itself became grayscale (no saturation left to rotate). */
+    /* Drop-shadow lives on .button-assembly; this filter only recolors:
+       grayscale + levels + overlay-tint (see #buttonGrayscaleTint). The
+       source art is grayscale, so hue-rotate wouldn't work. */
     filter: url(#buttonGrayscaleTint);
 }
 .game-button svg * {
     pointer-events: auto;
 }
-/* visibility, not display: toggling `display` removes/re-adds the SVG's
-   box from the render tree, forcing a synchronous layout reflow on
-   every single tap - a real, separate cost from the transform/
-   transition work above. `visibility` skips that (the element keeps
-   its computed geometry, only paint and hit-testing are skipped) and
-   still blocks clicks on the hidden one, since a visibility:hidden
-   parent makes its descendants non-hit-testable regardless of their
-   own pointer-events value, unless a descendant explicitly sets its
-   own visibility:visible (nothing here does). */
+/* visibility, not display: display toggling forces a layout reflow every
+   tap. A visibility:hidden parent also blocks hit-testing of descendants
+   unless one sets visibility:visible itself (none do here). */
 .btn-normal-svg { visibility: visible; }
 .btn-pressed-svg { visibility: hidden; }
 .game-button.pressed .btn-normal-svg { visibility: hidden; }
@@ -682,16 +354,11 @@ body {
 .game-button.flip-svg.pressed .btn-normal-svg { visibility: visible; }
 .game-button.flip-svg.pressed .btn-pressed-svg { visibility: hidden; }
 
-/* Click burst - comic-style "impact line" shapes that fly out from the
-   button/base seam on every accepted tap (see spawnClickBurst() in the
-   script below). Deliberately plain img elements animated via CSS
-   motion-path, not a canvas/WebGL particle system - this project's
-   whole tap-response path is latency-sensitive (see this session's own
-   extensive per-tap rendering work elsewhere in this file), and a
-   persistent per-frame simulation loop would compete with exactly that.
-   transform/opacity/offset-distance are all compositor-only properties,
-   the same cheap category the button's own press-motion already uses -
-   no filter, no blur, no layout-triggering properties anywhere here. */
+/* Click burst - impact-line images flying out from the button/base seam
+   per tap (see spawnClickBurst()). Plain imgs animated via CSS motion-path
+   rather than a particle loop, to keep the latency-sensitive tap path
+   cheap: only compositor-only properties (transform/opacity/offset-
+   distance), no filters or layout-triggering properties. */
 .click-burst-container {
     position: absolute;
     inset: 0;
@@ -699,49 +366,28 @@ body {
     z-index: 2;
     overflow: visible;
 }
-/* Shadow particles get their OWN container, separate from the real
-   particles above - z-index -1 puts them below game-button (z:1)
-   and base-svg-layer (z:4), matching how a real shadow sits behind
-   the object casting it (the real particles stay in the z:2
-   container above, still visible flying past the button). Also
-   carries the SAME single group opacity .shadow-caster uses for the
-   main button/base shadow (see there) - each individual shadow
-   particle is fully opaque (see .click-burst-particle-shadow's
-   keyframes), so overlapping shadow particles composite as one
-   flattened opaque shape BEFORE this opacity is applied once,
-   instead of each particle darkening independently where they
-   overlap. */
+/* Shadow particles get their own container at z-index -1 (below
+   game-button z:1 and base z:4), like a real shadow; real particles stay
+   in the z:2 container above. */
 .click-burst-shadow-container {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: -1;
     overflow: visible;
-    /* No group opacity here anymore - see .click-burst-particle-
-       shadow's filter and .shadow-caster's own comment. A semi-
-       transparent group here would compound-darken wherever this
-       overlaps the SEPARATE main button/base shadow (a different
-       element with its own opacity), which is exactly what was
-       reported. */
+    /* No group opacity: it would compound-darken where this overlaps the main
+       button/base shadow. See .shadow-caster. */
 }
 .click-burst-particle {
     position: absolute;
     left: 0;
     top: 0;
-    /* var(--button-user-scale, 1) makes piece size follow the
-       button's own live scale (Max/Min Button Scale) - per direct
-       request. --click-burst-scale stays the per-frame-set base
-       size tuned by its own slider; button-user-scale is a further
-       live multiplier on top, same relationship as the JS-side
-       distance/height/curve-offset scaling in spawnClickBurstSide(). */
+    /* var(--button-user-scale, 1) makes piece size follow the button's live
+       Max/Min Button Scale, on top of the per-frame --click-burst-scale. */
     width: calc(var(--click-burst-scale, 1) * var(--button-user-scale, 1) * 40px);
-    /* offset-distance animates via @keyframes below; offset-rotate:auto
-       orients the element to match the path's tangent direction as it
-       travels - exactly "the arrow follows the flight path curve
-       direction". The +90deg compensates for the source artwork's own
-       rest orientation (pointing straight up = "forward" in image
-       space), since offset-rotate:auto's 0deg baseline assumes an
-       element whose forward direction is +X (rightward), not +Y (up). */
+    /* offset-rotate:auto aligns the piece to the path tangent. +90deg
+       compensates for the art pointing up, since auto's 0deg assumes a
+       +X (rightward) forward direction. */
     offset-rotate: auto 90deg;
     offset-distance: 0%;
     opacity: 1;
@@ -756,157 +402,54 @@ body {
     70% { opacity: 1; }
     100% { offset-distance: 100%; opacity: 0; }
 }
-/* Paired shadow for each burst particle - flattened black, skewed/
-   stretched/rotated the same way the button/base's own shadow is
-   (see spawnClickBurstSide(), which sets this transform per-
-   instance from --shadow-skew/--shadow-elongation-intensity/
-   --shadow-elongation-angle/--shadow-rotate).
-   Deliberately NO blur, unlike the main shadow - .shadow-caster-
-   layer's own comment already documents blur as the real per-tap
-   cost; these particles are numerous and short-lived, so brightness-
-   only stays in the cheap category while still reading as a cast
-   shadow. Painted behind its real particle by DOM order alone (the
-   shadow is always appended first) - no z-index needed. A separate
-   keyframes (not just an `opacity` override) is required: the base
-   click-burst-fly animation already animates opacity itself, and an
-   actively-animated property always wins over a plain declared
-   value on the same element, so a static opacity:0.5 here would be
-   silently overridden to 1 for most of the flight.
-
-   offset-rotate:0deg, NOT the base class's auto 90deg - confirmed via
-   a user-provided screen recording that letting the shadow ALSO
-   auto-rotate to follow its own flight path, on top of the explicit
-   skew/stretch/rotate transform below, compounds the two rotations
-   into a barely-recognizable thin sliver instead of a shadow that
-   still reads as the same shape (zoomed frame comparison showed the
-   "shadow" as a completely different silhouette, not just a
-   darkened copy - this is very likely what read as "a second frame
-   set" being used). Only the shadow's POSITION should track the
-   curved path; its own rotation stays fixed, driven solely by the
-   skew/stretch/rotate transform - the same way the main button/base
-   shadow has one fixed "cast shadow" look, not a rotation that
-   varies with anything. */
+/* Paired shadow for each burst particle - flattened gray, with the shadow
+   container carrying the main shadow's skew/stretch/rotate (set in
+   spawnClickBurstSide()/spawnClickBurst()). No blur (blur is the expensive
+   per-tap cost; these are numerous and short-lived). Painted behind its
+   particle by DOM order (shadow appended first). Needs its own keyframes:
+   the base animation animates opacity, which would override a static value. */
 .click-burst-particle-shadow {
-    /* Same brightness(0) + invert(0.5) as .shadow-caster-layer's
-       filter (see there for the full reasoning) - produces solid
-       mid-gray directly, fully opaque, so it reads as the exact
-       same shade as the main button/base shadow and never
-       compound-darkens where the two overlap. */
+    /* Same brightness(0) + invert(0.5) as .shadow-caster-layer - opaque gray
+       that matches the main shadow and never compound-darkens. */
     filter: brightness(0) invert(0.5);
     animation-name: click-burst-fly-shadow;
-    /* offset-rotate:auto 90deg (NOT a fixed angle) - directly
-       reported via a screen recording as "shadows pointing
-       downward": the previous fixed 0deg orientation (paired with
-       a FIXED skewX/rotate/scaleY sprite transform, now removed -
-       see spawnClickBurstSide()) never adapted to each particle's
-       own individual flight angle, so for most particles the
-       sprite's rendered orientation simply didn't match its actual
-       direction of travel at all - correct for at most one flight
-       angle, visibly wrong for the rest. Matching the real
-       particle's own .click-burst-particle base class exactly (see
-       its own comment on offset-rotate/the +90deg) means the
-       shadow now always faces the direction it's actually moving,
-       same as its real counterpart - the "cast shadow" look comes
-       entirely from the shadow CONTAINER's own transform (see
-       spawnClickBurst() - a byte-for-byte copy of .shadow-caster-
-       layer's own transform, applied via real CSS, not a JS
-       reimplementation of the same math) plus the gray filter, not
-       from an extra fixed sprite rotation. */
+    /* offset-rotate:auto 90deg (matching the real particle) so each shadow
+       faces its own direction of travel; a fixed angle was only right for
+       one flight angle. The cast-shadow look comes from the shadow
+       container's transform plus the gray filter. */
 }
 @keyframes click-burst-fly-shadow {
-    /* Fully opaque (not semi-transparent) while visible, for the
-       same never-compound-darkens reason as the filter above - the
-       0% -> 100% opacity 1 -> 0 here is purely the particle's own
-       end-of-life FADE OUT (matching the real particle's own
-       fade), not a "shadow shade" mechanism. */
+    /* Fully opaque while visible (never compound-darkens); the opacity 1->0
+       is only the end-of-life fade matching the real particle. */
     0% { offset-distance: 0%; opacity: 1; }
     70% { opacity: 1; }
     100% { offset-distance: 100%; opacity: 0; }
 }
 
-/* Start Button (UI) - no box, per explicit request: formatted
-   exactly like Round Text's old "big" form (position/size/
-   extrusion/color), since Round Text no longer HAS a big form to
-   share the look with - see the dev-panel section comment above
-   for the full reasoning. Directly reuses --text-x/y-offset-vw/vh
-   and --text-font-size-vw (formerly Round Text's big-state
-   position/size vars) and --round-extrusion-shadow (Round's own
-   extrusion group, not the shared Start/TryAgain/WinLose one this
-   used before). */
+/* Start Button (UI) - no box; styled like Round Text's former "big" form.
+   Reuses --text-x/y-offset-vw/vh and --text-font-size-vw (formerly Round
+   Text's big-state vars) and --round-extrusion-shadow. */
 .start-button {
     position: absolute;
-    /* Edge Lock (--start-x-unit/-y-unit, --start-x-base/-y-base,
-       --start-x-sign/-y-sign) - per explicit request/correction: when
-       checked, that axis's offset becomes a constant PX distance from
-       whichever anchor the align/valign dropdown currently selects -
-       an EDGE (left/right/top/bottom) or the CENTERLINE - instead of
-       scaling proportionally with the viewport. -unit swaps 1vw/1vh
-       for 1px; -base/-sign pick which point in the viewport the
-       offset is actually measured FROM (0%/50%/100%, +1/-1) - this
-       is the part a pure unit swap alone can't do: 50%-of-viewport
-       is itself a moving target as the viewport resizes, so an
-       edge-aligned element locked only via -unit still drifted (the
-       50% term never stopped scaling) - confirmed by direct
-       measurement before fixing (a 380px viewport-width change moved
-       a right-locked element by 190px, exactly half - the surviving
-       50% term). Locking a LEFT/TOP anchor re-bases to that edge
-       (0%, sign +1); RIGHT/BOTTOM re-bases to the far edge (100%,
-       sign -1, since translate(-100%)/(-100%) already lands the
-       box's own far edge there); CENTER keeps 50%/+1, matching the
-       explicit "distance from the centerline is retained" case.
-       Unlocked (defaults) is untouched - always 50%/+1/1vw or 1vh,
-       identical to this element's behavior before Edge Lock existed.
-       Computed in applyTextAlignAnchors(). */
+    /* Edge Lock (--start-x/-y-unit, -base, -sign): when on, the offset becomes
+       a constant px distance from the anchor chosen by align/valign (edge or
+       centerline) instead of scaling with the viewport. -unit swaps 1vw/1vh
+       for 1px; -base/-sign choose the anchor point (0%/50%/100%, +1/-1) -
+       a unit swap alone isn't enough since a 50% base still moves on resize.
+       Left/Top -> 0%,+1; Right/Bottom -> 100%,-1; Center -> 50%,+1.
+       Unlocked default: 50%/+1/1vw|1vh. Computed in applyTextAlignAnchors(). */
     left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--text-x-offset-vw) * var(--start-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, var(--cq-vh, 1vh)));
-    /* Fixed 2026-09-15: this transform used to also include
-       `rotate(calc(var(--high-score-rotate-deg, 0) * 1deg))` - a
-       stray leftover from an earlier copy-paste (this rule was
-       clearly the starting template for .high-score-text's own
-       rule below, given the near-identical shape), which meant
-       setting High Score's own rotation var would have silently
-       rotated THIS button instead - moved to .high-score-text's
-       own transform, where it belongs, while adding the actual
-       Rotation slider per direct request. */
     transform: translate(-50%, var(--anchor-ty, -50%));
     padding: 0;
-    /* Font size is always px, never vw - per explicit request ("text
-       should never scale with browser size"), a permanent default
-       change, not a toggle like Edge Lock above (font size has no
-       "unlocked" mode to preserve). Every text element's own
-       --X-font-size-vw was renamed to --X-font-size-px and its
-       stored NUMBER converted from a vw percentage to an actual px
-       value, at a chosen reference width per device (1280px
-       desktop, 390px mobile - documented here since there's no
-       single "correct" reference, only a reasonable starting point;
-       retune via the slider if it looks off) - so this ships
-       visually unchanged at that reference width and then simply
-       stops scaling at any other width, rather than jumping to a
-       tiny/huge size (reinterpreting the old vw NUMBER directly as
-       px, the way Edge Lock's offsets could, would have done here -
-       font-size values are a fundamentally different scale, so this
-       needed an actual unit conversion, not just a reinterpretation). */
-    /* "Scale With Browser" checkbox blend (see updateScaleWithBrowser()'s
-       own comment) - a plain 0/1 toggle multiplied into each term
-       zeroes out whichever one isn't active, letting one CSS rule
-       express both a fixed-px AND a viewport-relative mode without
-       JS having to swap the rule itself on every resize. The
-       viewport-relative term uses 1vmin (2026-09-19, was 1vw via
-       the inert --cq-vw indirection - see this file's own comment
-       on why that indirection exists but resolves to a plain unit
-       either way) - per direct report ("For Text to scale with
-       browser... I want it to scale with both browser height and
-       width. Right now its just width"). 1vmin is 1% of whichever
-       viewport dimension is CURRENTLY SMALLER, so shrinking either
-       axis now shrinks the text - shrinking only the browser's
-       height (width unchanged) previously had zero effect on any
-       Scale With Browser text anywhere in the game, since 1vw only
-       ever tracks width. Applies to every element sharing this
-       exact formula shape (Start/Try Again button, the "?" mark,
-       Round Text, High Score, Target Prefix/Number/Suffix, Speed
-       Display, Ms/Click Display, Win/Lose text - 13 rules total,
-       all changed together) plus Round Breakdown's own separately-
-       built Title/Data font-size blend (own comment, same fix). */
+    /* Font size is stored in px (converted from old vw values at 1280px
+       desktop / 390px mobile reference widths). */
+    /* "Scale With Browser" blend (see updateScaleWithBrowser()): a 0/1 toggle
+       multiplied into each term zeroes the inactive one, so one rule covers
+       both fixed-px and viewport-relative modes without JS swapping rules.
+       Uses 1vmin so text responds to both width and height. Same formula
+       shape is shared by every Scale With Browser text rule (and Round
+       Breakdown's own Title/Data blend) - change them together. */
     font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * 1vmin);
     letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
     line-height: var(--text-line-height, 1.2);
@@ -915,13 +458,8 @@ body {
     color: var(--round-fill-color);
     text-shadow: var(--round-extrusion-shadow);
     text-align: var(--start-text-align, center);
-    /* pre-wrap, not pre-line - per explicit request, repeated
-       spaces need to each take up their own horizontal space (e.g.
-       pushing right-aligned text further left per space typed),
-       which pre-line's normal whitespace-collapsing didn't allow.
-       Still preserves newlines (Shift+Enter multi-line editing)
-       and still wraps at a constrained width, same as pre-line
-       did - pre-wrap is a strict superset of what was needed here. */
+    /* pre-wrap (not pre-line) so repeated spaces each take up width while
+       newlines and wrapping are still preserved. */
     white-space: pre-wrap;
     background: none;
     border: none;
@@ -935,24 +473,12 @@ body {
     outline: none;
 }
 
-/* Try Again gets its own font-size/position, independent from
-   Start's - per explicit request ("so both Start and Try Again get
-   their own set"). Applied via a state class (JS toggles this
-   whenever the button's content switches - see the startLabel/
-   tryAgainLabel render sites) rather than a second element, since
-   overriding left/top/font-size here is simpler than duplicating
-   the whole button. */
+/* Try Again gets its own font-size/position via a state class toggled by
+   JS when the button's content switches, instead of a second element. */
 .start-button.try-again-state {
-    /* Try Again now has its own independent Text Align/Valign/Edge
-       Lock (--try-again-x/-y-base/-sign/-unit) instead of reusing
-       Start's --start-x/-y-* - per direct follow-up request. Both
-       prefixes' custom properties are computed unconditionally onto
-       this same shared startButton element every time
-       applyTextAlignAnchors() runs (see its own comment) - only
-       whichever state is actually showing has its own CSS rule
-       (this one, vs .start-button's own base rule above) read the
-       matching prefix, so there's no conflict despite living on one
-       element. */
+    /* Try Again has its own align/valign/Edge Lock vars (--try-again-x/-y-*).
+       applyTextAlignAnchors() writes both prefixes onto this one element;
+       only the active state's rule reads its own prefix, so no conflict. */
     left: calc(var(--try-again-x-base, 50%) + var(--try-again-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--try-again-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--try-again-y-base, 50%) + var(--try-again-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-y-unit, var(--cq-vh, 1vh)));
     /* See .start-button's own "Scale With Browser" comment above. */
@@ -968,112 +494,46 @@ body {
     display: none !important;
 }
 
-/* Game Text Displays - Round Text no longer has a "big" state or
-   any animation at all, per explicit request: it always renders at
-   its one permanent look (position/size/extrusion previously only
-   used for its DOCKED state), even during the number-flash blink
-   sequence. dockRoundText()/undockRoundText() and the grow/shrink
-   transition this rule used to have are gone entirely - nothing
-   left to animate between. */
-/* The flashing/rotating "?" in "Try again?" - inline-block so
-   transform-origin:center actually pivots on the glyph's own
-   center (a plain inline element's transform origin can behave
-   inconsistently across browsers) - see tickTryAgainRotate(). */
-/* Wrapper only - positioning context for the 2 stacked layers below,
-   itself never transformed. Rotate mode needs the glyph and its
-   extrusion/border to be independently scalable (see
-   tickTryAgainRotate()), which a single element's own text-shadow
-   can't do (a transform on one element carries its text-shadow
-   along with it as one unit) - split into 2 same-position, same-
-   size overlapping spans instead: a plain colored glyph on top, an
-   extruded/bordered copy of the same character behind it. Both
-   start at identical (untransformed) size/position, so independent
-   transform-origin:center scaleX() on each still pivots around the
-   same shared visual point. */
-/* Independently positioned/sized/colored - per explicit request
-   ("separate size, color, and x y sliders for the question mark").
-   Used to be plain inline text (flowed right after "Try again",
-   inheriting that text's own font-size/color/position entirely) -
-   then briefly `position: fixed` aiming for the same screen-center
-   vw/vh origin as every other element (CLAUDE.md Section 12k), but
-   that alone wasn't enough: .start-button (this element's DOM
-   parent at the time) has its own `transform`, which per spec makes
-   ANY ancestor with a transform the containing block for a `fixed`
-   (or `absolute`) descendant - so this was actually resolving
-   against the BUTTON's own transformed box the whole time, not the
-   viewport, silently reproducing the exact "position depends on Try
-   Again" bug it was meant to fix. Now a plain sibling of
-   .start-button (not its child) with `position: absolute`, so it
-   resolves against .game-container - the same containing block
-   Target/Speed/Ms-per-click already use - genuinely independent of
-   wherever the button currently sits. See its own <span> tag in the
-   HTML for the DOM-restructuring side of this fix. */
+/* Game Text Displays - Round Text has a single permanent look (no
+   big/docked states or grow/shrink animation), even while blinking. */
+/* The "?" in "Try again?" - inline-block so transform-origin:center pivots
+   reliably on the glyph's center (see tickTryAgainRotate()). */
+/* Wrapper only (never transformed) for 2 stacked layers: a plain glyph on
+   top and an extruded/bordered copy behind. Split because a transform
+   carries an element's own text-shadow along with it, and rotate mode
+   needs to scale the glyph and its extrusion independently. Both start at
+   identical size/position so scaleX() pivots share one center. */
+/* Independently positioned/sized/colored "?". Must be a sibling of
+   .start-button, not a child: .start-button has a transform, which makes it
+   the containing block for absolute/fixed descendants, so the "?" would
+   follow the button. As a sibling it resolves against .game-container. */
 #startButtonFlashChar {
     position: absolute;
-    /* X: same base/sign/unit anchor system as every other element
-       (Target/Speed/etc.), not a hardcoded 50% origin - per direct
-       follow-up request for its own Text Align/Valign. Falls back to
-       plain 50%/1(sign)/1vw before applyTextAlignAnchors() has run
-       for this element (e.g. the very first paint), reproducing the
-       exact original formula below as the default. Stays fully
-       independent of Try Again's own X - only Y is coupled (see
-       top's own comment just below), per direct follow-up request
-       ("i want the '?' y position to be dependent on the try
-       again"). */
+    /* X: same base/sign/unit anchor system as other elements, falling back
+       to 50%/1/1vw before applyTextAlignAnchors() runs. Independent of Try
+       Again's X (only Y is coupled - see below). */
     left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, var(--cq-vw, 1vw)));
-    /* Y: DELIBERATELY coupled to wherever Try Again itself
-       vertically sits, unlike X above - the first term reproduces
-       Try Again's own top formula exactly (--try-again-question-
-       mark-parent-y-base/-sign/-unit are startButtonEl's own
-       --try-again-y-base/-sign/-unit, mirrored onto this element by
-       applyTextAlignAnchors() since custom-property inheritance
-       doesn't reach sideways between siblings - see that function's
-       own comment for the full reasoning), and this element's own
-       Y offset/sign/unit (its own Edge Lock/Text Valign, untouched)
-       is then added as a SECOND, independent delta on top - so
-       moving Try Again moves the "?" by the same amount, while the
-       "?"'s own Y slider still fine-tunes an additional offset
-       relative to wherever that lands, exactly like #gameTextNumber
-       is deliberately coupled to #gameTextLabel's own position. */
+    /* Y: deliberately coupled to Try Again. The first term reproduces Try
+       Again's own top formula (its -y-base/-sign/-unit are mirrored onto
+       this element as --try-again-question-mark-parent-y-* by
+       applyTextAlignAnchors(), since custom properties don't inherit
+       between siblings); this element's own Y offset is added on top. */
     top: calc(var(--try-again-question-mark-parent-y-base, 50%) + var(--try-again-question-mark-parent-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-question-mark-parent-y-unit, var(--cq-vh, 1vh)) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
     text-align: var(--try-again-question-mark-text-align, center);
     /* See .start-button's own "Scale With Browser" comment. */
     font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * 1vmin);
-    /* Explicit, not inherited - per direct report ("why did the
-       font of the '?' change"). While this was a DOM child of
-       #startButton, it inherited font-weight/font-family from
-       .start-button's own rule for free; now that it's a sibling
-       (see this element's own comment above), it no longer has
-       that parent to inherit from, so both need stating directly -
-       matching how every other independent overlay text element
-       (.target-count etc.) already declares its own copy rather
-       than relying on inheritance. */
+    /* Font weight/family stated explicitly - as a sibling of #startButton it
+       no longer inherits them from .start-button. */
     font-weight: 700;
     font-family: var(--extrusion-font);
     transform: translate(-50%, var(--anchor-ty, -50%));
     display: inline-block;
     pointer-events: none;
-    /* Promotes this element to its own compositor layer ahead of
-       time - per direct follow-up report that the Auto Scroll
-       "pause on flash" fix (see startTryAgainFlash()'s own JS
-       comment) helped but didn't fully fix it, happening on both
-       the appear AND disappear edge of the flash. Root cause,
-       round 2: the flash's OWN visibility toggle is expensive on
-       its own, independent of the earlier tick()-side fix -
-       #startButtonFlashCharExtrusion's text-shadow is built from
-       ONE shadow layer per pixel of extrusion depth PLUS a full
-       8-direction border-ring repeated at every one of those
-       depths (see buildExtrusionShadow()/buildBorderRingShadow()'s
-       own comments) - dozens of shadow layers in practice, and
-       `visibility` toggling forces the browser to actually
-       repaint that whole stack on the main thread every time,
-       each direction (show AND hide) equally, blocking whatever
-       else - including the marquee's own rAF callback - was
-       about to run. will-change:opacity tells the browser to
-       keep this element pre-composited on its own layer, so the
-       opacity toggle below (visibility's replacement) becomes a
-       compositor-only operation that never touches the main
-       thread's paint pipeline at all. */
+    /* Pre-composites this element on its own layer so the flash toggle (opacity,
+       replacing visibility) is compositor-only. The extrusion text-shadow
+       is dozens of layers (per-pixel depth x 8-direction border ring), and
+       repainting it on each show/hide stalled the main thread (incl. the
+       marquee's rAF). */
     will-change: opacity;
 }
 #startButtonFlashChar.hidden {
@@ -1086,24 +546,11 @@ body {
     left: 0;
     top: 0;
     display: inline-block;
-    /* Transparent, not the fill color - this layer exists ONLY to
-       cast its own text-shadow (the real extrusion/border pixels);
-       its own glyph shape was never meant to be independently
-       visible. When this layer's scaleX matches the glyph layer's
-       exactly (checkbox checked), the two are pixel-identical so a
-       solid fill here was invisible anyway - completely hidden
-       behind the glyph layer on top. But once they diverge
-       (checkbox unchecked, per explicit design), this layer's own
-       solid glyph is no longer fully covered and peeks out as a
-       second, independently-shaped "?" - confirmed via direct
-       report ("the rotating question mark still shows as 2
-       question marks") and by reading buildExtrusionShadow()
-       (its shadow stack starts at 1px offset, assuming depth 0
-       - the element's own real fill - is provided by something
-       else, which here is this element itself, wrongly). Making
-       it transparent leaves only the genuine shadow-based
-       extrusion trail, so this layer can never itself look like an
-       independent glyph again. */
+    /* Transparent fill: this layer exists only to cast its text-shadow
+       (extrusion/border). With an opaque fill, its glyph peeks out as a
+       second "?" whenever its scaleX diverges from the glyph layer's.
+       buildExtrusionShadow() starts at 1px, assuming depth 0 comes from
+       elsewhere (the glyph layer). */
     color: transparent;
     text-shadow: var(--try-again-question-mark-extrusion-shadow);
 }
@@ -1130,19 +577,10 @@ body {
     overflow: hidden;
 }
 
-/* Text Edit Mode's bounding-box overlay - one per currently-visible
-   TEXT_EDIT_TARGETS element, per explicit request ("I should see
-   the bounding box of every text object"). pointer-events:none so
-   the box is purely visual and never steals the right-click meant
-   for the real element underneath it - confirmed via
-   elementFromPoint() that a click at the box's own center resolves
-   straight through to the real element beneath, not the box - see
-   updateTextEditBoundingBoxes(). No fill (outline only), per
-   explicit follow-up request, so the box never visually reads as
-   "in the way" even though it was never actually blocking clicks.
-   Position/size are set directly as inline styles (tracks the real
-   element's live screen rect every frame while the mode is on), so
-   only the static look lives here. */
+/* Text Edit Mode bounding-box overlay, one per visible TEXT_EDIT_TARGETS
+   element. pointer-events:none so right-clicks pass through to the real
+   element. Outline only, no fill. Position/size are set inline every frame
+   by updateTextEditBoundingBoxes(); only the static look lives here. */
 .text-edit-bbox {
     position: fixed;
     display: none;
@@ -1153,13 +591,9 @@ body {
     z-index: 999;
 }
 
-/* Left/right resize handles on the bounding box - drag to set that
-   element's wrap width (when the text needs more room than the
-   handle allows, it wraps to a new line instead of growing wider),
-   per explicit request. Unlike the box itself, these ARE
-   pointer-events:auto - they're deliberately narrow (10px) so they
-   don't meaningfully compete with the right-click area in the box's
-   own middle. Positioned/sized every frame alongside the box in
+/* Left/right resize handles - drag to set the element's wrap width.
+   pointer-events:auto but narrow (10px) so they don't compete with
+   right-clicks in the box's middle. Positioned in
    updateTextEditBoundingBoxes(). */
 .text-edit-bbox-handle {
     position: fixed;
@@ -1189,13 +623,7 @@ body {
     color: var(--round-dock-fill-color);
     text-shadow: var(--round-dock-extrusion-shadow);
     text-align: var(--round-text-align, center);
-    /* pre-wrap, not pre-line - per explicit request, repeated
-       spaces need to each take up their own horizontal space (e.g.
-       pushing right-aligned text further left per space typed),
-       which pre-line's normal whitespace-collapsing didn't allow.
-       Still preserves newlines (Shift+Enter multi-line editing)
-       and still wraps at a constrained width, same as pre-line
-       did - pre-wrap is a strict superset of what was needed here. */
+    /* pre-wrap: see .start-button. */
     white-space: pre-wrap;
     pointer-events: none;
     z-index: 10;
@@ -1205,19 +633,10 @@ body {
     display: none !important;
 }
 
-/* The word "Round" (#gameTextLabel) must never shift position
-   during the round-change blink sequence (see
-   runRoundBlinkSequence()), even though the number's own visible
-   width changes as it blinks/changes digit count. .game-text's own
-   centering (left/transform above) is based on its CONTENT width,
-   which would otherwise include the number and re-center the whole
-   assembly every time the number's width changes - a real,
-   reported bug ("the word Round shouldn't move"). Fixed by taking
-   the number out of that flow entirely: #gameTextNumber is
-   absolutely positioned relative to #gameTextLabel, so it never
-   contributes to .game-text's own content width - "Round"'s
-   position is therefore determined solely by its own (constant)
-   text, never by the number next to it. */
+/* "Round" (#gameTextLabel) must not shift while the number blinks or
+   changes digit count. .game-text centers on its content width, so
+   #gameTextNumber is absolutely positioned relative to #gameTextLabel and
+   doesn't contribute to that width. */
 #gameTextLabel {
     position: relative;
     display: inline-block;
@@ -1229,31 +648,17 @@ body {
     top: 0;
     margin-left: 0.25em;
     white-space: nowrap;
-    /* Independent fine nudge for just the live number, on top of
-       its existing position relative to "ROUND" - per direct
-       request for its own X offset slider. */
+    /* Independent X nudge for the number, relative to "ROUND". */
     transform: translateX(calc(var(--round-number-x-offset-px, 0) * 1px));
 }
 
-/* High Score - per direct request ("Add a Highscore text with its
-   own font settings like the others... make it its own settings
-   group. It should have color settings as well as extrusion
-   settings etc"). Same Label+Number split as .game-text/
-   #gameTextLabel/#gameTextNumber above (see their own comments) -
-   the label word must never shift position when the number's own
-   digit count changes width. */
+/* High Score - same Label+Number split as .game-text/#gameTextLabel/
+   #gameTextNumber, so the label doesn't shift as the digit count changes. */
 .high-score-text {
     position: absolute;
     left: calc(var(--high-score-x-base, 50%) + var(--high-score-x-sign, 1) * var(--high-score-x-offset-vw) * var(--high-score-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--high-score-y-base, 50%) + var(--high-score-y-sign, 1) * var(--high-score-y-offset-vh) * var(--high-score-y-unit, var(--cq-vh, 1vh)));
-    /* Per direct request ("give me a rotation slider for the high
-       score. I want to be able rotate it 90 degrees") - the
-       --high-score-rotate-deg var and this rotate() term already
-       existed as pre-built groundwork, but on the WRONG element
-       (.start-button, above - a stray copy-paste leftover, fixed
-       2026-09-15) with no slider ever wired to it either way. Both
-       fixed together: moved here (its real home) and given an
-       actual "Rotation (Deg):" dev-panel slider. */
+    /* Rotation (Deg) dev-panel slider drives --high-score-rotate-deg. */
     transform: translate(-50%, var(--anchor-ty, -50%)) rotate(calc(var(--high-score-rotate-deg, 0) * 1deg));
     font-size: calc((1 - var(--high-score-scale-with-browser, 0)) * var(--high-score-font-size-px) * 1px + var(--high-score-scale-with-browser, 0) * var(--high-score-font-size-vw, 10) * 1vmin);
     letter-spacing: calc(var(--high-score-letter-spacing-px) * 1px);
@@ -1282,51 +687,30 @@ body {
     white-space: nowrap;
 }
 
-/* Win/Lose message text - split out from .game-text (which now only
-   ever shows "ROUND X") so the two can be sized/positioned
-   independently. Font/depth are shared with the rest of the 8-bit
-   extruded style (--extrusion-font/--extrusion-shadow uses the same
-   shared depth), but fill/border color are its OWN pair per side
-   (.result-win/.result-lose below) rather than the shared 2-panel
-   colors every other extruded text uses - explicit request so a
-   win can read differently from a loss. */
+/* Win/Lose message text, split from .game-text (now only "ROUND X") so
+   each can be sized/positioned independently. Shares the 8-bit font/depth,
+   but fill/border colors are per side (.result-win/.result-lose). */
 .result-text {
     position: absolute;
-    /* Rotated 90deg on top of the usual centering translate - the
-       ":)"/":(" glyphs in the pixel font used here render in a way
-       that only reads as a correct smiley face once turned on its
-       side, per direct visual confirmation. */
+    /* Rotated 90deg on top of the centering translate - the pixel font's
+       ":)"/":(" glyphs only read as faces turned on their side. */
     transform: translate(-50%, var(--anchor-ty, -50%)) rotate(90deg);
     line-height: var(--result-line-height, 1.2);
     font-weight: 700;
     font-family: var(--extrusion-font);
     text-align: var(--result-text-align, center);
-    /* pre-wrap, not pre-line - per explicit request, repeated
-       spaces need to each take up their own horizontal space (e.g.
-       pushing right-aligned text further left per space typed),
-       which pre-line's normal whitespace-collapsing didn't allow.
-       Still preserves newlines (Shift+Enter multi-line editing)
-       and still wraps at a constrained width, same as pre-line
-       did - pre-wrap is a strict superset of what was needed here. */
+    /* pre-wrap: see .start-button. */
     white-space: pre-wrap;
     pointer-events: none;
     z-index: 10;
 }
 
-/* Font Size/X/Y split into independent Win vs Lose sets - per
-   explicit request ("font size and xy sliders for both Win and
-   Lose text"), matching the fill/border colors below which were
-   already split this way. --result-x-base/-sign/-unit (the Edge
-   Lock mechanism) stay shared - only the tuned offset/size differ
-   per state, not the alignment/anchor behavior. */
+/* Font Size/X/Y are split per Win vs Lose; the Edge Lock anchor
+   (--result-x-base/-sign) stays shared. */
 .result-text.result-win {
-    /* -win-x-unit/-y-unit, not the shared -x-unit/-y-unit above -
-       per the px/vw-per-offset feature, Win's own unit choice must
-       stay independent of Lose's even though they still share the
-       same base/sign (anchor point/direction) per the comment
-       above. See applyTextAlignAnchors()'s own Result-specific
-       correction for how it's computed (edge lock OR'd with this
-       state's own px checkbox). */
+    /* Uses -win-x/y-unit (not shared) so Win's px/vw choice is independent of
+       Lose's; base/sign stay shared. Computed in applyTextAlignAnchors()
+       (edge lock OR this state's px checkbox). */
     left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-win-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-win-y-unit, var(--cq-vh, 1vh)));
     /* See .start-button's own "Scale With Browser" comment. */
@@ -1337,8 +721,7 @@ body {
 }
 
 .result-text.result-lose {
-    /* See .result-text.result-win's own comment on -lose-x-unit/
-       -y-unit being independent of Win's, unlike base/sign. */
+    /* -lose-x/y-unit independent of Win's; base/sign shared. */
     left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-lose-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-lose-y-unit, var(--cq-vh, 1vh)));
     /* See .start-button's own "Scale With Browser" comment. */
@@ -1352,18 +735,11 @@ body {
     display: none !important;
 }
 
-/* Text alignment also sets the position ANCHOR point, not just the
-   internal text-align (which alone had no visible effect on a
-   shrink-to-fit, nowrap box) - per explicit request: with Left
-   selected, the leftmost letter never moves as letter-spacing/
-   font-size/content length change, since the LEFT edge becomes the
-   fixed anchor instead of the center; Right anchors the right edge
-   the same way. Center (default) keeps the existing centered
-   anchor. Toggled by applyTextAlignAnchors(), called from
-   applyActiveVars() so it re-evaluates on every cssVar change,
-   breakpoint cross, and settings load, same as everything else
-   driven by that function. result-text keeps its own rotate(90deg)
-   layered on top, same as its base rule above. */
+/* Text alignment also sets the position ANCHOR (text-align alone does
+   nothing on a shrink-to-fit nowrap box): Left pins the left edge, Right
+   the right edge, Center (default) the center. Toggled by
+   applyTextAlignAnchors() (from applyActiveVars()). result-text keeps its
+   rotate(90deg) layered on top. */
 .start-button.align-left, .game-text.align-left,
 .speed-display.align-left, .ms-per-click-display.align-left,
 #targetCountPrefix.align-left, #targetCountNumber.align-left, #targetCountSuffix.align-left {
@@ -1377,62 +753,26 @@ body {
 .result-text.align-left { transform: translate(0%, var(--anchor-ty, -50%)) rotate(90deg); }
 .result-text.align-right { transform: translate(-100%, var(--anchor-ty, -50%)) rotate(90deg); }
 
-/* Target Count Display - font stays on the existing Numbers Font
-   dropdown (excluded from the shared 8-bit style's font control),
-   but fill color is the shared extrusion fill (2-panel system) with
-   its OWN extrusion depth/shadow. */
+/* Target Count Display - uses the Numbers Font dropdown (not the shared
+   8-bit font control); shared extrusion fill color with its own depth. */
 .target-count {
-    /* No longer itself positioned (position/left/top/transform/
-       z-index removed) - per direct request ("I want the target
-       'click', number, x, to be separate entities, who's size and
-       xy offsets aren't dependent"). Each of #targetCountPrefix/
-       Number/Suffix is now its OWN independently-positioned
-       element (see their own rules below) instead of an inline
-       nudge on top of this shared wrapper's position. This div
-       still exists as a plain (position:static) grouping element -
-       its Hide-toggle (.hidden), and the shared Text Align/Valign-
-       driven anchor vars (--target-x-base/-sign/-unit, --anchor-ty,
-       set on THIS element by applyTextAlignAnchors()) still work
-       exactly as before via ordinary CSS inheritance down to the 3
-       children, which each reference those same inherited vars in
-       their own left/top formula. Font-size below is otherwise
-       unused now that all 3 children set their own line-height
-       directly (see their own rules) instead of inheriting a
-       shared one - kept only because removing it isn't part of
-       this task and it's harmless to leave. */
+    /* Plain (static) wrapper: #targetCountPrefix/Number/Suffix each position
+       themselves. This div still carries .hidden and the inherited anchor
+       vars (--target-x-base/-sign/-unit, --anchor-ty, set here by
+       applyTextAlignAnchors()) that the children's left/top formulas use.
+       font-size below is effectively unused (children set their own). */
     font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * 1vmin);
     font-weight: 700;
     font-family: var(--extrusion-font);
     color: var(--target-fill-color);
     text-align: var(--target-text-align, center);
     pointer-events: none;
-    /* pre-wrap, not pre-line - per explicit request, repeated
-       spaces need to each take up their own horizontal space (e.g.
-       pushing right-aligned text further left per space typed),
-       which pre-line's normal whitespace-collapsing didn't allow.
-       Still preserves newlines (Shift+Enter multi-line editing)
-       and still wraps at a constrained width, same as pre-line
-       did - pre-wrap is a strict superset of what was needed here. */
+    /* pre-wrap: see .start-button. */
     white-space: pre-wrap;
-    /* Trims the CSS line-height "leading" space above the first
-       line's own glyph, so this element's own top edge (the "top"
-       property above, i.e. the offset number typed into the Y
-       Offset slider) lands EXACTLY at the glyph's own cap-height,
-       regardless of line-height/font-size/line-count - per direct
-       user find ("it is the leading-trim function"; the current,
-       working property names are text-box-trim/text-box-edge, not
-       the old draft names leading-trim/text-edge the user found).
-       Replaces an entire session-long investigation (idempotency
-       fixes, ResizeObservers, several rounds of hand-derived
-       calc() compensation formulas, all eventually reverted) that
-       tried to COMPUTE this offset instead of asking the browser
-       to remove it directly - confirmed live via CSS.supports()
-       and a real before/after comparison that this genuinely
-       closes the gap. Unsupported browsers simply ignore these 2
-       properties (invalid-property values are dropped per normal
-       CSS parsing) and silently keep today's un-trimmed
-       behavior - no @supports guard needed, since that's already
-       the shipping behavior everywhere until this lands. */
+    /* text-box-trim/text-box-edge trim the leading above the first line so
+       this element's top edge (the Y Offset) lands exactly at cap height,
+       regardless of line-height/font-size/line count. Unsupported browsers
+       ignore these and keep untrimmed behavior, so no @supports needed. */
     text-box-trim: trim-start;
     text-box-edge: cap alphabetic;
 }
@@ -1441,89 +781,37 @@ body {
     display: none !important;
 }
 
-/* Prefix/Number/Suffix - each independently sized and positioned
-   (a nudge layered on top of the whole .target-count block's own
-   position, not a replacement) - per direct request ("separate
-   font size, y offset, x offset sliders for the 'Click', number,
-   and 'x'"). inline-block (not plain inline) so the Y-offset
-   half of each transform behaves predictably - plain inline
-   elements have surprising vertical-transform behavior tied to
-   line-box/baseline rules that inline-block avoids. */
+/* Prefix/Number/Suffix - inline-block (not inline) so their Y transforms
+   behave predictably; inline elements' vertical transforms are tied to
+   line-box/baseline rules. */
 #targetCountPrefix, #targetCountNumber, #targetCountSuffix {
     display: inline-block;
 }
-/* Letter Spacing and the extrusion text-shadow are now each
-   independently set per-part too (decomposed from .target-count's
-   own former shared letter-spacing/text-shadow - see that rule's
-   own comment) - per direct follow-up request ("provide me letter
-   spacing sliders for all 3 as well" + "extrusion depth and border
-   thickness for all 3"). Color stays shared (--target-fill-color,
-   inherited from .target-count; --target-border-color/-overall-
-   border-color feed all 3 shadows below) - only depth/thickness/
-   letter-spacing were asked to be independent. */
-/* Each part is now its OWN fully independent, absolutely-positioned
-   element (position/left/top/z-index below) - per direct request
-   ("I want the target 'click', number, x, to be separate entities,
-   who's size and xy offsets aren't dependent"). Replaces the old
-   small px "nudge on top of the shared wrapper's position" (see
-   git history) with a real X Offset (vw)/Y Offset (vh) pair per
-   part, same shape every other independent element (High Score/
-   Round/Speed/Ms-per-click) already has. Still reuses the SHARED
-   Text Align/Valign-driven anchor (--target-x-base/-sign/-unit,
-   --anchor-ty) inherited from .target-count (see its own comment) -
-   only the OFFSET from that anchor is now independent per part, not
-   the anchor itself (not asked to be split, and keeps the existing
-   Text Align/Valign dropdowns meaningful). Defaults set to Left/
-   Top/Edge-Locked with Scale With Browser on, per direct follow-up
-   request, with each part's X/Y Offset computed from the exact
-   pre-change saved-settings visual position (measured live) so
-   this migration is visually a no-op on Desktop until re-tuned.
-   No px/vw unit-toggle checkbox per part (unlike most other
-   elements' X/Y Offset) - deliberately scoped down since only
-   independent SIZE/POSITION was asked for, not the full unit-
-   toggle/edge-lock-per-part convention too. */
+/* Letter Spacing and the extrusion text-shadow are set per part; color
+   stays shared (--target-fill-color inherited from .target-count;
+   --target-border-color/-overall-border-color feed all 3 shadows). */
+/* Each part is independently absolutely positioned with its own X (vw)/
+   Y (vh) offset, but still uses the SHARED Text Align/Valign anchor
+   inherited from .target-count (--target-x-base/-sign/-unit, --anchor-ty).
+   No per-part px/vw unit toggle (unlike most elements). */
 #targetCountPrefix {
-    /* See .target-count's own Scale With Browser comment above -
-       same blended px/vw formula pattern used by every other
-       element's Font Size, sharing ONE checkbox across all 3
-       parts (not 3 independent ones). */
+    /* Same blended px/vw Font Size formula (see .start-button); one Scale
+       With Browser checkbox shared across all 3 parts. */
     font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-prefix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-prefix-font-size-vw, 11.72) * 1vmin);
     letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
-    /* Independent per part, same pattern as Font Size/Letter Spacing
-       above - replaces the old shared --target-line-height (removed,
-       see .target-count's own comment). */
+    /* Independent line-height per part. */
     line-height: var(--target-prefix-line-height, 1.2);
     text-shadow: var(--target-prefix-extrusion-shadow);
     position: absolute;
-    /* X stays exactly as it always was - independent of the
-       group anchor, NEVER tied to the Number at any point in
-       this element's history, so it has only ONE real mode and
-       needs no branching. Unchanged from before 2026-09-20. */
+    /* X: independent of the group anchor; never tied to the Number. */
     left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, 49.20) * var(--target-x-unit, var(--cq-vw, 1vw)));
-    /* --target-prefix-top-base/-y-offset-active are per-element
-       custom properties SET BY updateTargetAnchoredPositions()
-       (JS), not fixed here - each one holds a var() REFERENCE
-       (not a literal number), chosen based on Prefix's own
-       current UI-Engine position.mode (anchor vs relative). This
-       is "JS picks WHICH variable applies, CSS still does the
-       actual math" - added 2026-09-20 per direct request ("if an
-       object is set to anchor mode, only show the anchor mode
-       relevant sliders. if its set to relative, only show the
-       relative sliders"). Relative mode (the default, matching
-       this rule's ORIGINAL pre-2026-09-20 behavior exactly, so a
-       fresh deploy with nothing yet saved to
-       stage2EngineOverrides is visually a no-op): base ->
-       --target-number-bottom-px (tied to the Number's own
-       rendered bottom edge), offset-active -> the SAME
-       --target-prefix-y-offset-vh slider this rule already used
-       before this change - reused as-is, not replaced, so an
-       already-tuned value stays meaningful. Anchor mode (new):
-       base -> --target-y-base (group anchor, independent of the
-       Number), offset-active -> a new, separate anchor-mode-only
-       slider (defaults to 0 - never tuned before, since this
-       mode didn't exist). See updateTargetAnchoredPositions() for
-       the actual mode check - only Y branches; X (above) never
-       does. */
+    /* Y: --target-prefix-top-base/-y-offset-active are set by
+       updateTargetAnchoredPositions() (JS) to a var() REFERENCE chosen by
+       Prefix's UI-Engine position.mode - JS picks which variable applies,
+       CSS does the math. Relative (default): base -> --target-number-
+       bottom-px (tied to the Number), offset -> --target-prefix-y-offset-vh.
+       Anchor: base -> --target-y-base (group anchor), offset -> the
+       anchor-mode-only slider (default 0). */
     top: calc(var(--target-prefix-top-base, var(--target-number-bottom-px, var(--target-y-base, 50%))) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-active, var(--target-prefix-y-offset-vh, 9.19)) * var(--target-y-unit, var(--cq-vh, 1vh)));
     transform: translate(-50%, var(--anchor-ty, -50%));
     z-index: 10;
@@ -1549,16 +837,10 @@ body {
     line-height: var(--target-suffix-line-height, 1.2);
     text-shadow: var(--target-suffix-extrusion-shadow);
     position: absolute;
-    /* --target-suffix-left-base/-top-base and -x-offset-active/
-       -y-offset-active - same JS-picks-which-var-applies mechanism
-       as #targetCountPrefix above (see its own comment for the
-       full account) - added 2026-09-20. Relative mode (the
-       default, matching this rule's ORIGINAL pre-2026-09-20
-       behavior exactly): base -> --target-number-right-px/
-       -bottom-px, offset-active -> the SAME --target-suffix-x/y-
-       offset-vw/vh sliders this rule already used, reused as-is.
-       Anchor mode (new): base -> --target-x-base/-y-base,
-       offset-active -> the new anchor-mode-specific sliders. */
+    /* Same JS-picks-which-var mechanism as #targetCountPrefix, on both axes.
+       Relative (default): base -> --target-number-right-px/-bottom-px,
+       offset -> --target-suffix-x/y-offset-vw/vh. Anchor: base ->
+       --target-x-base/-y-base, offset -> the anchor-mode sliders. */
     left: calc(var(--target-suffix-left-base, var(--target-number-right-px, var(--target-x-base, 50%))) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-active, var(--target-suffix-x-offset-vw, 324.34)) * var(--target-x-unit, var(--cq-vw, 1vw)));
     top: calc(var(--target-suffix-top-base, var(--target-number-bottom-px, var(--target-y-base, 50%))) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-active, var(--target-suffix-y-offset-vh, 11.60)) * var(--target-y-unit, var(--cq-vh, 1vh)));
     transform: translate(-50%, var(--anchor-ty, -50%));
@@ -1566,12 +848,8 @@ body {
     text-box-trim: trim-start;
     text-box-edge: cap alphabetic;
 }
-/* Hide Prefix/Suffix toggles - per direct request for checkboxes
-   to hide "Click" and "x" independently. The Number itself is
-   never independently hideable (it's the one thing that always
-   has to show), matching how Target Count's own whole-element
-   hide (.target-count.hidden above) already works only at the
-   block level. */
+/* Hide Prefix/Suffix toggles; the Number itself is never independently
+   hideable (only the whole .target-count block is). */
 #targetCountPrefix.hidden, #targetCountSuffix.hidden {
     display: none !important;
 }
@@ -1593,43 +871,23 @@ body {
     text-align: var(--speed-text-align, center);
     pointer-events: none;
     z-index: 10;
-    /* pre-wrap, not pre-line - per explicit request, repeated
-       spaces need to each take up their own horizontal space (e.g.
-       pushing right-aligned text further left per space typed),
-       which pre-line's normal whitespace-collapsing didn't allow.
-       Still preserves newlines (Shift+Enter multi-line editing)
-       and still wraps at a constrained width, same as pre-line
-       did - pre-wrap is a strict superset of what was needed here. */
+    /* pre-wrap: see .start-button. */
     white-space: pre-wrap;
 }
 
 .speed-display.hidden {
     display: none !important;
 }
-/* Independent fine nudge for just the live number, on top of the
-   whole element's own position - per direct request for its own
-   X offset slider (same pattern as #gameTextNumber above).
-   display:inline-block is required - per direct bug report ("the
-   ms click number x offset doesn't work"), CSS transform has NO
-   effect on a plain (default) display:inline box, which #speedDisplayNumber/
-   #msPerClickDisplayNumber both were (a bare <span> with no display
-   override) - confirmed live via getBoundingClientRect() showing
-   zero movement despite a correctly-computed transform matrix.
-   #targetCountNumber already had this exact fix (see its own
-   inline-block rule) - #gameTextNumber never needed it since it's
-   display:block already. */
+/* Independent X nudge for the live number. display:inline-block is
+   required - transform has no effect on a plain inline box. */
 #speedDisplayNumber {
     display: inline-block;
     transform: translateX(calc(var(--speed-number-x-offset-px, 0) * 1px));
 }
 
-/* Shows the raw per-click time setting (gameState.maxTimeMs) as
-   "___ms / click", positioned above the countdown timer - per
-   explicit request. The countdown (.speed-display) shows the TOTAL
-   round budget (maxTimeMs * targetCount) and no longer displays the
-   underlying per-click rate itself, so this brings that number back
-   as its own small label. Same shape/pattern as every other
-   extruded text display (own font-size/position/extrusion). */
+/* Per-click time setting (gameState.maxTimeMs) as "___ms / click", above
+   the countdown (which shows the total round budget). Same pattern as
+   other extruded text displays. */
 .ms-per-click-display {
     position: absolute;
     left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, var(--cq-vw, 1vw)));
@@ -1646,18 +904,10 @@ body {
     text-align: var(--ms-per-click-text-align, center);
     pointer-events: none;
     z-index: 10;
-    /* pre-wrap, not pre-line - per explicit request, repeated
-       spaces need to each take up their own horizontal space (e.g.
-       pushing right-aligned text further left per space typed),
-       which pre-line's normal whitespace-collapsing didn't allow.
-       Still preserves newlines (Shift+Enter multi-line editing)
-       and still wraps at a constrained width, same as pre-line
-       did - pre-wrap is a strict superset of what was needed here. */
+    /* pre-wrap: see .start-button. */
     white-space: pre-wrap;
-    /* See .target-count's own comment - same fix, same reasoning.
-       This is the element the whole line-height investigation
-       centered on (its 3-line layout is what needed a real,
-       non-zero line-height in the first place). */
+    /* See .target-count (text-box-trim). This 3-line element is why a real
+       non-zero line-height was needed. */
     text-box-trim: trim-start;
     text-box-edge: cap alphabetic;
 }
@@ -1665,18 +915,15 @@ body {
 .ms-per-click-display.hidden {
     display: none !important;
 }
-/* Independent fine nudge for just the live number - same pattern
-   as #gameTextNumber/#speedDisplayNumber above. display:inline-block
-   required - see #speedDisplayNumber's own comment for the full
-   root-cause explanation (plain inline elements ignore transform). */
+/* Independent X nudge for the live number; inline-block required (plain
+   inline ignores transform). */
 #msPerClickDisplayNumber {
     display: inline-block;
     transform: translateX(calc(var(--ms-per-click-number-x-offset-px, 0) * 1px));
 }
-/* Whatever follows the suffix's 2nd embedded newline (line 3 of
-   the 3-line layout - see renderMsPerClickSuffix()'s own comment)
-   - a second, additive line-spacing control independent from the
-   shared --ms-per-click-line-height above, per direct request. */
+/* Line 3 of the suffix (after its 2nd newline - see
+   renderMsPerClickSuffix()): an additive line-spacing control, separate
+   from --ms-per-click-line-height. */
 .ms-per-click-extra-line {
     display: block;
     margin-top: calc(var(--ms-per-click-line2-gap-px, 0) * 1px);
@@ -1706,9 +953,8 @@ body {
     display: none !important;
 }
 
-/* Tap diagnostic - the FULL history of tap events (pointerType/gap/outcome)
-   so a "click sometimes logs as 2" report can be diagnosed with real data
-   instead of guessed at again. Shares the click counter's visibility toggle. */
+/* Tap diagnostic - full history of tap events (pointerType/gap/outcome)
+   for diagnosing double-counted clicks. Shares the click counter toggle. */
 .tap-diagnostic-panel {
     position: absolute;
     /* Positioned to the LEFT of the button, same reasoning as .click-counter. */
@@ -1772,92 +1018,46 @@ body {
 
 /* Round breakdown - shown on the right side of the screen when a run ends
    in a loss, one section per round played that run. */
-/* position/size are set via cssVars (left/top/width/height, all px)
-   instead of the previous right/top:50%/transform anchor, so the
-   panel can be freely dragged (by its title bar, see JS) and
-   resized (native CSS `resize`, see below) with the result
-   persisted the same way every other dev-panel setting is -
-   through cssVars, which copySettings()/saveSettings() already
-   serialize generically with no extra code needed. */
+/* Position/size come from cssVars (left/top/width/height) so drag (title
+   bar) and resize persist through the generic copySettings()/
+   saveSettings() path with no extra code. */
 .round-breakdown-panel {
     position: fixed;
-    /* X/Y Offset, Width, Height are now vw/vh-native (per direct
-       request), not px - matches this codebase's own established
-       convention for every other position/size dev-panel offset
-       (--button-x-offset-vw, --high-score-x-offset-vw, etc, per
-       CLAUDE.md Section 12a). Left/top's real rendering is actually
-       driven by applyRoundBreakdownPosition()'s own JS-set inline
-       style (needed for the Align/Valign+Edge-Lock feature below),
-       not this calc() - this rule only matters for the very first
-       paint of a fresh page load, before that JS has run once. */
+    /* X/Y/Width/Height are vw/vh-native. This calc() only matters for first
+       paint: afterwards applyRoundBreakdownPosition() sets left/top inline
+       (needed for Align/Valign + Edge Lock). */
     left: calc(var(--round-breakdown-left-vw) * 1vw);
     top: calc(var(--round-breakdown-top-vh) * 1vh);
-    /* Scale With Browser (dev-panel checkbox) now only blends
-       TEXT font-size (see .round-breakdown-row-title/-row-data's
-       own rules below) - it used to also blend the panel's own
-       width/height between px and a derived vw, but now that
-       Width/Height are genuinely vw/vh-native controls (see above),
-       they already scale with the viewport unconditionally by
-       construction - the checkbox literally can't do anything
-       different for these 2 properties any more, so the blend
-       formula was removed here rather than left as dead weight. */
+    /* Scale With Browser only blends the text font-size here (see
+       .round-breakdown-row-title/-row-data); width/height are already
+       vw/vh-native. */
     width: calc(var(--round-breakdown-width-vw) * 1vw);
     height: calc(var(--round-breakdown-height-vh) * 1vh);
-    /* min-width/min-height removed (2026-09-20, direct request:
-       "it seems limited to a minimum width and minimum height.
-       Can you remove those limitations?") - previously a hard
-       240px/140px floor regardless of what the Width/Height
-       sliders or drag-resize said. The drag-resize handler itself
-       (roundBreakdownResizeHandle's pointermove listener) reads
-       these same min/max values live via getComputedStyle(), so
-       removing them here fixes drag-resize too, not just the
-       sliders - no separate hardcoded limit existed anywhere else.
-       max-width/max-height (90vw/90vh) are untouched - not what
-       was asked about, and they're a "stay on screen" safety rail
-       rather than an arbitrary size floor. */
+    /* No min-width/min-height: the drag-resize handler reads these min/max
+       values via getComputedStyle(), so any floor here would limit it too.
+       max-width/max-height keep the panel on screen. */
     max-width: 90vw;
     max-height: 90vh;
-    /* Panel Color/Panel Opacity (dev-panel controls) - background is
-       NOT set directly here any more; per direct request ("provide
-       a Panel Opacity slider that sets the opacity of the
-       background only"), it now lives on the ::before layer below
-       instead, so the opacity slider affects only the background
-       fill - the border/outline, text, and resize handle all stay
-       fully opaque regardless of this setting (a plain `opacity`
-       on the panel element itself would have faded everything). */
+    /* background is on ::before (below) so Panel Opacity fades only the fill,
+       not the outline/text/resize handle. */
     background: none;
     border-radius: 8px;
     z-index: 15;
     display: flex;
     flex-direction: column;
     font-family: var(--round-breakdown-font-family, monospace);
-    /* Native CSS `resize` is NOT touch-draggable on most mobile
-       browsers - its handle is either invisible or entirely
-       unresponsive to touch, which is exactly the platform this
-       panel is shown to real players on after a loss. Replaced with
-       a custom pointer-events-driven handle (.round-breakdown-
-       resize-handle, see below + JS) that works identically for
-       mouse and touch. `overflow:auto` stays for internal
-       scrolling; `resize` itself is off since the custom handle
-       fully replaces it. Width/height changes made via the handle
-       are read back and persisted via the existing ResizeObserver
-       (see JS) exactly as before - only the drag mechanism changed. */
+    /* Native CSS `resize` isn't touch-draggable on most mobile browsers, so a
+       custom pointer-driven handle (.round-breakdown-resize-handle) replaces
+       it. overflow:auto stays for scrolling; size changes persist via the
+       ResizeObserver (JS). */
     resize: none;
     overflow: auto;
 }
 
-/* Panel Color/Panel Opacity (dev-panel controls) - the actual
-   background fill, on its own layer behind the panel's real
-   content so Opacity only fades the fill, never the border/
-   outline/text/resize-handle (see .round-breakdown-panel's own
-   comment on `background: none` above). `position:absolute` inside
-   the panel (its nearest positioned ancestor, `position:fixed`)
-   with `inset:0` fills exactly the panel's own box; `z-index:-1`
-   (relative to that same containing block) drops it below the
-   panel's other, normal-flow children without needing z-index on
-   any of THEM. `border-radius:inherit` keeps its corners matching
-   the panel's own rounded corners instead of showing square ones
-   peeking past the border. */
+/* Panel Color/Opacity background fill on its own layer so Opacity fades
+   only the fill. absolute + inset:0 fills the (fixed) panel; z-index:-1
+   puts it below the panel's normal-flow children without giving them
+   z-indexes; border-radius:inherit matches the rounded corners. */
 .round-breakdown-panel::before {
     content: '';
     position: absolute;
@@ -1890,9 +1090,8 @@ body {
     opacity: 0.55;
 }
 
-/* Panel Resizer On/Off (dev-panel checkbox) - display:none both
-   hides the handle and (since a hidden element receives no pointer
-   events) disables its drag-to-resize, no separate JS needed. */
+/* Panel Resizer On/Off - display:none also disables dragging (no pointer
+   events), no separate JS needed. */
 .round-breakdown-resize-handle.hidden {
     display: none;
 }
@@ -1901,34 +1100,17 @@ body {
     display: none !important;
 }
 
-/* Outline On/Off + Thickness + Color (dev-panel controls) - this
-   used to be a SEPARATE `outline` layered on top of the panel's own
-   permanent `border: 1px solid #333` above, so toggling it off never
-   actually removed the panel's visible edge line (direct report:
-   "when i said Outline on Off, it applies to the existing outline
-   that hte breakdown panel has"). Fixed by removing that permanent
-   border entirely - this outline (kept as `outline`, not `border`,
-   so it doesn't affect box sizing/layout) is now the panel's ONLY
-   edge-line mechanism, so the checkbox genuinely controls the line
-   the panel has always shown. Default flipped to 1 (on) to match
-   the pre-existing always-visible line's appearance out of the box. */
+/* Outline On/Off + Thickness + Color. This outline is the panel's ONLY
+   edge line (no permanent border), so the checkbox fully controls it.
+   `outline` rather than `border` so it doesn't affect box sizing. */
 .round-breakdown-panel.rb-outline-on {
     outline: calc(var(--round-breakdown-outline-thickness-px, 2) * 1px) solid var(--round-breakdown-outline-color, #000000);
 }
 
-/* Drag handle for moving the panel - see JS. Used to be a real,
-   padded/bordered title bar (the panel's own former "ROUND
-   BREAKDOWN" heading); per direct follow-up requests ("Remove the
-   text line where the Round breakdown Panel title was. The 1st
-   data entry should be the first thing within the panel") it no
-   longer reserves any layout space at all - position:absolute (out
-   of the panel's own flex flow entirely, so .round-breakdown-table
-   below is the ONLY flex child and fills the full panel height,
-   putting its own first row's content flush against the panel's
-   top edge) with a small height, purely as an invisible pointer-
-   event target to grab for dragging. touch-action:none so a touch
-   drag here isn't captured by the browser's own scroll gesture
-   first. */
+/* Invisible drag handle for moving the panel (see JS). position:absolute
+   so it takes no layout space - .round-breakdown-table is the only flex
+   child and its first row sits flush at the top. touch-action:none so a
+   touch drag isn't taken by the browser's scroll gesture. */
 .round-breakdown-title {
     position: absolute;
     top: 0;
@@ -1953,41 +1135,18 @@ body {
     color: #333;
 }
 
-/* Auto Scroll On/Off (dev-panel checkbox) - per direct clarification
-   ("When Autoscroll is turned on, the manual scroll bar will not be
-   visible and the user will not be able to manually scroll... If
-   Autoscroll is turned off, the manual scroll ui will be
-   avialable"). overflow-y:hidden hides the scrollbar AND blocks
-   wheel/touch/drag scrolling; it's now ALSO load-bearing for
-   clipping (2026-09-19, see .round-breakdown-scroll-track's own
-   comment) - the track's own translateY animation moves 2x the
-   panel's content height through this box, and without overflow
-   hidden here the un-scrolled-to portion would spill out past the
-   panel's edges instead of being clipped away. */
+/* Auto Scroll On/Off: overflow-y:hidden hides the scrollbar and blocks
+   manual scrolling while autoscroll is on. Also load-bearing for clipping:
+   the scroll track's translateY moves 2x the content height through this
+   box. */
 .round-breakdown-panel.rb-autoscroll-on .round-breakdown-table {
     overflow-y: hidden;
 }
-/* Auto Scroll's inner track (2026-09-19, replacing a direct
-   table.scrollTop animation) - per direct feedback that the old
-   scrollTop-driven version "dosnt quite look very smooth. its a
-   bit jittery" (scrollTop writes force a synchronous layout/paint
-   each frame in most browsers) and that reaching the end should
-   never visibly "jump back to the top" ("I wanted the existing
-   shown text to continue scrolling, and the text just begins
-   again after the last entry... it will look as if it is
-   scrolling trhough Round 1, Round 2, Round 3, Last Round, Round
-   1, Round 2, Round 3, Last Round, and so on. It should be smooth
-   and continuous"). renderRoundBreakdown() renders the round rows
-   TWICE back to back inside this track (only while autoscroll is
-   actually enabled - manual-scroll mode stays a single copy,
-   unchanged) - restartRoundBreakdownAutoscroll() then animates
-   ONLY this element's own `transform: translateY()`, a compositor-
-   only property that doesn't force layout the way scrollTop does,
-   from 0 up to the height of ONE copy, at which point it resets
-   straight back to 0 - since copy 2 is pixel-identical to copy 1,
-   that reset is completely invisible, producing the "Round 1
-   reappears seamlessly after the Last Round" effect with no
-   visible snap. */
+/* Auto Scroll track. renderRoundBreakdown() renders the rows TWICE here
+   (autoscroll only); restartRoundBreakdownAutoscroll() animates only this
+   element's translateY (compositor-only, smoother than scrollTop) from 0
+   to one copy's height, then resets to 0 - invisible since both copies
+   are identical, giving a seamless loop. */
 .round-breakdown-scroll-track {
     will-change: transform;
 }
@@ -1997,11 +1156,7 @@ body {
     line-height: 1.5;
 }
 
-/* Row Divider Lines On/Off (dev-panel checkbox) - per direct
-   request ("Right now tehre are lines between the rounds shown in
-   the Round Breakdown. Provide a checkbox to turn that on or
-   off."). Defaults to on (1) so the pre-existing always-visible
-   lines look unchanged until the checkbox is actually toggled. */
+/* Row Divider Lines On/Off; default on (1). */
 .round-breakdown-panel.rb-row-lines-on .round-breakdown-row {
     border-bottom: 1px solid #ccc;
 }
@@ -2010,10 +1165,8 @@ body {
     border-bottom: none;
 }
 
-/* Round Title Font Size/Bold/Color (dev-panel controls) - the
-   "Round 1 (lost)" line. font-weight is a plain base value here;
-   the Bold checkbox toggles it via the .rb-title-bold class rule
-   below, not a hardcoded 700 any more. */
+/* Round Title Font Size/Bold/Color ("Round 1 (lost)" line). Bold is
+   applied via .rb-title-bold below. */
 .round-breakdown-row-title {
     font-weight: 400;
     /* See .round-breakdown-panel's own Scale With Browser comment. */
@@ -2022,12 +1175,7 @@ body {
     letter-spacing: calc(var(--round-breakdown-title-letter-spacing-px, 0) * 1px);
     line-height: var(--round-breakdown-title-line-height, 1.2);
     margin-bottom: 2px;
-    /* Per direct request ("when i edit the text, multiple spaces
-       should show as multiple spaces") - plain HTML/`white-space:
-       normal` collapses consecutive spaces to one regardless of
-       what the underlying string actually holds; `pre-wrap`
-       preserves every space typed while still wrapping normally at
-       the panel's own width. */
+    /* pre-wrap so multiple typed spaces show as-is while still wrapping. */
     white-space: pre-wrap;
 }
 
@@ -2035,31 +1183,22 @@ body {
     font-weight: 700;
 }
 
-/* Lost-round Title/Data Color (dev-panel controls) - per direct
-   request ("Provide a color picker for Round Title for the round at
-   which the player lost. Provide a color picker for the Round Data
-   for that round as well."). .round-breakdown-row-lost is added to
-   the one row whose r.won is false in renderRoundBreakdown(). Higher
-   specificity than the plain color rule above so it wins regardless
-   of DOM order. */
+/* Lost-round Title/Data colors. .round-breakdown-row-lost is added to the
+   row with r.won false (renderRoundBreakdown()); higher specificity so it
+   wins regardless of order. */
 .round-breakdown-row.round-breakdown-row-lost .round-breakdown-row-title {
     color: var(--round-breakdown-lost-title-color, #cc0000);
 }
 
-/* Round Data Font Size/Bold/Color (dev-panel controls) - the per-
-   round stat lines (Click Count Target, Clicks, etc.) - see the new
-   .round-breakdown-row-data class added in renderRoundBreakdown(). */
+/* Round Data Font Size/Bold/Color - the per-round stat lines. */
 .round-breakdown-row-data {
     /* See .round-breakdown-panel's own Scale With Browser comment. */
     font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-data-font-size-px, 15) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-data-font-size-px, 15) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vmin);
     color: var(--round-breakdown-data-color, #333);
     letter-spacing: calc(var(--round-breakdown-data-letter-spacing-px, 0) * 1px);
     line-height: var(--round-breakdown-data-line-height, 1.2);
-    /* Same reasoning as .round-breakdown-row-title's own comment -
-       this is the one that actually holds the user-editable stat
-       labels (Click Count Target/Clicks/etc, see TEXT_EDIT_TARGETS.
-       roundBreakdownTable), so this is the element the report was
-       actually about. */
+    /* pre-wrap - see .round-breakdown-row-title. This element holds the
+       user-editable stat labels (TEXT_EDIT_TARGETS.roundBreakdownTable). */
     white-space: pre-wrap;
 }
 
@@ -2072,119 +1211,58 @@ body {
 }
 
 /* Dev Panel */
-/* position/size are set via cssVars (left/top/width/height, all px),
-   same pattern as the round-breakdown panel - draggable by its title
-   bar (see JS) and natively resizable, persisted through cssVars with
-   no extra copySettings()/saveSettings() code needed. A single
-   shared setting, not mobile/desktop-split (see --dev-panel-width-px's
-   own existing note below) - it's a dev-tool-only setting, not part
-   of the actual game's visual output. */
+/* Position/size come from cssVars (same pattern as the round-breakdown
+   panel): draggable title bar, resizable, persisted with no extra code.
+   A single shared setting, not device-split (dev tool only). */
 .dev-panel {
     position: fixed;
-    /* Fallback values (26/6/178/120 below) match cssVars' own JS
-       defaults exactly - per direct report ("on startup... there is
-       a half second flash of the dev panel in the center of the
-       screen, then it goes to the main startup page"), STILL
-       reproducing after the html.dev-mode visibility race was fixed
-       (search "STILL reproducing" above) because that fix only
-       closed the SHOW/HIDE race for non-dev visitors - it never
-       addressed dev-mode visitors' own POSITION race. Root cause,
-       proven via direct reasoning + a live before/after computed-
-       style check (removing these 4 custom properties and reading
-       getComputedStyle right back): these var()s had no fallback,
-       so before the ~970KB trailing script parses/runs far enough
-       to call setProperty() with the real saved position, they're
-       unset -> invalid at computed-value time -> left/top/width/
-       height fall back to their CSS initial values (auto) - and an
-       auto-positioned `position:fixed` element's static position
-       inherits its flex-item alignment from its ancestor
-       (.game-container is display:flex; justify-content/align-
-       items:center), landing it dead center - exactly the reported
-       symptom, exactly the same underlying bug SHAPE as the
-       already-fixed html.dev-mode race (a JS-only value with no
-       CSS-level default, racing first paint), just on the panel's
-       POSITION instead of its VISIBILITY. */
+    /* Fallbacks (26/6/178/120) match cssVars' JS defaults. Without them the
+       vars are unset until the big trailing script runs, so left/top/
+       width/height fall back to auto - and an auto-positioned fixed element
+       inherits .game-container's flex centering, flashing the panel in the
+       screen center on load. */
     left: calc(var(--dev-panel-left-px, 26) * 1px);
     top: calc(var(--dev-panel-top-px, 6) * 1px);
-    /* Background/text colors, opacity, and every font-size below
-       are the built-in "Dev Panel" settings group - CLAUDE.md
-       Section 12i, independent per Desktop/Mobile TAB (not tied to
-       the real device viewport like everything else - see
-       applyDevPanelOwnStyling()), same as the panel's own
-       position/size already were. */
+    /* Colors, opacity and font sizes below are the built-in "Dev Panel"
+       settings group, independent per Desktop/Mobile/Landscape TAB (not
+       the real device) - see applyDevPanelOwnStyling(). */
     background: var(--dev-panel-bg-color);
     opacity: var(--dev-panel-opacity);
-    /* Was the panel's own generic base text color - retargeted to
-       .dev-label specifically (see there) now that this var is
-       "Settings Title Text Color", per explicit request. Every
-       other real text element already has its own explicit color
-       (group titles/accent, buttons/black-on-accent, value
-       readouts/accent), so a plain static fallback here is enough. */
+    /* Static fallback: --dev-panel-text-color ("Settings Title Text Color")
+       is applied to .dev-label; other text elements set their own colors. */
     color: #fff;
     padding: 15px;
-    /* Missing unit was invalid CSS (a bare number isn't a valid width) -
-       the browser fell back to sizing the panel by its own content
-       instead, which on a narrow mobile screen meant the panel could
-       stretch to cover the whole viewport width. max-width caps it so
-       even a wide dev-panel-width-px setting can't exceed the actual
-       screen on a narrow device. */
+    /* px unit is required (a bare number is invalid CSS). max-width keeps the
+       panel within the screen on narrow devices. */
     width: calc(var(--dev-panel-width-px, 178) * 1px);
     height: calc(var(--dev-panel-height-px, 120) * 1px);
     min-width: 160px;
     min-height: 120px;
     max-width: 92vw;
     max-height: 92vh;
-    /* "Body Text Font Size" was removed as a redundant duplicate of
-       Setting Title Font Size (per explicit request - "by body text
-       i just meant settings text") - this base/cascade size now
-       reads that slider directly instead of its own separate one. */
+    /* Base/cascade text size reads the Setting Title Font Size slider. */
     font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
     z-index: 99999;
     font-family: var(--dev-panel-font-family, monospace);
     border-left: 2px solid var(--dev-accent-color);
-    /* Hidden by default (not `flex`) so a non-dev visitor never
-       sees this panel at all, even for a flash - see the tiny
-       early <head> script's own comment. html.dev-mode below
-       restores it; .dev-panel.hidden's own !important (search
-       there) still wins over both when the D-key/hide-button
-       toggle is used, regardless of dev-mode. */
+    /* Hidden by default (not flex) so non-dev visitors never see it, even for
+       a frame - see the early <head> gate script. html.dev-mode restores it;
+       .dev-panel.hidden's !important still wins for the D-key/hide toggle. */
     display: none;
     flex-direction: column;
-    /* Native CSS `resize` is NOT touch-draggable on most mobile
-       browsers - its handle is either invisible or unresponsive to
-       touch, exactly where a developer would most want to resize
-       this panel while testing on a real phone. Replaced with 8
-       custom pointer-events-driven handles (4 edges + 4 corners, see
-       below + JS), same fix as the round-breakdown panel's single
-       corner handle, extended to all sides per explicit request.
-       Width/height changes are still read back and persisted via
-       the existing ResizeObserver (see JS) regardless of which
-       handle produced them.
-       Deliberately NOT overflow:auto here (moved to .dev-panel-
-       scroll-content, wrapping everything except the 8 resize
-       handles) - overflow other than visible clips ALL descendants
-       to this box, including the handles' own negative-offset
-       straddle-the-border portion (confirmed live: a handle set to
-       right:-6px still measured short of the panel's true edge,
-       because that outer 6px was being silently clipped away, not
-       just visually hidden - clipping removes it from hit-testing
-       too). Keeping this element overflow:visible lets the handles
-       genuinely extend past the border while the inner wrapper
-       still scrolls the actual content. */
+    /* Native `resize` isn't touch-draggable on mobile, so 8 custom pointer-
+       driven handles (4 edges + 4 corners, JS) replace it; size persists via
+       the ResizeObserver.
+       Deliberately NOT overflow:auto here (that's on .dev-panel-scroll-
+       content): non-visible overflow would clip the handles' negative-offset
+       portion that straddles the border, removing it from hit-testing too. */
     resize: none;
 }
-/* Restores visibility for a dev-allowed visitor only - see the
-   tiny early <head> script that sets this class, and the base
-   .dev-panel rule's own comment above. */
+/* Restores visibility for dev-allowed visitors only (class set by the
+   early <head> gate script). */
 html.dev-mode .dev-panel { display: flex; }
-/* Extra breathing room on a genuinely narrow (mobile) viewport - the
-   92vw/92vh clamp above already guarantees the panel can never
-   overflow the screen, but at 92% of a ~375-428px-wide phone
-   screen it still reads as covering nearly the entire display.
-   Tighter on mobile specifically, per explicit report ("it's also
-   very big... size the default Dev panel size to be small"). Only
-   caps the rendered SIZE - the position clamp (clampDevPanelPosition(),
-   JS) is what actually fixes a panel positioned off-screen. */
+/* Smaller default on narrow (mobile) viewports. Only caps SIZE; off-screen
+   position is handled by clampDevPanelPosition() (JS). */
 @media (max-width: 767px) {
     .dev-panel {
         max-width: 85vw;
@@ -2197,12 +1275,8 @@ html.dev-mode .dev-panel { display: flex; }
     overflow: auto;
     display: flex;
     flex-direction: column;
-    /* Matches the panel's own black/accent-color look instead of
-       the browser-default scrollbar - per explicit request.
-       Firefox uses the 2-value scrollbar-color/scrollbar-width
-       properties (no thumb/track styling control there); Chromium/
-       Safari use the ::-webkit-scrollbar pseudo-elements below,
-       which Firefox ignores. */
+    /* Panel-matching scrollbar. Firefox uses scrollbar-color/scrollbar-width;
+       Chromium/Safari use the ::-webkit-scrollbar pseudo-elements below. */
     scrollbar-color: var(--dev-accent-color) #000;
     scrollbar-width: thin;
 }
@@ -2217,78 +1291,32 @@ html.dev-mode .dev-panel { display: flex; }
     border-radius: 5px;
 }
 
-/* Collapsed state - distinct from fully hidden (.hidden, toggled by
-   the D key / dev-hide-btn): the panel stays present at its header's
-   height only, settings/resize handles hidden, per CLAUDE.md Section
-   12c's "two distinct states (fully hidden vs. collapsed-but-
-   present)". Height overridden to auto rather than the usual
-   --dev-panel-height-px cssVar, since a collapsed panel's real
-   height is just whatever its header needs, not a user-resized value -
-   the panel remembers its expanded height (still driven by the
-   cssVar) for when it's uncollapsed.
-
-   BUG (found live): .dev-header lives INSIDE .dev-panel-scroll-
-   content (needed for its own position:sticky to work, which is
-   relative to its nearest scrolling ancestor) - hiding the whole
-   scroll-content wrapper therefore hid the header too, taking the
-   collapse button down with it and leaving no way to see the panel
-   existed at all, let alone re-expand it ("the panel did collapse,
-   but the panel ui disappeared"). Fixed by targeting the scroll-
-   content's children EXCEPT .dev-header, not the wrapper itself. */
+/* Collapsed state - distinct from fully hidden (.hidden, D key / hide
+   button): only the header shows. Height is auto instead of
+   --dev-panel-height-px, which is remembered for when it expands.
+   Targets scroll-content's children EXCEPT .dev-header rather than the
+   wrapper itself: .dev-header lives inside it (needed for position:sticky),
+   so hiding the wrapper would hide the collapse button too. */
 .dev-panel.panel-collapsed {
     height: auto !important;
-    /* The base .dev-panel rule's own min-height:120px (a floor
-       sized for the EXPANDED state's usability - see its own
-       comment) was never overridden here, so it still forced the
-       collapsed panel to be at least 120px tall even though its
-       only visible content (the header) is far shorter - the extra
-       black space below the header a direct report ("it is too
-       tall") confirmed with a screenshot/reference line. Collapsed
-       height should just be whatever the header needs. */
+    /* Overrides the base rule's min-height:120px (an expanded-state floor) so
+       the collapsed panel is only as tall as its header. */
     min-height: 0;
 }
-/* .dev-header's own padding-bottom:10px + margin-bottom:10px (both
-   BELOW-only - see its own rule, sized for the EXPANDED state where
-   settings/handles follow it) left the collapsed panel with 35px of
-   space below the title/buttons row vs only 15px (the panel's own
-   padding) above it - confirmed via direct measurement, per direct
-   report ("the buttons and the title should have the same amount
-   of space above and below"). Zeroed both here, collapsed-state
-   only, so the header's own bottom edge sits flush against the
-   panel's bottom padding exactly like its top edge sits against
-   the top padding - expanded state (where this spacing separates
-   the header from the settings list beneath it) is untouched. */
+/* Zeroes .dev-header's bottom padding/margin (expanded-state spacing) so
+       space above and below the header is equal when collapsed. */
 .dev-panel.panel-collapsed .dev-header {
     padding-bottom: 0;
     margin-bottom: 0;
-    /* Title (26px) and the button pair (21px) don't share a height,
-       and the base rule's align-items:flex-start top-aligns both -
-       fine when settings/handles follow below (the expanded state),
-       but in the collapsed state that left the shorter buttons
-       with a hair more space below them than the title, working
-       against the "equal space above and below" ask. Centered here,
-       collapsed-state only, so both share the row equally. */
+    /* Title (26px) and buttons (21px) differ in height; center them when
+       collapsed so space above/below is equal. */
     align-items: center;
-    /* Sticky positioning exists to keep the header pinned while
-       settings scroll past it below - nothing scrolls in the
-       collapsed state (see .dev-panel-scroll-content's own
-       comment), so there's nothing left for it to do here. */
+    /* No sticky needed - nothing scrolls when collapsed. */
     position: static;
 }
-/* Neither of these was strictly necessary in the end (see
-   toggleDevPanelCollapsed()'s own comment - a live JS measurement
-   ended up doing the actual work of sizing the collapsed panel,
-   after a long, ultimately-mistaken chase down what looked like a
-   flex/sticky auto-height bug but turned out to be this test
-   environment's own recurring 0-width/0-height viewport artifact
-   on a fresh tab, not a real browser quirk), but both are still
-   correct, harmless simplifications for the collapsed state on
-   their own merits: nothing scrolls when only the header is
-   showing (every other child is display:none), so there's no
-   reason for this to still behave as a scroll container, and
-   flex-basis:auto is the more honest sizing intent for a row whose
-   real content should just be shown as-is. Kept for that reason,
-   not because they were proven load-bearing. */
+/* Not strictly load-bearing (toggleDevPanelCollapsed() measures and sizes
+   the collapsed panel in JS), but correct simplifications: nothing scrolls
+   when only the header shows. */
 .dev-panel.panel-collapsed .dev-panel-scroll-content {
     flex: 0 1 auto;
     overflow: visible;
@@ -2299,46 +1327,22 @@ html.dev-mode .dev-panel { display: flex; }
     display: none !important;
 }
 
-/* 4 edge strips (top/bottom/left/right) - inset from the corners so
-   they don't overlap the corner handles below. Resizing from
-   top/left moves the panel's position too (the OPPOSITE edge stays
-   fixed) - see setupPanelResizeHandle() in the script.
-
-   Straddles the panel's own border (-6px to +6px), not flush inside
-   it (0 to 8px) - confirmed via live testing that flush-inside
-   handles fall short of the panel's actual visual edge on the RIGHT
-   side specifically: this panel's content overflows, so a ~17px
-   native scrollbar renders at the true right edge, and a click
-   anywhere on that scrollbar (which is exactly where a user's eye
-   says "the edge" is) never reaches the DOM at all - scrollbars
-   aren't part of the normal hit-testing/element tree, they simply
-   intercept the click first. Extending the hit zone outward past
-   the panel's border sidesteps this entirely: that outer half is
-   never covered by the scrollbar (or by anything else), so it's
-   always reachable regardless of whether this specific panel
-   happens to be scrolling. Also widened 8px->12px for an easier
-   real-mouse target in general. */
+/* 4 edge strips, inset from the corners so they don't overlap the corner
+   handles. Top/left resizing also moves the panel (opposite edge stays
+   fixed) - see setupPanelResizeHandle().
+   Straddles the border (-6px..+6px) rather than sitting inside it: the
+   native scrollbar at the right edge intercepts clicks before the DOM, so
+   only the outer half is reliably reachable. */
 .dev-panel-resize-edge {
     position: absolute;
     z-index: 2;
     touch-action: none;
-    /* Same -webkit-touch-callout addition as .dev-header, same
-       reasoning (see its own comment) - applied here too since this
-       handle is directly implicated in the same "still buggy on
-       mobile" report. */
+    /* -webkit-touch-callout: same reasoning as .dev-header. */
     -webkit-touch-callout: none;
 }
-/* Widened from 12px to 20px (matching the corner handles' own
-   existing size) - per direct report that resize drags on mobile
-   only move ~5-10px before stopping, requiring repeated re-drags.
-   A real fingertip's contact area is much larger than 12px, well
-   under the ~44px minimum touch target both major mobile platforms
-   recommend - an imprecise touch easily straddled outside the old
-   strip, which can cause a browser/OS touch-gesture recognizer to
-   treat the drag as ambiguous and cut it short even with
-   touch-action:none and setPointerCapture() already in place (both
-   already present here - this widening addresses a DIFFERENT
-   contributing cause, not a duplicate of that earlier fix). */
+/* 20px wide (matching the corners): a fingertip easily strays outside a
+   narrower strip, which can make the browser cut a touch drag short even
+   with touch-action:none + setPointerCapture(). */
 .dev-panel-resize-edge.edge-top, .dev-panel-resize-edge.edge-bottom {
     left: 16px;
     right: 16px;
@@ -2372,14 +1376,8 @@ html.dev-mode .dev-panel { display: flex; }
 .dev-panel-resize-corner.corner-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
 .dev-panel-resize-corner.corner-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
 
-/* All 4 corners get a visible grip icon - per explicit request.
-   Halved from the original 14px to 7px, and repositioned so the
-   icon sits fully INSIDE the panel's real edge rather than
-   straddling it like the invisible hit-target handle above does -
-   per direct report/request. The handle itself starts at -6px
-   (see corner-tl/etc above), so an 8px offset from the handle's
-   own box lands the icon 2px inside the panel edge (-6+8=2),
-   comfortably clear of the boundary with the icon's own 7px size. */
+/* Visible grip icon on all 4 corners, 7px, sitting fully inside the panel
+   edge: the handle starts at -6px, so an 8px offset lands it 2px inside. */
 .dev-panel-resize-corner::after {
     content: '';
     position: absolute;
@@ -2391,14 +1389,9 @@ html.dev-mode .dev-panel { display: flex; }
 .dev-panel-resize-corner.corner-tr::after { top: 8px; right: 8px; }
 .dev-panel-resize-corner.corner-bl::after { bottom: 8px; left: 8px; }
 .dev-panel-resize-corner.corner-br::after { bottom: 8px; right: 8px; }
-/* Stripe direction now matches each corner's OWN resize diagonal
-   instead of copying corner-tl's pattern onto all 4 (the previous,
-   unmirrored version) - per direct request to mirror tr/bl. tl/br
-   use cursor:nwse-resize (a "\" diagonal) and keep the original
-   135deg "\" stripe pattern; tr/bl use cursor:nesw-resize (a "/"
-   diagonal) and get the mirrored 45deg "/" pattern instead, so the
-   icon visually points along the direction that corner actually
-   resizes in. */
+/* Stripe direction follows each corner's resize diagonal: tl/br
+   (nwse-resize) use the 135deg "\" pattern, tr/bl (nesw-resize) the
+   mirrored 45deg "/" pattern. */
 .dev-panel-resize-corner.corner-tl::after,
 .dev-panel-resize-corner.corner-br::after {
     background-image: repeating-linear-gradient(135deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
@@ -2408,12 +1401,8 @@ html.dev-mode .dev-panel { display: flex; }
     background-image: repeating-linear-gradient(45deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
 }
 
-/* Matching grip marks at the center of each edge strip - per
-   explicit request for "a similar visual but on the center of the
-   edges". A short bar, oriented along the edge's own resize axis
-   (horizontal bar for the top/bottom edges' ns-resize, vertical bar
-   for left/right's ew-resize), same accent color/opacity as the
-   corner grips. */
+/* Grip bars at the center of each edge strip, oriented along that edge's
+   resize axis; same accent color/opacity as the corner grips. */
 .dev-panel-resize-edge::after {
     content: '';
     position: absolute;
@@ -2440,58 +1429,21 @@ html.dev-mode .dev-panel { display: flex; }
     display: none !important;
 }
 
-/* #desktopTabContent/#mobileTabContent's own "hidden" class (toggled
-   by the Desktop/Mobile tab buttons) had NO matching CSS rule at all
-   - every other .hidden usage in this file is scoped to a specific
-   element class (.start-button.hidden, .game-text.hidden, etc.),
-   and these 2 plain-div containers never got their own scoped rule.
-   Confirmed via direct report ("i see duplicates of the groups in
-   both desktop and mobile") - both tabs' full group lists rendered
-   simultaneously the entire time, just stacked one after the other
-   in DOM order (mobile's content starting ~7000px below desktop's),
-   so the inactive tab was never actually hidden, only scrolled out
-   of the immediate view. */
+/* The tab content containers' .hidden needs its own scoped rule (every
+   .hidden in this file is element-scoped); without it both tabs' groups
+   render at once, stacked. */
 #desktopTabContent.hidden, #mobileTabContent.hidden, #landscapeTabContent.hidden {
     display: none !important;
 }
 
 .dev-header {
-    /* Drag handle for moving the panel - see JS. The whole header
-       bar is the hit-target, not just the "DEV" text - that text is
-       only ~18px wide (its own intrinsic size), while this bar
-       visually spans the panel's full width via
-       justify-content:space-between; a drag listener on the text
-       alone left most of that visible bar as dead space that
-       silently swallowed any drag starting there (reported as
-       "can't move it left" - a real drag attempt landing a few px
-       off the tiny text glyphs simply never started). The buttons
-       still get their own click handling via the pointerdown
-       listener's own button guard (see JS), so this doesn't
-       interfere with Collapse/Hide.
-       touch-action:none (missing until reported as "dev panel
-       moving isn't working in mobile") - without it, a touch-drag
-       here gets interpreted as the browser's own page-scroll/pan
-       gesture instead of delivering continuous pointermove events
-       to the drag handler, same reason the resize handles already
-       needed it.
-       -webkit-user-select/-webkit-touch-callout added per a
-       follow-up "still buggy on mobile" report - found via direct
-       comparison against this file's own established convention
-       (every other draggable/tap element pairs the unprefixed
-       user-select:none with its -webkit- form; this element was the
-       one exception, plain user-select:none only). On iOS Safari
-       specifically, dragging text content (the literal "DEV" label
-       lives directly in this bar) without BOTH the -webkit- prefixed
-       select-suppression AND -webkit-touch-callout:none can still
-       let the OS's own text-selection/magnifier gesture engage
-       mid-drag even with touch-action:none already present - a
-       plausible, concrete explanation for a drag that starts moving
-       and then stops, matching this exact symptom class. Could not
-       be confirmed on a real device (none available in this
-       environment) - a synthetic pointer-event replay of the drag
-       logic itself was already confirmed mathematically correct
-       (smooth, proportional, no snap-back), so this addresses a
-       gesture-recognition-level cause, not a JS logic bug. */
+    /* Drag handle for moving the panel (JS): the whole header bar is the
+       hit-target, not just the small "DEV" text. Header buttons are
+       excluded by a guard in the pointerdown listener.
+       touch-action:none so a touch drag isn't taken as page scroll.
+       -webkit-user-select/-webkit-touch-callout stop iOS text selection/
+       magnifier from engaging mid-drag on the "DEV" text (unconfirmed on a
+       real device). */
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -2502,17 +1454,9 @@ html.dev-mode .dev-panel { display: flex; }
     font-weight: bold;
     position: sticky;
     top: 0;
-    /* No explicit z-index here before - `position: sticky` alone
-       keeps an element visually PINNED during scroll, but doesn't
-       guarantee it PAINTS above its siblings: with both at the
-       default z-index:auto, normal DOM-order stacking applies, and
-       later siblings (every row/group below the header, scrolled
-       UP to visually overlap it) paint on top. Direct report: "The
-       top label and all its buttons should always display above
-       everything else within. right now when i scroll down, the
-       contents block the label buttn." Comfortably above anything
-       else inside .dev-panel-scroll-content (the highest sibling
-       z-index there, .dev-group-device-checkbox, is 1). */
+    /* sticky pins the header but doesn't make it paint above later siblings
+       scrolled under it, so it needs an explicit z-index above everything
+       in .dev-panel-scroll-content (highest there is 1). */
     z-index: 50;
     background: rgba(0,0,0,0.95);
     padding-bottom: 10px;
@@ -2530,10 +1474,8 @@ html.dev-mode .dev-panel { display: flex; }
     color: var(--dev-panel-title-text-color);
     letter-spacing: calc(var(--dev-panel-title-letter-spacing-px) * 1px);
     line-height: var(--dev-panel-title-line-height);
-    /* Explicit normal, overriding .dev-header's own inherited bold -
-       Bold Title Text checkbox (default checked) restores it via
-       .dev-bold-title below, so nothing changes visually until the
-       checkbox is unchecked. */
+    /* Explicit normal overrides the inherited bold; the Bold Title Text
+       checkbox (default on) restores it via .dev-bold-title. */
     font-weight: normal;
 }
 .dev-panel.dev-bold-title .dev-panel-title { font-weight: bold; }
@@ -2563,14 +1505,9 @@ html.dev-mode .dev-panel { display: flex; }
     filter: brightness(1.3);
 }
 
-/* Text Edit Mode/Add Group/Collapse All header icon buttons - per
-   direct request ("Text Edit Mode and Add Group are now icon
-   buttons on the Dev Panel Title Label bit. Also provide a
-   'Collapse All' button there"), ported from TEMPLATE_DEV_PANEL.html
-   (2026-09-16). Same "Buttons Text" styling as .dev-hide-btn/
-   .dev-collapse-btn above, duplicated into its own rule rather than
-   folded into their selector list, so this stays a self-contained
-   addition. */
+/* Header icon buttons (Text Edit Mode/Add Group/Collapse All) - same
+   "Buttons Text" styling as .dev-hide-btn/.dev-collapse-btn, kept as its
+   own rule. */
 .dev-header-icon-btn {
     background: var(--dev-accent-color);
     color: var(--dev-panel-button-text-color);
@@ -2593,23 +1530,17 @@ html.dev-mode .dev-panel { display: flex; }
 .dev-header-icon-btn:hover {
     filter: brightness(1.3);
 }
-/* Text Edit Mode's own ON state (no native checkbox any more - see
-   #devTextEditModeBtn's own JS comment) and Add Group's "armed"
-   (right-clicked, waiting for a selection) state both read the
-   same way - a visibly pressed/inverted look distinct from the
-   plain icon-button default above. */
+/* Pressed/inverted look for Text Edit Mode's ON state and Add Group's
+   armed (right-clicked, awaiting selection) state. */
 .dev-header-icon-btn.active, .dev-header-icon-btn.armed {
     outline: 2px solid var(--dev-panel-button-text-color);
     outline-offset: -2px;
 }
 
 /* ============================================================
-   Hotkey UI (2026-09-30) - bind 1-2 letter key combos to
-   checkbox/button/slider controls. Badge shows next to each
-   hotkeyed control; inline edit textbox for assigning (click-
-   to-assign or double-click-to-edit an existing badge).
-   Sequence Window (Ms) slider controls the timeout for 2-char
-   sequences (type 2 chars within X milliseconds).
+   Hotkey UI - bind 1-2 letter key combos to checkbox/button/slider
+   controls. Badge next to each hotkeyed control; inline textbox to
+   assign/edit. Sequence Window (Ms) sets the 2-char sequence timeout.
    ============================================================ */
 .dev-hotkey-badge {
     display: inline-block;
@@ -2670,30 +1601,20 @@ html.dev-mode .dev-panel { display: flex; }
     outline-offset: 1px;
 }
 
-/* Groups Collapse + Hide together at the top-right of the header -
-   per explicit request (previously 3 flex children under
-   justify-content:space-between spread Collapse into the middle of
-   the bar instead of alongside Hide). */
+/* Groups Collapse + Hide together at the header's top-right. */
 .dev-header-buttons {
     display: flex;
     gap: 4px;
 }
-/* 2 button sub-containers, ported 2026-09-28 from
-   TEMPLATE_DEV_PANEL.html's own header reorg (Copy/Reset folded
-   into the header, the old standalone .dev-buttons row removed).
-   They sit side by side on desktop, in DOM order (secondary then
-   primary - Edit Text...Redo, then Copy...Close), reading as ONE
-   continuous left-to-right sequence. */
+/* 2 button sub-containers, side by side on desktop in DOM order
+   (secondary then primary), reading as one left-to-right sequence. */
 .dev-header-buttons-secondary, .dev-header-buttons-primary {
     display: flex;
     gap: 4px;
 }
 @media (max-width: 767px) {
-    /* Same DOM order, flipped top-to-bottom instead of left-to-
-       right: primary (2nd in DOM) renders ON TOP, secondary (1st
-       in DOM) renders BELOW - top row: Copy/Reset/Sync/Collapse/
-       Hide; bottom row: the other 6 - without reordering the DOM
-       or duplicating any button. */
+    /* Same DOM order stacked vertically with primary (2nd in DOM) on top,
+       without reordering the DOM or duplicating buttons. */
     .dev-header-buttons { flex-direction: column-reverse; align-items: stretch; gap: 4px; }
     .dev-header-buttons-secondary, .dev-header-buttons-primary { flex-wrap: wrap; justify-content: flex-end; }
 }
@@ -2722,7 +1643,7 @@ html.dev-mode .dev-panel { display: flex; }
     filter: brightness(1.3);
 }
 
-/* Desktop/Mobile tabs - per CLAUDE.md Section 12f. */
+/* Desktop/Mobile/Landscape tabs. */
 .dev-tabs {
     display: flex;
     gap: 4px;
@@ -2732,11 +1653,7 @@ html.dev-mode .dev-panel { display: flex; }
 .dev-tab-btn {
     flex: 1;
     background: #222;
-    /* Was --dev-panel-button-text-color (shared with Buttons Text,
-       regardless of press state) - now Tab Title's own dedicated
-       Text Color control, carved out per the 5-category text
-       battery request; seeded to the same #000000 so nothing
-       visually changes on first load. */
+    /* Tab Title's own Text Color control. */
     color: var(--dev-tab-text-color);
     border: 1px solid var(--dev-accent-color);
     border-radius: 3px;
@@ -2760,32 +1677,16 @@ html.dev-mode .dev-panel { display: flex; }
     color: var(--dev-tab-text-color);
 }
 
-/* "+ Add Group" - styled like the tab buttons above (border/font/
-   bold/height), but background is the group-label-bar's own
-   color (--dev-group-label-bg-color, also driving .dev-section-title
-   below) instead of the tabs' plain #222 - per direct request
-   ("stylize the Add Group button the same as the Desktop Mobile
-   Landscape buttons, BUT the background color should be the
-   color of the Settings group label bar"). Margin top/bottom
-   both 10px so the gap either side of it matches the gap
-   between the tab row and the Copy/Sync/Reset row above it
-   (also per direct request) - replaces the plain wrapping
-   .dev-buttons div this button used to sit in. */
+/* "+ Add Group" - styled like the tab buttons but with the group label
+   bar's background (--dev-group-label-bg-color). 10px top/bottom margin
+   matches the tab row / button row gap. */
 .dev-add-group-btn {
     display: flex;
     width: 100%;
     background: var(--dev-group-label-bg-color, #134e4a);
-    /* Text color deliberately decoupled from --dev-accent-color
-       (border still uses accent, unchanged) - Accent Color and
-       Group Label Bg Color are two independently user-editable
-       pickers that can legitimately end up equal (they did:
-       both #005f8f after a real save), which made this button's
-       text invisible against its own background while the
-       accent-colored border kept it looking like a working,
-       empty button. Same fix already applied to .dev-section-title
-       (own Group Text Color control) and .dev-tab-btn (own Tab
-       Text Color control) for the identical reason - this button
-       just hadn't been brought in line with that pattern yet. */
+    /* Text color is its own control, not --dev-accent-color: Accent and Group
+       Label Bg Color can end up equal, making the text invisible. Same fix
+       as .dev-section-title and .dev-tab-btn. */
     color: var(--dev-panel-button-text-color);
     border: 1px solid var(--dev-accent-color);
     border-radius: 3px;
@@ -2806,13 +1707,10 @@ html.dev-mode .dev-panel { display: flex; }
 /* Persistent reopen toggle - visible whenever the dev panel is allowed at
    all (gated by isDevAllowed in JS), regardless of the panel's own hidden
    state, so it can always be brought back without a keyboard on mobile. */
-/* Top-edge debug lines - see the dev-panel checkbox's own comment.
-   position:fixed + top:0 so the line always starts at the browser's
-   own real top edge regardless of any ancestor's transform; height
-   is set live (JS) to each element's own measured top-of-glyph
-   value, so the line's own BOTTOM edge is the actual claim being
-   visualized. z-index above the dev panel (100000) so the lines are
-   never hidden behind it. */
+/* Top-edge debug lines. position:fixed + top:0 so each starts at the real
+   viewport top regardless of ancestor transforms; JS sets height to the
+   element's measured top-of-glyph, so the line's BOTTOM edge is what's
+   being visualized. z-index above the dev panel (100000). */
 .top-debug-line {
     position: fixed;
     top: 0;
@@ -2840,8 +1738,7 @@ html.dev-mode .dev-panel { display: flex; }
 #topDebugLabelMs { background: #2277ff; }
 
 .dev-toggle-btn {
-    /* Hidden by default, same reasoning/mechanism as .dev-panel's
-       own comment above - html.dev-mode restores it. */
+    /* Hidden by default like .dev-panel; html.dev-mode restores it. */
     display: none;
     position: fixed;
     bottom: 10px;
@@ -2871,10 +1768,9 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     margin-bottom: 10px;
 }
 
-/* Status readout for the repo sync kicked off by Save Settings
-   (CLAUDE.md Section 12l) - not part of the flex-1 button row, just
-   a small trailing label so a failed/skipped sync (e.g. the backend
-   env vars aren't set up yet) doesn't look like a broken Save. */
+/* Status label for the repo sync started by Save Settings, so a failed/
+   skipped sync (e.g. backend env vars missing) doesn't look like a broken
+   Save. */
 .dev-save-sync-status {
     font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
     white-space: nowrap;
@@ -2899,11 +1795,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     font-weight: normal;
     letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
 }
-/* Scoped to match dev-caps-button-text's own established scope
-   (.dev-toggle-btn deliberately excluded, same as that class -
-   it's the standalone floating reopen button, not inside
-   .dev-panel, so a plain descendant selector can't reach it
-   anyway; left with its own unaffected hardcoded bold/11px). */
+/* Same scope as dev-caps-button-text: .dev-toggle-btn is excluded (it's
+   the floating reopen button outside .dev-panel). */
 .dev-panel.dev-bold-button .dev-buttons button,
 .dev-panel.dev-bold-button .dev-hide-btn,
 .dev-panel.dev-bold-button .dev-collapse-btn,
@@ -2916,12 +1809,9 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     filter: brightness(1.3);
 }
 
-/* Dev panel search (2026-09-17) - Ctrl+F-style group/setting finder,
-   ported from DickoClicko's own dpSearchInput/dpSearchCount via
-   TEMPLATE_DEV_PANEL.html, adapted to this project's tab-scoped
-   .dev-section/.dev-row DOM shape - see setupDevSearch()'s own
-   comment for the full mechanism. Sits between Copy/Sync/Reset and
-   "Saved Dev Settings" - panel-level chrome, not tripled per tab. */
+/* Dev panel search - Ctrl+F-style group/setting finder (see
+   setupDevSearch()). Panel-level chrome between Copy/Sync/Reset and
+   "Saved Dev Settings", not per tab. */
 .dev-search-row { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
 .dev-search-input {
     flex: 1;
@@ -2935,9 +1825,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     padding: 2px 6px;
 }
 .dev-search-count { flex-shrink: 0; font-size: calc(var(--dev-setting-title-font-size-px) * 0.85px); color: var(--dev-panel-non-title-text-color); min-width: 40px; text-align: right; }
-/* Only the CURRENT match is ever highlighted at a time (see
-   setupDevSearch()'s own comment on why) - outline, not border, so
-   it never shifts layout, same reasoning as .dev-selected. */
+/* Only the current match is highlighted (see setupDevSearch()); outline,
+   not border, so layout doesn't shift. */
 .dev-search-highlight-active {
     outline: 2px solid #ffb400;
     outline-offset: 1px;
@@ -2945,10 +1834,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     border-radius: 2px;
 }
 
-/* Looks like COPY/RESET/SAVE, just smaller - per explicit request.
-   Font-size/line-height/weight now share Buttons Text's own
-   dedicated controls (--dev-button-text-font-size-px etc.) -
-   previously borrowed --dev-setting-title-font-size-px. */
+/* Styled like COPY/RESET/SAVE, smaller. Font settings share the Buttons
+   Text controls (--dev-button-text-font-size-px etc.). */
 .dev-trigger-btn {
     padding-left: 8px;
     padding-right: 8px;
@@ -2976,26 +1863,15 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 
 .dev-section {
     margin-bottom: 15px;
-    /* Positioning context for .dev-group-lock-icon below - a
-       plain layout no-op on its own (no visual change), needed so
-       the icon can sit absolutely in the title bar's own corner
-       without being a DOM child of .dev-section-title itself (see
-       .dev-group-lock-icon's own comment for why that matters). */
+    /* Positioning context so .dev-group-lock-icon can sit absolutely in the
+       title bar corner without being a child of .dev-section-title. */
     position: relative;
 }
 
-/* Lock icon - per direct request ("add a lock icon that i can
-   select. If selected, the settings within that group cannot be
-   reordered or moved into another group"). Deliberately a SIBLING
-   of .dev-section-title (added by JS, not a child of it) rather
-   than living inside the title bar's own text - .dev-section-title's
-   rename mechanism (openDevTextEditFor()/commit()) rewrites that
-   element's entire textContent on every edit, which would silently
-   delete any child element living inside it the first time that
-   group was ever renamed. Absolutely positioned over the title
-   bar's own top-right corner instead, relying on .dev-section's
-   position:relative above - visually part of the title bar
-   without structurally being inside it. */
+/* Lock icon - a locked group's settings can't be reordered/moved. It is a
+   SIBLING of .dev-section-title (added by JS): renaming rewrites the
+   title's entire textContent, which would delete any child element.
+   Absolutely positioned over the title bar's top-right corner instead. */
 .dev-group-lock-icon {
     position: absolute;
     top: 5px;
@@ -3007,16 +1883,9 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     z-index: 1;
     opacity: 0.75;
 }
-/* Toggleable Settings Group checkbox, ported 2026-09-28 from
-   TEMPLATE_DEV_PANEL.html's makeDevGroupToggleable() - a plain
-   SIBLING of .dev-section-title (appended to .dev-section itself,
-   matching addGroupLockIcon()'s own convention), not a child of
-   the title - Clicko's title rewrite (toggleSection()/rename) is
-   a raw textContent replacement, so anything meant to survive it
-   lives outside the title's own text flow, the same reason the
-   lock icon/undock button/device checkbox are siblings too.
-   Positioned left of the existing right:8px/30px/52px icon
-   column. */
+/* Toggleable Settings Group checkbox - a sibling of .dev-section-title for
+   the same textContent-rewrite reason as the lock icon. Positioned left of
+   the right:8px/30px/52px icon column. */
 .dev-group-toggle-checkbox {
     position: absolute;
     top: 6px;
@@ -3030,14 +1899,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 .dev-group-lock-icon:hover {
     opacity: 1;
 }
-/* Locked groups get the OPPOSITE hover behavior of an unlocked one -
-   per direct request ("make the lock icon full opacity at all times
-   when locked, then on hover, it goes back to 50%... so its the
-   opposite state of the current for locked groups"): a locked
-   padlock is meant to be conspicuous at rest, and hover is treated
-   as a "considering unlocking it" cue that fades it instead of
-   brightening it. Specificity (3 classes) already beats the plain
-   :hover rule above with no source-order dependency. */
+/* Locked groups invert hover: full opacity at rest, 50% on hover. 3-class
+   specificity beats the plain :hover rule regardless of order. */
 .dev-group-lock-icon.locked {
     opacity: 1;
 }
@@ -3045,25 +1908,10 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     opacity: 0.5;
 }
 
-/* Undock (2026-09-20, ported from TEMPLATE_DEV_PANEL.html, where
-   it was built and verified first - direct request: "provide a
-   'undock' button that undocks that one setting group and allows
-   me to use it, visibly as a differetn panel. But when i click
-   the 'undock/dock' button again, it will dock back in its
-   previous position in the dev panel. I want the undocked panel
-   to be able to be resized and drag and moved same as the dev
-   panel", clarified: "say i click the undock icon for UI Text
-   settings group, the UI Text settings group will separate
-   outside of the dev panel, so i can adjust those settings
-   without having to scroll up and down in the dev panel. Then
-   when i click dock again, it will go back into the dev panel in
-   the order placement it previously was"). Same sibling-of-
-   .dev-section-title positioning as Lock above (never a child -
-   same rename-survival reasoning), sitting between Lock (right:8px)
-   and the cascade checkbox (right:52px) per direct layout spec:
-   "from the far left [of the title text] should be Lock/Unlock,
-   Dock/Undock, then the Show in Mobile/Landscape Checkbox" - see
-   toggleGroupUndock()'s own comment for the undock/dock mechanism. */
+/* Undock button - moves a group into its own floating panel and docks it
+   back in its previous position (see toggleGroupUndock()). Sibling of
+   .dev-section-title (rename-survival), between Lock (right:8px) and the
+   cascade checkbox (right:52px). */
 .dev-group-undock-btn {
     position: absolute;
     top: 5px;
@@ -3078,22 +1926,16 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 .dev-group-undock-btn:hover {
     opacity: 1;
 }
-/* A group's title/content while it's living inside its own
-   floating panel instead of the main dev panel - a marker class,
-   not currently used for any visual change of its own. */
+/* Marker class for a group living in its own floating panel; no visual
+   change of its own currently. */
 .dev-section.dev-group-undocked {
     opacity: 0.97;
 }
-/* Floating panel a group's content lives in while undocked.
-   Mirrors .dev-panel's own visual chrome (background/border/font)
-   but with independent position/size, held as plain inline styles
-   (not the --dev-panel-*-px custom properties, which are specific
-   to the ONE main panel) since multiple groups can be undocked
-   into multiple independent floating panels at once. Session-only
-   by design - no persistence across reload (see
-   dockAllUndockedGroups()'s own comment) - so it deliberately does
-   NOT hook into the Save/Sync path the main panel's own position/
-   size does. */
+/* Floating panel for an undocked group. Mirrors .dev-panel's chrome but
+   uses inline position/size (not the --dev-panel-*-px vars, which belong
+   to the main panel) since several groups can be undocked at once.
+   Session-only by design (see dockAllUndockedGroups()), so not part of
+   Save/Sync. */
 .dev-undock-panel {
     position: fixed;
     background: var(--dev-panel-bg-color, #000);
@@ -3149,17 +1991,10 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 .dev-undock-panel-body::-webkit-scrollbar-track { background: #000; }
 .dev-undock-panel-body::-webkit-scrollbar-thumb { background: var(--dev-accent-color, #0ff); border-radius: 5px; }
 
-/* Group-level "Show in Mobile/Landscape" / "Independent from
-   Desktop" cascade checkbox (2026-09-17) - a sibling of
-   .dev-section-title (same rename-survival reasoning as the lock
-   icon just above), positioned just to its left so the two never
-   overlap. */
-/* Shifted from right:30px to right:52px (2026-09-20) to make room
-   for the new Undock button between this and the Lock icon - per
-   direct spec: "from the far left [of the title text, i.e.
-   reading right-to-left from the outer edge] should be Lock/
-   Unlock, Dock/Undock, then the Show in Mobile/Landscape
-   Checkbox" (checkbox stays closest to the title text). */
+/* Group-level "Show in Mobile/Landscape" / "Independent from Desktop"
+   cascade checkbox - sibling of .dev-section-title (rename-survival). */
+/* right:52px - order from the outer edge: Lock, Undock, then this
+   checkbox closest to the title text. */
 .dev-group-device-checkbox {
     position: absolute;
     top: 50%;
@@ -3172,12 +2007,9 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 .dev-row-hidden-by-checkbox {
     display: none !important;
 }
-/* Hides a real dev-panel row whose value has no real effect under
-   the element's CURRENT UI-Engine position.mode (2026-09-20,
-   direct request: "if an object is set to anchor mode, only show
-   the anchor mode relevant sliders. if its set to relative, only
-   show the relative sliders") - see the Inspector-writeback
-   module's stage2SyncRowVisibility() for what toggles this. */
+/* Hides a row that has no effect under the element's current UI-Engine
+   position.mode (anchor vs relative) - toggled by
+   stage2SyncRowVisibility(). */
 .dev-row-hidden-by-mode {
     display: none !important;
 }
@@ -3185,40 +2017,19 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     display: none !important;
 }
 
-/* Drag handle - per direct request ("in Handy Dandies, the
-   settings/group reorder/nesting is only triggered by the icon on
-   the far left... when i click and drag outside that icon, it
-   wont move or nest things. I like that."), modeled directly on
-   that project's own .dp-drag-handle (HANDY DANDIES/src/devpanel/
-   devPanel.js). Deliberately a SIBLING of .dev-section-title (same
-   reasoning as .dev-group-lock-icon just above - the title's own
-   rename mechanism rewrites its entire textContent, which would
-   silently delete a child element every time). Small and
-   dedicated (unlike the old handle, which was the WHOLE title bar)
-   also means it can safely be touch-action:none without blocking
-   the panel's own scroll gesture the way marking the entire title
-   bar that way once did (see .dev-section-title's own comment on
-   that tradeoff) - restores real touch-drag support for group
-   reordering as a direct side effect of narrowing the handle. */
+/* Group drag handle - reorder/nesting starts only from this icon. Sibling
+   of .dev-section-title (the rename textContent rewrite would delete a
+   child). Small enough that touch-action:none doesn't block scrolling the
+   panel. */
 .dev-group-drag-handle {
     position: absolute;
     top: 0;
     left: 0;
     width: 22px;
-    /* Corrected 2026-09-16 (ported from TEMPLATE_DEV_PANEL.html): the
-       old fixed top:5px/left:8px only happened to look right at ONE
-       nesting depth/font-size - nested titles render at 0.85x font-
-       size (a separate rule below), so the same fixed offset landed
-       wrong everywhere else (direct report: "too far left" for
-       subfolders, "slightly too far to the right and too high" for
-       top-level). This mirrors .dev-section-title's OWN box-height
-       formula exactly (10px = its 5px top + 5px bottom padding, plus
-       font-size * line-height for its one line of text) so the
-       handle's box is always exactly as tall as the title bar it
-       sits beside, at any font-size setting - flex centering inside
-       that exact-height box is then genuinely correct, not just
-       close. The 0.85x nested-title font-size override below has
-       its own matching handle-height override right after it. */
+    /* Height mirrors .dev-section-title's own box-height formula (10px
+       padding + font-size * line-height) so flex centering places the glyph
+       correctly at any font size. Nested titles (0.85x) have a matching
+       override below. */
     height: calc(10px + var(--dev-group-title-font-size-px) * 1px * var(--dev-group-text-line-height));
     display: flex;
     align-items: center;
@@ -3239,11 +2050,7 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 }
 
 .dev-section-title {
-    /* Was a fixed cyan (#0ff), then Accent Color (per "Dev Panel
-       Accent color should also apply to Group text") - now its
-       own independent Group Text Color control, decoupled back
-       out per direct *D* request. See groupTextColor's own
-       comment for the full history. */
+    /* Group Text Color control (independent of Accent Color). */
     color: var(--dev-panel-group-text-color);
     font-weight: normal;
     font-size: calc(var(--dev-group-title-font-size-px) * 1px);
@@ -3252,29 +2059,14 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     margin-bottom: 8px;
     cursor: pointer;
     user-select: none;
-    /* Left padding widened to reserve room for .dev-group-drag-
-       handle (a sibling, absolutely positioned at left:8px) so it
-       doesn't sit on top of the collapse arrow (▼/▶), which is
-       always the title's own first character. Right padding
-       widened 5px -> 78px (2026-09-20) to fit the 3 right-side
-       icons (Lock, Undock, "Show in Mobile/Landscape" checkbox -
-       see their own CSS below). */
+    /* Left padding reserves room for .dev-group-drag-handle so it doesn't
+       cover the collapse arrow (the title's first character). Right padding
+       (78px) fits the 3 right-side icons (Lock, Undock, cascade checkbox). */
     padding: 5px 78px 5px 22px;
     background: var(--dev-group-label-bg-color, #134e4a);
     border-radius: 3px;
-    /* Corrected: the title itself is NO LONGER the drag handle for
-       reordering groups (CLAUDE.md Section 12e) - that's now the
-       dedicated .dev-group-drag-handle icon above, per direct
-       request ("reorder/nesting is only triggered by the icon on
-       the far left... when i click and drag outside that icon, it
-       wont move or nest things"), modeled on the Handy Dandies
-       project's own handle-only drag gating. The touch-action
-       tradeoff this comment used to document no longer applies to
-       THIS element (nothing here is a drag handle anymore, so
-       touch-action never needed changing here) - it moved to the
-       new handle icon itself, which is small enough that marking
-       IT touch-action:none doesn't block scrolling the rest of the
-       panel the way marking the whole title bar once did. */
+    /* The title is NOT a drag handle (that's .dev-group-drag-handle), so it
+       needs no touch-action change and doesn't block panel scrolling. */
 }
 
 .dev-section-title:hover {
@@ -3285,17 +2077,9 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     display: block;
     margin-left: 5px;
 }
-/* Nested group styling - per direct request ("make it so that i
-   can have setting groups within setting groups"), capped at one
-   level. Pure structural selector (a .dev-section whose direct
-   parent is a .dev-section-content, i.e. it's inside ANOTHER
-   group rather than sitting directly under a tab) - no JS class-
-   toggling needed to keep this in sync as groups get dragged in
-   and out of nesting; the DOM structure itself already says
-   whether a group is nested, so the CSS just reads that directly.
-   A left border + slightly smaller title is enough to read as
-   "inside another group" at a glance without a heavy visual
-   treatment. */
+/* Nested groups: a .dev-section directly inside a .dev-section-content.
+   Purely structural selector, so no JS class syncing is needed as groups
+   are dragged in/out. Left border + smaller title. */
 .dev-section-content > .dev-section {
     padding-left: 10px;
     border-left: 2px solid rgba(0, 255, 255, 0.25);
@@ -3303,20 +2087,14 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 .dev-section-content > .dev-section > .dev-section-title {
     font-size: calc(var(--dev-group-title-font-size-px) * 0.85px);
 }
-/* Matches the 0.85x nested title font-size override directly above -
-   see .dev-group-drag-handle's own comment for why this has to
-   track the title's real box height exactly, not just its font-
-   size. */
+/* Matches the 0.85x nested title font-size - see .dev-group-drag-handle
+   for why the handle height must track the title box exactly. */
 .dev-section-content > .dev-section > .dev-group-drag-handle {
     height: calc(10px + var(--dev-group-title-font-size-px) * 0.85px * var(--dev-group-text-line-height));
 }
-/* An empty group (a freshly added custom one, or every existing
-   setting dragged out of it) collapses to 0 height with nothing to
-   drop into, drag-target-wise - a real, generic-CSS-based problem
-   for setupDragReorder()'s crossContainerSelector hit-testing (it
-   can still fall back to nearest-by-distance, but a 0-height target
-   is effectively impossible to aim at directly). :empty only
-   matches when there are truly no child rows left. */
+/* An empty group would collapse to 0 height and be impossible to aim a
+   drag at (setupDragReorder()'s crossContainerSelector hit-testing).
+   :empty only matches when no child rows remain. */
 .dev-section-content:empty {
     min-height: 24px;
     border: 1px dashed var(--dev-accent-color, #0ff);
@@ -3334,13 +2112,9 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     margin-bottom: 8px;
     flex-wrap: wrap;
 }
-/* Shift+click (or right-click-armed plain click) multi-select, for
-   folding a mix of settings/groups into a new group on "+ Add
-   Group" - ported from TEMPLATE_DEV_PANEL.html (2026-09-16), see
-   setupDevGroupSelection()/addDevGroup()'s own comments. Outline
-   (not border) so it never shifts layout/box size; a faint accent-
-   tinted background makes a selected group's whole content area
-   read as selected too, not just its title bar. */
+/* Shift+click (or armed click) multi-select for folding items into a new
+   group (see setupDevGroupSelection()/addDevGroup()). Outline (not border)
+   so layout doesn't shift; faint tint marks a selected group's content. */
 .dev-row.dev-selected, .dev-section.dev-selected {
     outline: 2px solid var(--dev-accent-color);
     outline-offset: 2px;
@@ -3348,11 +2122,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     border-radius: 3px;
 }
 
-/* Dynamic Mobile/Landscape visibility/independence checkboxes
-   (2026-09-17) - ported from TEMPLATE_DEV_PANEL.html's own
-   [JS-4b0]. Pushed to the row's own far right (margin-left:auto) so
-   they read as a distinct "meta" control, separate from the row's
-   own value control. */
+/* Dynamic Mobile/Landscape visibility/independence checkboxes, pushed to
+   the row's far right (margin-left:auto) as a separate "meta" control. */
 .dev-visibility-checkbox, .dev-independence-checkbox {
     margin-left: auto;
     accent-color: var(--dev-accent-color);
@@ -3362,9 +2133,7 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 
 .dev-label {
     min-width: 140px;
-    /* Was a fixed #aaa - now "Settings Title Text Color", per
-       explicit request ("Non Title Text Color to become 'Settings
-       Title text color' make it work as such"). */
+    /* "Settings Title Text Color". */
     color: var(--dev-panel-non-title-text-color);
     font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
     letter-spacing: calc(var(--dev-settings-text-letter-spacing-px) * 1px);
@@ -3372,18 +2141,10 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     font-weight: normal;
 }
 
-/* Row-level counterpart of .dev-group-drag-handle just above - same
-   request/rationale. A plain FIRST CHILD of .dev-row (not a child
-   of .dev-label, unlike the group case's title-rewrite problem -
-   only .dev-label's own textContent gets rewritten on rename, never
-   the whole row's), so it needs no absolute-positioning workaround:
-   .dev-row's own flex + 8px gap already puts it at the far left
-   with sensible spacing for free. Small + dedicated, same as the
-   group handle, so touch-action:none here doesn't cost anything -
-   .dev-label/.dev-trigger-btn were never marked touch-action:none
-   in the first place (see .dev-section-title's own note - this
-   tradeoff was specific to a handle spanning most of the panel's
-   surface, which a 1-character icon never does). */
+/* Row drag handle - first child of .dev-row (only .dev-label's
+   textContent is rewritten on rename, not the row's), so .dev-row's flex
+   + gap positions it with no absolute workaround. Small, so touch-action:
+   none is harmless. */
 .dev-row-drag-handle {
     cursor: grab;
     user-select: none;
@@ -3398,12 +2159,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     cursor: grabbing;
 }
 
-/* Drag handle for reordering settings within a group (CLAUDE.md
-   Section 12e) - the group title's own handle styling lives on
-   .dev-section-title above. Deliberately NOT touch-action:none -
-   same "blocks scrolling across most of the panel on a
-   touchscreen, since almost every row has a label" reasoning as
-   .dev-section-title above; see that comment. */
+/* Settings-row drag styling. Deliberately NOT touch-action:none - almost
+   every row has a label, so it would block scrolling most of the panel. */
 .dev-section-content .dev-label {
     cursor: grab;
     user-select: none;
@@ -3412,8 +2169,7 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     opacity: 0.5;
 }
 
-/* Mouse Log's own live display - a plain scrollable list, one
-   child element per entry (Copy/Save read the backing mouseLog
+/* Mouse Log display - one child per entry (Copy/Save read the mouseLog
    array, not this DOM). */
 .dev-mouse-log {
     height: 140px;
@@ -3432,57 +2188,34 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 
 .dev-slider {
     flex: 1;
-    /* Raised from 80px - per direct request that a too-narrow panel
-       push the slider onto its own line below the label ("under
-       the title") instead of squeezing it thin next to the label
-       ("on the right side"). .dev-row already has flex-wrap:wrap,
-       so this WAS already wrapping - but only once the panel got
-       narrow enough to force the slider all the way down near its
-       old 80px floor, meaning it spent a wide range of intermediate
-       panel widths as an uncomfortably thin, hard-to-grab sliver
-       sharing the label's line rather than actually being hidden -
-       confirmed via direct measurement (152px wide at a 400px
-       panel, shrinking to 85px by 280px, only wrapping to its own
-       full-width line below 260px). A higher floor makes the wrap
-       happen sooner (a wider panel threshold), so whenever the
-       slider IS sharing the label's line it stays a reasonably
-       sized, easy-to-grab touch target, and drops to its own line
-       well before it would otherwise have gotten too thin. */
+    /* Higher min-width so a narrow panel wraps the slider onto its own line
+       (.dev-row is flex-wrap) sooner, instead of leaving a thin, hard-to-
+       grab slider beside the label. */
     min-width: 130px;
     height: 18px;
     cursor: pointer;
-    /* Native thumb/track tint - previously the browser default
-       blue, per explicit request ("Color of slider, which is
-       currently blue"). A separate control from --dev-accent-color,
-       which never governed this (see the Dev Panel group's own
-       comment on that var). */
+    /* Native thumb/track tint (separate from --dev-accent-color). */
     accent-color: var(--dev-slider-color);
 }
 
 .dev-value {
     min-width: 45px;
-    /* Was --dev-accent-color - now its own independent Setting
-       Number Text Color control, per direct follow-up request. */
+    /* Setting Number Text Color control. */
     color: var(--dev-value-text-color);
     text-align: right;
     font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
 }
-/* Applied at init (see makeDevValuesEditable() in the script) only to
-   .dev-value spans that actually correspond to a range slider - the
-   decorative "(hue-rotate)" labels next to color pickers share the
-   same base class but have no id/matching slider, so they're left
-   alone rather than looking clickable with nothing to click into. */
+/* Applied at init (makeDevValuesEditable()) only to .dev-value spans with
+   a matching range slider; decorative labels share the class but have
+   nothing to edit. */
 .dev-value-editable {
     cursor: text;
 }
 .dev-value-editable:hover {
     outline: 1px solid var(--dev-accent-color);
 }
-/* Editable slider min/max bound labels, ported 2026-09-28 from
-   TEMPLATE_DEV_PANEL.html - the 2 small labels at each end of a
-   slider's track (see makeDevSliderBoundsEditable() in the
-   script), click-to-type just like the value readout above but
-   targeting the slider's own min/max instead of its current value. */
+/* Editable slider min/max labels at each end of a slider track (see
+   makeDevSliderBoundsEditable()), click-to-type like the value readout. */
 .dev-slider-bound {
     font-size: 9px;
     opacity: 0.6;
@@ -3507,9 +2240,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     padding: 0;
 }
 
-/* Standalone typed-number dev-panel controls (not the click-to-edit
-   overlay above) - same theme, own class since these are permanent
-   inputs, not a temporary overlay on a .dev-value span. */
+/* Standalone typed-number controls - permanent inputs, not the click-to-
+   edit overlay on a .dev-value span. */
 .dev-text-input {
     width: 52px;
     background: #000;
@@ -3530,13 +2262,7 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 }
 
 .dev-color-picker {
-    /* Scales with Settings Text (Setting Title Font Size) - per
-       explicit request ("when i size my Settings text small, the
-       color pickers shoulda also scale with them"). Ratios (5x/3x)
-       reproduce the previous fixed 50x30 exactly at the Mobile
-       tab's own default (10px) and land very close at Desktop's
-       (9px, ~45x27) - a small, disclosed default difference, same
-       category as this group's other minor default deltas. */
+    /* Scales with Setting Title Font Size (5x/3x ratios). */
     width: calc(var(--dev-setting-title-font-size-px) * 5px);
     height: calc(var(--dev-setting-title-font-size-px) * 3px);
     border: 1px solid var(--dev-accent-color);
@@ -3544,11 +2270,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     cursor: pointer;
 }
 
-/* Edge Lock checkbox, sits right of each align/valign <select> in
-   the same .dev-row - per explicit request. Its own small label
-   text, not a separate .dev-label row, since the row's existing
-   label already names the setting (e.g. "Text Align:") - this is
-   just a modifier on it. */
+/* Edge Lock checkbox to the right of each align/valign <select>, a small
+   inline modifier rather than its own .dev-label row. */
 .dev-edge-lock-label {
     display: flex;
     align-items: center;
@@ -3559,12 +2282,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     cursor: pointer;
 }
 
-/* Px/vw-vh unit toggle, sits at the end of every X/Y Offset row -
-   per explicit request ("next to every text setting for x offset/
-   y offset, add a checkbox... choose px or vw/vh as the units").
-   Same visual treatment as .dev-edge-lock-label above (a small
-   inline modifier, not its own .dev-label row) - see
-   setupOffsetUnitCheckboxes() for the actual unit-conversion logic. */
+/* Px/vw-vh unit toggle at the end of each X/Y Offset row (see
+   setupOffsetUnitCheckboxes()); same treatment as .dev-edge-lock-label. */
 .dev-offset-unit-label {
     display: flex;
     align-items: center;
@@ -3578,11 +2297,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 
 .dev-select {
     background: #222;
-    /* Was --dev-accent-color - now matches Setting Number Text
-       Color, per direct follow-up request ("Drop Down Text color
-       should be the same as Setting Color") - a dropdown's own
-       selected-option text reads as a "current value" the same
-       way a slider's own number readout does. */
+    /* Matches Setting Number Text Color - a dropdown's selected text reads as
+       a current value like a slider readout. */
     color: var(--dev-value-text-color);
     border: 1px solid var(--dev-accent-color);
     padding: 4px;
@@ -3592,11 +2308,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     font-size: 10px;
 }
 
-/* 4 independent capitalize toggles - CLAUDE.md Section 12n #1
-   (decompose, don't bundle): each text category gets its own
-   checkbox/class rather than one shared "capitalize everything"
-   toggle. Classes are applied on .dev-panel itself by
-   applyDevPanelOwnStyling() (see DEV_PANEL_CAPS_CLASS_MAP). */
+/* 4 independent capitalize toggles (one per text category), applied on
+   .dev-panel by applyDevPanelOwnStyling() (see DEV_PANEL_CAPS_CLASS_MAP). */
 .dev-panel.dev-caps-button-text .dev-buttons button,
 .dev-panel.dev-caps-button-text .dev-hide-btn,
 .dev-panel.dev-caps-button-text .dev-collapse-btn,
@@ -3613,11 +2326,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 .dev-panel.dev-caps-settings-text .dev-label {
     text-transform: uppercase;
 }
-/* Bold toggles for Group Name Text/Settings Text - Title/Tab/
-   Buttons' own bold-class rules sit alongside each of those
-   elements' own CSS block above; these 2 are grouped here instead
-   since .dev-section-title/.dev-label's blocks (above) already
-   carry Font Size/Letter Spacing/Color, kept lean. */
+/* Bold toggles for Group Name Text/Settings Text (Title/Tab/Buttons bold
+   rules live with those elements above). */
 .dev-panel.dev-bold-group .dev-section-title {
     font-weight: bold;
 }
@@ -3626,21 +2336,17 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 }
 
 /* ============================================================
-   STAGE 2 EXPERIMENT - UI-Engine's REAL Inspector, mounted as its
-   own floating panel (mirrors the engine's own demo/index.html
-   pattern exactly - copied CSS, not reinvented). Toggled by
-   #stage2InspectorToggleBtn. Entirely separate from Clicko's own
-   .dev-panel system - reversible by deleting this block + the
-   matching HTML/JS blocks near the end of <body>.
+   STAGE 2 EXPERIMENT - UI-Engine's Inspector mounted as its own floating
+   panel (CSS copied from the engine's demo/index.html). Toggled by
+   #stage2InspectorToggleBtn. Separate from .dev-panel - reversible by
+   deleting this block + the matching HTML/JS blocks near end of <body>.
 ============================================================ */
 #stage2InspectorPanel {
     display: none;
     position: fixed;
     top: 20px;
-    /* left, not right+auto-left - avoids ever needing to clear a
-       conflicting `right` once drag/resize starts writing `left`
-       directly (both set at once on a fixed-position box with an
-       explicit width is ambiguous/over-constrained). */
+    /* left only (no right) - a fixed box with explicit width plus both left
+       and right is over-constrained once drag/resize starts writing left. */
     left: calc(100vw - 380px);
     width: 360px;
     height: 70vh;
@@ -3658,9 +2364,8 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
     overflow: hidden;
 }
 #stage2InspectorPanel.stage2-open { display: flex; }
-/* Draggable title bar - CLAUDE.md 12c's own convention (movable by
-   dragging the top bar, BELOW the top edge's own resize hit-target,
-   the 2 must not overlap). */
+/* Draggable title bar, below the top edge's resize hit-target (they must
+   not overlap). */
 #stage2InspectorHeader {
     flex: 0 0 auto;
     padding: 10px 10px 6px;

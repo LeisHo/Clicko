@@ -5,19 +5,10 @@ const stage2Content = findGroupContent('desktop', 'High Score', 'stage2Experimen
 if (!stage2Content) {
     console.warn('[Stage 2 experiment] "High Score" group not found - no preview rows added.');
 } else {
-    // ------------------------------------------------------------
-    // Shared position element - carries X/Y offset AND both anchors
-    // together, mirroring how Clicko's OWN single position formula
-    // for this element already combines all 4 (one calc() for left,
-    // one for top, each keyed off the SAME align/valign + edge-lock
-    // state). Edge Lock's real base/sign/unit mapping (read directly
-    // from EDGE_LOCK_BASE/EDGE_LOCK_SIGN, index.html ~line 14518):
-    // locked -> anchor = the align/valign value itself, offset in
-    // px; unlocked -> anchor is ALWAYS 'center' regardless of the
-    // align/valign dropdown, offset in vw/vh. This is exactly the
-    // engine's own anchorH/anchorV vocabulary - no translation layer
-    // needed beyond picking which anchor point per lock state.
-    // ------------------------------------------------------------
+    // One position element carries X/Y offset AND both anchors, matching Clicko's own single
+    // left/top calc() per element. Edge Lock mapping (EDGE_LOCK_BASE/EDGE_LOCK_SIGN):
+    // locked -> anchor = align/valign value, offset in px; unlocked -> anchor always 'center',
+    // offset in vw/vh. Maps directly onto the engine's anchorH/anchorV vocabulary.
     const alignLocked = !!cssVars['--high-score-text-align-edge-lock'];
     const valignLocked = !!cssVars['--high-score-text-valign-edge-lock'];
     const initAnchorH = alignLocked ? (cssVars['--high-score-text-align'] || 'center') : 'center';
@@ -40,21 +31,15 @@ if (!stage2Content) {
         },
     });
 
-    // Separate element for Font Size, since it's a SIZE field
-    // (widthValue), not a position field - the blended-length shape
-    // {pxValue, vwValue, blend, vwUnit} is v0.2.3's own mechanism,
-    // tested here interactively for the first time (Stage 1 only
-    // ever checked it via a domNode-less hand-evaluated harness).
+    // Font Size is a SIZE field (widthValue), so it gets its own element, using the engine's
+    // blended-length shape {pxValue, vwValue, blend, vwUnit}.
     createUIElement({
         id: 'stage2HighScoreFontSize',
         role: 'text',
         group: 'High Score', propertyLabel: 'Font Size',
         layout: {
-            // position.mode is unconditionally required by
-            // createUIElement() even for a size-only registration
-            // (confirmed live - the engine has no size-only
-            // shorthand) - an inert anchor is harmless since nothing
-            // ever reads this element's position fields.
+            // createUIElement() requires position.mode even for a size-only element; this
+            // anchor is inert (nothing reads it).
             position: { mode: 'anchor', horizontal: { anchor: 'center' }, vertical: { anchor: 'top' } },
             size: {
                 width: {
@@ -124,11 +109,7 @@ if (!stage2Content) {
     document.getElementById('sliderStage2HighScoreFontSize').addEventListener('input', (e) => {
         const num = parseFloat(e.target.value);
         const current = getEffectiveValue('stage2HighScoreFontSize', 'widthValue', 'base').value;
-        // Round-trips the FULL blended-length object through the
-        // real engine (updateElement -> validateConfig, which
-        // v0.2.3 taught to accept this shape -> getEffectiveValue) -
-        // proves the object survives storage/retrieval unmangled,
-        // not just that a plain number does.
+        // Write back the FULL blended-length object; only vwValue changes.
         updateElement('stage2HighScoreFontSize', { size: { width: { value: { ...current, vwValue: num } } } });
         const resolved = getEffectiveValue('stage2HighScoreFontSize', 'widthValue', 'base').value;
         document.getElementById('valueStage2HighScoreFontSize').textContent = resolved.vwValue;
@@ -147,9 +128,7 @@ if (!stage2Content) {
     }));
     document.getElementById('selectStage2HighScoreTextAlign').value = cssVars['--high-score-text-align'] || 'center';
     document.getElementById('selectStage2HighScoreTextAlign').addEventListener('change', (e) => {
-        // Only meaningful while unlocked (locked mode derives its
-        // anchor from align+lock together - see the Edge Lock
-        // listeners below, which own that combined recompute).
+        // Locked-mode anchor is recomputed from align+lock by the Edge Lock listeners below.
         updateElement('stage2HighScoreX', { position: { horizontal: { anchor: e.target.value } } });
         const resolvedAnchor = getEffectiveValue('stage2HighScoreX', 'anchorH', 'base').value;
         cssVars['--high-score-text-align'] = resolvedAnchor;
@@ -174,16 +153,9 @@ if (!stage2Content) {
     });
 
     // ---- 6. Edge Lock mirroring (both axes) ----
-    // Deliberately NOT a new control - listens to the REAL Edge Lock
-    // checkboxes (registered AFTER Clicko's own listener, so this
-    // always runs with Clicko's already-recomputed, position-
-    // preserving offset number already in cssVars) and mirrors the
-    // resulting state into the engine's fields, proving the schema
-    // can represent both lock states faithfully. The actual
-    // position-preserving MATH stays Clicko's own
-    // preserveVisualPositionOnLockToggle() - per the engine repo's
-    // own v0.2.3 finding, that computation is host-specific, not
-    // something to reimplement here.
+    // Listens to the REAL Edge Lock checkboxes. Registered AFTER Clicko's own listener, so
+    // cssVars already holds the position-preserving offset; this only mirrors that state into
+    // the engine. The math stays in Clicko's preserveVisualPositionOnLockToggle().
     function mirrorEdgeLockToEngine(axis) {
         const locked = axis === 'x'
             ? document.getElementById('checkboxHighScoreTextAlignEdgeLock').checked
@@ -206,25 +178,15 @@ if (!stage2Content) {
             document.getElementById('valueStage2HighScoreY').textContent = parseFloat(r);
         }
     }
-    // Null-guarded (2026-09-20 fix): these real checkboxes are part
-    // of the LAZY dev-panel build - for a non-dev visitor they
-    // don't exist yet (ensureDevPanelBuilt() never runs for them),
-    // and an unguarded call here threw and could interrupt this
-    // module's remaining top-level execution - see the matching
-    // fix note on the shared registerStage2TextElement() helper and
-    // the Round Breakdown block for the full account (this one
-    // never actually reached production since High Score's row was
-    // ported before that root cause was found, but is fixed
-    // preventatively, same reasoning).
+    // Null-guarded: these checkboxes come from the lazy dev-panel build and don't exist for a
+    // non-dev visitor; an unguarded call would throw and abort this module's top-level run.
     const hsAlignLockEl = document.getElementById('checkboxHighScoreTextAlignEdgeLock');
     const hsValignLockEl = document.getElementById('checkboxHighScoreTextValignEdgeLock');
     if (hsAlignLockEl) hsAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
     if (hsValignLockEl) hsValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
 
-    // Size - see registerStage2TextElement()'s own matching comment
-    // (added the same session, same reasoning) for why this is an
-    // honestly-inert `mode: 'content'` registration rather than a
-    // real writeback.
+    // Size: inert `mode: 'content'` registration (text sizes to content; no real writeback) -
+    // see registerStage2TextElement().
     createUIElement({
         id: 'stage2HighScoreSize', role: 'text',
         group: 'High Score', propertyLabel: 'Size',

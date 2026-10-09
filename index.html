@@ -2,27 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Per direct report ("even in non dev mode... for the first half a
-         second i see a ghost of the dev panel in the center of the
-         screen") - STILL reproducing after an earlier attempt at this fix
-         placed the gating script/class further down, after the Google
-         Fonts <link rel="stylesheet"> below. Root cause of THAT gap: a
-         classic (non-async/defer) <script> following a <link
-         rel="stylesheet"> is spec-required to wait for that stylesheet to
-         finish loading before it executes (the engine can't rule out the
-         script querying computed style that depends on it) - so on a slow
-         or cold-cache font-CSS fetch, html.dev-mode could still land after
-         the browser's first paint, reopening the exact race this was
-         meant to close. Moved here - literally the first thing in <head>,
-         before EVERY other tag, with its own tiny inline <style> right
-         alongside it - so both the class-setting script and the critical
-         hide rules are available before any external network request
-         (the Google Fonts stylesheet included) could possibly block or
-         delay them. This duplicates (doesn't replace) the full .dev-panel/
-         .dev-toggle-btn rules and isDevAllowed check further down (search
-         dev-mode) - those stay as the authoritative, fully-styled
-         definitions; these two are deliberately minimal, self-contained,
-         and dependency-free, existing purely to win the very first paint. -->
+    <!-- Dev-mode gate: must be the very first thing in <head>, before the
+         Google Fonts stylesheet. A classic script after a <link
+         rel="stylesheet"> waits for that stylesheet to load, so on a slow
+         font fetch html.dev-mode could land after first paint and flash the
+         dev panel. This minimal script + style duplicates (doesn't replace)
+         the full .dev-panel/.dev-toggle-btn rules and isDevAllowed check
+         further down (search dev-mode); it exists only to win first paint. -->
     <script>
         (function() {
             var isDevAllowed = location.protocol === 'file:' ||
@@ -46,38 +32,20 @@
 <body>
     <div class="game-container settings-loading">
         <div class="button-assembly" id="buttonAssembly">
-            <!-- Base/backing recolor filter - grayscale + adjustable levels
-                 + multiply-tint, shared by both the base bezel and its
-                 backing (basebg) layer below, regular AND thin variants
-                 alike - replaces the old hue-rotate approach (see
-                 setBaseHue()'s own comment for why hue-rotate couldn't
-                 reach white/gray from the red source). color-interpolation-
-                 filters="sRGB" matters - the SVG default (linearRGB) gives
-                 washed-out results that don't match ordinary web color
-                 math. feComposite operator="in" at the end clips the
-                 flood-filled tint back to the source artwork's own alpha
-                 shape (feFlood alone would paint the whole filter region,
-                 not just the shape). -->
-            <!-- 2 filter instances (base+backing share one, button+pressed
-                 share the other) - a single shared <filter> can't take a
-                 per-usage-site tint color (feFlood's own color is fixed per
-                 filter instance, SVG has no per-reference parameters), but
-                 Levels/Floor/Ceiling ARE meant to affect every part
-                 uniformly (per explicit request), so applyLightLevels() (JS)
-                 pushes the same computed slope/intercept into BOTH filters'
-                 feFuncR/G/B whenever any of the 3 sliders change. Overlay
-                 blend, not multiply - per explicit request ("I want it to
-                 be Overlay"), now user-selectable via the Blend Mode
-                 dropdowns (applyBlendModes()). feBlend's `in`/`in2` order
-                 matters for every asymmetric mode (overlay, hard/soft-
-                 light, color-dodge/-burn, hue/saturation/color/luminosity):
-                 in2 is the BACKDROP (Cb) and in is the SOURCE (Cs) per
-                 spec, and it's the BACKDROP that drives Overlay's own
-                 branching/extremes - grayscale must be in2, tint must be
-                 in, or a level=1 (white) input does NOT come out white
-                 regardless of tint as intended (confirmed the hard way: had
-                 these swapped initially, live-verified white-in produced
-                 the tint color unchanged instead of white). -->
+            <!-- Base/backing recolor filter (grayscale + adjustable levels + tint),
+                 shared by the base bezel and its backing layer, regular and
+                 thin. color-interpolation-filters="sRGB" matters: the SVG
+                 default linearRGB gives washed-out results. feComposite
+                 operator="in" clips the flood-filled tint to the artwork's
+                 alpha shape. -->
+            <!-- 2 filter instances (base+backing, button+pressed): feFlood's color
+                 is fixed per filter, so each tint needs its own filter.
+                 applyLightLevels() (JS) pushes the same slope/intercept into
+                 both filters' feFuncR/G/B. Blend mode is selectable
+                 (applyBlendModes()). feBlend order matters for asymmetric
+                 modes: in2 is the BACKDROP and drives Overlay's branching, so
+                 grayscale must be in2 and tint must be in (otherwise white
+                 input doesn't stay white). -->
             <svg width="0" height="0" style="position:absolute" aria-hidden="true">
                 <defs>
                     <filter id="baseGrayscaleTint" color-interpolation-filters="sRGB">
@@ -93,16 +61,10 @@
                         </feComponentTransfer>
                         <feFlood class="base-tint-flood" result="tintColor"/>
                         <feBlend id="baseTintBlend" in="tintColor" in2="levels" mode="overlay" result="tinted"/>
-                        <!-- Saturation - per explicit request ("give me a
-                             saturation slider for both button and base").
-                             1 = unchanged (matches feColorMatrix type=
-                             "saturate"'s own spec default), 0 = fully
-                             desaturates the tinted result back to gray,
-                             >1 oversaturates. Applied to "tinted" (the
-                             final overlay-blended color), not SourceGraphic,
-                             since SourceGraphic is already forced fully
-                             grayscale earlier in this same filter (see
-                             above) - saturating that would be a no-op. -->
+                        <!-- Saturation: 1 = unchanged (feColorMatrix saturate default),
+                             0 = gray, >1 oversaturates. Applied to "tinted"
+                             (the blended result), since SourceGraphic is
+                             already grayscale here. -->
                         <feColorMatrix id="baseSaturationMatrix" type="saturate" values="1" in="tinted" result="saturated"/>
                         <feComposite in="saturated" in2="SourceGraphic" operator="in"/>
                     </filter>
@@ -738,72 +700,36 @@
   </g>
 </svg></div></div>
         </div>
-        <!-- Two separate shadow containers, one per side - each carries a
-             CSS transform (translate/rotate/scale/skewX/scaleY) that's a
-             byte-for-byte copy of .shadow-caster-layer's own transform (see
-             its CSS and spawnClickBurst(), which sets these dynamically),
-             pivoted at the button's own center via transform-origin - the
-             literal "same physical transformation applied to base and
-             button, applied as-is to the click frames" per explicit
-             request, letting the browser's own transform math do the work
-             instead of a hand-derived JS reimplementation of it (which
-             turned out not to be equivalent - a modest ~40px input offset
-             was coming out amplified to ~127px). Two containers, not one,
-             because the two sides need MIRRORED skew (same reasoning as
-             the sprite-level mirror fix earlier) - a single shared
-             transform can't differ per child. -->
+        <!-- Two click-burst shadow containers, one per side. Each carries a CSS
+             transform copying .shadow-caster-layer's (set by
+             spawnClickBurst()), pivoted at the button's center, so the
+             browser does the transform math (a JS reimplementation wasn't
+             equivalent). Two containers because the sides need mirrored
+             skew. -->
         <div class="click-burst-shadow-container" id="clickBurstShadowContainerRight"></div>
         <div class="click-burst-shadow-container" id="clickBurstShadowContainerLeft"></div>
         <div class="click-burst-container" id="clickBurstContainer"></div>
         <button class="start-button" id="startButton">START</button>
-        <!-- Was created/destroyed via startButton.innerHTML (a child of the
-             button itself) - moved out to its own static sibling element per
-             direct report ("make the '?'s position not dependent on the
-             position of Try Again"). Root cause: .start-button itself has
-             `transform: translate(...)` (its own centering transform), and
-             per the CSS spec ANY ancestor with a transform becomes the
-             containing block for a `position: fixed` (or absolute)
-             descendant - so despite this element's own independent X/Y
-             offset vars, its actual on-screen position was being resolved
-             relative to the BUTTON's transformed box, not the viewport/
-             .game-container, exactly reproducing the reported symptom. As a
-             plain sibling of .start-button here (both direct children of
-             .game-container, which has no transform of its own), its
-             `position: absolute` now resolves against .game-container - the
-             same reference frame every other overlay text (Target/Speed/
-             Ms-per-click) already uses - fully independent of wherever Try
-             Again itself currently sits. Shown/hidden via the .hidden class
-             (see startTryAgainFlash()/resetGameplayState()) instead of being
-             created/destroyed, matching every other overlay element's own
-             pattern. -->
+        <!-- The "?" is a sibling of .start-button, not a child: .start-button's
+             transform would make it the containing block, tying the "?"
+             to Try Again's position. As a sibling it resolves against
+             .game-container like other overlay text. Shown/hidden via
+             .hidden (startTryAgainFlash()/resetGameplayState()). -->
         <span class="hidden" id="startButtonFlashChar"><span id="startButtonFlashCharExtrusion">?</span><span id="startButtonFlashCharGlyph">?</span></span>
         <div class="game-text" id="gameText"><span id="gameTextLabel"></span><span id="gameTextNumber"></span></div>
         <div class="result-text hidden" id="resultText"></div>
-        <!-- Prefix/Number/Suffix split - per direct request ("I want
-             separate font size, y offset, x offset sliders for the
-             'Click', number, and 'x'" + hide checkboxes for each word),
-             later split further into 3 fully independent Text Edit Mode
-             targets (targetCountPrefix/targetCountNumber/targetCountSuffix
-             - see TEXT_EDIT_TARGETS's own comments) per a follow-up report
-             that the original combined single-entry edit "looked stuck"
-             after commit. Number-only blinking (runRoundBlinkSequence) now
-             targets targetCountNumber specifically, same pattern as
-             speedDisplayNumber/msPerClickDisplayNumber below. -->
+        <!-- Prefix/Number/Suffix split: independent font size/offsets/hide per
+             word, and 3 separate Text Edit Mode targets. Number-only
+             blinking (runRoundBlinkSequence) targets targetCountNumber. -->
         <div class="target-count" id="targetCount"><span id="targetCountPrefix"></span><span id="targetCountNumber"></span><span id="targetCountSuffix"></span></div>
-        <!-- Number/suffix split so the Round-Number-style blink sequence
-             (runRoundBlinkSequence()) can blink ONLY the live number, never
-             the static word suffix ("ms"/"CLICK") - per direct request ("i
-             want only the numbers to blink, not the words"), same pattern
-             #gameTextLabel/#gameTextNumber already established for "ROUND".
-             Each render call site below sets these 2 children's own
-             textContent separately instead of one combined string. -->
+        <!-- Number/suffix split so the blink sequence blinks only the number,
+             not the word suffix (same pattern as #gameTextLabel/
+             #gameTextNumber). Render sites set each child's textContent. -->
         <div class="ms-per-click-display" id="msPerClickDisplay"><span id="msPerClickDisplayNumber"></span><span id="msPerClickDisplaySuffix"></span></div>
         <div class="speed-display" id="speedDisplay"><span id="speedDisplayNumber"></span><span id="speedDisplaySuffix"></span></div>
         <div class="click-counter hidden" id="clickCounter">0</div>
-        <!-- High Score - persisted via localStorage (per direct request,
-             "local" specifically - see loadHighScore()/checkHighScore()).
-             Same Label+Number split as gameText/gameTextLabel/
-             gameTextNumber above - see .high-score-text's own CSS comment. -->
+        <!-- High Score, persisted via localStorage (loadHighScore()/
+             checkHighScore()). Same Label+Number split as gameText. -->
         <div class="high-score-text" id="highScoreText"><span id="highScoreLabel"></span><span id="highScoreNumber"></span></div>
         <div class="tap-diagnostic-panel hidden" id="tapDiagnosticPanel">
             <div class="tap-diagnostic-header">
@@ -819,12 +745,8 @@
         </div>
     </div>
 
-    <!-- Top-edge debug lines (see the "Show Target/Ms-Click Top Debug
-         Lines" checkbox's own comment) - deliberately OUTSIDE
-         .game-container, as a sibling, same as the dev panel itself, so
-         they stay in real screen coordinates (from the browser's own true
-         top edge) rather than rotating/rescaling under the Portrait Lock
-         media query. position:fixed, not absolute, for the same reason. -->
+    <!-- Top-edge debug lines - outside .game-container (like the dev panel)
+         so they stay in real screen coordinates. position:fixed. -->
     <div class="top-debug-line hidden" id="topDebugLineTarget"></div>
     <div class="top-debug-line hidden" id="topDebugLineMs"></div>
     <div class="top-debug-label hidden" id="topDebugLabelTarget"></div>
@@ -841,84 +763,43 @@
             <div class="dev-panel-title">
                 DEV PANEL
             </div>
-            <!-- Reorganized 2026-09-28, ported from TEMPLATE_DEV_PANEL.html's
-                 own header reorg: Copy/Reset (previously the standalone
-                 .dev-buttons row below, now REMOVED entirely) folded in
-                 here alongside Sync/Undo/Redo/etc, right-to-left order:
-                 Close, Minimize, Sync, Reset, Copy, Redo, Undo, Collapse
-                 All, Delete, Add Group, Edit Text. Split into 2 sub-
-                 containers (secondary = "Edit Text...Redo", primary =
-                 "Copy...Close") so mobile can stack them into 2 rows via a
-                 single flex-direction:column-reverse media-query rule (see
-                 .dev-header-buttons' own CSS) without reordering the DOM or
-                 duplicating any button. -->
+            <!-- Header buttons, right-to-left: Close, Minimize, Sync, Reset, Copy,
+                 Redo, Undo, Collapse All, Delete, Add Group, Edit Text.
+                 Split into 2 sub-containers (secondary "Edit Text...Redo",
+                 primary "Copy...Close") so mobile stacks them into 2 rows
+                 via one flex-direction rule, without reordering the DOM. -->
             <div class="dev-header-buttons">
                 <div class="dev-header-buttons-secondary">
-                    <!-- Text Edit Mode/Add Group/Collapse All - ported from
-                         TEMPLATE_DEV_PANEL.html (2026-09-16), replacing the old
-                         standalone Text Edit Mode checkbox and the 3 per-tab
-                         "+ Add Group" buttons below - see setupDevHeaderIconButtons()
-                         for the wiring, and CLAUDE.md Section 12e for the full
-                         right-click-arm mechanism. -->
+                    <!-- Text Edit Mode/Add Group/Collapse All - see
+                         setupDevHeaderIconButtons() (Add Group also supports
+                         right-click arm-to-select). -->
                     <button class="dev-header-icon-btn" id="devTextEditModeBtn" title="Toggle Label Rename Mode">✎</button>
                     <button class="dev-header-icon-btn" id="devAddGroupBtn" title="Add Group (right-click: select settings/groups to fold in)">+</button>
-                    <!-- Delete Group/Setting (2026-09-17) - per direct request
-                         ("I will click it, it highlights like the add group
-                         right click, then i will click a group to delete"),
-                         extended per direct follow-up ("Delete button should
-                         also allow me to delete single settings"). A plain
-                         click arms it (no left/right distinction needed here,
-                         unlike Add Group - Delete has no other click behavior
-                         to stay compatible with); the next click on any group
-                         OR individual setting deletes it (a group takes
-                         everything inside it with it). Refuses a locked group
-                         or anything inside one, and the 2 mandatory built-in
-                         groups (Dev Panel/Debug) or their own settings - see
-                         findDevDeleteProtectionReason(). See
-                         setupDevHeaderIconButtons() for the wiring. -->
+                    <!-- Delete Group/Setting: a click arms it; the next click on a group
+                         or setting deletes it (a group takes its contents).
+                         Refuses locked groups and the built-in Dev Panel/
+                         Debug groups or anything inside them (see
+                         findDevDeleteProtectionReason()). Wired in
+                         setupDevHeaderIconButtons(). -->
                     <button class="dev-header-icon-btn" id="devDeleteGroupBtn" title="Delete Group/Setting (click, then click a group or setting to delete it)">🗑</button>
                     <button class="dev-header-icon-btn" id="devCollapseAllBtn" title="Collapse All Groups">⊟</button>
-                    <!-- Set Hotkey (2026-09-30) - per direct request: bind a
-                         1-2 letter SEQUENTIAL key combo (typed in order, not held
-                         simultaneously) to a checkbox/button/slider. Desktop only
-                         (never shown/armed/listened-for on a touch device). Mutual
-                         exclusion with Add Group / Delete Group (2 conflicting
-                         "what does the next click mean" modes can't both be armed).
-                         See setupSetHotkeyButton() and setupHotkeyAssignmentCapture()
-                         for the wiring. -->
+                    <!-- Set Hotkey: bind a 1-2 letter SEQUENTIAL key combo to a
+                         checkbox/button/slider. Desktop only. Mutually
+                         exclusive with Add Group/Delete arming. See
+                         setupSetHotkeyButton()/setupHotkeyAssignmentCapture(). -->
                     <button class="dev-header-icon-btn" id="devSetHotkeyBtn" title="Set Hotkey (click, then click a control to bind a 1-2 letter key combo to it)">🔑</button>
-                    <!-- Undo (2026-09-17) - per direct request ("It will undo
-                         any dev panel changes be it reordering, setting input
-                         change, renaming, group nesting, anything. And allow
-                         me to undo infinitely until the last save click").
-                         Session-only (per direct clarification: "the undo only
-                         remembers changes within that browser session. so if i
-                         refresh, the undo wont do anything... it rememebrs all
-                         changes from that moment, until i click save, then it
-                         starts new again") - an in-memory stack, never
-                         persisted, cleared on Save. Ctrl+Z also triggers it -
-                         see setupDevPanelUndo(). -->
+                    <!-- Undo: in-memory, session-only stack of any dev panel change,
+                         cleared on Save. Ctrl+Z also triggers it (see
+                         setupDevPanelUndo()). -->
                     <button class="dev-header-icon-btn" id="devUndoBtn" title="Undo (Ctrl+Z) - undoes any dev panel change back to the last Save">↶</button>
-                    <!-- Redo, direct request 2026-09-28 (ported from
-                         TEMPLATE_DEV_PANEL.html's own port-back of this
-                         mechanism) - Ctrl+Shift+Z / Ctrl+Y also trigger it,
-                         see setupDevPanelUndo(). -->
+                    <!-- Redo: Ctrl+Shift+Z / Ctrl+Y also trigger it (setupDevPanelUndo()). -->
                     <button class="dev-header-icon-btn" id="devRedoBtn" title="Redo (Ctrl+Shift+Z / Ctrl+Y)">↷</button>
                 </div>
                 <div class="dev-header-buttons-primary">
-                    <!-- Copy/Reset, relocated 2026-09-28 from the old
-                         standalone .dev-buttons row (now removed) into the
-                         header itself - same copySettings()/resetDevSettings()
-                         functions, just a 2nd/new entry point. -->
+                    <!-- Copy/Reset (copySettings()/resetDevSettings()). -->
                     <button class="dev-header-icon-btn" id="devHeaderCopyBtn" onclick="copySettings()" title="Copy Settings">📋</button>
                     <button class="dev-header-icon-btn" id="devHeaderResetBtn" onclick="resetDevSettings()" title="Reset">↺</button>
-                    <!-- Sync (Save), also in the header - per direct request
-                         ("add a Sync (save) button on the dev panel top label as
-                         well. Both buttns will exist"), so it's reachable without
-                         scrolling back up to the settings list. Calls the SAME
-                         saveSettings() the original SYNC button already did -
-                         not a separate/duplicate save path, just a 2nd entry
-                         point to it. -->
+                    <!-- Sync (Save) in the header - calls the same saveSettings(). -->
                     <button class="dev-header-icon-btn" id="devHeaderSyncBtn" onclick="saveSettings()" title="Sync (Save)">💾</button>
                     <button class="dev-collapse-btn" id="devCollapseBtn" onclick="toggleDevPanelCollapsed()">▁</button>
                     <button class="dev-hide-btn" onclick="devPanel.classList.add('hidden')">✕</button>
@@ -927,32 +808,19 @@
             <span id="saveSyncStatus" class="dev-save-sync-status"></span>
         </div>
 
-        <!-- Search (2026-09-17) - Ctrl+F-style finder for group/setting
-             names in the currently active tab, ported from DickoClicko/
-             TEMPLATE_DEV_PANEL.html. See setupDevSearch()'s own comment. -->
+        <!-- Search - Ctrl+F-style finder for group/setting names in the active
+             tab. See setupDevSearch(). -->
         <div class="dev-search-row">
             <input type="text" id="devSearchInput" class="dev-search-input" placeholder="Search..." autocomplete="off">
             <span class="dev-search-count" id="devSearchCount"></span>
         </div>
 
-        <!-- Named Setting States (Save/Use/Delete/Set as Default) - per
-             direct request, modeled on the Hando project's own preset
-             picker generalized to the whole panel's state - see
-             saveNamedDevPanelState()'s own comment for the full account.
-             Sits right under Copy/Sync/Reset per that same request.
-             Wrapped in a collapsible "Saved Dev Settings" group
-             (2026-09-14, direct request, also making this whole feature
-             mandatory standard scaffolding - CLAUDE.md §12d) - a single,
-             PANEL-LEVEL group (not tripled per tab, unlike Dev Panel/
-             Debug - a saved state snapshot covers the whole panel across
-             all 3 tabs at once). Deliberately NOT part of the per-tab
-             reorderable group system (setupDragReorder/section-order
-             persistence/drag-handle-injection are all scoped inside
-             #desktopTabContent etc. - this sits outside all 3, same level
-             as Copy/Sync/Reset and Text Edit Mode below) - just reuses
-             the plain .dev-section/-title/-content markup for its
-             collapse/expand behavior, since toggleSection() itself has no
-             dependency on where in the DOM its target lives. -->
+        <!-- Named Setting States (Save/Use/Delete/Set as Default) - see
+             saveNamedDevPanelState(). A single PANEL-LEVEL "Saved Dev
+             Settings" group (one snapshot covers all 3 tabs), deliberately
+             outside the per-tab reorderable group system (drag/order/handle
+             injection are scoped to #desktopTabContent etc.); reuses the
+             .dev-section markup only for toggleSection() collapse. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)">▼ Saved Dev Settings</div>
             <div class="dev-section-content">
@@ -967,16 +835,8 @@
             </div>
         </div>
 
-        <!-- Desktop/Mobile tabs - per CLAUDE.md Section 12f. Everything
-             below was previously one continuous scroll with a nested
-             "MOBILE OVERRIDES" collapsible mega-section; that inner content
-             is now its own top-level tab instead of a nested group. Every
-             existing setting keeps its already-established independent-per-
-             device status (these were all deliberately tuned differently
-             per device already, matching 12f's own "Claude judges it's
-             reasonably device-specific... especially size, position, and
-             speed-related settings" clause) - this restructuring changes
-             PRESENTATION only, not which settings are shared vs independent. -->
+        <!-- Desktop/Mobile/Landscape tabs. Each setting keeps its own
+             shared-vs-per-device status; tabs only change presentation. -->
         <div class="dev-tabs">
             <button class="dev-tab-btn active" id="devTabDesktopBtn" onclick="switchDevPanelTab('desktop')">Desktop</button>
             <button class="dev-tab-btn" id="devTabMobileBtn" onclick="switchDevPanelTab('mobile')">Mobile</button>
@@ -984,26 +844,11 @@
         </div>
 
         <div id="desktopTabContent">
-        <!-- Global dev-tool toggles (Click Counter, SVG flip, live-preview
-             checkboxes, Trigger Round Number Flash, debug lines, Text Edit
-             Mode) - per direct request ("I want to be able to place those
-             in groups, like a normal setting" / "the trigger round number
-             flash should also be able to placed in a group"). Previously
-             ONE shared copy sitting OUTSIDE all 3 tab-contents entirely
-             (a genuine architectural mismatch with the group-drag
-             mechanism, which is inherently per-tab - dragging one of these
-             into a group requires it to already be inside SOME tab's own
-             content, which it wasn't). Given each tab its own draggable
-             COPY here - per explicit follow-up clarification, the
-             UNDERLYING state/effect stays fully SHARED across all 3 (one
-             real game UI, not 3 separate per-device ones - these toggle
-             debug/preview behavior on that single shared UI, not anything
-             actually Desktop/Mobile/Landscape-specific), wired via
-             wireSyncedCheckboxGroup() so all 3 copies of a given control
-             always show the same checked state regardless of which was
-             just clicked. Still loose (not inside any .dev-section) here,
-             same as before - drag any of them into a real group like any
-             other setting. -->
+        <!-- Global dev-tool toggles (Click Counter, SVG flip, live previews,
+             Trigger Round Number Flash, debug lines). Each tab has its own
+             draggable COPY so they can be moved into groups (group drag is
+             per-tab), but the underlying state is SHARED: all 3 copies are
+             kept in sync by wireSyncedCheckboxGroup(). -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                 <input type="checkbox" id="checkboxClickCounter">
@@ -1055,16 +900,12 @@
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-        <!-- Text Edit Mode checkbox and "+ Add Group" button both moved into
-             the panel header (#devTextEditModeBtn/#devAddGroupBtn) -
-             2026-09-16, ported from TEMPLATE_DEV_PANEL.html. -->
+        <!-- Text Edit Mode and "+ Add Group" live in the panel header
+             (#devTextEditModeBtn/#devAddGroupBtn). -->
 
-        <!-- Built-in "Dev Panel" settings group - CLAUDE.md Section 12i.
-             Standing scaffolding, part of the panel itself, not per-project -
-             independent per tab (this copy only affects the panel's look
-             while the Desktop tab is selected; see the Mobile tab's own
-             copy). Font sizes/colors/opacity for the panel's own text, not
-             the game's. -->
+        <!-- Built-in "Dev Panel" settings group: the panel's own text/colors/
+             opacity, independent per tab (this copy applies while the
+             Desktop tab is selected). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
             <div class="dev-section-content">
@@ -1075,13 +916,10 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Main Button">▼ Main Button</div>
             <div class="dev-section-content">
-                <!-- Horizontal/Vertical Align + Edge Lock - per direct
-                     request. Same generic .dev-align-select/.dev-valign-
-                     select/.dev-edge-lock-checkbox markup + data-var
-                     convention every other aligned element uses (see e.g.
-                     High Score's own copy) - setupTextAlignSelects()/
-                     setupTextEdgeLockCheckboxes() wire these fully
-                     generically, no per-element JS needed. -->
+                <!-- Horizontal/Vertical Align + Edge Lock: generic .dev-align-select/
+                     .dev-valign-select/.dev-edge-lock-checkbox + data-var
+                     markup, wired generically by setupTextAlignSelects()/
+                     setupTextEdgeLockCheckboxes(). -->
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectButtonTextAlign" data-var="--button-text-align">
@@ -1142,40 +980,15 @@
                         <option value="luminosity">Luminosity</option>
                     </select>
                 </div>
-                <!-- Base and Button Light Levels split back into 2
-                     independent groups - per direct follow-up request
-                     ("give me a contrast and lightness slider for the base
-                     overall" + wanting the button's own Lose-state contrast/
-                     lightness separately tunable). REVERSES an earlier
-                     explicit request ("Base Light Levels should just be
-                     Light Levels. It should affect all svgs" - see
-                     applyLightLevels()'s own comment) that unified these -
-                     a deliberate, informed reversal this time, not an
-                     oversight. #baseGrayscaleTint and #buttonGrayscaleTint
-                     already had their own separate feFuncR/G/B filter
-                     primitives all along (just always driven by the same
-                     shared slider values until now) - see
-                     applyLightLevels()'s own updated comment. -->
-                <!-- Lose-only OVERRIDE for the button's own Contrast/Level
-                     (Floor/Ceiling stay the normal Button ones above) - per
-                     direct request ("provide me 2 sliders to control the
-                     button contrast and lightness at a lose"). Same
-                     lifecycle as the existing Win/Lose button tint color:
-                     active only while resultText carries .result-lose,
-                     reverts to the normal Button Light Levels above the
-                     moment the next round begins (applyGameplayResultColor(
-                     null), called from showTargetAndSpeed()). See that
-                     function's own updated comment. -->
-                <!-- Per direct request ("provide a checkbox that allows me
-                     to turn on the base changing color with the button on a
-                     win or lose") - the button's own tint already follows
-                     Win/Lose (see .game-container:has(#resultText.result-
-                     win/-lose)'s own CSS comment); this extends the SAME
-                     mechanism to the base layer too, gated behind this
-                     checkbox since (unlike the button) the base normally
-                     keeps its own static colorBase tint regardless of
-                     gameplay result. See the matching CSS rule's own
-                     comment for how the class this toggles is consumed. -->
+                <!-- Base and Button Light Levels are independent groups, driving
+                     #baseGrayscaleTint and #buttonGrayscaleTint's own
+                     feFuncR/G/B (see applyLightLevels()). -->
+                <!-- Lose-only override of the button's Contrast/Level (Floor/Ceiling
+                     stay the normal ones). Active only while resultText has
+                     .result-lose; reverts when the next round starts
+                     (applyGameplayResultColor(null) from showTargetAndSpeed()). -->
+                <!-- Base follows the button's Win/Lose tint - toggles the class consumed
+                     by the .base-follows-result-color CSS rule. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="checkboxBaseFollowsResultColor" checked onchange="document.querySelector('.game-container').classList.toggle('base-follows-result-color', this.checked); cssVars['--base-follows-result-color'] = this.checked ? 1 : 0; if (resultText.classList.contains('result-lose')) applyGameplayResultColor('lose');">
@@ -1188,11 +1001,8 @@
                         <span class="dev-label" style="min-width:auto;">Thin Base</span>
                     </label>
                 </div>
-                <!-- Per direct request - 4 independent checkboxes to hide
-                     each of the button assembly's own visual layers. Same
-                     shape as Thin Base above (a class toggled on
-                     #buttonAssembly, a cssVars flag for persistence) -
-                     see the matching CSS rules' own comment. -->
+                <!-- 4 checkboxes hiding each button-assembly layer: a class on
+                     #buttonAssembly plus a cssVars flag for persistence. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="checkboxHideButton" onchange="cssVars['--hide-button-enabled'] = this.checked ? 1 : 0; buttonAssembly.classList.toggle('hide-button', this.checked);">
@@ -1224,13 +1034,9 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Shadow">▼ Shadow</div>
             <div class="dev-section-content">
-                <!-- Replaces the previous 3 separate axis-locked stretch
-                     sliders (Y/X/45deg) with a single continuous-angle
-                     elongation, per explicit request. Angle 0 = vertical
-                     (Y-axis), 90 = horizontal (X-axis), matching CSS
-                     rotate()'s own rotation direction in between - see the
-                     comment on --shadow-elongation-angle in cssVars for the
-                     rotate/scaleY/rotate-back math. -->
+                <!-- Single continuous-angle elongation: 0 = vertical (Y), 90 =
+                     horizontal (X). See --shadow-elongation-angle in cssVars
+                     for the rotate/scaleY/rotate-back math. -->
             </div>
         </div>
 
@@ -1247,65 +1053,31 @@
                         <option value="CLICK4">Click 4</option>
                     </select>
                 </div>
-                <!-- A applies to the LEFT side only, B to the RIGHT only -
-                     per explicit request (previously both applied to both
-                     sides identically). Free-text position/range list, e.g.
-                     "0=>1, 3, -4=>-7" - position 0 is the topmost piece in
-                     that side's own top-to-bottom order, a negative
-                     position counts from the bottom instead (-1 = bottom-
-                     most), and "a=>b" is an inclusive range (either
-                     endpoint, either order). Comma-separates multiple
-                     terms. Mobile-split (see the Mobile Overrides section's
-                     own copies). Out-of-range positions are silently
-                     dropped rather than erroring - see
-                     parseHideShadowSpec()/resolveHideShadowPosition() in
-                     spawnClickBurstSide(). -->
-                <!-- Guide-curve angle filter, per side - 4 typed angles
-                     (not sliders, per explicit request). Per explicit
-                     clarification: these define which STRETCH of that
-                     side's guide curve qualifies as a spawn origin,
-                     measured as the angle from the button's own center to
-                     each point on the curve - a point outside [floor,
-                     ceiling] is never used as an origin, and flight
-                     direction then comes from each qualifying point's own
-                     radial position (not a separately-assigned zone angle).
-                     Own angle convention, DIFFERENT from the rest of this
-                     codebase: 0 = straight up, increasing CLOCKWISE - see
-                     isUserDegInAngleRange()/sampleClickRoutePiecesInAngleRange()
-                     in spawnClickBurstSide(). Now mobile-split (see the
-                     Mobile Overrides section's own copies), per explicit
-                     request - same for the Hide Shadow inputs above. -->
-                <!-- Final scale-down applied to the click-burst shadow
-                     containers (clickBurstShadowContainerRight/Left), AFTER
-                     every existing modifier in buildTransform() - the
-                     shared Shadow group's own X/Y/Rotate/Scale/Skew/
-                     Elongation sliders (which this ALSO affects, being the
-                     same containers) still run first and are completely
-                     unaffected; this just uniformly shrinks the end
-                     result. Per explicit request ("a scaling modifier
-                     after all the skewing/elongation/rotation modifiers...
-                     will come last and just make the shadow frames look
-                     smaller. The flight path etc will still be determined
-                     as they are now") - deliberately NOT part of the
-                     per-frame-set memory (CLICK_BURST_SCOPED_KEYS) since
-                     it's a shadow-LOOK setting, same category as the
-                     Shadow group's own sliders it's chained after, not a
-                     per-sprite-style tuning value like Frame Size/Distance/
-                     etc. above. Default 1 = no change from today's look. -->
+                <!-- Hide Shadow: A = LEFT side, B = RIGHT side. Free-text list, e.g.
+                     "0=>1, 3, -4=>-7": 0 = topmost piece on that side,
+                     negatives count from the bottom (-1 = bottom-most),
+                     "a=>b" is an inclusive range (any order). Mobile-split.
+                     Out-of-range positions are silently dropped - see
+                     parseHideShadowSpec()/resolveHideShadowPosition(). -->
+                <!-- Guide-curve angle filter per side (4 typed angles): only curve
+                     points whose angle from the button center is within
+                     [floor, ceiling] are spawn origins; flight direction
+                     comes from each point's radial position. OWN angle
+                     convention: 0 = straight up, increasing CLOCKWISE (see
+                     isUserDegInAngleRange()/sampleClickRoutePiecesInAngleRange()).
+                     Mobile-split. -->
+                <!-- Final uniform scale on the click-burst shadow containers, applied
+                     LAST in buildTransform() after the Shadow group's
+                     sliders; flight paths unaffected. Not in
+                     CLICK_BURST_SCOPED_KEYS (a shadow-look setting, not
+                     per-frame-set). Default 1 = no change. -->
             </div>
         </div>
 
-        <!-- 8-Bit Text Style Section - shared by Start, Try Again, and the
-             Win/Lose emoticons (Round/Target/Speed each now have their own
-             depth+colors, see their own sections): one font dropdown (also
-             shared by Target/Speed - every 8-bit-capable text uses the
-             same font, not mobile-split, like --click-frame-set), one
-             shared extrusion depth, and 2 shared colors (fill + border/
-             extrusion) - these 2 colors, the depth, and the Overall Border
-             settings below ARE mobile-split (see the Mobile Overrides
-             section's own "8-Bit Text Style" block and mobileExtrusionVars)
-             since font is the only piece that's genuinely a single,
-             page-wide stylistic choice. -->
+        <!-- 8-Bit Text Style - shared by Start, Try Again and the Win/Lose
+             emoticons. The font dropdown is page-wide (not mobile-split);
+             depth, fill/border colors and Overall Border ARE mobile-split
+             (see mobileExtrusionVars). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="8-Bit Text Style (Start/Try Again/Round/Win-Lose)">▼ 8-Bit Text Style (Start/Try Again/Round/Win-Lose)</div>
             <div class="dev-section-content">
@@ -1332,42 +1104,24 @@
             </div>
         </div>
 
-        <!-- Start/Try Again Button Section - this button used to be its own
-             boxed UI element with an independent position/size/color (the
-             old "UI Button" section); per explicit request it now has NO
-             box and is formatted exactly like Round Text's old "big" form
-             was - so it directly reuses these font-size/position/extrusion
-             sliders (previously Round Text's big-state controls) rather
-             than duplicating a parallel set. Split into its own group,
-             separate from Round Text, per explicit request. -->
+        <!-- Start/Try Again Button - no box; reuses the former Round Text
+             big-state font-size/position/extrusion sliders. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Start/Try Again Button" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
-                <!-- Reordered to match Target/Speed/Ms-per-click's own
-                     established field order (Font Size, Extrusion Depth,
-                     Text Color, Overall Border Thickness, Overall Border
-                     Color, X Offset, Y Offset, Letter Spacing, Text Align)
-                     - per explicit request that all text settings share
-                     one consistent order. Try Again's own fields (font-
-                     size/position/colors independent from Start's) follow
-                     the same relative pattern, then the "?" flash timing
-                     last. -->
+                <!-- Field order matches every text group (Font Size, Extrusion Depth,
+                     Text Color, Overall Border Thickness/Color, X/Y Offset,
+                     Letter Spacing, Text Align); Try Again's fields follow,
+                     then "?" flash timing. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTextScaleWithBrowser', '--text-scale-with-browser')">
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
                 </div>
-                <!-- Extrusion Depth/Border Thickness Scale With Browser -
-                     per direct request ("for every text object with a
-                     Border Thickness and Extrusion Depth slider, add a
-                     checkbox that sets if those values also scales with
-                     Browser"). A DISTINCT flag from the Font Size one
-                     above (that blends a separate px/vw slider pair; these
-                     2 sliders only ever store ONE px number each) - see
-                     applyExtrusionStyles()'s own comment on how the flag
-                     derives an effective px value from the current
-                     viewport instead. -->
+                <!-- Extrusion Depth/Border Thickness Scale With Browser - separate from
+                     the Font Size flag; these store one px value each, and
+                     applyExtrusionStyles() derives a viewport-scaled px. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundExtrusionScaleWithBrowser" data-css-var="--round-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundExtrusionScaleWithBrowser', '--round-extrusion-scale-with-browser')">
@@ -1392,9 +1146,7 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxStartTextValignEdgeLock" data-var="--start-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <!-- Try Again's own font-size/position/colors/depth/
-                     thickness - independent from Start's above, per
-                     explicit request. -->
+                <!-- Try Again's own settings, independent from Start's. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainTextScaleWithBrowser" data-css-var="--try-again-text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainTextScaleWithBrowser', '--try-again-text-scale-with-browser')">
@@ -1425,36 +1177,20 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxTryAgainTextValignEdgeLock" data-var="--try-again-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <!-- The "?" in "Try again?" blinks while that text is on
-                     screen - per explicit request. Shared/single, not
-                     mobile-split, like every other timing-only slider (Game
-                     Mechanics durations, Round Text's own blink-sequence
-                     sliders) - see startTryAgainFlash(). -->
+                <!-- "?" flash timing - shared, not mobile-split (see
+                     startTryAgainFlash()). -->
             </div>
         </div>
 
-        <!-- Rotation Animation Section - the "?" in "Try again?" used to
-             have 2 modes (flash: hide/show; rotate: a 2D scaleX flip) -
-             corrected 2026-09-14 per direct request ("Flashing is the
-             default and only option now. The previous ? rotating
-             animation is now defunct.") - the mode select, its tweening
-             select, and its extrusion-matches-glyph checkbox are removed;
-             flash (see startTryAgainFlash()) is the only behavior now.
-             This group's own data-sid is kept unchanged (still "Rotation
-             Animation") despite no longer being about rotation, since
-             that's the stable key this project's live saved dev-panel
-             state/ordering is keyed to - renaming it would orphan that
-             state, not just relabel a group. The "?" glyph's own size/
-             color/position controls below are unrelated to which mode was
-             selected and are kept as-is. -->
+        <!-- "Rotation Animation" group: flash (startTryAgainFlash()) is now the
+             only "?" behavior. data-sid stays "Rotation Animation" because
+             saved dev-panel state/ordering is keyed to it - renaming would
+             orphan that state. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
             <div class="dev-section-content">
-                <!-- The "?" glyph's own size/color/position - independent
-                     from the "Try again" text (which keeps its own separate
-                     controls up in Start/Try Again Button) - per explicit
-                     request. Device-specific (see the Mobile tab's own copy
-                     of just these 4, further down). -->
+                <!-- The "?" glyph's own size/color/position, independent from "Try
+                     again". Device-specific (Mobile tab has its own copy). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTryAgainQuestionMarkScaleWithBrowser" data-css-var="--try-again-question-mark-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTryAgainQuestionMarkScaleWithBrowser', '--try-again-question-mark-scale-with-browser')">
@@ -1488,20 +1224,12 @@
             </div>
         </div>
 
-        <!-- Round Text Section - split into its own group, separate from
-             the Start/Try Again button, per explicit request. Round Text no
-             longer has a big/animated state at all (see .game-text's CSS
-             and showRoundText()) - it always renders at its one permanent
-             look, even during the number-flash blink sequence. Font size
-             used to always match --speed-font-size-vw; now has its own
-             independent slider, per explicit request. -->
+        <!-- Round Text - always one permanent look (no big/animated state),
+             even while blinking; has its own font size slider. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Text" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
-                <!-- Reordered to match Target/Speed/Ms-per-click's own
-                     established field order, per explicit request that all
-                     text settings share one consistent order - the unique
-                     blink-sequence fields stay grouped at the end. -->
+                <!-- Standard text field order; blink-sequence fields last. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxRoundScaleWithBrowser', '--round-scale-with-browser')">
@@ -1532,23 +1260,14 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxRoundTextValignEdgeLock" data-var="--round-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <!-- Round-change blink sequence: the number blinks 3 times
-                     (hides, shows the OLD number, hides, shows the OLD
-                     number, hides) before the NEW number appears - each
-                     hide/show phase has its own duration, per explicit
-                     request for 3 disappearance sliders + 2 reappearance
-                     sliders. Replaces the earlier single Flash Duration
-                     slider (one hide->new-number swap) entirely - see
-                     runRoundBlinkSequence(). -->
+                <!-- Round-change blink: the number hides/shows the OLD number twice,
+                     then the NEW number appears; each phase has its own
+                     duration (see runRoundBlinkSequence()). -->
             </div>
         </div>
 
-        <!-- High Score Section - per direct request ("Add a Highscore
-             text with its own font settings like the others... make it
-             its own settings group. It should have color settings as
-             well as extrusion settings etc"), persisted via localStorage
-             (see loadHighScore()/checkHighScore()) - "local" specifically,
-             per direct clarification, not the git-tracked settings sync. -->
+        <!-- High Score - persisted via localStorage (loadHighScore()/
+             checkHighScore()), not the git-tracked settings sync. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreLabel">▼ High Score</div>
             <div class="dev-section-content">
@@ -1582,10 +1301,8 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxHighScoreTextValignEdgeLock" data-var="--high-score-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <!-- Per direct mid-turn request ("also provide a checkbox
-                     to hide the Highscore text") - same shape as the
-                     existing Hide Button/Base/Backing SVG/White SVG
-                     checkboxes (see their own CSS rule's comment). -->
+                <!-- Hide High Score checkbox (same shape as the Hide Button/Base
+                     checkboxes). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="checkboxHideHighScore" onchange="cssVars['--hide-high-score-enabled'] = this.checked ? 1 : 0; highScoreText.classList.toggle('hidden', this.checked);">
@@ -1595,19 +1312,12 @@
             </div>
         </div>
 
-        <!-- Win/Lose Text Section - font and extrusion depth are shared with
-             the rest of the 8-bit style (see that section above), and
-             size/position are its own like before, but fill/border color
-             are its OWN pair per side (win vs lose) rather than the shared
-             2-panel colors every other extruded text uses - explicit
-             request so a win can read differently from a loss. -->
+        <!-- Win/Lose Text - shared 8-bit font/depth, own size/position, and
+             its OWN fill/border colors per side (win vs lose). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
-                <!-- Reordered (Font Size, X/Y Offset, Text Align first,
-                     matching every other text section's own field order,
-                     then the unique Win/Lose colors) per explicit request
-                     that all text settings share one consistent order. -->
+                <!-- Standard text field order; Win/Lose colors last. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
@@ -1620,12 +1330,8 @@
                         <span class="dev-label" style="min-width:auto;">Scale With Browser</span>
                     </label>
                 </div>
-                <!-- One shared checkbox (not per Win/Lose) - Extrusion
-                     Depth/Border Thickness are already a single shared pair
-                     between Win and Lose (see resultDepth/
-                     resultOverallBorderThickness's own comment), unlike the
-                     2 Scale With Browser checkboxes above (Win/Lose each
-                     have their own independent FONT SIZE vw/px pair). -->
+                <!-- One shared checkbox: Extrusion Depth/Border Thickness are a single
+                     pair shared by Win and Lose (unlike their Font Size). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxResultExtrusionScaleWithBrowser" data-css-var="--result-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxResultExtrusionScaleWithBrowser', '--result-extrusion-scale-with-browser')">
@@ -1650,10 +1356,8 @@
                     </select>
                     <label class="dev-edge-lock-label"><input type="checkbox" class="dev-edge-lock-checkbox" id="checkboxResultTextValignEdgeLock" data-var="--result-text-valign-edge-lock">Edge Lock</label>
                 </div>
-                <!-- Target/Speed/Ms-per-click no longer disappear on win/
-                     lose - they tint instead, per explicit request. Shared
-                     across all 3 elements (not per-element), matching
-                     "Provide me 4 sliders" (not 12). -->
+                <!-- Target/Speed/Ms-per-click tint (not hide) on win/lose; shared
+                     across all 3 elements. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" id="checkboxGameplayResultFlashWithRound" checked onchange="cssVars['--gameplay-result-flash-with-round'] = this.checked ? 1 : 0">
@@ -1667,25 +1371,16 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
-                <!-- Scale With Browser reintroduced per direct request -
-                     the earlier WRAPPER-level one (see git history) went
-                     vestigial once Prefix/Number/Suffix each got their own
-                     independent px-only font-size and was removed. This is
-                     a different mechanism: ONE shared checkbox blends ALL
-                     3 parts' own new Font Size (vw) pair against their
-                     existing px value (same calc() shape as every other
-                     element's Scale With Browser - see each part's own
-                     CSS), not a revival of the old wrapper-level control. -->
+                <!-- ONE shared Scale With Browser checkbox blending all 3 parts' Font
+                     Size (vw) against their px values (same calc() shape as
+                     other elements). -->
                 <div class="dev-row">
                     <span class="dev-label">Scale With Browser:</span>
                     <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxTargetScaleWithBrowser', '--target-scale-with-browser')">
                 </div>
-                <!-- 3 independent checkboxes, not 1 shared - Prefix/Number/
-                     Suffix each have their OWN Extrusion Depth/Border
-                     Thickness (targetPrefixDepth/targetNumberDepth/
-                     targetSuffixDepth etc.), unlike the X/Y Offset unit
-                     toggle above (COMPOUND_OFFSET_CONTROLS) which is
-                     deliberately shared across all 3. -->
+                <!-- 3 independent checkboxes: each part has its own Extrusion Depth/
+                     Border Thickness (unlike the shared X/Y Offset unit
+                     toggle in COMPOUND_OFFSET_CONTROLS). -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxTargetPrefixExtrusionScaleWithBrowser" data-css-var="--target-prefix-extrusion-scale-with-browser" onchange="updateScaleWithBrowser('checkboxTargetPrefixExtrusionScaleWithBrowser', '--target-prefix-extrusion-scale-with-browser')">
@@ -1704,10 +1399,8 @@
                         <span class="dev-label" style="min-width:auto;">Suffix Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
-                <!-- Font dropdown removed - Target now shares the ONE
-                     8-Bit Text Style font (select8BitFont), per explicit
-                     request that every 8-bit-capable text share a single
-                     font control rather than each having its own. -->
+                <!-- No font dropdown: Target uses the shared 8-Bit Text Style font
+                     (select8BitFont). -->
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectTargetTextAlign" data-var="--target-text-align">
@@ -1766,9 +1459,8 @@
             </div>
         </div>
 
-        <!-- Ms Per Click Display Section - shows the raw per-click time
-             setting ("___ms / click") above the countdown, per explicit
-             request. Same shape as every other text display section. -->
+        <!-- Ms Per Click Display - per-click time ("___ms / click") above the
+             countdown. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
@@ -1809,29 +1501,18 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Game Mechanics">▼ Game Mechanics</div>
             <div class="dev-section-content">
-                <!-- Multiplier on Speed Decrease, compounded per round -
-                     100% = no decay (every round drops the same flat
-                     amount, the previous behavior); 50% means each round's
-                     drop is half of the round before it (not half of the
-                     base Speed Decrease value) - per explicit request/
-                     clarification. -->
-                <!-- Rounds the round's speed time to the nearest multiple of
-                     this value (e.g. 10 -> nearest 10ms) after the decay/
-                     jitter calculation, applied before the 100ms floor so the
-                     floor still holds exactly. 1 = no rounding (identity for
-                     integer ms), reproducing prior behavior exactly. -->
-                <!-- Rounds the live countdown display (.speed-display, ticking
-                     down every frame in tickRoundCountdown()) to the nearest
-                     multiple of this value - separate from Speed Time
-                     Rounding above, which rounds the per-round DECREASING
-                     max-time value, not the live display. 1 = no rounding. -->
-                <!-- Target Ceiling caps the same per-round random range Target
-                     Floor starts - previously a fixed +29 above the floor
-                     (Math.floor(Math.random()*29) + targetFloor); now the
-                     ceiling is independently configurable the same way the
-                     floor already is. Default 30 (base) / 0 (increase)
-                     reproduces the exact previous range (2 to 30 at round 1)
-                     until tuned. -->
+                <!-- Multiplier on Speed Decrease, compounded per round: 100% = no decay
+                     (flat drop), 50% = each round's drop is half the previous
+                     round's drop (not half the base value). -->
+                <!-- Rounds the round's speed time to the nearest multiple of this value
+                     after decay/jitter, before the 100ms floor (so the floor
+                     still holds). 1 = no rounding. -->
+                <!-- Rounds the live countdown display (tickRoundCountdown()) to the
+                     nearest multiple; separate from Speed Time Rounding,
+                     which rounds the per-round max time. 1 = no rounding. -->
+                <!-- Target Ceiling caps the per-round random range that Target Floor
+                     starts. Default 30 (base) / 0 (increase) reproduces the
+                     old fixed range (2 to 30 at round 1). -->
             </div>
         </div>
 
@@ -1842,13 +1523,11 @@
             </div>
         </div>
 
-        <!-- Round Breakdown Section - created as its own top-level group
-             here (config-array controls, per CLAUDE.md Section 12, can only
-             target a group that already exists in this page's static HTML);
-             nested under UI TEXT via a one-time sectionOrder edit in
-             data/processed/dev-panel-settings.json instead, the same way
-             applySectionOrder() already relocates any custom user-created
-             group on every load - see that function's own comment. -->
+        <!-- Round Breakdown - must exist as a top-level group in static HTML
+             (config-array controls can only target existing groups); it's
+             nested under UI TEXT via sectionOrder in
+             data/processed/dev-panel-settings.json, applied by
+             applySectionOrder() on load. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Breakdown">▼ ROUND BREAKDOWN</div>
             <div class="dev-section-content">
@@ -1856,15 +1535,11 @@
         </div>
         </div>
         <!-- ^ closes desktopTabContent. Game Mechanics/Background aren't
-             per-device (see the comment further down) so they only ever
-             appear under the Desktop tab, same as before this restructuring -
-             they were never duplicated into Mobile Overrides either. -->
+             per-device, so they appear only under the Desktop tab. -->
 
         <div id="mobileTabContent" class="hidden">
-        <!-- Mobile's own draggable copy of the global dev-tool toggles -
-             see the Desktop tab's own copy (in #desktopTabContent) for the
-             full comment. Same shared underlying state, wired together via
-             wireSyncedCheckboxGroup(). -->
+        <!-- Mobile's copy of the global dev-tool toggles (shared state via
+             wireSyncedCheckboxGroup()) - see the Desktop tab's copy. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                 <input type="checkbox" id="checkboxMobileClickCounter">
@@ -1916,19 +1591,12 @@
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-        <!-- Text Edit Mode checkbox and "+ Add Group" button both moved into
-             the panel header (#devTextEditModeBtn/#devAddGroupBtn) -
-             2026-09-16, ported from TEMPLATE_DEV_PANEL.html. -->
 
-        <!-- Same controls as the Desktop tab, but only take effect on a
-             mobile-width viewport (auto-detected via matchMedia, live -
-             resizing the browser or rotating a phone switches
-             automatically, no manual toggle). Lets layout/appearance be
-             tuned independently for mobile without disturbing the desktop
-             configuration. -->
-        <!-- Built-in "Dev Panel" settings group (Mobile tab's own copy) -
-             CLAUDE.md Section 12i. Only affects the panel's look while the
-             Mobile tab is selected - see the Desktop tab's own copy. -->
+        <!-- Same controls as Desktop, applied only on a mobile-width viewport
+             (live matchMedia detection; resizing/rotating switches
+             automatically). -->
+        <!-- Built-in "Dev Panel" group, Mobile tab copy (applies while the
+             Mobile tab is selected). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
             <div class="dev-section-content">
@@ -1967,37 +1635,28 @@
             </div>
         </div>
 
-        <!-- Click Burst Section (frame set itself is shared, not per-device -
-             see updateClickFrameSet()'s own note) -->
+        <!-- Click Burst Section (frame set is shared, not per-device - see
+             updateClickFrameSet()) -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Click Burst">▼ Click Burst</div>
             <div class="dev-section-content">
-                <!-- Mobile-split copies of Hide Shadow A/B and the 4 guide-
-                     curve angle inputs (see their own desktop-section
-                     comments) - per explicit request that mobile and
-                     desktop get independent values here. -->
+                <!-- Mobile-split Hide Shadow A/B and the 4 guide-curve angle inputs
+                     (see the desktop section). -->
             </div>
         </div>
 
-        <!-- 8-Bit Text Style Section - mobile counterpart. Font stays on
-             the single shared select8BitFont above (not duplicated here -
-             see the desktop section's own comment) - only depth/colors/
-             overall-border are mobile-split. -->
+        <!-- 8-Bit Text Style (Mobile) - font stays on the shared select8BitFont;
+             only depth/colors/overall border are mobile-split. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="8-Bit Text Style (Start/Try Again/Win-Lose)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
             <div class="dev-section-content">
             </div>
         </div>
 
-        <!-- Start/Try Again Button Section (Mobile) - see the desktop
-             section's own comment for the full explanation. Split into its
-             own group, separate from Round Text, per explicit request. -->
+        <!-- Start/Try Again Button Section (Mobile) - see the desktop section. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Start/Try Again Button" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
-                <!-- Reordered to match the desktop section's own established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileTextScaleWithBrowser', '--text-scale-with-browser')">
@@ -2061,10 +1720,9 @@
             </div>
         </div>
 
-        <!-- Rotation Animation Section (Mobile) - just the "?" glyph's own
-             device-specific size/color/position (see the Desktop tab's own
-             copy). Mode/Speed/Tweening/Min Width/Extrusion-Matches-Glyph
-             stay single/shared, controlled only from the Desktop tab. -->
+        <!-- Rotation Animation Section (Mobile) - only the "?" glyph's
+             device-specific size/color/position; everything else is
+             shared and set from the Desktop tab. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
             <div class="dev-section-content">
@@ -2101,15 +1759,10 @@
             </div>
         </div>
 
-        <!-- Round Text Section (Mobile) - split into its own group per
-             explicit request. Font size used to always match
-             --speed-font-size-vw; now has its own independent slider. -->
+        <!-- Round Text Section (Mobile) -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Text" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
-                <!-- Reordered to match the desktop section's own established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileRoundScaleWithBrowser', '--round-scale-with-browser')">
@@ -2143,9 +1796,8 @@
             </div>
         </div>
 
-        <!-- High Score Section (Mobile) - see the Desktop section's own
-             comment. No Hide checkbox here - that's single/shared,
-             declared once on Desktop only. -->
+        <!-- High Score Section (Mobile). No Hide checkbox (shared, Desktop
+             only). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreLabel">▼ High Score</div>
             <div class="dev-section-content">
@@ -2186,9 +1838,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
-                <!-- Reordered to match the desktop section's own established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
@@ -2232,11 +1881,7 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
-                <!-- Reordered to match every other text section's established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
-                <!-- Scale With Browser reintroduced - see Desktop tab's
-                     own comment on this exact re-add. -->
+                <!-- Shared Scale With Browser checkbox - see the Desktop tab. -->
                 <div class="dev-row">
                     <span class="dev-label">Scale With Browser:</span>
                     <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxMobileTargetScaleWithBrowser', '--target-scale-with-browser')">
@@ -2260,9 +1905,7 @@
                     </label>
                 </div>
 
-                <!-- Font dropdown removed - shares the ONE 8-Bit Text
-                     Style font (select8BitFont, not mobile-split), per
-                     explicit request. -->
+                <!-- No font dropdown - uses the shared select8BitFont. -->
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectMobileTargetTextAlign" data-var="--target-text-align">
@@ -2288,9 +1931,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Speed Display (max ms between taps)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
-                <!-- Reordered to match every other text section's established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileSpeedScaleWithBrowser" data-css-var="--speed-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileSpeedScaleWithBrowser', '--speed-scale-with-browser')">
@@ -2328,9 +1968,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
-                <!-- Reordered to match every other text section's established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxMobileMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxMobileMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
@@ -2364,30 +2001,23 @@
             </div>
         </div>
 
-        <!-- Round Breakdown Section (Mobile) - empty container so the
-             per-device X/Y/Width/Height/Outline Thickness/Font Size sliders
-             in MOBILE_UNIFORM_CONTROLS have somewhere to render; the shared
-             controls (On/Off, Font, colors, etc.) mirror in automatically
-             from the Desktop tab's copy - see this group's Desktop-tab
-             comment for the full account. -->
+        <!-- Round Breakdown Section (Mobile) - empty container where the
+             per-device MOBILE_UNIFORM_CONTROLS sliders render; shared
+             controls mirror in from the Desktop tab's copy. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Breakdown">▼ ROUND BREAKDOWN</div>
             <div class="dev-section-content">
             </div>
         </div>
 
-        <!-- Game Mechanics and Background Color are NOT per-device settings -
-             there's only one game in progress and one page background, not a
-             separate one per breakpoint - so unlike every visual section
-             above, they don't get a Mobile Overrides duplicate. See
+        <!-- Game Mechanics and Background Color are NOT per-device (one game,
+             one page background), so no Mobile copy. See
              applyGameMechanicsSlider() and the unconditional --bg-color line
              in applyActiveVars(). -->
         </div>
         <div id="landscapeTabContent" class="hidden">
-        <!-- Landscape's own draggable copy of the global dev-tool toggles -
-             see the Desktop tab's own copy (in #desktopTabContent) for the
-             full comment. Same shared underlying state, wired together via
-             wireSyncedCheckboxGroup(). -->
+        <!-- Landscape's copy of the global dev-tool toggles (shared state via
+             wireSyncedCheckboxGroup()) - see the Desktop tab's copy. -->
         <div class="dev-row">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                 <input type="checkbox" id="checkboxLandscapeClickCounter">
@@ -2439,19 +2069,11 @@
                 <span class="dev-label" style="min-width:auto;">Show Target/Ms-Click Top Debug Lines</span>
             </label>
         </div>
-        <!-- Text Edit Mode checkbox and "+ Add Group" button both moved into
-             the panel header (#devTextEditModeBtn/#devAddGroupBtn) -
-             2026-09-16, ported from TEMPLATE_DEV_PANEL.html. -->
 
-        <!-- Same controls as the Desktop tab, but only take effect on a
-             landscape-width viewport (auto-detected via matchMedia, live -
-             resizing the browser or rotating a phone switches
-             automatically, no manual toggle). Lets layout/appearance be
-             tuned independently for landscape without disturbing the desktop
-             configuration. -->
-        <!-- Built-in "Dev Panel" settings group (Landscape tab's own copy) -
-             CLAUDE.md Section 12i. Only affects the panel's look while the
-             Landscape tab is selected - see the Desktop tab's own copy. -->
+        <!-- Same controls as Desktop, applied only on a landscape viewport
+             (live matchMedia detection). -->
+        <!-- Built-in "Dev Panel" group, Landscape tab copy (applies while the
+             Landscape tab is selected). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Dev Panel">▼ Dev Panel</div>
             <div class="dev-section-content">
@@ -2490,22 +2112,18 @@
             </div>
         </div>
 
-        <!-- Click Burst Section (frame set itself is shared, not per-device -
-             see updateClickFrameSet()'s own note) -->
+        <!-- Click Burst Section (frame set is shared, not per-device - see
+             updateClickFrameSet()) -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Click Burst">▼ Click Burst</div>
             <div class="dev-section-content">
-                <!-- Landscape-split copies of Hide Shadow A/B and the 4 guide-
-                     curve angle inputs (see their own desktop-section
-                     comments) - per explicit request that landscape and
-                     desktop get independent values here. -->
+                <!-- Landscape-split Hide Shadow A/B and the 4 guide-curve angle inputs
+                     (see the desktop section). -->
             </div>
         </div>
 
-        <!-- 8-Bit Text Style Section - landscape counterpart. Font stays on
-             the single shared select8BitFont above (not duplicated here -
-             see the desktop section's own comment) - only depth/colors/
-             overall-border are landscape-split. -->
+        <!-- 8-Bit Text Style (Landscape) - font stays on the shared
+             select8BitFont; only depth/colors/overall border are split. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="8-Bit Text Style (Start/Try Again/Win-Lose)">▼ 8-Bit Text Style (Start/Try Again/Win-Lose)</div>
             <div class="dev-section-content">
@@ -2513,14 +2131,10 @@
         </div>
 
         <!-- Start/Try Again Button Section (Landscape) - see the desktop
-             section's own comment for the full explanation. Split into its
-             own group, separate from Round Text, per explicit request. -->
+             section. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Start/Try Again Button" data-text-edit-target="startButton">▼ Start/Try Again Button</div>
             <div class="dev-section-content">
-                <!-- Reordered to match the desktop section's own established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTextScaleWithBrowser" data-css-var="--text-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeTextScaleWithBrowser', '--text-scale-with-browser')">
@@ -2584,10 +2198,9 @@
             </div>
         </div>
 
-        <!-- Rotation Animation Section (Landscape) - just the "?" glyph's own
-             device-specific size/color/position (see the Desktop tab's own
-             copy). Mode/Speed/Tweening/Min Width/Extrusion-Matches-Glyph
-             stay single/shared, controlled only from the Desktop tab. -->
+        <!-- Rotation Animation Section (Landscape) - only the "?" glyph's
+             device-specific size/color/position; everything else is
+             shared and set from the Desktop tab. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Rotation Animation">▼ Rotation Animation</div>
             <div class="dev-section-content">
@@ -2624,15 +2237,10 @@
             </div>
         </div>
 
-        <!-- Round Text Section (Landscape) - split into its own group per
-             explicit request. Font size used to always match
-             --speed-font-size-vw; now has its own independent slider. -->
+        <!-- Round Text Section (Landscape) -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Text" data-text-edit-target="gameTextLabel">▼ Round Text</div>
             <div class="dev-section-content">
-                <!-- Reordered to match the desktop section's own established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeRoundScaleWithBrowser" data-css-var="--round-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeRoundScaleWithBrowser', '--round-scale-with-browser')">
@@ -2666,9 +2274,8 @@
             </div>
         </div>
 
-        <!-- High Score Section (Landscape) - see the Desktop section's own
-             comment. No Hide checkbox here - that's single/shared,
-             declared once on Desktop only. -->
+        <!-- High Score Section (Landscape). No Hide checkbox (shared, Desktop
+             only). -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="High Score" data-text-edit-target="highScoreLabel">▼ High Score</div>
             <div class="dev-section-content">
@@ -2709,9 +2316,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Win/Lose Text" data-text-edit-target="resultText">▼ Win/Lose Text</div>
             <div class="dev-section-content">
-                <!-- Reordered to match the desktop section's own established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeResultWinScaleWithBrowser" data-css-var="--result-win-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeResultWinScaleWithBrowser', '--result-win-scale-with-browser')">
@@ -2755,11 +2359,7 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Target Count Display" data-text-edit-target="targetCountPrefix">▼ Target Count Display</div>
             <div class="dev-section-content">
-                <!-- Reordered to match every other text section's established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
-                <!-- Scale With Browser reintroduced - see Desktop tab's
-                     own comment on this exact re-add. -->
+                <!-- Shared Scale With Browser checkbox - see the Desktop tab. -->
                 <div class="dev-row">
                     <span class="dev-label">Scale With Browser:</span>
                     <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeTargetScaleWithBrowser" data-css-var="--target-scale-with-browser" checked onchange="updateScaleWithBrowser('checkboxLandscapeTargetScaleWithBrowser', '--target-scale-with-browser')">
@@ -2782,9 +2382,7 @@
                         <span class="dev-label" style="min-width:auto;">Suffix Extrusion/Border Scale With Browser</span>
                     </label>
                 </div>
-                <!-- Font dropdown removed - shares the ONE 8-Bit Text
-                     Style font (select8BitFont, not landscape-split), per
-                     explicit request. -->
+                <!-- No font dropdown - uses the shared select8BitFont. -->
                 <div class="dev-row">
                     <span class="dev-label">Text Align:</span>
                     <select class="dev-select dev-align-select" id="selectLandscapeTargetTextAlign" data-var="--target-text-align">
@@ -2810,9 +2408,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Speed Display (max ms between taps)" data-text-edit-target="speedDisplay">▼ Speed Display (max ms between taps)</div>
             <div class="dev-section-content">
-                <!-- Reordered to match every other text section's established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeSpeedScaleWithBrowser" data-css-var="--speed-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeSpeedScaleWithBrowser', '--speed-scale-with-browser')">
@@ -2850,9 +2445,6 @@
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Ms/Click Display" data-text-edit-target="msPerClickDisplay">▼ Ms/Click Display</div>
             <div class="dev-section-content">
-                <!-- Reordered to match every other text section's established
-                     field order per explicit request that all text settings
-                     share one consistent order. -->
                 <div class="dev-row">
                     <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                         <input type="checkbox" class="dev-scale-with-browser-checkbox" id="checkboxLandscapeMsPerClickScaleWithBrowser" data-css-var="--ms-per-click-scale-with-browser" onchange="updateScaleWithBrowser('checkboxLandscapeMsPerClickScaleWithBrowser', '--ms-per-click-scale-with-browser')">
@@ -2886,22 +2478,17 @@
             </div>
         </div>
 
-        <!-- Round Breakdown Section (Landscape) - see the Desktop tab's own
-             copy of this group for the full comment. -->
+        <!-- Round Breakdown Section (Landscape) - see the Desktop tab's copy. -->
         <div class="dev-section">
             <div class="dev-section-title" onclick="toggleSection(this)" data-sid="Round Breakdown">▼ ROUND BREAKDOWN</div>
             <div class="dev-section-content">
             </div>
         </div>
 
-        <!-- Game Mechanics and Background Color are NOT per-device settings -
-             there's only one game in progress and one page background, not a
-             separate one per breakpoint - so unlike every visual section
-             above, they don't get a Landscape Overrides duplicate. See
-             applyGameMechanicsSlider() and the unconditional --bg-color line
-             in applyActiveVars(). -->
+        <!-- Game Mechanics and Background Color are NOT per-device, so no
+             Landscape copy. -->
         </div>
-        <!-- ^ closes mobileTabContent -->
+        <!-- ^ closes landscapeTabContent -->
         </div>
         <!-- ^ closes dev-panel-scroll-content -->
 
@@ -2924,110 +2511,58 @@
     <script src="src/js/07-init.js"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT (2026-09-20) - UI-Engine-driven preview rows for
-         EVERY layout-relevant High Score setting, per the UI-Engine adoption
-         evaluation (J:\CLAUDE\PROJECTS\HTML UI ENGINE). "Layout-relevant"
-         deliberately excludes Text/Border Color, Letter/Line Spacing,
-         Rotation, Flash Delay, Extrusion Depth, and Hide - all non-layout
-         styling/behavior, outside the engine's own designed boundary (see
-         docs/CHANGELOG.txt's Stage 2 entries for the full reasoning). This
-         block is 100% ADDITIVE: it does not modify COMPOUND_OFFSET_CONTROLS,
-         buildCompoundOffsetRow, renderCompoundOffsetControls, or any of the
-         existing High Score controls/handlers - it only appends new,
-         separate rows into the same "High Score" group, reading/writing the
-         SAME real CSS vars so nothing ever becomes a second source of truth.
-         REVERSIBLE: delete this <script type="module"> block and the
-         lib/ui-engine/ folder to remove every trace. Nothing else in this
-         file references either.
+         STAGE 2 EXPERIMENT - UI-Engine-driven preview rows for each
+         layout-relevant High Score setting (colors, spacing, rotation,
+         flash, depth and Hide are out of the engine's scope). ADDITIVE:
+         appends separate rows to the "High Score" group that read/write the
+         SAME real CSS vars, without modifying COMPOUND_OFFSET_CONTROLS or
+         existing controls. REVERSIBLE: delete this module block and
+         lib/ui-engine/; nothing else references them.
     ============================================================ -->
     <script type="module" src="src/js/stage2/01-high-score.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT, BATCH 2 (2026-09-20) - the same engine-driven
-         pattern as High Score's own block above, generalized into one
-         reusable function and applied to Start/Try Again Button, Round
-         Text, Speed (Countdown Timer) Display, and Ms/Click Display - all 4
-         share High Score's exact "anchor + offset, X/Y/FontSize/Align/
-         Valign/EdgeLock" shape. Target Count Display and Round Breakdown
-         are handled in their own, separate blocks further below since they
-         genuinely don't fit this shape (Target uses relative-anchor
-         chaining; Round Breakdown is a dragged/resized panel, not a plain
-         anchored text element). Same additive/reversible/read-existing-
-         write-existing-cssVars discipline as every Stage 2 block before it.
+         STAGE 2, BATCH 2 - the High Score pattern as one reusable function,
+         applied to Start/Try Again, Round Text, Speed Display and Ms/Click
+         Display (all "anchor + offset, X/Y/FontSize/Align/Valign/EdgeLock").
+         Target Count and Round Breakdown have their own blocks below. Same
+         additive/reversible, existing-cssVars-only discipline.
     ============================================================ -->
     <script type="module" src="src/js/stage2/02-text-elements.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT, ROUND BREAKDOWN (2026-09-20) - FONT SIZE ONLY.
-         Round Breakdown is a dragged/resized PANEL (own width/height, own
-         JS-computed drag position via applyRoundBreakdownPosition(), 2-value
-         Align 'left'/'right' and Valign 'top'/'bottom' only, no 'center') -
-         genuinely a different position/size mechanism from every other
-         Stage 2 element so far, not the same "anchor + offset text" shape -
-         so its Width/Height/Align/Valign/Edge Lock are explicitly OUT OF
-         SCOPE for this pass, left completely untouched. Its 2 font-size
-         settings (Title/Data) DO fit the blended-length mechanism, but with
-         a genuinely different real formula than every other element's -
-         a single authored PX number with the "vw-equivalent" DERIVED from
-         it (pxValue / scaleRefPx * 100), not 2 independently authored
-         numbers - a 3rd real variant of Scale With Browser, ported here
-         by computing that same derived ratio before handing it to the
-         engine's blended-length shape.
+         STAGE 2, ROUND BREAKDOWN - FONT SIZE ONLY (position/size are a
+         separate block below). Its Title/Data Scale With Browser uses a
+         different formula: one authored px value with the vw-equivalent
+         DERIVED (pxValue / scaleRefPx * 100), computed here before handing
+         it to the engine's blended-length shape.
     ============================================================ -->
     <script type="module" src="src/js/stage2/03-round-breakdown-font.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT, TARGET COUNT DISPLAY (2026-09-20) - the most
-         structurally different element ported so far. 3 real DOM parts
-         (Prefix/Number/Suffix), NOT 3 independent plain-anchor elements:
-         - Number: plain anchor+offset, same shape as every other element.
-         - Suffix: BOTH axes anchored to Number's own live right/bottom edge
-           (relative mode) - the actual real-world showcase of v0.2.4's
-           per-axis gap fix (Stage 1 test #3 proved this exact relation
-           against real numbers: -21.6px X, -54.09px Y, 2 different
-           magnitudes, which a single scalar gap could never represent).
-         - Prefix: a genuine HYBRID this schema cannot express as ONE
-           element - X is independent (anchored to viewport center, same as
-           any plain offset), Y is relative to Number's bottom edge. Since
-           position.mode is one value per element, this is represented here
-           as 2 SEPARATE logical engine registrations (stage2TargetPrefixX
-           in anchor mode, stage2TargetPrefixY in relative mode) - neither
-           has a domNode, so nothing stops 2 logical elements backing one
-           real DOM node's 2 axes, but this is a real, disclosed limitation
-           worth reporting, not a clean 1:1 port.
-         Deliberately excluded: Text Align/Edge Lock - Target's own Edge
-         Lock checkbox exists in the markup but was explicitly excluded from
-         the position-preserving generalization (per the original Edge Lock
-         fix's own CHANGELOG entry, "Target... bespoke multi-element/multi-
-         offset position system this generic conversion isn't safe to apply
-         to blindly") and Suffix/Prefix-Y's real base is overridden by the
-         live-tracked edge anyway, making Edge Lock's normal meaning moot
-         for those axes. Target's own Target Count UI is hidden until a
-         Target-mode round is actually active (start the game, may take a
-         few rounds to land on Target mode) - the rows still register and
-         are testable via dispatched events regardless of visibility.
+         STAGE 2, TARGET COUNT DISPLAY - 3 DOM parts:
+         - Number: plain anchor+offset.
+         - Suffix: both axes relative to Number's live right/bottom edge
+           (uses the engine's per-axis gap).
+         - Prefix: a HYBRID one element can't express (position.mode is
+           per element): X anchored to viewport center, Y relative to
+           Number's bottom. Represented as 2 logical registrations
+           (stage2TargetPrefixX anchor, stage2TargetPrefixY relative) -
+           a known limitation, not a clean 1:1 port.
+         Text Align/Edge Lock excluded (Target's position system is
+         bespoke). Target UI is hidden until a Target-mode round is active;
+         rows still register and respond to dispatched events.
     ============================================================ -->
     <script type="module" src="src/js/stage2/04-target-count.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT - REAL INSPECTOR MOUNT (2026-09-20). Directly
-         answers "can I change position.mode (anchor/relative/fixed/
-         absolute) from the dev panel, without a Claude chat every time" -
-         yes, via the engine's own generic mountInspector(), not a hand-
-         rolled mode-switcher row. Lists every element registered by every
-         Stage 2 block above (listElements()) - pick one from the dropdown,
-         edit any field, or use its own "Mode" select (auto-rendered per
-         canonical group) to switch position.mode/size.<axis>.mode live.
-         NOTE: this Inspector edits the ENGINE's own stored config - it does
-         NOT automatically write back into Clicko's cssVars/game visuals
-         (no domNode is attached to any Stage 2 element, and value-writeback
-         was intentionally hand-wired per-row in every earlier Stage 2 block,
-         not generically). Use it to explore/verify the engine's real
-         behavior (including mode switching) - for a change to actually show
-         up in the game, still use the per-element rows already built, or
-         ask for a specific setting's writeback to be wired up the same way.
-         REVERSIBLE: delete this block, the matching <style> block above,
-         and the toggle button - nothing else references any of it.
+         STAGE 2 - REAL INSPECTOR MOUNT. The engine's generic
+         mountInspector() lists every registered Stage 2 element
+         (listElements()) and can switch position.mode/size.<axis>.mode
+         live. It edits the ENGINE's stored config; writing back to
+         Clicko's cssVars is handled by the Inspector Writeback block
+         below. REVERSIBLE: delete this block, its <style> block and the
+         toggle button.
     ============================================================ -->
     <div id="stage2InspectorPanel">
         <div class="dev-panel-resize-edge edge-top" id="stage2InspectorResizeTop"></div>
@@ -3039,80 +2574,44 @@
         <div class="dev-panel-resize-corner corner-bl" id="stage2InspectorResizeBL"></div>
         <div class="dev-panel-resize-corner corner-br" id="stage2InspectorResizeBR"></div>
         <div id="stage2InspectorHeader"><h1>UI-ENGINE INSPECTOR (Stage 2)</h1></div>
-        <!-- Object/Property grouping (2026-09-20) is now NATIVE to the
-             vendored Inspector itself (ui-layout-engine v0.2.5's
-             group/propertyLabel registration metadata) - buildElementSelect()
-             renders the 2-level SELECT OBJECT / SELECT PROPERTY cascade
-             directly as part of #stage2InspectorMount's own content. The
-             earlier host-side stopgap (a 2nd pair of <select> elements
-             outside this mount point, driving the vendored raw select via a
-             synthetic 'change' event, plus a hand-maintained
-             STAGE2_ELEMENT_GROUPS lookup table) has been removed - every
-             createUIElement() call below now passes group/propertyLabel
-             directly instead. -->
+        <!-- Object/Property grouping is native to the vendored Inspector
+             (v0.2.5 group/propertyLabel metadata): buildElementSelect()
+             renders the 2-level SELECT OBJECT / SELECT PROPERTY cascade.
+             Every createUIElement() call passes group/propertyLabel. -->
         <div id="stage2InspectorMount"></div>
     </div>
     <button id="stage2InspectorToggleBtn">Inspector</button>
     <script type="module" src="src/js/stage2/05-inspector.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT, MAIN BUTTON (2026-09-20) - X/Y position (same
-         anchor+offset shape as every text element, but base is ALWAYS
-         'center' - Button has no align dropdown, no edge lock, confirmed
-         via its own real CSS: left: calc(50% + sign*offset*unit), base
-         never varies) - plus Diameter via the engine's `clamp` SIZE mode,
-         a genuinely different mechanism from blended-length: Button's real
-         formula is width: max(minDiameterPx, diameterVw-as-vmin), a floor
-         with no ceiling, not a blend - clamp(min, preferred, max) with an
-         effectively-infinite max reproduces max(min, preferred) exactly.
-         Explicitly excludes every other Main Button setting (lighting,
-         contrast, saturation, press timing) - non-layout, confirmed by
-         direct survey before this block was written, see chat/CHANGELOG.
+         STAGE 2, MAIN BUTTON - X/Y position (anchor+offset, base always
+         center: no align or edge lock) plus Diameter via the engine's
+         `clamp` SIZE mode: the real formula max(minDiameterPx, diameter
+         as vmin) is a floor with no ceiling, so clamp() with an effectively
+         infinite max reproduces it exactly. Other Main Button settings
+         (lighting, contrast, saturation, press timing) are non-layout.
     ============================================================ -->
     <script type="module" src="src/js/stage2/06-main-button.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT, ROUND BREAKDOWN POSITION/SIZE (2026-09-20) -
-         extends the earlier Round Breakdown block (font size only) with its
-         X/Y position and Width/Height, per direct request that these DO
-         qualify (real left/top/width/height, just JS-computed for drag
-         support - see applyRoundBreakdownPosition(), read directly before
-         writing this). anchorH is 'right' only when align='right' AND
-         horizontal edge-lock is on (then left = innerWidth-width-offsetX,
-         mathematically identical to CSS `right: offsetX`) - otherwise
-         ALWAYS 'left' (Round Breakdown has no proportional/center base like
-         the text elements; it's a binary left-edge-or-right-edge panel).
-         Same mirrors-the-real-edge-lock-checkbox pattern as every other
-         Stage 2 element's Edge Lock. Writing a new value calls
-         applyRoundBreakdownPosition() (not applyActiveVars() alone) since
-         that's the function that actually reads these cssVars and sets the
-         panel's real inline left/top/width/height.
+         STAGE 2, ROUND BREAKDOWN POSITION/SIZE - X/Y and Width/Height.
+         anchorH is 'right' only when align='right' AND horizontal edge
+         lock is on (left = innerWidth - width - offsetX, same as CSS
+         right: offsetX); otherwise always 'left' (no center base). Writes
+         call applyRoundBreakdownPosition() (not just applyActiveVars()),
+         since that sets the panel's real inline left/top/width/height.
     ============================================================ -->
     <script type="module" src="src/js/stage2/07-round-breakdown-position.mjs"></script>
 
     <!-- ============================================================
-         STAGE 2 EXPERIMENT, INSPECTOR WRITEBACK (2026-09-20) - per direct
-         follow-up: an edit made through the Inspector panel (mode switches,
-         relativeTo/myAnchor/targetAnchor, or any raw field edit) previously
-         lived ONLY in the engine's own in-memory config - invisible to
-         Save/Sync (buildSettingsSnapshot() only ever serializes cssVars and
-         a fixed list of other pre-existing objects, confirmed by reading it
-         directly - it has no knowledge lib/ui-engine/ even exists). This
-         block closes that gap GENERICALLY, without modifying inspector.mjs
-         (a vendored file) at all: a MutationObserver on the Inspector's own
-         mount point fires on every edit (confirmed via inspector.mjs's own
-         render(), which replaces mountedRoot.innerHTML on every single
-         change - so observing that subtree is a fully generic "something
-         changed" signal), and on each firing, a mapping table (every Stage
-         2 element+field this session has ever registered -> its real
-         Clicko cssVar) reads the CURRENT effective value and writes it
-         back. This is the SAME mapping knowledge already embedded in every
-         earlier row's own listener, consolidated here as a catch-all for
-         edits that bypass those rows entirely (i.e., made via the
-         Inspector directly). Existing rows are completely unaffected -
-         this is purely additive, runs independently, and a value it writes
-         is indistinguishable from one written by a row, per the same
-         "same cssVars key either way" reasoning already established.
+         STAGE 2, INSPECTOR WRITEBACK - Inspector edits otherwise live only
+         in the engine's in-memory config, invisible to Save/Sync
+         (buildSettingsSnapshot() only serializes cssVars and a fixed list
+         of objects). Without modifying the vendored inspector.mjs: a
+         MutationObserver on the Inspector mount (its render() replaces
+         innerHTML on every change) triggers a mapping table (Stage 2
+         element+field -> Clicko cssVar) that writes the current effective
+         value back. Purely additive; existing rows are unaffected.
     ============================================================ -->
     <script type="module" src="src/js/stage2/08-engine-sync.mjs"></script>
 </body>

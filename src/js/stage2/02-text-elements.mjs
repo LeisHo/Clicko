@@ -125,10 +125,8 @@ function registerStage2TextElement(cfg) {
         if (realSelect) realSelect.value = resolvedAnchor;
     });
 
-    // Edge Lock mirroring (both axes) - same reasoning as High
-    // Score's own block: listens to the REAL checkboxes, mirrors
-    // Clicko's own already-recomputed state, never reimplements the
-    // position-preserving math itself.
+    // Edge Lock mirroring: mirrors Clicko's already-recomputed state from the REAL checkboxes;
+    // never reimplements the position-preserving math (see High Score).
     function mirrorEdgeLockToEngine(axis) {
         const locked = axis === 'x' ? document.getElementById(cfg.realAlignLockId).checked : document.getElementById(cfg.realValignLockId).checked;
         const align = cssVars[cfg.alignVar] || 'center';
@@ -149,40 +147,17 @@ function registerStage2TextElement(cfg) {
             document.getElementById('valueStage2' + cfg.key + 'Y').textContent = parseFloat(r);
         }
     }
-    // Null-guarded (2026-09-20 fix, see the matching Round
-    // Breakdown block's own note for the full root-cause account):
-    // these real checkboxes are part of the LAZY dev-panel build -
-    // for a non-dev visitor they don't exist, and an unguarded call
-    // here threw INSIDE this module's top-level synchronous run,
-    // which could leave later code in this same script block
-    // (nothing currently follows this in this particular block, but
-    // a future edit could add some) un-executed.
+    // Null-guarded: these checkboxes come from the lazy dev-panel build and don't exist for a
+    // non-dev visitor; an unguarded call would throw and abort the module's top-level run.
     const realAlignLockEl = document.getElementById(cfg.realAlignLockId);
     const realValignLockEl = document.getElementById(cfg.realValignLockId);
     if (realAlignLockEl) realAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
     if (realValignLockEl) realValignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('y'));
 
-    // Size (v0.2.6 engine re-vendor) - per direct request ("For all
-    // objects, I want X and Y and size properties to be available,
-    // even if they arent currently being used"). No real Clicko
-    // mechanism controls a plain text element's own box width/
-    // height independently of its Font Size (text elements here
-    // size to their own content, not an authored box) - registered
-    // as `mode: 'content'` (the engine's own "size to content"
-    // default, matching what every one of these elements already
-    // does visually) specifically so the property is discoverable
-    // and available, honestly inert rather than pretending a real
-    // writeback exists. Note this is NOT the same thing as X/Y
-    // being split into their own separate properties - the
-    // engine's anchor/fixed position modes require anchorH+anchorV+
-    // offsetX+offsetY together as one schema unit (MODE_SCHEMA),
-    // so a genuinely independent "X" or "Y" property isn't
-    // representable without a new engine capability; the existing
-    // "Position / Align" property already carries both X and Y
-    // together (confirmed live - offsetY renders and resolves
-    // correctly), and #4's conditional-visibility fix is what
-    // actually addressed the "Target Number is missing Y" report
-    // (a discoverability/decluttering issue, not a missing field).
+    // Size: registered so the property exists in the Inspector, but inert - text elements size
+    // to content and no Clicko var controls their box, so `mode: 'content'` with no writeback.
+    // X/Y can't be separate properties: anchor/fixed modes need anchorH+anchorV+offsetX+offsetY
+    // as one schema unit (MODE_SCHEMA), so both live in "Position / Align".
     createUIElement({
         id: 'stage2' + cfg.key + 'Size', role: 'text',
         group: cfg.stage2Group, propertyLabel: 'Size',
@@ -193,23 +168,8 @@ function registerStage2TextElement(cfg) {
     });
 }
 
-// 'Start' was previously labeled stage2Group: 'Start/Try Again
-// Button' even though it only ever wired Start's OWN vars
-// (--start-text-*, --text-*) - Try Again has its own fully
-// independent set (--try-again-text-*) and was never registered at
-// all, so the Inspector showed one combined "Start/Try Again
-// Button" object that only ever edited Start. Direct report: "Start
-// and Try again are grouped as 1 object, they are 2 separate
-// objects with their own properties." Renamed this one to plain
-// 'Start' and added a real 'Try Again' registration below, using
-// the same registerStage2TextElement() shape (Try Again's own
-// position/align/valign/edge-lock/font-size CSS is structurally
-// identical to Start's, just a fully separate set of cssVars/real
-// dev-panel controls - see .start-button.try-again-state's own CSS
-// comment). Both still target the SAME real dev-panel group
-// ('Start/Try Again Button', via groupName) since that's genuinely
-// one shared dev-panel section - only the Inspector's own object
-// label (stage2Group) is split.
+// Start and Try Again are separate Inspector objects (each has its own full var set:
+// --text-*/--start-text-* vs --try-again-text-*) but share one real dev-panel group (groupName).
 registerStage2TextElement({
     key: 'Start', groupName: 'Start/Try Again Button', stage2Group: 'Start',
     xVar: '--text-x-offset-vw', yVar: '--text-y-offset-vh',
@@ -232,19 +192,9 @@ registerStage2TextElement({
     realAlignLockId: 'checkboxTryAgainTextAlignEdgeLock', realValignLockId: 'checkboxTryAgainTextValignEdgeLock',
 });
 
-// The "?" that flashes alongside Try Again - its own separate
-// element (#startButtonFlashChar/startButtonFlashCharExtrusion),
-// own dev-panel group (oddly named "Rotation Animation" - a legacy
-// name from when this used to be a rotating animation instead of a
-// flash, per that feature's own history), own full position/align/
-// valign/edge-lock/font-size set (--try-again-question-mark-*).
-// Direct report: "The '?' that appears along Try Again is missing
-// as well." Its real Y offset formula stacks on top of Try Again's
-// own Y position (see .start-button.try-again-state's own CSS
-// "parent-y" terms) - irrelevant here, since this registration only
-// mirrors the "?" mark's OWN offset var/slider, exactly like every
-// other Stage 2 element mirrors its own slider without re-deriving
-// Clicko's underlying position formula.
+// The "?" flashing beside Try Again (#startButtonFlashChar). Its dev-panel group is named
+// "Rotation Animation" (legacy name). Its CSS Y stacks on Try Again's Y; this only mirrors
+// the "?" mark's own offset var.
 registerStage2TextElement({
     key: 'TryAgainQuestionMark', groupName: 'Rotation Animation', stage2Group: 'Try Again "?"',
     xVar: '--try-again-question-mark-x-offset-vw', yVar: '--try-again-question-mark-y-offset-vh',
@@ -256,20 +206,9 @@ registerStage2TextElement({
     realAlignLockId: 'checkboxTryAgainQuestionMarkTextAlignEdgeLock', realValignLockId: 'checkboxTryAgainQuestionMarkTextValignEdgeLock',
 });
 
-// Win and Lose - direct report: "Win and Lose are missing. Those
-// are 2 separate objects." Both render through the SAME shared
-// #resultText element (a class toggle, .result-win/.result-lose,
-// same "one shared DOM node, two CSS states" pattern as Start/Try
-// Again sharing #startButton) and SHARE one Align/Valign/Edge-Lock
-// setting (--result-text-align/-valign - Result "splits Win/Lose
-// into 2 independent offset vars driven by one align var", per
-// preserveVisualPositionOnLockToggle()'s own comment) - but each
-// has its own independent X/Y offset and Font Size, so each still
-// gets its own Stage 2 object/registration. Passing the same
-// shared alignVar/valignVar/lock vars/real select+checkbox ids to
-// both calls is intentional, not a copy-paste mistake - editing
-// either object's Align/Valign in the Inspector correctly affects
-// both Win and Lose, matching their real shared behavior.
+// Win and Lose both render via #resultText (.result-win/.result-lose) with independent X/Y
+// and Font Size but ONE shared Align/Valign/Edge-Lock set. Passing the same align/lock vars
+// and real ids to both calls is intentional: editing either affects both, as in Clicko.
 registerStage2TextElement({
     key: 'Win', groupName: 'Win/Lose Text', stage2Group: 'Win',
     xVar: '--result-win-x-offset-vw', yVar: '--result-win-y-offset-vh',

@@ -19,8 +19,7 @@ if (!targetContent) {
         if (valEl) valEl.textContent = value;
     }
 
-    // ---- Number (plain anchor + offset, same shape as every
-    // other Stage 2 element) ----
+    // ---- Number (plain anchor + offset) ----
     const numXUnit = cssVars['--target-x-offset-unit-is-px'] ? 'px' : 'vw';
     const numYUnit = cssVars['--target-y-offset-unit-is-px'] ? 'px' : 'vh';
     const initNumX = Number(cssVars['--target-number-x-offset-vw']) || 0;
@@ -80,8 +79,7 @@ if (!targetContent) {
     }
     registerTargetFontSize('Number', '--target-number-font-size-px', '--target-number-font-size-vw', 'sliderTargetNumberFontSizeVw', 'Target Number');
 
-    // ---- Suffix (BOTH axes relative to Number's live edges -
-    // the real per-axis-gap showcase) ----
+    // ---- Suffix (both axes relative to Number's edges, per-axis gap) ----
     const initSuffixX = Number(cssVars['--target-suffix-x-offset-vw']) || 0;
     const initSuffixY = Number(cssVars['--target-suffix-y-offset-vh']) || 0;
     createUIElement({
@@ -113,9 +111,8 @@ if (!targetContent) {
     });
     registerTargetFontSize('Suffix', '--target-suffix-font-size-px', '--target-suffix-font-size-vw', 'sliderTargetSuffixFontSizeVw', 'Target Suffix');
 
-    // ---- Prefix (HYBRID - X independent/anchor, Y relative to
-    // Number's bottom edge - 2 separate logical registrations,
-    // see this block's own header comment) ----
+    // ---- Prefix (hybrid: X is anchor-mode, Y is relative to Number's bottom edge, so it
+    // needs 2 separate registrations) ----
     const initPrefixX = Number(cssVars['--target-prefix-x-offset-vw']) || 0;
     const initPrefixY = Number(cssVars['--target-prefix-y-offset-vh']) || 0;
     createUIElement({
@@ -150,10 +147,8 @@ if (!targetContent) {
     });
     registerTargetFontSize('Prefix', '--target-prefix-font-size-px', '--target-prefix-font-size-vw', 'sliderTargetPrefixFontSizeVw', 'Target Prefix');
 
-    // Size - see registerStage2TextElement()'s own matching comment
-    // (added the same session, same reasoning) for why this is an
-    // honestly-inert `mode: 'content'` registration rather than a
-    // real writeback, made available on all 3 Target parts.
+    // Size: inert `mode: 'content'` registration on all 3 Target parts (no real writeback) -
+    // see registerStage2TextElement().
     function registerTargetSize(key, groupName) {
         createUIElement({
             id: 'stage2Target' + key + 'Size', role: 'text',

@@ -62,21 +62,10 @@ if (!rbPosContent) {
         syncReal('sliderRoundBreakdownY', resolvedNum);
     });
 
-    // Gap X/Y (2026-09-23) - real relative-mode counterpart to the
-    // X/Y Offset sliders above, per direct request: "When i change
-    // the anchor settings to relative, i still want the xy offset
-    // sliders to choose the gap." Shown instead of the plain
-    // Offset sliders whenever the Inspector's own Mode is switched
-    // to 'relative' (STAGE2_MODE_ROW_MAP's own relative entry,
-    // added in the sync module below) - same toggle mechanism
-    // Target Suffix/Prefix-Y already use for their own anchor-vs-
-    // relative slider pairs. Writes directly into
-    // stage2EngineOverrides (the actual source stage2ApplyRound
-    // BreakdownRelativePosition() reads, see its own comment) as
-    // well as the live engine element (updateElement) so the
-    // Inspector's own displayed gap value stays correct if
-    // reselected - no separate cssVar needed since
-    // stage2EngineOverrides is already included in Save/Sync.
+    // Gap X/Y: relative-mode counterpart to the Offset sliders, swapped in when the Inspector
+    // Mode is 'relative' (STAGE2_MODE_ROW_MAP). Writes stage2EngineOverrides (what
+    // stage2ApplyRoundBreakdownRelativePosition() reads; already in Save/Sync, so no cssVar)
+    // plus the live engine element so the Inspector shows the current gap.
     function currentRbGap() {
         const saved = stage2EngineOverrides['stage2RoundBreakdownX'];
         const gap = (saved && saved.position && typeof saved.position.gap === 'object') ? saved.position.gap : {};
@@ -137,8 +126,8 @@ if (!rbPosContent) {
         syncReal('sliderRoundBreakdownHeight', resolvedNum);
     });
 
-    // Edge Lock mirroring (both axes) - same reasoning as every
-    // other Stage 2 element.
+    // Edge Lock mirroring (both axes). Round Breakdown only anchors right/bottom when locked;
+    // otherwise left/top.
     function mirrorEdgeLockToEngine(axis) {
         const align = cssVars['--round-breakdown-align'] || 'left';
         const valign = cssVars['--round-breakdown-valign'] || 'top';
@@ -158,20 +147,8 @@ if (!rbPosContent) {
             document.getElementById('valueStage2RoundBreakdownY').textContent = parseFloat(getEffectiveValue('stage2RoundBreakdownX', 'offsetY', 'base').value);
         }
     }
-    // Null-guarded (2026-09-20 fix) - THE ORIGINAL CRASH SITE: on a
-    // real, non-dev production visit, these 2 checkboxes don't
-    // exist yet (part of the lazy dev-panel build, per
-    // ensureDevPanelBuilt() only ever running when isDevAllowed),
-    // so the unguarded calls below threw "Cannot read properties of
-    // null (reading 'addEventListener')" on every page load for
-    // every real visitor - confirmed via direct reproduction on
-    // production. This crash was in a SEPARATE, LATER module script
-    // than the actual gameplay-breaking bug (the real root cause of
-    // "click doesn't register/no click frames" was
-    // renderClickBurstTextInputControls() being lazy too - see the
-    // Initialize block's own fix, ~line 18430) - so fixing this
-    // alone would NOT have fixed gameplay, but it's a real,
-    // separate crash on every load and is fixed here regardless.
+    // Null-guarded: these checkboxes come from the lazy dev-panel build (ensureDevPanelBuilt()
+    // only runs when isDevAllowed), so they don't exist for non-dev visitors.
     const rbAlignLockEl = document.getElementById('checkboxRoundBreakdownAlignEdgeLock');
     const rbValignLockEl = document.getElementById('checkboxRoundBreakdownValignEdgeLock');
     if (rbAlignLockEl) rbAlignLockEl.addEventListener('change', () => mirrorEdgeLockToEngine('x'));
