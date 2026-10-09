@@ -18,7 +18,7 @@ reads as the "default", comes up), not a bug.
 
 ## Architecture Notes
 
-- Single-file app (`index.html`) — CSS, markup, and JS all inline, no build step. See `docs/CODE_SUMMARY.md` for the details.
+- Static app, no build step: markup in `index.html`, styles in `src/css/main.css`, logic in `src/js/` (split out of one file 2026-10-08, behavior unchanged). See `docs/CODE_SUMMARY.md` for the file map and load-order rule.
 - Visual settings are CSS-var-driven and split desktop/mobile (`cssVars` vs `mobileCssVars`, etc.) **only** where a setting is genuinely device-specific (spatial layout, sizing). Game-mechanics timing and background color are intentionally single-source — see `applyGameMechanicsSlider()` and the unconditional `--bg-color` line in `applyActiveVars()`. Don't reintroduce a "Mobile" duplicate control for either without a real reason; a past dev-panel design had them and it was removed as redundant.
 - Range sliders can be typed past their own min/max (`applySliderValue()` + `makeDevValuesEditable()`) — the slider control itself stays visually clamped, but the underlying setting takes the real typed value. This relies on native `<input type="range">` behavior (self-clamping `.value`) being worked around deliberately; don't "simplify" it back to a plain `slider.value = val` assignment.
 - Click-burst shadow particles use `offset-rotate: 0deg` (not `auto`) specifically so their rotation stays fixed regardless of flight direction — this was a real, confirmed bug fix (see CHANGELOG, "2 frame sets" investigation). Don't change this without understanding why.
@@ -66,6 +66,6 @@ section as a snapshot that can go stale mid-session, and re-confirm scope
 with the user before building anything large rather than assuming this doc is
 current. Never `git add -A` — the working tree persistently carries unrelated
 files (`data/BUTTON/Archived*/`, a deleted `BUTTON.ai`, a `datalog/` screen
-recording folder) that must not be touched; stage `index.html` and
-`docs/CHANGELOG.txt` explicitly (plus any specific new asset genuinely part
+recording folder) that must not be touched; stage the specific
+files you changed (`index.html`, `src/...`) and `docs/CHANGELOG.txt` explicitly (plus any specific new asset genuinely part
 of the change).

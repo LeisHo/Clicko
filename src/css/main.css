@@ -1,0 +1,2402 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    /* Suppresses the browser's own pull-to-refresh/rubber-band gesture, which
+       otherwise interrupts dev-panel drags on mobile (esp. the top edge).
+       Element-level touch-action:none alone doesn't stop it everywhere. */
+    overscroll-behavior: none;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+    background-color: var(--bg-color);
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1200px;
+}
+/* var(--cq-vw, 1vw)/var(--cq-vh, 1vh) below are leftovers of a removed
+   portrait-lock (superseded by the Landscape device profile). Nothing
+   defines --cq-vw/--cq-vh anymore, so they always fall back to 1vw/1vh. */
+/* Hides the game until saved settings are fetched and applied, avoiding a
+   flash of hardcoded defaults. visibility (not display) so pre-reveal
+   layout code still sees real rects. Removed once settings load finishes.
+   !important on descendants is required: children with their own explicit
+   visibility:visible (the SVG-swap convention) would otherwise show through. */
+.game-container.settings-loading,
+.game-container.settings-loading * {
+    visibility: hidden !important;
+}
+
+/* Button assembly - base/button SVGs share the same 589.79x605.11 viewBox,
+   so stacking at inset:0 keeps native alignment. Back to front: shadow
+   caster, button, base (frontmost; its artwork covers the button's excess). */
+.button-assembly {
+    position: absolute;
+    /* max() gives a fixed-px floor so the vw/vmin-sized button can't get too
+       small on narrow (non-mobile) windows. Default floor is low enough to
+       have no effect at typical widths. */
+    /* 1vmin (not vw) so the button scales with whichever viewport dimension
+       is smaller. Height derives from the same term (x1.02598), keeping
+       the aspect ratio exact. */
+    width: max(calc(var(--button-min-diameter-px) * 1px), calc(var(--button-diameter-vw) * 1vmin));
+    height: max(calc(var(--button-min-diameter-px) * 1.02598px), calc(var(--button-diameter-vw) * 1.02598 * 1vmin));
+    /* Align + Edge Lock: same applyTextAlignAnchors() system as text elements.
+       --button-x/y-base/-sign default to 50%/1 (centered) unless Edge Lock
+       is on. See that function for the base/sign/unit reasoning. */
+    left: calc(var(--button-x-base, 50%) + var(--button-x-sign, 1) * var(--button-x-offset-vw) * var(--button-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--button-y-base, 50%) + var(--button-y-sign, 1) * var(--button-y-offset-vh) * var(--button-y-unit, var(--cq-vh, 1vh)));
+    /* scale() composed onto the anchor translate so the whole assembly scales
+       around the left/top anchor point. X term overridden by .align-left/
+       .align-right; Y term reads --anchor-ty (from Vertical Align). See
+       computeButtonUserScale() (JS) for Max/Min Button Scale. */
+    transform: translate(-50%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1));
+}
+.button-assembly.align-left { transform: translate(0%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1)); }
+.button-assembly.align-right { transform: translate(-100%, var(--anchor-ty, -50%)) scale(var(--button-user-scale, 1)); }
+
+/* Shadow caster - a duplicate of the base+button artwork flattened to a
+   gray silhouette, behind both real layers (z-index 0). drop-shadow() has
+   no spread parameter, so a resizable shadow needs a scaled duplicate.
+   Its ids/classes are prefixed (shadowButtonSvgRoot, shbtn-cls-*, shbase-
+   cls-*, shbtn-clippath) to avoid colliding with the real artwork's ids or
+   selectors; it's pointer-events:none throughout. */
+.shadow-caster {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* No opacity here: group opacity makes overlapping shadows (e.g. click-
+       burst shadows) compound into darker patches. The layer filter
+       produces opaque gray directly instead. */
+    /* The filter lives on each .shadow-caster-layer, not this parent: a parent
+       filter re-filters the whole subtree on every tap, while per-layer
+       filters let the static base-shadow's output be cached. */
+}
+/* Base and button shadows get separate transforms so only the button's
+   shadow shifts on press. Both share the same skew/stretch/rotate/scale/
+   offset so they read as one shadow at rest.
+
+   No transition: a second blur-filtered animating layer made rapid taps
+   feel laggy. The class swap is instant, like the SVG normal/pressed swap.
+
+   Skew + extra scaleY approximate a low light source. Order matters: CSS
+   transforms apply right-to-left, so rotate is listed before scale/skewX/
+   scaleY to spin the already-distorted shape. */
+.shadow-caster-layer {
+    position: absolute;
+    inset: 0;
+    /* Offsets are multiplied by --button-diameter-vw/100 and expressed in vw so
+       the shadow stays anchored to the (viewport-scaled) button on resize -
+       same pattern as .game-button's translateY. */
+    transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vmin), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vmin)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(var(--shadow-scale)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg));
+    /* brightness(0) flattens to opaque black, then invert(0.5) lifts it to
+       mid-gray (filters apply left-to-right, so order matters). Opaque gray
+       means overlapping shadows never compound-darken. */
+    filter: brightness(0) invert(0.5) blur(calc(var(--shadow-blur) * 1px));
+}
+/* Paint order: base-shadow gets a higher z-index than button-shadow to
+   mirror the real artwork (base z:4 covers the button z:1 seam). Without
+   it, sub-pixel seams between the pieces get stretched into visible lines
+   by skew/stretch/rotate.
+   The larger press-time notch is closed by growing the PRESSED button-
+   shadow (see .shadow-caster-button-layer.pressed), never base-shadow:
+   base-shadow must look identical at rest and pressed (growing it shifted
+   the whole shadow; an feMorphology dilate caused per-tap lag). */
+.shadow-caster-base-layer {
+    z-index: 1;
+}
+/* Thin Base uses a second full shadow-caster subtree rather than the
+   in-place path-swap used for press/release - that trick avoids per-tap
+   re-filtering, which doesn't matter for a rare toggle. */
+.shadow-caster-thin-base-layer {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+}
+.button-assembly.thin-base .shadow-caster-regular-base-layer { visibility: hidden; }
+.button-assembly.thin-base .shadow-caster-thin-base-layer { visibility: visible; }
+.shadow-caster-button-layer {
+    z-index: 0;
+    /* Pre-promotes this per-tap-changing element to its own compositor layer.
+       Cheap; mainly helps first-tap-after-idle, not the per-tap blur cost. */
+    will-change: transform, filter;
+}
+.shadow-caster-layer svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+/* Shadow-only stroke dilation that bridges sub-pixel gaps between adjacent
+   paths, which become visible hairlines once the filter flattens everything
+   to one gray (fixes it without --shadow-blur). Only width matters; color
+   is flattened anyway. Scoped to the shadow copies so the real artwork is
+   untouched. 2 units (viewBox ~590 wide) removed ~99%+ of gap pixels and,
+   being per-path, doesn't shift the shadow the way a scale() would. */
+.shadow-caster-layer svg path {
+    stroke: #000;
+    stroke-width: 2;
+}
+/* Button-shadow mirrors the real button's press: translates down by
+   --button-press-intensity-px and swaps to the BUTTONPRESSED silhouette.
+   The swap rewrites each <path>'s `d` in place from its data-pressed-d
+   attribute (see setShadowButtonPressed()), using a single svg - toggling
+   between two full filtered SVG subtrees caused per-tap lag. All 19 paths
+   carry data-pressed-d (index-matched to BUTTON.svg) for a uniform swap.
+
+   KNOWN TRADE-OFF: moving button-shadow independently of base-shadow opens
+   a gap at their seam; the `* 1.06` scale below closes that notch.
+
+   Deliberately no release transition: a transitioning filtered element
+   re-filters every frame (a confirmed lag regression). A slightly out-of-
+   sync shadow during an eased release is the accepted cost. */
+.shadow-caster-button-layer.pressed {
+    transform: translate(calc(var(--shadow-x-offset) * var(--button-diameter-vw) / 100 * 1vmin), calc(var(--shadow-y-offset) * var(--button-diameter-vw) / 100 * 1vmin)) rotate(calc(var(--shadow-rotate) * 1deg)) scale(calc(var(--shadow-scale) * 1.06)) skewX(calc(var(--shadow-skew) * 1deg)) rotate(calc(var(--shadow-elongation-angle) * 1deg)) scaleY(var(--shadow-elongation-intensity)) rotate(calc(var(--shadow-elongation-angle) * -1deg)) translateY(calc(var(--button-press-intensity-px) * var(--button-diameter-vw) / 100 * 1vmin));
+}
+
+/* Background fill behind base and button, covering any gap between them
+   (esp. while pressed). Static; casts no shadow.
+   z-index:1, not 0.5 - z-index must be an integer (fractional values are
+   ignored). Equal z-index with game-button means DOM order decides; this
+   layer comes first in markup, so game-button paints over it. */
+/* feFlood's flood-color is CSS-stylable (unlike feFuncR/G/B's slope/
+   intercept - see applyLightLevels()), so Base/Button Color tint the
+   filter via a plain custom property. */
+.base-tint-flood {
+    flood-color: var(--base-tint-color, #eb2027);
+}
+.button-tint-flood {
+    flood-color: var(--button-tint-color, #eb2027);
+}
+/* Win/Lose button tint: redefines --button-tint-color inside .game-container
+   while resultText has .result-win/.result-lose. Inheritance overrides
+   setButtonHue()'s :root value with no specificity fight, and :has() keeps
+   it correct regardless of which code path toggles the class. */
+.game-container:has(#resultText.result-win) {
+    --button-tint-color: var(--button-win-tint-color, #22dd44);
+}
+.game-container:has(#resultText.result-lose) {
+    --button-tint-color: var(--button-lose-tint-color, #dd2222);
+}
+/* Same mechanism for the base, reusing the button's win/lose colors.
+   Opt-in via .base-follows-result-color (checkboxBaseFollowsResultColor). */
+.game-container.base-follows-result-color:has(#resultText.result-win) {
+    --base-tint-color: var(--button-win-tint-color, #22dd44);
+}
+.game-container.base-follows-result-color:has(#resultText.result-lose) {
+    --base-tint-color: var(--button-lose-tint-color, #dd2222);
+}
+.basebg-svg-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+/* Regular vs Thin (BUTTONBASEBACKING_THIN.svg) - same visibility-toggle
+   approach as .btn-normal-svg/.btn-pressed-svg. Both stack absolutely
+   within .basebg-svg-layer. */
+.basebg-regular-svg, .basebg-thin-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.basebg-thin-svg { visibility: hidden; }
+.button-assembly.thin-base .basebg-regular-svg { visibility: hidden; }
+.button-assembly.thin-base .basebg-thin-svg { visibility: visible; }
+.basebg-svg-layer svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* Grayscale + adjustable levels + multiply-tint (see #baseGrayscaleTint);
+       hue-rotate couldn't reach white/gray from the red source art. */
+    filter: url(#baseGrayscaleTint);
+}
+
+/* WHITE.svg: sits under all artwork but above the shadow, to obscure it.
+   z-index:0 ties with .shadow-caster, but it comes later in DOM order so it
+   paints on top; everything else (z:1+) paints over it. Always plain white
+   (no tint filter) since it only blocks the shadow. */
+.whitebg-svg-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+.whitebg-svg-layer svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Base is the frontmost layer - its own opaque shape (the flared foot bezel)
+   sits in front of the button, which is tucked behind/under it. */
+.base-svg-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+    pointer-events: none;
+}
+/* Regular vs Thin (BUTTONBASE_THIN.svg) - same shape as
+   .basebg-svg-layer's own regular/thin swap above. */
+.base-regular-svg, .base-thin-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.base-thin-svg { visibility: hidden; }
+.button-assembly.thin-base .base-regular-svg { visibility: hidden; }
+.button-assembly.thin-base .base-thin-svg { visibility: visible; }
+.base-svg-layer svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: url(#baseGrayscaleTint);
+}
+
+/* Dev-panel Hide Button/Base/Backing SVG/White SVG checkboxes. display:none
+   (not visibility) so a hidden #gameButton also stops intercepting clicks. */
+.button-assembly.hide-button #gameButton { display: none; }
+.button-assembly.hide-base .base-svg-layer { display: none; }
+.button-assembly.hide-backing-svg .basebg-svg-layer { display: none; }
+.button-assembly.hide-white-svg .whitebg-svg-layer { display: none; }
+
+/* Button - backmost layer, under the base; shifts via height offset and
+   press intensity. Both offsets are PERCENT OF THE BUTTON'S DIAMETER (not
+   px), so the button/base relationship stays proportional at any width. */
+.game-button {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    outline: none;
+    transform: translateY(calc(var(--button-height-offset-px) * var(--button-diameter-vw) / 100 * 1vmin));
+    /* No static transition: press/release need independent durations.
+       handleGameButtonPress()/Release() set `transition` inline before
+       toggling .pressed - `transform <ms>ms ease-out`, or `none` for zero
+       (a 0ms transition could inherit an unsettled mid-flight state under
+       rapid taps - a reproduced bug). */
+    /* Only the SVG's actual painted pixels are clickable, not this element's
+       full rectangular box - the child svg below opts back into hit-testing
+       and browsers only hit-test an SVG's visible painted area by default. */
+    pointer-events: none;
+}
+.game-button.pressed {
+    transform: translateY(calc((var(--button-height-offset-px) + var(--button-press-intensity-px)) * var(--button-diameter-vw) / 100 * 1vmin));
+}
+.game-button svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* The svg root itself stays non-interactive (its own box is the full
+       rectangle) - only its actual painted shapes below opt back in. */
+    pointer-events: none;
+    /* Drop-shadow lives on .button-assembly; this filter only recolors:
+       grayscale + levels + overlay-tint (see #buttonGrayscaleTint). The
+       source art is grayscale, so hue-rotate wouldn't work. */
+    filter: url(#buttonGrayscaleTint);
+}
+.game-button svg * {
+    pointer-events: auto;
+}
+/* visibility, not display: display toggling forces a layout reflow every
+   tap. A visibility:hidden parent also blocks hit-testing of descendants
+   unless one sets visibility:visible itself (none do here). */
+.btn-normal-svg { visibility: visible; }
+.btn-pressed-svg { visibility: hidden; }
+.game-button.pressed .btn-normal-svg { visibility: hidden; }
+.game-button.pressed .btn-pressed-svg { visibility: visible; }
+/* Dev-panel "Flip Normal/Pressed SVG" checkbox - swaps which artwork
+   is resting vs pressed. Two classes beats one on specificity, so
+   these override the plain .pressed rules above without needing
+   !important or touching them. */
+.game-button.flip-svg .btn-normal-svg { visibility: hidden; }
+.game-button.flip-svg .btn-pressed-svg { visibility: visible; }
+.game-button.flip-svg.pressed .btn-normal-svg { visibility: visible; }
+.game-button.flip-svg.pressed .btn-pressed-svg { visibility: hidden; }
+
+/* Click burst - impact-line images flying out from the button/base seam
+   per tap (see spawnClickBurst()). Plain imgs animated via CSS motion-path
+   rather than a particle loop, to keep the latency-sensitive tap path
+   cheap: only compositor-only properties (transform/opacity/offset-
+   distance), no filters or layout-triggering properties. */
+.click-burst-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    overflow: visible;
+}
+/* Shadow particles get their own container at z-index -1 (below
+   game-button z:1 and base z:4), like a real shadow; real particles stay
+   in the z:2 container above. */
+.click-burst-shadow-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: visible;
+    /* No group opacity: it would compound-darken where this overlaps the main
+       button/base shadow. See .shadow-caster. */
+}
+.click-burst-particle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    /* var(--button-user-scale, 1) makes piece size follow the button's live
+       Max/Min Button Scale, on top of the per-frame --click-burst-scale. */
+    width: calc(var(--click-burst-scale, 1) * var(--button-user-scale, 1) * 40px);
+    /* offset-rotate:auto aligns the piece to the path tangent. +90deg
+       compensates for the art pointing up, since auto's 0deg assumes a
+       +X (rightward) forward direction. */
+    offset-rotate: auto 90deg;
+    offset-distance: 0%;
+    opacity: 1;
+    will-change: offset-distance, opacity;
+    animation-name: click-burst-fly;
+    animation-duration: calc(var(--click-burst-speed-ms) * 1ms);
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+@keyframes click-burst-fly {
+    0% { offset-distance: 0%; opacity: 1; }
+    70% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+}
+/* Paired shadow for each burst particle - flattened gray, with the shadow
+   container carrying the main shadow's skew/stretch/rotate (set in
+   spawnClickBurstSide()/spawnClickBurst()). No blur (blur is the expensive
+   per-tap cost; these are numerous and short-lived). Painted behind its
+   particle by DOM order (shadow appended first). Needs its own keyframes:
+   the base animation animates opacity, which would override a static value. */
+.click-burst-particle-shadow {
+    /* Same brightness(0) + invert(0.5) as .shadow-caster-layer - opaque gray
+       that matches the main shadow and never compound-darkens. */
+    filter: brightness(0) invert(0.5);
+    animation-name: click-burst-fly-shadow;
+    /* offset-rotate:auto 90deg (matching the real particle) so each shadow
+       faces its own direction of travel; a fixed angle was only right for
+       one flight angle. The cast-shadow look comes from the shadow
+       container's transform plus the gray filter. */
+}
+@keyframes click-burst-fly-shadow {
+    /* Fully opaque while visible (never compound-darkens); the opacity 1->0
+       is only the end-of-life fade matching the real particle. */
+    0% { offset-distance: 0%; opacity: 1; }
+    70% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* Start Button (UI) - no box; styled like Round Text's former "big" form.
+   Reuses --text-x/y-offset-vw/vh and --text-font-size-vw (formerly Round
+   Text's big-state vars) and --round-extrusion-shadow. */
+.start-button {
+    position: absolute;
+    /* Edge Lock (--start-x/-y-unit, -base, -sign): when on, the offset becomes
+       a constant px distance from the anchor chosen by align/valign (edge or
+       centerline) instead of scaling with the viewport. -unit swaps 1vw/1vh
+       for 1px; -base/-sign choose the anchor point (0%/50%/100%, +1/-1) -
+       a unit swap alone isn't enough since a 50% base still moves on resize.
+       Left/Top -> 0%,+1; Right/Bottom -> 100%,-1; Center -> 50%,+1.
+       Unlocked default: 50%/+1/1vw|1vh. Computed in applyTextAlignAnchors(). */
+    left: calc(var(--start-x-base, 50%) + var(--start-x-sign, 1) * var(--text-x-offset-vw) * var(--start-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--start-y-base, 50%) + var(--start-y-sign, 1) * var(--text-y-offset-vh) * var(--start-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    padding: 0;
+    /* Font size is stored in px (converted from old vw values at 1280px
+       desktop / 390px mobile reference widths). */
+    /* "Scale With Browser" blend (see updateScaleWithBrowser()): a 0/1 toggle
+       multiplied into each term zeroes the inactive one, so one rule covers
+       both fixed-px and viewport-relative modes without JS swapping rules.
+       Uses 1vmin so text responds to both width and height. Same formula
+       shape is shared by every Scale With Browser text rule (and Round
+       Breakdown's own Title/Data blend) - change them together. */
+    font-size: calc((1 - var(--text-scale-with-browser, 0)) * var(--text-font-size-px) * 1px + var(--text-scale-with-browser, 0) * var(--text-font-size-vw, 10) * 1vmin);
+    letter-spacing: calc(var(--text-letter-spacing-px) * 1px);
+    line-height: var(--text-line-height, 1.2);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    color: var(--round-fill-color);
+    text-shadow: var(--round-extrusion-shadow);
+    text-align: var(--start-text-align, center);
+    /* pre-wrap (not pre-line) so repeated spaces each take up width while
+       newlines and wrapping are still preserved. */
+    white-space: pre-wrap;
+    background: none;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.05s ease-out;
+    outline: none;
+}
+
+/* Try Again gets its own font-size/position via a state class toggled by
+   JS when the button's content switches, instead of a second element. */
+.start-button.try-again-state {
+    /* Try Again has its own align/valign/Edge Lock vars (--try-again-x/-y-*).
+       applyTextAlignAnchors() writes both prefixes onto this one element;
+       only the active state's rule reads its own prefix, so no conflict. */
+    left: calc(var(--try-again-x-base, 50%) + var(--try-again-x-sign, 1) * var(--try-again-text-x-offset-vw) * var(--try-again-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--try-again-y-base, 50%) + var(--try-again-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-y-unit, var(--cq-vh, 1vh)));
+    /* See .start-button's own "Scale With Browser" comment above. */
+    font-size: calc((1 - var(--try-again-text-scale-with-browser, 0)) * var(--try-again-text-font-size-px) * 1px + var(--try-again-text-scale-with-browser, 0) * var(--try-again-text-font-size-vw, 10) * 1vmin);
+    letter-spacing: calc(var(--try-again-text-letter-spacing-px) * 1px);
+    line-height: var(--try-again-text-line-height, 1.2);
+    color: var(--try-again-fill-color);
+    text-shadow: var(--try-again-extrusion-shadow);
+    text-align: var(--try-again-text-align, center);
+}
+
+.start-button.hidden {
+    display: none !important;
+}
+
+/* Game Text Displays - Round Text has a single permanent look (no
+   big/docked states or grow/shrink animation), even while blinking. */
+/* The "?" in "Try again?" - inline-block so transform-origin:center pivots
+   reliably on the glyph's center (see tickTryAgainRotate()). */
+/* Wrapper only (never transformed) for 2 stacked layers: a plain glyph on
+   top and an extruded/bordered copy behind. Split because a transform
+   carries an element's own text-shadow along with it, and rotate mode
+   needs to scale the glyph and its extrusion independently. Both start at
+   identical size/position so scaleX() pivots share one center. */
+/* Independently positioned/sized/colored "?". Must be a sibling of
+   .start-button, not a child: .start-button has a transform, which makes it
+   the containing block for absolute/fixed descendants, so the "?" would
+   follow the button. As a sibling it resolves against .game-container. */
+#startButtonFlashChar {
+    position: absolute;
+    /* X: same base/sign/unit anchor system as other elements, falling back
+       to 50%/1/1vw before applyTextAlignAnchors() runs. Independent of Try
+       Again's X (only Y is coupled - see below). */
+    left: calc(var(--try-again-question-mark-x-base, 50%) + var(--try-again-question-mark-x-sign, 1) * var(--try-again-question-mark-x-offset-vw) * var(--try-again-question-mark-x-unit, var(--cq-vw, 1vw)));
+    /* Y: deliberately coupled to Try Again. The first term reproduces Try
+       Again's own top formula (its -y-base/-sign/-unit are mirrored onto
+       this element as --try-again-question-mark-parent-y-* by
+       applyTextAlignAnchors(), since custom properties don't inherit
+       between siblings); this element's own Y offset is added on top. */
+    top: calc(var(--try-again-question-mark-parent-y-base, 50%) + var(--try-again-question-mark-parent-y-sign, 1) * var(--try-again-text-y-offset-vh) * var(--try-again-question-mark-parent-y-unit, var(--cq-vh, 1vh)) + var(--try-again-question-mark-y-sign, 1) * var(--try-again-question-mark-y-offset-vh) * var(--try-again-question-mark-y-unit, var(--cq-vh, 1vh)));
+    text-align: var(--try-again-question-mark-text-align, center);
+    /* See .start-button's own "Scale With Browser" comment. */
+    font-size: calc((1 - var(--try-again-question-mark-scale-with-browser, 0)) * var(--try-again-question-mark-font-size-px) * 1px + var(--try-again-question-mark-scale-with-browser, 0) * var(--try-again-question-mark-font-size-vw, 10) * 1vmin);
+    /* Font weight/family stated explicitly - as a sibling of #startButton it
+       no longer inherits them from .start-button. */
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    display: inline-block;
+    pointer-events: none;
+    /* Pre-composites this element on its own layer so the flash toggle (opacity,
+       replacing visibility) is compositor-only. The extrusion text-shadow
+       is dozens of layers (per-pixel depth x 8-direction border ring), and
+       repainting it on each show/hide stalled the main thread (incl. the
+       marquee's rAF). */
+    will-change: opacity;
+}
+#startButtonFlashChar.hidden {
+    display: none !important;
+}
+#startButtonFlashChar.align-left { transform: translate(0%, var(--anchor-ty, -50%)); }
+#startButtonFlashChar.align-right { transform: translate(-100%, var(--anchor-ty, -50%)); }
+#startButtonFlashCharExtrusion {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-block;
+    /* Transparent fill: this layer exists only to cast its text-shadow
+       (extrusion/border). With an opaque fill, its glyph peeks out as a
+       second "?" whenever its scaleX diverges from the glyph layer's.
+       buildExtrusionShadow() starts at 1px, assuming depth 0 comes from
+       elsewhere (the glyph layer). */
+    color: transparent;
+    text-shadow: var(--try-again-question-mark-extrusion-shadow);
+}
+#startButtonFlashCharGlyph {
+    position: relative;
+    display: inline-block;
+    color: var(--try-again-question-mark-fill-color);
+}
+
+/* Text Edit Mode's inline input - sized to roughly match the huge
+   extruded game text it temporarily replaces, so it doesn't look
+   like a broken tiny form field mid-edit. */
+.text-edit-input {
+    font: inherit;
+    font-family: inherit;
+    color: #000;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 4px;
+    padding: 4px 6px;
+    width: 6em;
+    text-align: center;
+    resize: none;
+    overflow: hidden;
+}
+
+/* Text Edit Mode bounding-box overlay, one per visible TEXT_EDIT_TARGETS
+   element. pointer-events:none so right-clicks pass through to the real
+   element. Outline only, no fill. Position/size are set inline every frame
+   by updateTextEditBoundingBoxes(); only the static look lives here. */
+.text-edit-bbox {
+    position: fixed;
+    display: none;
+    box-sizing: border-box;
+    border: 2px dashed var(--dev-accent-color, #0f0);
+    background: none;
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* Left/right resize handles - drag to set the element's wrap width.
+   pointer-events:auto but narrow (10px) so they don't compete with
+   right-clicks in the box's middle. Positioned in
+   updateTextEditBoundingBoxes(). */
+.text-edit-bbox-handle {
+    position: fixed;
+    display: none;
+    width: 10px;
+    box-sizing: border-box;
+    background: var(--dev-accent-color, #0f0);
+    opacity: 0.85;
+    cursor: ew-resize;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    z-index: 1000;
+}
+
+.game-text {
+    position: absolute;
+    left: calc(var(--round-x-base, 50%) + var(--round-x-sign, 1) * var(--round-dock-x-offset-vw) * var(--round-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--round-y-base, 50%) + var(--round-y-sign, 1) * var(--round-dock-y-offset-vh) * var(--round-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    /* See .start-button's own "Scale With Browser" comment. */
+    font-size: calc((1 - var(--round-scale-with-browser, 0)) * var(--round-font-size-px) * 1px + var(--round-scale-with-browser, 0) * var(--round-font-size-vw, 10) * 1vmin);
+    letter-spacing: calc(var(--round-letter-spacing-px) * 1px);
+    line-height: var(--round-line-height, 1.2);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    color: var(--round-dock-fill-color);
+    text-shadow: var(--round-dock-extrusion-shadow);
+    text-align: var(--round-text-align, center);
+    /* pre-wrap: see .start-button. */
+    white-space: pre-wrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.game-text.hidden {
+    display: none !important;
+}
+
+/* "Round" (#gameTextLabel) must not shift while the number blinks or
+   changes digit count. .game-text centers on its content width, so
+   #gameTextNumber is absolutely positioned relative to #gameTextLabel and
+   doesn't contribute to that width. */
+#gameTextLabel {
+    position: relative;
+    display: inline-block;
+}
+
+#gameTextNumber {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-left: 0.25em;
+    white-space: nowrap;
+    /* Independent X nudge for the number, relative to "ROUND". */
+    transform: translateX(calc(var(--round-number-x-offset-px, 0) * 1px));
+}
+
+/* High Score - same Label+Number split as .game-text/#gameTextLabel/
+   #gameTextNumber, so the label doesn't shift as the digit count changes. */
+.high-score-text {
+    position: absolute;
+    left: calc(var(--high-score-x-base, 50%) + var(--high-score-x-sign, 1) * var(--high-score-x-offset-vw) * var(--high-score-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--high-score-y-base, 50%) + var(--high-score-y-sign, 1) * var(--high-score-y-offset-vh) * var(--high-score-y-unit, var(--cq-vh, 1vh)));
+    /* Rotation (Deg) dev-panel slider drives --high-score-rotate-deg. */
+    transform: translate(-50%, var(--anchor-ty, -50%)) rotate(calc(var(--high-score-rotate-deg, 0) * 1deg));
+    font-size: calc((1 - var(--high-score-scale-with-browser, 0)) * var(--high-score-font-size-px) * 1px + var(--high-score-scale-with-browser, 0) * var(--high-score-font-size-vw, 10) * 1vmin);
+    letter-spacing: calc(var(--high-score-letter-spacing-px) * 1px);
+    line-height: var(--high-score-line-height, 1.2);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    color: var(--high-score-fill-color);
+    text-shadow: var(--high-score-shadow);
+    text-align: var(--high-score-text-align, center);
+    white-space: pre-wrap;
+    pointer-events: none;
+    z-index: 10;
+}
+.high-score-text.hidden {
+    display: none !important;
+}
+#highScoreLabel {
+    position: relative;
+    display: inline-block;
+}
+#highScoreNumber {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-left: 0.25em;
+    white-space: nowrap;
+}
+
+/* Win/Lose message text, split from .game-text (now only "ROUND X") so
+   each can be sized/positioned independently. Shares the 8-bit font/depth,
+   but fill/border colors are per side (.result-win/.result-lose). */
+.result-text {
+    position: absolute;
+    /* Rotated 90deg on top of the centering translate - the pixel font's
+       ":)"/":(" glyphs only read as faces turned on their side. */
+    transform: translate(-50%, var(--anchor-ty, -50%)) rotate(90deg);
+    line-height: var(--result-line-height, 1.2);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    text-align: var(--result-text-align, center);
+    /* pre-wrap: see .start-button. */
+    white-space: pre-wrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Font Size/X/Y are split per Win vs Lose; the Edge Lock anchor
+   (--result-x-base/-sign) stays shared. */
+.result-text.result-win {
+    /* Uses -win-x/y-unit (not shared) so Win's px/vw choice is independent of
+       Lose's; base/sign stay shared. Computed in applyTextAlignAnchors()
+       (edge lock OR this state's px checkbox). */
+    left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-win-x-offset-vw) * var(--result-win-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-win-y-offset-vh) * var(--result-win-y-unit, var(--cq-vh, 1vh)));
+    /* See .start-button's own "Scale With Browser" comment. */
+    font-size: calc((1 - var(--result-win-scale-with-browser, 0)) * var(--result-win-font-size-px) * 1px + var(--result-win-scale-with-browser, 0) * var(--result-win-font-size-vw, 10) * 1vmin);
+    color: var(--result-win-fill-color);
+    text-shadow: var(--result-win-shadow);
+    letter-spacing: calc(var(--result-win-letter-spacing-px) * 1px);
+}
+
+.result-text.result-lose {
+    /* -lose-x/y-unit independent of Win's; base/sign shared. */
+    left: calc(var(--result-x-base, 50%) + var(--result-x-sign, 1) * var(--result-lose-x-offset-vw) * var(--result-lose-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--result-y-base, 50%) + var(--result-y-sign, 1) * var(--result-lose-y-offset-vh) * var(--result-lose-y-unit, var(--cq-vh, 1vh)));
+    /* See .start-button's own "Scale With Browser" comment. */
+    font-size: calc((1 - var(--result-lose-scale-with-browser, 0)) * var(--result-lose-font-size-px) * 1px + var(--result-lose-scale-with-browser, 0) * var(--result-lose-font-size-vw, 10) * 1vmin);
+    color: var(--result-lose-fill-color);
+    text-shadow: var(--result-lose-shadow);
+    letter-spacing: calc(var(--result-lose-letter-spacing-px) * 1px);
+}
+
+.result-text.hidden {
+    display: none !important;
+}
+
+/* Text alignment also sets the position ANCHOR (text-align alone does
+   nothing on a shrink-to-fit nowrap box): Left pins the left edge, Right
+   the right edge, Center (default) the center. Toggled by
+   applyTextAlignAnchors() (from applyActiveVars()). result-text keeps its
+   rotate(90deg) layered on top. */
+.start-button.align-left, .game-text.align-left,
+.speed-display.align-left, .ms-per-click-display.align-left,
+#targetCountPrefix.align-left, #targetCountNumber.align-left, #targetCountSuffix.align-left {
+    transform: translate(0%, var(--anchor-ty, -50%));
+}
+.start-button.align-right, .game-text.align-right,
+.speed-display.align-right, .ms-per-click-display.align-right,
+#targetCountPrefix.align-right, #targetCountNumber.align-right, #targetCountSuffix.align-right {
+    transform: translate(-100%, var(--anchor-ty, -50%));
+}
+.result-text.align-left { transform: translate(0%, var(--anchor-ty, -50%)) rotate(90deg); }
+.result-text.align-right { transform: translate(-100%, var(--anchor-ty, -50%)) rotate(90deg); }
+
+/* Target Count Display - uses the Numbers Font dropdown (not the shared
+   8-bit font control); shared extrusion fill color with its own depth. */
+.target-count {
+    /* Plain (static) wrapper: #targetCountPrefix/Number/Suffix each position
+       themselves. This div still carries .hidden and the inherited anchor
+       vars (--target-x-base/-sign/-unit, --anchor-ty, set here by
+       applyTextAlignAnchors()) that the children's left/top formulas use.
+       font-size below is effectively unused (children set their own). */
+    font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * 1vmin);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    color: var(--target-fill-color);
+    text-align: var(--target-text-align, center);
+    pointer-events: none;
+    /* pre-wrap: see .start-button. */
+    white-space: pre-wrap;
+    /* text-box-trim/text-box-edge trim the leading above the first line so
+       this element's top edge (the Y Offset) lands exactly at cap height,
+       regardless of line-height/font-size/line count. Unsupported browsers
+       ignore these and keep untrimmed behavior, so no @supports needed. */
+    text-box-trim: trim-start;
+    text-box-edge: cap alphabetic;
+}
+
+.target-count.hidden {
+    display: none !important;
+}
+
+/* Prefix/Number/Suffix - inline-block (not inline) so their Y transforms
+   behave predictably; inline elements' vertical transforms are tied to
+   line-box/baseline rules. */
+#targetCountPrefix, #targetCountNumber, #targetCountSuffix {
+    display: inline-block;
+}
+/* Letter Spacing and the extrusion text-shadow are set per part; color
+   stays shared (--target-fill-color inherited from .target-count;
+   --target-border-color/-overall-border-color feed all 3 shadows). */
+/* Each part is independently absolutely positioned with its own X (vw)/
+   Y (vh) offset, but still uses the SHARED Text Align/Valign anchor
+   inherited from .target-count (--target-x-base/-sign/-unit, --anchor-ty).
+   No per-part px/vw unit toggle (unlike most elements). */
+#targetCountPrefix {
+    /* Same blended px/vw Font Size formula (see .start-button); one Scale
+       With Browser checkbox shared across all 3 parts. */
+    font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-prefix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-prefix-font-size-vw, 11.72) * 1vmin);
+    letter-spacing: calc(var(--target-prefix-letter-spacing-px, 0) * 1px);
+    /* Independent line-height per part. */
+    line-height: var(--target-prefix-line-height, 1.2);
+    text-shadow: var(--target-prefix-extrusion-shadow);
+    position: absolute;
+    /* X: independent of the group anchor; never tied to the Number. */
+    left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-prefix-x-offset-vw, 49.20) * var(--target-x-unit, var(--cq-vw, 1vw)));
+    /* Y: --target-prefix-top-base/-y-offset-active are set by
+       updateTargetAnchoredPositions() (JS) to a var() REFERENCE chosen by
+       Prefix's UI-Engine position.mode - JS picks which variable applies,
+       CSS does the math. Relative (default): base -> --target-number-
+       bottom-px (tied to the Number), offset -> --target-prefix-y-offset-vh.
+       Anchor: base -> --target-y-base (group anchor), offset -> the
+       anchor-mode-only slider (default 0). */
+    top: calc(var(--target-prefix-top-base, var(--target-number-bottom-px, var(--target-y-base, 50%))) + var(--target-y-sign, 1) * var(--target-prefix-y-offset-active, var(--target-prefix-y-offset-vh, 9.19)) * var(--target-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    z-index: 10;
+    text-box-trim: trim-start;
+    text-box-edge: cap alphabetic;
+}
+#targetCountNumber {
+    font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-number-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-number-font-size-vw, 39.06) * 1vmin);
+    letter-spacing: calc(var(--target-number-letter-spacing-px, 0) * 1px);
+    line-height: var(--target-number-line-height, 1.2);
+    text-shadow: var(--target-number-extrusion-shadow);
+    position: absolute;
+    left: calc(var(--target-x-base, 50%) + var(--target-x-sign, 1) * var(--target-number-x-offset-vw, 200.24) * var(--target-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--target-y-base, 50%) + var(--target-y-sign, 1) * var(--target-number-y-offset-vh, -50.00) * var(--target-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    z-index: 10;
+    text-box-trim: trim-start;
+    text-box-edge: cap alphabetic;
+}
+#targetCountSuffix {
+    font-size: calc((1 - var(--target-scale-with-browser, 0)) * var(--target-suffix-font-size-px) * 1px + var(--target-scale-with-browser, 0) * var(--target-suffix-font-size-vw, 11.72) * 1vmin);
+    letter-spacing: calc(var(--target-suffix-letter-spacing-px, 0) * 1px);
+    line-height: var(--target-suffix-line-height, 1.2);
+    text-shadow: var(--target-suffix-extrusion-shadow);
+    position: absolute;
+    /* Same JS-picks-which-var mechanism as #targetCountPrefix, on both axes.
+       Relative (default): base -> --target-number-right-px/-bottom-px,
+       offset -> --target-suffix-x/y-offset-vw/vh. Anchor: base ->
+       --target-x-base/-y-base, offset -> the anchor-mode sliders. */
+    left: calc(var(--target-suffix-left-base, var(--target-number-right-px, var(--target-x-base, 50%))) + var(--target-x-sign, 1) * var(--target-suffix-x-offset-active, var(--target-suffix-x-offset-vw, 324.34)) * var(--target-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--target-suffix-top-base, var(--target-number-bottom-px, var(--target-y-base, 50%))) + var(--target-y-sign, 1) * var(--target-suffix-y-offset-active, var(--target-suffix-y-offset-vh, 11.60)) * var(--target-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    z-index: 10;
+    text-box-trim: trim-start;
+    text-box-edge: cap alphabetic;
+}
+/* Hide Prefix/Suffix toggles; the Number itself is never independently
+   hideable (only the whole .target-count block is). */
+#targetCountPrefix.hidden, #targetCountSuffix.hidden {
+    display: none !important;
+}
+
+/* Speed Display - same pattern as Target Count above. */
+.speed-display {
+    position: absolute;
+    left: calc(var(--speed-x-base, 50%) + var(--speed-x-sign, 1) * var(--speed-x-offset-vw) * var(--speed-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--speed-y-base, 50%) + var(--speed-y-sign, 1) * var(--speed-y-offset-vh) * var(--speed-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    /* See .start-button's own "Scale With Browser" comment. */
+    font-size: calc((1 - var(--speed-scale-with-browser, 0)) * var(--speed-font-size-px) * 1px + var(--speed-scale-with-browser, 0) * var(--speed-font-size-vw, 10) * 1vmin);
+    letter-spacing: calc(var(--speed-letter-spacing-px) * 1px);
+    line-height: var(--speed-line-height, 1.2);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    color: var(--speed-fill-color);
+    text-shadow: var(--speed-extrusion-shadow);
+    text-align: var(--speed-text-align, center);
+    pointer-events: none;
+    z-index: 10;
+    /* pre-wrap: see .start-button. */
+    white-space: pre-wrap;
+}
+
+.speed-display.hidden {
+    display: none !important;
+}
+/* Independent X nudge for the live number. display:inline-block is
+   required - transform has no effect on a plain inline box. */
+#speedDisplayNumber {
+    display: inline-block;
+    transform: translateX(calc(var(--speed-number-x-offset-px, 0) * 1px));
+}
+
+/* Per-click time setting (gameState.maxTimeMs) as "___ms / click", above
+   the countdown (which shows the total round budget). Same pattern as
+   other extruded text displays. */
+.ms-per-click-display {
+    position: absolute;
+    left: calc(var(--ms-per-click-x-base, 50%) + var(--ms-per-click-x-sign, 1) * var(--ms-per-click-x-offset-vw) * var(--ms-per-click-x-unit, var(--cq-vw, 1vw)));
+    top: calc(var(--ms-per-click-y-base, 50%) + var(--ms-per-click-y-sign, 1) * var(--ms-per-click-y-offset-vh) * var(--ms-per-click-y-unit, var(--cq-vh, 1vh)));
+    transform: translate(-50%, var(--anchor-ty, -50%));
+    /* See .start-button's own "Scale With Browser" comment. */
+    font-size: calc((1 - var(--ms-per-click-scale-with-browser, 0)) * var(--ms-per-click-font-size-px) * 1px + var(--ms-per-click-scale-with-browser, 0) * var(--ms-per-click-font-size-vw, 10) * 1vmin);
+    letter-spacing: calc(var(--ms-per-click-letter-spacing-px) * 1px);
+    line-height: var(--ms-per-click-line-height, 1.2);
+    font-weight: 700;
+    font-family: var(--extrusion-font);
+    color: var(--ms-per-click-fill-color);
+    text-shadow: var(--ms-per-click-extrusion-shadow);
+    text-align: var(--ms-per-click-text-align, center);
+    pointer-events: none;
+    z-index: 10;
+    /* pre-wrap: see .start-button. */
+    white-space: pre-wrap;
+    /* See .target-count (text-box-trim). This 3-line element is why a real
+       non-zero line-height was needed. */
+    text-box-trim: trim-start;
+    text-box-edge: cap alphabetic;
+}
+
+.ms-per-click-display.hidden {
+    display: none !important;
+}
+/* Independent X nudge for the live number; inline-block required (plain
+   inline ignores transform). */
+#msPerClickDisplayNumber {
+    display: inline-block;
+    transform: translateX(calc(var(--ms-per-click-number-x-offset-px, 0) * 1px));
+}
+/* Line 3 of the suffix (after its 2nd newline - see
+   renderMsPerClickSuffix()): an additive line-spacing control, separate
+   from --ms-per-click-line-height. */
+.ms-per-click-extra-line {
+    display: block;
+    margin-top: calc(var(--ms-per-click-line2-gap-px, 0) * 1px);
+}
+
+/* Click Counter - debug display next to the button, toggled from dev panel */
+.click-counter {
+    position: absolute;
+    /* Positioned to the LEFT of the button (not right) so it stays clear of
+       the dev panel, which is fixed along the right edge of the screen. */
+    left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, 1vw) - var(--button-diameter-vw) * 0.52 * 1vw);
+    top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, 1vh));
+    transform: translate(-100%, -50%);
+    font-family: monospace;
+    font-size: 1.5vw;
+    font-weight: 700;
+    color: #333;
+    background: rgba(255, 255, 255, 0.85);
+    border: 2px solid #333;
+    border-radius: 6px;
+    padding: 4px 10px;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.click-counter.hidden {
+    display: none !important;
+}
+
+/* Tap diagnostic - full history of tap events (pointerType/gap/outcome)
+   for diagnosing double-counted clicks. Shares the click counter toggle. */
+.tap-diagnostic-panel {
+    position: absolute;
+    /* Positioned to the LEFT of the button, same reasoning as .click-counter. */
+    left: calc(50% + var(--button-x-offset-vw) * var(--button-x-unit, 1vw) - var(--button-diameter-vw) * 0.52 * 1vw);
+    top: calc(50% + var(--button-y-offset-vh) * var(--button-y-unit, 1vh) + 4vh);
+    transform: translate(-100%, 0);
+    width: 22vw;
+    min-width: 220px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #333;
+    border-radius: 6px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+}
+
+.tap-diagnostic-panel.hidden {
+    display: none !important;
+}
+
+.tap-diagnostic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px;
+    border-bottom: 1px solid #333;
+}
+
+.tap-diagnostic-header span {
+    font-family: monospace;
+    font-size: 0.85vw;
+    color: #333;
+    font-weight: 700;
+}
+
+.tap-diagnostic-copy-btn {
+    font-family: monospace;
+    font-size: 0.75vw;
+    padding: 2px 8px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tap-diagnostic-copy-btn:hover {
+    background: #555;
+}
+
+.tap-diagnostic {
+    font-family: monospace;
+    font-size: 0.85vw;
+    color: #333;
+    padding: 4px 8px;
+    white-space: pre;
+    max-height: 20vh;
+    overflow-y: auto;
+}
+
+/* Round breakdown - shown on the right side of the screen when a run ends
+   in a loss, one section per round played that run. */
+/* Position/size come from cssVars (left/top/width/height) so drag (title
+   bar) and resize persist through the generic copySettings()/
+   saveSettings() path with no extra code. */
+.round-breakdown-panel {
+    position: fixed;
+    /* X/Y/Width/Height are vw/vh-native. This calc() only matters for first
+       paint: afterwards applyRoundBreakdownPosition() sets left/top inline
+       (needed for Align/Valign + Edge Lock). */
+    left: calc(var(--round-breakdown-left-vw) * 1vw);
+    top: calc(var(--round-breakdown-top-vh) * 1vh);
+    /* Scale With Browser only blends the text font-size here (see
+       .round-breakdown-row-title/-row-data); width/height are already
+       vw/vh-native. */
+    width: calc(var(--round-breakdown-width-vw) * 1vw);
+    height: calc(var(--round-breakdown-height-vh) * 1vh);
+    /* No min-width/min-height: the drag-resize handler reads these min/max
+       values via getComputedStyle(), so any floor here would limit it too.
+       max-width/max-height keep the panel on screen. */
+    max-width: 90vw;
+    max-height: 90vh;
+    /* background is on ::before (below) so Panel Opacity fades only the fill,
+       not the outline/text/resize handle. */
+    background: none;
+    border-radius: 8px;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--round-breakdown-font-family, monospace);
+    /* Native CSS `resize` isn't touch-draggable on most mobile browsers, so a
+       custom pointer-driven handle (.round-breakdown-resize-handle) replaces
+       it. overflow:auto stays for scrolling; size changes persist via the
+       ResizeObserver (JS). */
+    resize: none;
+    overflow: auto;
+}
+
+/* Panel Color/Opacity background fill on its own layer so Opacity fades
+   only the fill. absolute + inset:0 fills the (fixed) panel; z-index:-1
+   puts it below the panel's normal-flow children without giving them
+   z-indexes; border-radius:inherit matches the rounded corners. */
+.round-breakdown-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--round-breakdown-panel-color, #ffffff);
+    opacity: var(--round-breakdown-panel-opacity, 0.94);
+    border-radius: inherit;
+    z-index: -1;
+}
+
+.round-breakdown-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 32px;
+    height: 32px;
+    cursor: nwse-resize;
+    touch-action: none;
+    z-index: 1;
+}
+
+.round-breakdown-resize-handle::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 14px;
+    height: 14px;
+    background-image: repeating-linear-gradient(135deg, #333 0 2px, transparent 2px 6px);
+    opacity: 0.55;
+}
+
+/* Panel Resizer On/Off - display:none also disables dragging (no pointer
+   events), no separate JS needed. */
+.round-breakdown-resize-handle.hidden {
+    display: none;
+}
+
+.round-breakdown-panel.hidden {
+    display: none !important;
+}
+
+/* Outline On/Off + Thickness + Color. This outline is the panel's ONLY
+   edge line (no permanent border), so the checkbox fully controls it.
+   `outline` rather than `border` so it doesn't affect box sizing. */
+.round-breakdown-panel.rb-outline-on {
+    outline: calc(var(--round-breakdown-outline-thickness-px, 2) * 1px) solid var(--round-breakdown-outline-color, #000000);
+}
+
+/* Invisible drag handle for moving the panel (see JS). position:absolute
+   so it takes no layout space - .round-breakdown-table is the only flex
+   child and its first row sits flush at the top. touch-action:none so a
+   touch drag isn't taken by the browser's scroll gesture. */
+.round-breakdown-title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    z-index: 2;
+    cursor: grab;
+    touch-action: none;
+}
+
+.round-breakdown-title.dragging {
+    cursor: grabbing;
+}
+
+.round-breakdown-table {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 10px;
+    font-size: 0.8vw;
+    color: #333;
+}
+
+/* Auto Scroll On/Off: overflow-y:hidden hides the scrollbar and blocks
+   manual scrolling while autoscroll is on. Also load-bearing for clipping:
+   the scroll track's translateY moves 2x the content height through this
+   box. */
+.round-breakdown-panel.rb-autoscroll-on .round-breakdown-table {
+    overflow-y: hidden;
+}
+/* Auto Scroll track. renderRoundBreakdown() renders the rows TWICE here
+   (autoscroll only); restartRoundBreakdownAutoscroll() animates only this
+   element's translateY (compositor-only, smoother than scrollTop) from 0
+   to one copy's height, then resets to 0 - invisible since both copies
+   are identical, giving a seamless loop. */
+.round-breakdown-scroll-track {
+    will-change: transform;
+}
+
+.round-breakdown-row {
+    padding: 8px 0;
+    line-height: 1.5;
+}
+
+/* Row Divider Lines On/Off; default on (1). */
+.round-breakdown-panel.rb-row-lines-on .round-breakdown-row {
+    border-bottom: 1px solid #ccc;
+}
+
+.round-breakdown-panel.rb-row-lines-on .round-breakdown-row:last-child {
+    border-bottom: none;
+}
+
+/* Round Title Font Size/Bold/Color ("Round 1 (lost)" line). Bold is
+   applied via .rb-title-bold below. */
+.round-breakdown-row-title {
+    font-weight: 400;
+    /* See .round-breakdown-panel's own Scale With Browser comment. */
+    font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-title-font-size-px, 16) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-title-font-size-px, 16) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vmin);
+    color: var(--round-breakdown-title-color, #333);
+    letter-spacing: calc(var(--round-breakdown-title-letter-spacing-px, 0) * 1px);
+    line-height: var(--round-breakdown-title-line-height, 1.2);
+    margin-bottom: 2px;
+    /* pre-wrap so multiple typed spaces show as-is while still wrapping. */
+    white-space: pre-wrap;
+}
+
+.round-breakdown-panel.rb-title-bold .round-breakdown-row-title {
+    font-weight: 700;
+}
+
+/* Lost-round Title/Data colors. .round-breakdown-row-lost is added to the
+   row with r.won false (renderRoundBreakdown()); higher specificity so it
+   wins regardless of order. */
+.round-breakdown-row.round-breakdown-row-lost .round-breakdown-row-title {
+    color: var(--round-breakdown-lost-title-color, #cc0000);
+}
+
+/* Round Data Font Size/Bold/Color - the per-round stat lines. */
+.round-breakdown-row-data {
+    /* See .round-breakdown-panel's own Scale With Browser comment. */
+    font-size: calc((1 - var(--round-breakdown-scale-with-browser, 0)) * var(--round-breakdown-data-font-size-px, 15) * 1px + var(--round-breakdown-scale-with-browser, 0) * var(--round-breakdown-data-font-size-px, 15) / var(--round-breakdown-scale-ref-px, 1280) * 100 * 1vmin);
+    color: var(--round-breakdown-data-color, #333);
+    letter-spacing: calc(var(--round-breakdown-data-letter-spacing-px, 0) * 1px);
+    line-height: var(--round-breakdown-data-line-height, 1.2);
+    /* pre-wrap - see .round-breakdown-row-title. This element holds the
+       user-editable stat labels (TEXT_EDIT_TARGETS.roundBreakdownTable). */
+    white-space: pre-wrap;
+}
+
+.round-breakdown-panel.rb-data-bold .round-breakdown-row-data {
+    font-weight: 700;
+}
+
+.round-breakdown-row.round-breakdown-row-lost .round-breakdown-row-data {
+    color: var(--round-breakdown-lost-data-color, #cc0000);
+}
+
+/* Dev Panel */
+/* Position/size come from cssVars (same pattern as the round-breakdown
+   panel): draggable title bar, resizable, persisted with no extra code.
+   A single shared setting, not device-split (dev tool only). */
+.dev-panel {
+    position: fixed;
+    /* Fallbacks (26/6/178/120) match cssVars' JS defaults. Without them the
+       vars are unset until the big trailing script runs, so left/top/
+       width/height fall back to auto - and an auto-positioned fixed element
+       inherits .game-container's flex centering, flashing the panel in the
+       screen center on load. */
+    left: calc(var(--dev-panel-left-px, 26) * 1px);
+    top: calc(var(--dev-panel-top-px, 6) * 1px);
+    /* Colors, opacity and font sizes below are the built-in "Dev Panel"
+       settings group, independent per Desktop/Mobile/Landscape TAB (not
+       the real device) - see applyDevPanelOwnStyling(). */
+    background: var(--dev-panel-bg-color);
+    opacity: var(--dev-panel-opacity);
+    /* Static fallback: --dev-panel-text-color ("Settings Title Text Color")
+       is applied to .dev-label; other text elements set their own colors. */
+    color: #fff;
+    padding: 15px;
+    /* px unit is required (a bare number is invalid CSS). max-width keeps the
+       panel within the screen on narrow devices. */
+    width: calc(var(--dev-panel-width-px, 178) * 1px);
+    height: calc(var(--dev-panel-height-px, 120) * 1px);
+    min-width: 160px;
+    min-height: 120px;
+    max-width: 92vw;
+    max-height: 92vh;
+    /* Base/cascade text size reads the Setting Title Font Size slider. */
+    font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+    z-index: 99999;
+    font-family: var(--dev-panel-font-family, monospace);
+    border-left: 2px solid var(--dev-accent-color);
+    /* Hidden by default (not flex) so non-dev visitors never see it, even for
+       a frame - see the early <head> gate script. html.dev-mode restores it;
+       .dev-panel.hidden's !important still wins for the D-key/hide toggle. */
+    display: none;
+    flex-direction: column;
+    /* Native `resize` isn't touch-draggable on mobile, so 8 custom pointer-
+       driven handles (4 edges + 4 corners, JS) replace it; size persists via
+       the ResizeObserver.
+       Deliberately NOT overflow:auto here (that's on .dev-panel-scroll-
+       content): non-visible overflow would clip the handles' negative-offset
+       portion that straddles the border, removing it from hit-testing too. */
+    resize: none;
+}
+/* Restores visibility for dev-allowed visitors only (class set by the
+   early <head> gate script). */
+html.dev-mode .dev-panel { display: flex; }
+/* Smaller default on narrow (mobile) viewports. Only caps SIZE; off-screen
+   position is handled by clampDevPanelPosition() (JS). */
+@media (max-width: 767px) {
+    .dev-panel {
+        max-width: 85vw;
+        max-height: 80vh;
+    }
+}
+.dev-panel-scroll-content {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    /* Panel-matching scrollbar. Firefox uses scrollbar-color/scrollbar-width;
+       Chromium/Safari use the ::-webkit-scrollbar pseudo-elements below. */
+    scrollbar-color: var(--dev-accent-color) #000;
+    scrollbar-width: thin;
+}
+.dev-panel-scroll-content::-webkit-scrollbar {
+    width: 10px;
+}
+.dev-panel-scroll-content::-webkit-scrollbar-track {
+    background: #000;
+}
+.dev-panel-scroll-content::-webkit-scrollbar-thumb {
+    background: var(--dev-accent-color);
+    border-radius: 5px;
+}
+
+/* Collapsed state - distinct from fully hidden (.hidden, D key / hide
+   button): only the header shows. Height is auto instead of
+   --dev-panel-height-px, which is remembered for when it expands.
+   Targets scroll-content's children EXCEPT .dev-header rather than the
+   wrapper itself: .dev-header lives inside it (needed for position:sticky),
+   so hiding the wrapper would hide the collapse button too. */
+.dev-panel.panel-collapsed {
+    height: auto !important;
+    /* Overrides the base rule's min-height:120px (an expanded-state floor) so
+       the collapsed panel is only as tall as its header. */
+    min-height: 0;
+}
+/* Zeroes .dev-header's bottom padding/margin (expanded-state spacing) so
+       space above and below the header is equal when collapsed. */
+.dev-panel.panel-collapsed .dev-header {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    /* Title (26px) and buttons (21px) differ in height; center them when
+       collapsed so space above/below is equal. */
+    align-items: center;
+    /* No sticky needed - nothing scrolls when collapsed. */
+    position: static;
+}
+/* Not strictly load-bearing (toggleDevPanelCollapsed() measures and sizes
+   the collapsed panel in JS), but correct simplifications: nothing scrolls
+   when only the header shows. */
+.dev-panel.panel-collapsed .dev-panel-scroll-content {
+    flex: 0 1 auto;
+    overflow: visible;
+}
+.dev-panel.panel-collapsed .dev-panel-scroll-content > *:not(.dev-header),
+.dev-panel.panel-collapsed .dev-panel-resize-edge,
+.dev-panel.panel-collapsed .dev-panel-resize-corner {
+    display: none !important;
+}
+
+/* 4 edge strips, inset from the corners so they don't overlap the corner
+   handles. Top/left resizing also moves the panel (opposite edge stays
+   fixed) - see setupPanelResizeHandle().
+   Straddles the border (-6px..+6px) rather than sitting inside it: the
+   native scrollbar at the right edge intercepts clicks before the DOM, so
+   only the outer half is reliably reachable. */
+.dev-panel-resize-edge {
+    position: absolute;
+    z-index: 2;
+    touch-action: none;
+    /* -webkit-touch-callout: same reasoning as .dev-header. */
+    -webkit-touch-callout: none;
+}
+/* 20px wide (matching the corners): a fingertip easily strays outside a
+   narrower strip, which can make the browser cut a touch drag short even
+   with touch-action:none + setPointerCapture(). */
+.dev-panel-resize-edge.edge-top, .dev-panel-resize-edge.edge-bottom {
+    left: 16px;
+    right: 16px;
+    height: 20px;
+    cursor: ns-resize;
+}
+.dev-panel-resize-edge.edge-top { top: -6px; }
+.dev-panel-resize-edge.edge-bottom { bottom: -6px; }
+.dev-panel-resize-edge.edge-left, .dev-panel-resize-edge.edge-right {
+    top: 16px;
+    bottom: 16px;
+    width: 20px;
+    cursor: ew-resize;
+}
+.dev-panel-resize-edge.edge-left { left: -6px; }
+.dev-panel-resize-edge.edge-right { right: -6px; }
+
+/* 4 corner squares, sitting above the edge strips (z-index) so a
+   corner drag always wins over an adjacent edge's hit zone. Same
+   straddle-the-border treatment as the edges. */
+.dev-panel-resize-corner {
+    position: absolute;
+    z-index: 3;
+    width: 20px;
+    height: 20px;
+    touch-action: none;
+    -webkit-touch-callout: none;
+}
+.dev-panel-resize-corner.corner-tl { top: -6px; left: -6px; cursor: nwse-resize; }
+.dev-panel-resize-corner.corner-tr { top: -6px; right: -6px; cursor: nesw-resize; }
+.dev-panel-resize-corner.corner-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.dev-panel-resize-corner.corner-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+/* Visible grip icon on all 4 corners, 7px, sitting fully inside the panel
+   edge: the handle starts at -6px, so an 8px offset lands it 2px inside. */
+.dev-panel-resize-corner::after {
+    content: '';
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    opacity: 0.7;
+}
+.dev-panel-resize-corner.corner-tl::after { top: 8px; left: 8px; }
+.dev-panel-resize-corner.corner-tr::after { top: 8px; right: 8px; }
+.dev-panel-resize-corner.corner-bl::after { bottom: 8px; left: 8px; }
+.dev-panel-resize-corner.corner-br::after { bottom: 8px; right: 8px; }
+/* Stripe direction follows each corner's resize diagonal: tl/br
+   (nwse-resize) use the 135deg "\" pattern, tr/bl (nesw-resize) the
+   mirrored 45deg "/" pattern. */
+.dev-panel-resize-corner.corner-tl::after,
+.dev-panel-resize-corner.corner-br::after {
+    background-image: repeating-linear-gradient(135deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
+}
+.dev-panel-resize-corner.corner-tr::after,
+.dev-panel-resize-corner.corner-bl::after {
+    background-image: repeating-linear-gradient(45deg, var(--dev-accent-color) 0 2px, transparent 2px 6px);
+}
+
+/* Grip bars at the center of each edge strip, oriented along that edge's
+   resize axis; same accent color/opacity as the corner grips. */
+.dev-panel-resize-edge::after {
+    content: '';
+    position: absolute;
+    background: var(--dev-accent-color);
+    opacity: 0.7;
+    border-radius: 1px;
+}
+.dev-panel-resize-edge.edge-top::after, .dev-panel-resize-edge.edge-bottom::after {
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 3px;
+    transform: translate(-50%, -50%);
+}
+.dev-panel-resize-edge.edge-left::after, .dev-panel-resize-edge.edge-right::after {
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 14px;
+    transform: translate(-50%, -50%);
+}
+
+.dev-panel.hidden {
+    display: none !important;
+}
+
+/* The tab content containers' .hidden needs its own scoped rule (every
+   .hidden in this file is element-scoped); without it both tabs' groups
+   render at once, stacked. */
+#desktopTabContent.hidden, #mobileTabContent.hidden, #landscapeTabContent.hidden {
+    display: none !important;
+}
+
+.dev-header {
+    /* Drag handle for moving the panel (JS): the whole header bar is the
+       hit-target, not just the small "DEV" text. Header buttons are
+       excluded by a guard in the pointerdown listener.
+       touch-action:none so a touch drag isn't taken as page scroll.
+       -webkit-user-select/-webkit-touch-callout stop iOS text selection/
+       magnifier from engaging mid-drag on the "DEV" text (unconfirmed on a
+       real device). */
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: none;
+    margin-bottom: 10px;
+    color: #0ff;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    /* sticky pins the header but doesn't make it paint above later siblings
+       scrolled under it, so it needs an explicit z-index above everything
+       in .dev-panel-scroll-content (highest there is 1). */
+    z-index: 50;
+    background: rgba(0,0,0,0.95);
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.dev-header.dragging {
+    cursor: grabbing;
+}
+
+.dev-panel-title {
+    font-size: calc(var(--dev-panel-title-font-size-px) * 1px);
+    color: var(--dev-panel-title-text-color);
+    letter-spacing: calc(var(--dev-panel-title-letter-spacing-px) * 1px);
+    line-height: var(--dev-panel-title-line-height);
+    /* Explicit normal overrides the inherited bold; the Bold Title Text
+       checkbox (default on) restores it via .dev-bold-title. */
+    font-weight: normal;
+}
+.dev-panel.dev-bold-title .dev-panel-title { font-weight: bold; }
+.dev-panel.dev-caps-title-text .dev-panel-title { text-transform: uppercase; }
+
+.dev-hide-btn {
+    background: var(--dev-accent-color);
+    color: var(--dev-panel-button-text-color);
+    border: none;
+    border-radius: 3px;
+    width: 22px;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    padding-top: calc(var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+    font-weight: normal;
+    line-height: var(--dev-button-text-line-height);
+    letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dev-hide-btn:hover {
+    filter: brightness(1.3);
+}
+
+/* Header icon buttons (Text Edit Mode/Add Group/Collapse All) - same
+   "Buttons Text" styling as .dev-hide-btn/.dev-collapse-btn, kept as its
+   own rule. */
+.dev-header-icon-btn {
+    background: var(--dev-accent-color);
+    color: var(--dev-panel-button-text-color);
+    border: none;
+    border-radius: 3px;
+    width: 22px;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    padding-top: calc(var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+    font-weight: normal;
+    line-height: var(--dev-button-text-line-height);
+    letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.dev-header-icon-btn:hover {
+    filter: brightness(1.3);
+}
+/* Pressed/inverted look for Text Edit Mode's ON state and Add Group's
+   armed (right-clicked, awaiting selection) state. */
+.dev-header-icon-btn.active, .dev-header-icon-btn.armed {
+    outline: 2px solid var(--dev-panel-button-text-color);
+    outline-offset: -2px;
+}
+
+/* ============================================================
+   Hotkey UI - bind 1-2 letter key combos to checkbox/button/slider
+   controls. Badge next to each hotkeyed control; inline textbox to
+   assign/edit. Sequence Window (Ms) sets the 2-char sequence timeout.
+   ============================================================ */
+.dev-hotkey-badge {
+    display: inline-block;
+    color: var(--dev-accent-color);
+    font-weight: bold;
+    font-size: 11px;
+    padding: 2px 4px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+.dev-hotkey-input {
+    width: 28px;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
+/* Slider Hotkey Mode HUD - a small readout left of the floating DEV
+   toggle button (bottom-right corner), shown only while a slider
+   hotkey is actively armed for arrow-key adjustment. */
+.dev-hotkey-hud {
+    position: fixed;
+    bottom: 12px;
+    right: 70px;
+    background: var(--dev-button-color, #3a3a4a);
+    color: var(--dev-panel-button-text-color, #000);
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.dev-hotkey-hud .dev-hotkey-hud-label { font-weight: bold; color: var(--dev-accent-color); }
+
+/* Modal input for header button hotkey assignment (floating overlay) */
+.dev-hotkey-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--dev-button-color, #3a3a4a);
+    border: 2px solid var(--dev-accent-color);
+    border-radius: 4px;
+    padding: 12px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.dev-hotkey-modal input {
+    background: var(--dev-panel-background, #f5f5f5);
+    color: var(--dev-panel-button-text-color, #000);
+    border: 1px solid var(--dev-accent-color);
+    padding: 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    width: 200px;
+}
+.dev-hotkey-modal input:focus {
+    outline: 2px solid var(--dev-accent-color);
+    outline-offset: 1px;
+}
+
+/* Groups Collapse + Hide together at the header's top-right. */
+.dev-header-buttons {
+    display: flex;
+    gap: 4px;
+}
+/* 2 button sub-containers, side by side on desktop in DOM order
+   (secondary then primary), reading as one left-to-right sequence. */
+.dev-header-buttons-secondary, .dev-header-buttons-primary {
+    display: flex;
+    gap: 4px;
+}
+@media (max-width: 767px) {
+    /* Same DOM order stacked vertically with primary (2nd in DOM) on top,
+       without reordering the DOM or duplicating buttons. */
+    .dev-header-buttons { flex-direction: column-reverse; align-items: stretch; gap: 4px; }
+    .dev-header-buttons-secondary, .dev-header-buttons-primary { flex-wrap: wrap; justify-content: flex-end; }
+}
+
+.dev-collapse-btn {
+    background: var(--dev-accent-color);
+    color: var(--dev-panel-button-text-color);
+    border: none;
+    border-radius: 3px;
+    width: 22px;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    padding-top: calc(var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+    font-weight: normal;
+    line-height: var(--dev-button-text-line-height);
+    letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dev-collapse-btn:hover {
+    filter: brightness(1.3);
+}
+
+/* Desktop/Mobile/Landscape tabs. */
+.dev-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.dev-tab-btn {
+    flex: 1;
+    background: #222;
+    /* Tab Title's own Text Color control. */
+    color: var(--dev-tab-text-color);
+    border: 1px solid var(--dev-accent-color);
+    border-radius: 3px;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    padding-top: calc(var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--dev-panel-font-family, monospace);
+    font-size: calc(var(--dev-tab-font-size-px) * 1px);
+    font-weight: normal;
+    line-height: var(--dev-tab-line-height);
+    letter-spacing: calc(var(--dev-tab-text-letter-spacing-px) * 1px);
+    cursor: pointer;
+}
+.dev-panel.dev-bold-tab .dev-tab-btn { font-weight: bold; }
+
+.dev-tab-btn.active {
+    background: var(--dev-accent-color);
+    color: var(--dev-tab-text-color);
+}
+
+/* "+ Add Group" - styled like the tab buttons but with the group label
+   bar's background (--dev-group-label-bg-color). 10px top/bottom margin
+   matches the tab row / button row gap. */
+.dev-add-group-btn {
+    display: flex;
+    width: 100%;
+    background: var(--dev-group-label-bg-color, #134e4a);
+    /* Text color is its own control, not --dev-accent-color: Accent and Group
+       Label Bg Color can end up equal, making the text invisible. Same fix
+       as .dev-section-title and .dev-tab-btn. */
+    color: var(--dev-panel-button-text-color);
+    border: 1px solid var(--dev-accent-color);
+    border-radius: 3px;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    padding-top: calc(var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+    align-items: center;
+    justify-content: center;
+    font-family: var(--dev-panel-font-family, monospace);
+    font-size: calc(var(--dev-tab-font-size-px) * 1px);
+    font-weight: bold;
+    letter-spacing: calc(var(--dev-tab-text-letter-spacing-px) * 1px);
+    cursor: pointer;
+    margin: 10px 0;
+}
+.dev-add-group-btn:hover { filter: brightness(1.3); }
+
+/* Persistent reopen toggle - visible whenever the dev panel is allowed at
+   all (gated by isDevAllowed in JS), regardless of the panel's own hidden
+   state, so it can always be brought back without a keyboard on mobile. */
+/* Top-edge debug lines. position:fixed + top:0 so each starts at the real
+   viewport top regardless of ancestor transforms; JS sets height to the
+   element's measured top-of-glyph, so the line's BOTTOM edge is what's
+   being visualized. z-index above the dev panel (100000). */
+.top-debug-line {
+    position: fixed;
+    top: 0;
+    width: 3px;
+    z-index: 100001;
+    pointer-events: none;
+}
+.top-debug-line.hidden { display: none; }
+#topDebugLineTarget { background: #00ff00; }
+#topDebugLineMs { background: #2277ff; }
+.top-debug-label {
+    position: fixed;
+    z-index: 100001;
+    pointer-events: none;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #000;
+    white-space: nowrap;
+}
+.top-debug-label.hidden { display: none; }
+#topDebugLabelTarget { background: #00ff00; }
+#topDebugLabelMs { background: #2277ff; }
+
+.dev-toggle-btn {
+    /* Hidden by default like .dev-panel; html.dev-mode restores it. */
+    display: none;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 100000;
+    background: var(--dev-accent-color);
+    color: var(--dev-panel-button-text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.85;
+}
+html.dev-mode .dev-toggle-btn { display: inline-block; }
+
+.dev-toggle-btn:hover {
+    opacity: 1;
+}
+
+.dev-buttons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+/* Status label for the repo sync started by Save Settings, so a failed/
+   skipped sync (e.g. backend env vars missing) doesn't look like a broken
+   Save. */
+.dev-save-sync-status {
+    font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dev-buttons button {
+    flex: 1;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    padding-top: calc(var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(var(--dev-button-text-border-px) * 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+    line-height: var(--dev-button-text-line-height);
+    background: var(--dev-accent-color);
+    color: var(--dev-panel-button-text-color);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: normal;
+    letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+}
+/* Same scope as dev-caps-button-text: .dev-toggle-btn is excluded (it's
+   the floating reopen button outside .dev-panel). */
+.dev-panel.dev-bold-button .dev-buttons button,
+.dev-panel.dev-bold-button .dev-hide-btn,
+.dev-panel.dev-bold-button .dev-collapse-btn,
+.dev-panel.dev-bold-button .dev-header-icon-btn,
+.dev-panel.dev-bold-button .dev-trigger-btn {
+    font-weight: bold;
+}
+
+.dev-buttons button:hover {
+    filter: brightness(1.3);
+}
+
+/* Dev panel search - Ctrl+F-style group/setting finder (see
+   setupDevSearch()). Panel-level chrome between Copy/Sync/Reset and
+   "Saved Dev Settings", not per tab. */
+.dev-search-row { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+.dev-search-input {
+    flex: 1;
+    min-width: 0;
+    min-height: calc(var(--dev-button-height-px) * 1px);
+    font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+    background: #0f0f18;
+    color: var(--dev-panel-non-title-text-color);
+    border: 1px solid var(--dev-accent-color);
+    border-radius: 3px;
+    padding: 2px 6px;
+}
+.dev-search-count { flex-shrink: 0; font-size: calc(var(--dev-setting-title-font-size-px) * 0.85px); color: var(--dev-panel-non-title-text-color); min-width: 40px; text-align: right; }
+/* Only the current match is highlighted (see setupDevSearch()); outline,
+   not border, so layout doesn't shift. */
+.dev-search-highlight-active {
+    outline: 2px solid #ffb400;
+    outline-offset: 1px;
+    background: color-mix(in srgb, #ffb400 25%, transparent);
+    border-radius: 2px;
+}
+
+/* Styled like COPY/RESET/SAVE, smaller. Font settings share the Buttons
+   Text controls (--dev-button-text-font-size-px etc.). */
+.dev-trigger-btn {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: calc(3px + var(--dev-button-text-border-px) * 1px);
+    padding-bottom: calc(3px + var(--dev-button-text-border-px) * 1px);
+    font-size: calc(var(--dev-button-text-font-size-px) * 1px);
+    line-height: var(--dev-button-text-line-height);
+    min-height: calc(var(--dev-button-height-px) * 0.75px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dev-accent-color);
+    color: var(--dev-panel-button-text-color);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: normal;
+    font-family: var(--dev-panel-font-family, monospace);
+    letter-spacing: calc(var(--dev-button-text-letter-spacing-px) * 1px);
+}
+
+.dev-trigger-btn:hover {
+    filter: brightness(1.3);
+}
+
+.dev-section {
+    margin-bottom: 15px;
+    /* Positioning context so .dev-group-lock-icon can sit absolutely in the
+       title bar corner without being a child of .dev-section-title. */
+    position: relative;
+}
+
+/* Lock icon - a locked group's settings can't be reordered/moved. It is a
+   SIBLING of .dev-section-title (added by JS): renaming rewrites the
+   title's entire textContent, which would delete any child element.
+   Absolutely positioned over the title bar's top-right corner instead. */
+.dev-group-lock-icon {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    z-index: 1;
+    opacity: 0.75;
+}
+/* Toggleable Settings Group checkbox - a sibling of .dev-section-title for
+   the same textContent-rewrite reason as the lock icon. Positioned left of
+   the right:8px/30px/52px icon column. */
+.dev-group-toggle-checkbox {
+    position: absolute;
+    top: 6px;
+    right: 76px;
+    cursor: pointer;
+    z-index: 1;
+}
+.dev-section-group-disabled > .dev-section-content {
+    display: none !important;
+}
+.dev-group-lock-icon:hover {
+    opacity: 1;
+}
+/* Locked groups invert hover: full opacity at rest, 50% on hover. 3-class
+   specificity beats the plain :hover rule regardless of order. */
+.dev-group-lock-icon.locked {
+    opacity: 1;
+}
+.dev-group-lock-icon.locked:hover {
+    opacity: 0.5;
+}
+
+/* Undock button - moves a group into its own floating panel and docks it
+   back in its previous position (see toggleGroupUndock()). Sibling of
+   .dev-section-title (rename-survival), between Lock (right:8px) and the
+   cascade checkbox (right:52px). */
+.dev-group-undock-btn {
+    position: absolute;
+    top: 5px;
+    right: 30px;
+    font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    z-index: 1;
+    opacity: 0.75;
+}
+.dev-group-undock-btn:hover {
+    opacity: 1;
+}
+/* Marker class for a group living in its own floating panel; no visual
+   change of its own currently. */
+.dev-section.dev-group-undocked {
+    opacity: 0.97;
+}
+/* Floating panel for an undocked group. Mirrors .dev-panel's chrome but
+   uses inline position/size (not the --dev-panel-*-px vars, which belong
+   to the main panel) since several groups can be undocked at once.
+   Session-only by design (see dockAllUndockedGroups()), so not part of
+   Save/Sync. */
+.dev-undock-panel {
+    position: fixed;
+    background: var(--dev-panel-bg-color, #000);
+    color: #fff;
+    padding: 15px;
+    min-width: 160px;
+    min-height: 120px;
+    max-width: 92vw;
+    max-height: 92vh;
+    font-size: calc(var(--dev-setting-title-font-size-px, 12) * 1px);
+    z-index: 99999;
+    font-family: var(--dev-panel-font-family, monospace);
+    border-left: 2px solid var(--dev-accent-color, #0ff);
+    display: flex;
+    flex-direction: column;
+    resize: none;
+}
+.dev-undock-panel-header {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    margin-bottom: 10px;
+    color: var(--dev-accent-color, #0ff);
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+}
+.dev-undock-panel-header.dragging {
+    cursor: grabbing;
+}
+.dev-undock-panel-dock-btn {
+    background: var(--dev-accent-color, #0ff);
+    color: #000;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 2px 8px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.dev-undock-panel-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-color: var(--dev-accent-color, #0ff) #000;
+    scrollbar-width: thin;
+}
+.dev-undock-panel-body::-webkit-scrollbar { width: 10px; }
+.dev-undock-panel-body::-webkit-scrollbar-track { background: #000; }
+.dev-undock-panel-body::-webkit-scrollbar-thumb { background: var(--dev-accent-color, #0ff); border-radius: 5px; }
+
+/* Group-level "Show in Mobile/Landscape" / "Independent from Desktop"
+   cascade checkbox - sibling of .dev-section-title (rename-survival). */
+/* right:52px - order from the outer edge: Lock, Undock, then this
+   checkbox closest to the title text. */
+.dev-group-device-checkbox {
+    position: absolute;
+    top: 50%;
+    right: 52px;
+    transform: translateY(-50%);
+    accent-color: var(--dev-accent-color);
+    cursor: pointer;
+    z-index: 1;
+}
+.dev-row-hidden-by-checkbox {
+    display: none !important;
+}
+/* Hides a row that has no effect under the element's current UI-Engine
+   position.mode (anchor vs relative) - toggled by
+   stage2SyncRowVisibility(). */
+.dev-row-hidden-by-mode {
+    display: none !important;
+}
+.dev-section-hidden-empty {
+    display: none !important;
+}
+
+/* Group drag handle - reorder/nesting starts only from this icon. Sibling
+   of .dev-section-title (the rename textContent rewrite would delete a
+   child). Small enough that touch-action:none doesn't block scrolling the
+   panel. */
+.dev-group-drag-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 22px;
+    /* Height mirrors .dev-section-title's own box-height formula (10px
+       padding + font-size * line-height) so flex centering places the glyph
+       correctly at any font size. Nested titles (0.85x) have a matching
+       override below. */
+    height: calc(10px + var(--dev-group-title-font-size-px, 13) * 1px * var(--dev-group-text-line-height, 1.2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+    line-height: 1;
+    cursor: grab;
+    user-select: none;
+    z-index: 1;
+    opacity: 0.75;
+    touch-action: none;
+}
+.dev-group-drag-handle:hover {
+    opacity: 1;
+}
+.dev-group-drag-handle:active {
+    cursor: grabbing;
+}
+
+.dev-section-title {
+    /* Group Text Color control (independent of Accent Color). */
+    color: var(--dev-panel-group-text-color);
+    font-weight: normal;
+    font-size: calc(var(--dev-group-title-font-size-px) * 1px);
+    letter-spacing: calc(var(--dev-group-text-letter-spacing-px) * 1px);
+    line-height: var(--dev-group-text-line-height);
+    margin-bottom: 8px;
+    cursor: pointer;
+    user-select: none;
+    /* Left padding reserves room for .dev-group-drag-handle so it doesn't
+       cover the collapse arrow (the title's first character). Right padding
+       (78px) fits the 3 right-side icons (Lock, Undock, cascade checkbox). */
+    padding: 5px 78px 5px 22px;
+    background: var(--dev-group-label-bg-color, #134e4a);
+    border-radius: 3px;
+    /* The title is NOT a drag handle (that's .dev-group-drag-handle), so it
+       needs no touch-action change and doesn't block panel scrolling. */
+}
+
+.dev-section-title:hover {
+    filter: brightness(1.3);
+}
+
+.dev-section-content {
+    display: block;
+    margin-left: 5px;
+}
+/* Nested groups: a .dev-section directly inside a .dev-section-content.
+   Purely structural selector, so no JS class syncing is needed as groups
+   are dragged in/out. Left border + smaller title. */
+.dev-section-content > .dev-section {
+    padding-left: 10px;
+    border-left: 2px solid rgba(0, 255, 255, 0.25);
+}
+.dev-section-content > .dev-section > .dev-section-title {
+    font-size: calc(var(--dev-group-title-font-size-px) * 0.85px);
+}
+/* Matches the 0.85x nested title font-size - see .dev-group-drag-handle
+   for why the handle height must track the title box exactly. */
+.dev-section-content > .dev-section > .dev-group-drag-handle {
+    height: calc(10px + var(--dev-group-title-font-size-px, 13) * 0.85px * var(--dev-group-text-line-height, 1.2));
+}
+/* An empty group would collapse to 0 height and be impossible to aim a
+   drag at (setupDragReorder()'s crossContainerSelector hit-testing).
+   :empty only matches when no child rows remain. */
+.dev-section-content:empty {
+    min-height: 24px;
+    border: 1px dashed var(--dev-accent-color, #0ff);
+    opacity: 0.5;
+}
+
+.dev-section-content.collapsed {
+    display: none;
+}
+
+.dev-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+/* Shift+click (or armed click) multi-select for folding items into a new
+   group (see setupDevGroupSelection()/addDevGroup()). Outline (not border)
+   so layout doesn't shift; faint tint marks a selected group's content. */
+.dev-row.dev-selected, .dev-section.dev-selected {
+    outline: 2px solid var(--dev-accent-color);
+    outline-offset: 2px;
+    background: color-mix(in srgb, var(--dev-accent-color) 12%, transparent);
+    border-radius: 3px;
+}
+
+/* Dynamic Mobile/Landscape visibility/independence checkboxes, pushed to
+   the row's far right (margin-left:auto) as a separate "meta" control. */
+.dev-visibility-checkbox, .dev-independence-checkbox {
+    margin-left: auto;
+    accent-color: var(--dev-accent-color);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dev-label {
+    min-width: 140px;
+    /* "Settings Title Text Color". */
+    color: var(--dev-panel-non-title-text-color);
+    font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+    letter-spacing: calc(var(--dev-settings-text-letter-spacing-px) * 1px);
+    line-height: var(--dev-settings-line-height);
+    font-weight: normal;
+}
+
+/* Row drag handle - first child of .dev-row (only .dev-label's
+   textContent is rewritten on rename, not the row's), so .dev-row's flex
+   + gap positions it with no absolute workaround. Small, so touch-action:
+   none is harmless. */
+.dev-row-drag-handle {
+    cursor: grab;
+    user-select: none;
+    opacity: 0.6;
+    flex-shrink: 0;
+    touch-action: none;
+}
+.dev-row-drag-handle:hover {
+    opacity: 1;
+}
+.dev-row-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Settings-row drag styling. Deliberately NOT touch-action:none - almost
+   every row has a label, so it would block scrolling most of the panel. */
+.dev-section-content .dev-label {
+    cursor: grab;
+    user-select: none;
+}
+.dev-reorder-dragging {
+    opacity: 0.5;
+}
+
+/* Mouse Log display - one child per entry (Copy/Save read the mouseLog
+   array, not this DOM). */
+.dev-mouse-log {
+    height: 140px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--dev-accent-color, #0ff);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font: 10px/1.5 ui-monospace, Consolas, monospace;
+    color: var(--dev-panel-non-title-text-color, #aaa);
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-top: 4px;
+}
+.dev-mouse-log-empty { opacity: 0.6; }
+
+.dev-slider {
+    flex: 1;
+    /* Higher min-width so a narrow panel wraps the slider onto its own line
+       (.dev-row is flex-wrap) sooner, instead of leaving a thin, hard-to-
+       grab slider beside the label. */
+    min-width: 130px;
+    height: 18px;
+    cursor: pointer;
+    /* Native thumb/track tint (separate from --dev-accent-color). */
+    accent-color: var(--dev-slider-color);
+}
+
+.dev-value {
+    min-width: 45px;
+    /* Setting Number Text Color control. */
+    color: var(--dev-value-text-color);
+    text-align: right;
+    font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
+}
+/* Applied at init (makeDevValuesEditable()) only to .dev-value spans with
+   a matching range slider; decorative labels share the class but have
+   nothing to edit. */
+.dev-value-editable {
+    cursor: text;
+}
+.dev-value-editable:hover {
+    outline: 1px solid var(--dev-accent-color);
+}
+/* Editable slider min/max labels at each end of a slider track (see
+   makeDevSliderBoundsEditable()), click-to-type like the value readout. */
+.dev-slider-bound {
+    font-size: 9px;
+    opacity: 0.6;
+    flex-shrink: 0;
+    color: var(--dev-value-text-color);
+}
+.dev-slider-bound-editable {
+    cursor: text;
+}
+.dev-slider-bound-editable:hover {
+    outline: 1px solid var(--dev-accent-color);
+    opacity: 1;
+}
+.dev-value-edit-input {
+    width: 52px;
+    background: #000;
+    color: var(--dev-value-text-color);
+    border: 1px solid var(--dev-accent-color);
+    font-family: var(--dev-panel-font-family, monospace);
+    font-size: calc(var(--dev-value-font-size-px, 10) * 1px);
+    text-align: right;
+    padding: 0;
+}
+
+/* Standalone typed-number controls - permanent inputs, not the click-to-
+   edit overlay on a .dev-value span. */
+.dev-text-input {
+    width: 52px;
+    background: #000;
+    color: var(--dev-accent-color);
+    border: 1px solid var(--dev-accent-color);
+    font-family: var(--dev-panel-font-family, monospace);
+    font-size: 11px;
+    text-align: right;
+    padding: 2px 4px;
+}
+
+/* Hide Shadow spec inputs - free-text position/range lists (e.g.
+   "0=>1, 3, -4=>-7") need real room, unlike the short numeric
+   .dev-text-input fields elsewhere. */
+.dev-text-input-wide {
+    width: 160px;
+    text-align: left;
+}
+
+.dev-color-picker {
+    /* Scales with Setting Title Font Size (5x/3x ratios). */
+    width: calc(var(--dev-setting-title-font-size-px) * 5px);
+    height: calc(var(--dev-setting-title-font-size-px) * 3px);
+    border: 1px solid var(--dev-accent-color);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+/* Edge Lock checkbox to the right of each align/valign <select>, a small
+   inline modifier rather than its own .dev-label row. */
+.dev-edge-lock-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #aaa;
+    font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* Px/vw-vh unit toggle at the end of each X/Y Offset row (see
+   setupOffsetUnitCheckboxes()); same treatment as .dev-edge-lock-label. */
+.dev-offset-unit-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #aaa;
+    font-size: calc(var(--dev-setting-title-font-size-px) * 1px);
+    white-space: nowrap;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.dev-select {
+    background: #222;
+    /* Matches Setting Number Text Color - a dropdown's selected text reads as
+       a current value like a slider readout. */
+    color: var(--dev-value-text-color);
+    border: 1px solid var(--dev-accent-color);
+    padding: 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: var(--dev-panel-font-family, monospace);
+    font-size: 10px;
+}
+
+/* 4 independent capitalize toggles (one per text category), applied on
+   .dev-panel by applyDevPanelOwnStyling() (see DEV_PANEL_CAPS_CLASS_MAP). */
+.dev-panel.dev-caps-button-text .dev-buttons button,
+.dev-panel.dev-caps-button-text .dev-hide-btn,
+.dev-panel.dev-caps-button-text .dev-collapse-btn,
+.dev-panel.dev-caps-button-text .dev-header-icon-btn,
+.dev-panel.dev-caps-button-text .dev-trigger-btn {
+    text-transform: uppercase;
+}
+.dev-panel.dev-caps-tab-text .dev-tab-btn {
+    text-transform: uppercase;
+}
+.dev-panel.dev-caps-group-names .dev-section-title {
+    text-transform: uppercase;
+}
+.dev-panel.dev-caps-settings-text .dev-label {
+    text-transform: uppercase;
+}
+/* Bold toggles for Group Name Text/Settings Text (Title/Tab/Buttons bold
+   rules live with those elements above). */
+.dev-panel.dev-bold-group .dev-section-title {
+    font-weight: bold;
+}
+.dev-panel.dev-bold-settings .dev-label {
+    font-weight: bold;
+}
+
+/* ============================================================
+   STAGE 2 EXPERIMENT - UI-Engine's Inspector mounted as its own floating
+   panel (CSS copied from the engine's demo/index.html). Toggled by
+   #stage2InspectorToggleBtn. Separate from .dev-panel - reversible by
+   deleting this block + the matching HTML/JS blocks near end of <body>.
+============================================================ */
+#stage2InspectorPanel {
+    display: none;
+    position: fixed;
+    top: 20px;
+    /* left only (no right) - a fixed box with explicit width plus both left
+       and right is over-constrained once drag/resize starts writing left. */
+    left: calc(100vw - 380px);
+    width: 360px;
+    height: 70vh;
+    min-width: 260px;
+    min-height: 180px;
+    box-sizing: border-box;
+    background: #0a0a0a;
+    border: 2px solid #0ff;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 11px;
+    z-index: 999999;
+    color: #ccc;
+    flex-direction: column;
+    overflow: hidden;
+}
+#stage2InspectorPanel.stage2-open { display: flex; }
+/* Draggable title bar, below the top edge's resize hit-target (they must
+   not overlap). */
+#stage2InspectorHeader {
+    flex: 0 0 auto;
+    padding: 10px 10px 6px;
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+#stage2InspectorHeader.dragging { cursor: grabbing; }
+#stage2InspectorPanel h1 { font-size: 13px; color: #0ff; margin: 0; }
+#stage2InspectorMount { flex: 1 1 auto; overflow-y: auto; padding: 0 10px 10px; }
+#stage2InspectorToggleBtn {
+    position: fixed; bottom: 60px; right: 20px; z-index: 999999;
+    background: #0ff; color: #000; border: none; border-radius: 4px;
+    padding: 6px 10px; font-family: monospace; font-weight: bold;
+    font-size: 11px; cursor: pointer;
+}
+.ui-inspector-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.ui-inspector-label { color: #9ca3af; min-width: 90px; font-size: 10px; }
+.ui-inspector-select, .ui-inspector-text-input { background: #222; color: #0ff; border: 1px solid #0ff; border-radius: 3px; font-family: monospace; font-size: 10px; padding: 2px 4px; flex: 1; min-width: 60px; }
+.ui-inspector-button { background: #0ff; color: #000; border: none; border-radius: 3px; padding: 4px 8px; font-size: 10px; font-weight: bold; cursor: pointer; }
+.ui-inspector-section { margin: 10px 0; border-top: 1px solid #333; padding-top: 6px; }
+.ui-inspector-section-title { color: #0ff; font-weight: bold; margin-bottom: 4px; }
+.ui-inspector-section-body.ui-inspector-collapsed { display: none; }
+.ui-inspector-hint, .ui-inspector-note { color: #6b7280; font-style: italic; }
+.ui-inspector-config-dump { background: #111; color: #9ca3af; padding: 6px; font-size: 9px; max-height: 160px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.ui-inspector-context-tabs { gap: 4px; }
+.ui-inspector-tab-button { opacity: 0.6; }
+.ui-inspector-tab-active { opacity: 1; box-shadow: 0 0 0 2px #fff inset; }
+.ui-inspector-group-label { color: #9ca3af; font-size: 10px; font-style: italic; }
+.ui-inspector-add-override-picker { border: 1px dashed #0ff; padding: 6px; margin-top: 6px; border-radius: 4px; }
+.ui-diagnostics-box { position: fixed; border: 2px solid #0f0; pointer-events: none; z-index: 999998; }
+.ui-diagnostics-parent-box { position: fixed; border: 2px dashed #f0f; pointer-events: none; z-index: 999997; }
+.ui-diagnostics-anchor-dot { position: fixed; width: 8px; height: 8px; margin-left: -4px; margin-top: -4px; background: #ff0; border-radius: 50%; z-index: 999999; pointer-events: none; }

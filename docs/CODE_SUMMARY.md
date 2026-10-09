@@ -2,10 +2,32 @@
 
 ## Architecture Overview
 
-Everything lives in one file, `index.html`: a `<style>` block, the page markup
-(game elements + a large developer control panel), and one inline `<script>`
-holding all game logic. There is no build step — the file that's edited is
-the file that's deployed.
+No build step — the files that are edited are the files that are deployed.
+Split out of the original single `index.html` on 2026-10-08 (behavior proven
+identical; see `docs/PROJECT_PROGRESS.md` and `scripts/refactor-harness/`):
+
+- `index.html` — page markup only: game elements, inline SVGs, the static
+  dev-panel HTML, plus the tiny dev-mode gate `<script>`/`<style>` at the very
+  top of `<head>` (must stay first and inline — it wins the first paint).
+- `src/css/main.css` — all page and dev-panel styles.
+- `src/js/01-07-*.js` — the game and dev panel as 7 **classic** scripts
+  loaded in order, sharing one global scope (top-level `const`/`let`/
+  functions stay visible across files, to inline `onclick=` handlers and to
+  the Stage 2 modules). Boundaries are only where a static load-order check
+  (`scripts/refactor-harness/split.mjs check`) proves nothing running during
+  load can reach a later file's bindings — don't move code across files or
+  add a boundary without re-running it.
+  - `01-dev-panel-style.js` — dev panel self-styling state (`devPanelStyle` and per-device twins)
+  - `02-device-vars.js` — `cssVars`/`mobileCssVars`/`landscapeCssVars`, extrusion vars, shadow builders, device-profile helpers
+  - `03-game-dom.js` — `gameState`, game DOM refs, target anchoring
+  - `04-core.js` — everything else that can't be safely split: `applyActiveVars()`, settings save/load/sync, the dev-panel engine (groups, drag, undo/redo, hotkeys, search, device checkboxes), control arrays + renderers, slider wiring, text edit mode, panel/Round Breakdown drag-resize, and the game loop
+  - `05-game-start.js` — button/start listeners, `startGame()`, resets
+  - `06-dev-panel-tabs-debug.js` — tab switching, debug lines, Mouse Log, `ensureDevPanelBuilt()`
+  - `07-init.js` — the page start-up sequence
+- `src/js/stage2/*.mjs` — UI Layout Engine (vendored at `lib/ui-engine/`)
+  integration: registers ~12 "Stage 2" elements as an Inspector/editing layer
+  over Clicko's own CSS vars (the engine does not position anything itself).
+  `shared.mjs` holds helpers used by several modules.
 
 One exception: `api/save-settings.js`, a small Vercel serverless function
 (CLAUDE.md Section 12l). The dev panel's SAVE button is git-only (no
@@ -29,7 +51,7 @@ Visual tuning is centered on CSS custom properties. Two parallel JS objects,
 (background color, click-frame-set) because they're genuinely one shared
 value, not a per-breakpoint one — see the comments at their declarations.
 
-## Main Modules (by section within index.html)
+## Main Modules (by subsystem)
 
 - **Game elements** — the button (base + dome SVG layers, swapped on press), click-burst particle layer, round/target/speed/result text overlays, round-breakdown panel.
 - **Developer panel** — a large draggable/resizable floating panel, one collapsible section per visual subsystem (8-Bit Text Style, Main Button, Shadow, Click Burst, UI Button, Round Text, Win/Lose Text, Target Count, Speed Display, Game Mechanics, Background), plus a duplicated "Mobile Overrides" block for every section whose values are genuinely device-specific (Game Mechanics, Background, and 8-Bit Text Style are not duplicated, since none of them are actually per-device).
