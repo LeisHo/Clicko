@@ -1336,8 +1336,23 @@ function addGroupLockIcon(section) {
     icon.addEventListener('click', (e) => {
         e.stopPropagation();
         const k = getSectionKey(titleEl);
-        if (lockedGroups.has(k)) { lockedGroups.delete(k); icon.textContent = '🔓'; icon.title = 'Unlocked - click to lock'; icon.classList.remove('locked'); }
-        else { lockedGroups.add(k); icon.textContent = '🔒'; icon.title = 'Locked - click to unlock'; icon.classList.add('locked'); }
+        const nowLocked = !lockedGroups.has(k);
+        // Cascades to every nested subgroup at any depth (template parity): same lock state on
+        // each, keeping lockedGroups and every icon's display in sync.
+        section.querySelectorAll('.dev-section').forEach(subSection => {
+            const subTitle = subSection.querySelector(':scope > .dev-section-title');
+            if (!subTitle) return;
+            const subKey = getSectionKey(subTitle);
+            const subIcon = subSection.querySelector(':scope > .dev-group-lock-icon');
+            if (nowLocked) lockedGroups.add(subKey); else lockedGroups.delete(subKey);
+            if (subIcon) {
+                subIcon.textContent = nowLocked ? '🔒' : '🔓';
+                subIcon.title = nowLocked ? 'Locked - click to unlock' : 'Unlocked - click to lock';
+                subIcon.classList.toggle('locked', nowLocked);
+            }
+        });
+        if (nowLocked) { lockedGroups.add(k); icon.textContent = '🔒'; icon.title = 'Locked - click to unlock'; icon.classList.add('locked'); }
+        else { lockedGroups.delete(k); icon.textContent = '🔓'; icon.title = 'Unlocked - click to lock'; icon.classList.remove('locked'); }
     });
     // Stop pointerdown too: the icon overlaps the title bar (group drag handle), and
     // setupDragReorder() listens at document level, so a click would otherwise arm a group drag.
@@ -2085,11 +2100,12 @@ function setupHotkeySequenceListener() {
     document.addEventListener('keydown', (e) => {
         if (activeSliderHotkey) { handleSliderHotkeyModeKey(e); return; }
         if (isTypingIntoAnInput(e)) return;
-        // Modifier+key combos trigger immediately (not buffered)
+        // Modifier+key combos trigger immediately (not buffered). Only an ASSIGNED combo is
+        // intercepted - an unassigned one (Ctrl+F, Ctrl+R, Ctrl+C ...) must reach the browser.
         const modCombo = buildModifierKeyCombo(e);
         if (modCombo) {
-            e.preventDefault();
             if (devHotkeys[modCombo]) {
+                e.preventDefault();
                 triggerHotkey(devHotkeys[modCombo]);
             }
             return;
@@ -2323,10 +2339,28 @@ function resetDevUndoGesture() {
     devUndoGestureActive = false;
     if (devUndoGestureTimer) { clearTimeout(devUndoGestureTimer); devUndoGestureTimer = null; }
 }
+// A pointerdown whose target is EXACTLY one of these generic wrappers is the empty space you grab
+// to scroll the panel, never a real edit, so it must not push an undo step. Exact match (not
+// .closest()) keeps every control safe: a button/input/handle is always a more specific target.
+// List kept identical to TEMPLATE_DEV_PANEL.html (the list-picker classes are unused here).
+function isDevUndoScrollOnlyTarget(el) {
+    if (el === devPanel) return true;
+    if (!el.classList) return false;
+    return el.classList.contains('dev-panel-scroll-content')
+        || el.classList.contains('dev-section-content')
+        || el.classList.contains('dev-row')
+        || el.classList.contains('dev-section')
+        || el.classList.contains('dev-header-buttons')
+        || el.classList.contains('dev-buttons')
+        || el.classList.contains('dev-list-picker')
+        || el.classList.contains('dev-lp-group-body')
+        || el.classList.contains('dev-lp-ungrouped-body');
+}
 // Shared pointerdown gesture handler, attached to BOTH devPanel and #stage2InspectorPanel (a
 // sibling top-level element) so Inspector drags also push a pre-change undo snapshot.
 function handleDevUndoGesturePointerdown(e) {
     if (devUndoGestureActive) return;
+    if (isDevUndoScrollOnlyTarget(e.target)) return;
     // While Delete is armed the next click either deletes (pushing its own delete entry) or makes
     // no mutation, so a value snapshot here would be useless - skip.
     if (devDeleteGroupArmed) return;

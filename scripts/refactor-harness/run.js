@@ -52,7 +52,11 @@ async function main() {
             await sleep(500);
             const label = `${prefix}-${prof}`;
             const t0 = Date.now();
-            const r = await send('Runtime.evaluate', { expression: `__harnessRun(${JSON.stringify(label)}, {sweep: ${prof === 'desktop'}})`, awaitPromise: true, returnByValue: true, timeout: 900000 });
+            // --eval <file>: run that file's expression (an async IIFE) instead of the capture
+            const evalIdx = process.argv.indexOf('--eval');
+            const expression = evalIdx > 0 ? fs.readFileSync(process.argv[evalIdx + 1], 'utf8')
+                : `__harnessRun(${JSON.stringify(label)}, {sweep: ${prof === 'desktop'}})`;
+            const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true, timeout: 900000 });
             console.log(`${label}: ${JSON.stringify(r.result && (r.result.result ? r.result.result.value : r.result))} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
         }
         ws.close();

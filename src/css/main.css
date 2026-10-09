@@ -2030,7 +2030,7 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
        padding + font-size * line-height) so flex centering places the glyph
        correctly at any font size. Nested titles (0.85x) have a matching
        override below. */
-    height: calc(10px + var(--dev-group-title-font-size-px) * 1px * var(--dev-group-text-line-height));
+    height: calc(10px + var(--dev-group-title-font-size-px, 13) * 1px * var(--dev-group-text-line-height, 1.2));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2090,7 +2090,7 @@ html.dev-mode .dev-toggle-btn { display: inline-block; }
 /* Matches the 0.85x nested title font-size - see .dev-group-drag-handle
    for why the handle height must track the title box exactly. */
 .dev-section-content > .dev-section > .dev-group-drag-handle {
-    height: calc(10px + var(--dev-group-title-font-size-px) * 0.85px * var(--dev-group-text-line-height));
+    height: calc(10px + var(--dev-group-title-font-size-px, 13) * 0.85px * var(--dev-group-text-line-height, 1.2));
 }
 /* An empty group would collapse to 0 height and be impossible to aim a
    drag at (setupDragReorder()'s crossContainerSelector hit-testing).
